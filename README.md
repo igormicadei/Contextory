@@ -1,113 +1,92 @@
-# Relay - Workspace Tasks
+# Relay — Native Agent Companion
 
-Relay is a VS Code sidebar for a shared conversation and a request > milestone > specification queue. It now includes an **experimental live engine**, plus the separate browser/demo preview. Relay is a provisional name.
+Relay keeps project specifications, issues, fixes, decisions and evidence alongside your native Codex, Claude Code or IBM Bob conversation. Native agents own their chats, models, authentication and editing. Relay supplies a shared local workflow through MCP and advisory lifecycle hooks.
 
-The sidebar follows the selected VS Code theme, including custom colors, live theme changes, light/dark modes and both high-contrast variants. It uses native color and font tokens.
+Version **0.2.2** adds a compact overview with request progress, pinned footer agent controls and a readable relationship workbench view. The native-agent rebuild also provides linked history, request reports, Python source flow and explicit agent completion guidance. There is no legacy data importer or direct agent runner.
 
-## Try it
+## Use it
 
-Requires desktop VS Code 1.96+, Node.js 22+, npm, Git for execution, and an installed native agent.
+1. Install Node.js **24+** and the Relay VSIX. Open one trusted local project folder in VS Code or IBM Bob.
+2. Open the Relay activity-bar view. Run **Relay: Connect Native Codex**, **Relay: Connect Native Claude Code**, or **Relay: Connect Native IBM Bob**.
+3. Review the project configuration changes and trust the hooks/MCP server through the native client. Reload its MCP configuration or restart the native extension/session as needed. Relay never changes native approval settings.
+4. Keep talking to the agent in its native chat. The installed `relay-workflow` skill, MCP instructions and session/prompt reminders describe how to record the authorized request, milestones, specs and explanations.
+5. Relay displays the resulting records. Agent buttons stay in the sidebar footer while the content scrolls; click the agent name to connect or disconnect. A green light means configured MCP traffic has been observed; grey means unconfigured or awaiting traffic. Tooltips retain connection details. Keep the workspace editor open for the local service.
 
-```powershell
-npm ci
-npm run build
-```
+After upgrading, reload the native client's MCP configuration/session so it reads the updated tool instructions. Relay refreshes its owned workflow skills for configured agents. If an older workspace service is still alive, Relay explains how to let it stop before reopening; it does not silently attach the new UI to an incompatible service.
 
-Open this folder in VS Code and press **F5**, select **Relay Preview**, then open the Relay activity-bar view. A trusted folder opens in **Live** mode with an empty queue. The **...** menu switches between live workspace data and independent demo data. The pinned F5 runtime uses `noDebug: true` to work around the previously reproduced VS Code inspector crash; breakpoint debugging remains unavailable through that configuration.
+The native adapters are a preview: configuration, protocol, hooks and editor hosts have automated coverage. Authenticated model conversations in each native agent extension remain an explicit qualification step; see [validation](docs/VALIDATION.md).
 
-For installation in your normal VS Code profile:
+## What is available
 
-```powershell
-npm run package:vsix
-code --install-extension artifacts/relay-workspace-0.1.2.vsix
-```
+- Requests → milestones → specs, with immutable record revisions, original intent, dependency checks, implementation leases and an audit trail.
+- Overview starts with workspace metrics, lists every open request with a specification progress bar, and shows the three latest activities with readable titles. Requests has one expandable card per request, inline milestone/spec details and a filter that includes descendant issues and decisions. The separate History tab pages the entire audit trail and links back to requests, milestones and specs.
+- Spec tabs retain findings/fixes, decisions, evidence and outcomes across native conversations and agent switches.
+- Independent named check recipes, asynchronous jobs, cancellation, bounded logs and source fingerprints. Completion requires a current outcome, passing runner evidence for each criterion, completed dependencies and resolved blocking findings. Agent-reported evidence remains labeled.
+- Deterministic request reports include original/current contracts, acceptance criteria, changes, issues/fixes, decisions, test commands/results, evidence origins/snapshots and outcomes. Export from a request card, the command palette, or `relay_report_export` with `requestId`. Changelogs include completed specs only.
+- SQLite lexical search and a relationship graph with bounded forward/reverse impact traversal. Records index automatically; **Index Workspace Knowledge** adds selected workspace source. Search and source mapping remain first-class agent MCP tools, independent of whether the user opens their UI.
+- **Explore relationships** opens a dedicated workbench tab. It shows connected requests, milestones, specs, decisions and source files with titles, IDs, short descriptions, relationship directions and link rationale. Record titles open the corresponding request/spec detail; source references open files. MCP impact results include the same readable summaries and retain explicit traversal limits.
+- Optional local vector/hybrid search. **Prepare Local Semantic Search** installs a pinned model/runtime once; **Index Workspace Knowledge** builds vectors. Queries then run locally. Preparation currently occupies about **486 MiB** on Windows; none of it is bundled in the VSIX. Lexical search works without it.
+- **Trace Flow from Here** in the editor context menu. Python and TypeScript/JavaScript support calls and branch flow. Python needs **Python 3.10+** (`relay.pythonExecutable`); its isolated standard-library AST engine parses source without importing or executing it and works for agents without an editor language provider. Other languages use an installed editor call-hierarchy provider. Sidebar tracing stays in the sidebar; the editor command opens a dedicated flow panel. Both remember the source cursor across sidebar focus changes and support source navigation, bounded expansion and SVG/JSON export.
 
-The browser remains a simulated UI preview:
+Flow defaults to **five call hops**, 150 nodes, 300 edges and a two-second query budget. Recursion, limits, unresolved targets and static-analysis gaps remain visible. Diagrams describe possible source paths; they do not establish runtime coverage. Unsaved buffers are labeled and never count as check evidence.
 
-```powershell
-npm run preview
-```
+## Configure independent checks
 
-Open http://127.0.0.1:4317 to inspect widths and themes. Browser actions cannot execute agents or Git.
-
-## Live workflow
-
-1. Discuss the project or describe a change. The selected native agent investigates source and searches the entire request history using Relay tools. Normal discussion need not create work.
-2. Answer material questions through options or a custom answer. The agent produces structured, validated plans with standalone milestones and specifications.
-3. Inspect the plan in **Requests**. Configure independent checks, then use **Run request** to start implementation. This first release keeps execution as an explicit action.
-4. Relay creates an owned worktree, a `relay/REQ-001/integration` branch and milestone branches such as `relay/REQ-001/m1`. The original checkout stays on its existing branch.
-5. Each specification runs through implementation, configured checks, a real commit and optional push to `origin`. Final checks gate milestone integration. Failed checks block completion; agent claims do not count as passing evidence.
-6. Inspect linked commit patches or export the implementation report. Completed work can receive additional planned milestones while retaining its earlier commits. New unrelated requests can be planned during execution.
-
-Chat, decisions, activity, plans, checks, full commit hashes and native conversation IDs persist in VS Code workspace storage. Atomic snapshots use an integrity hash and a single-owner lock. Interrupted runs stop for inspection after restart. The UI retains the last 200 conversation messages; provider sessions retain their own history.
-
-### Agents and native configuration
-
-- **Codex (default App Server):** the installed `codex app-server` with its native authentication/configuration. Native model/effort discovery is available through **Agent settings > Refresh models**. Relay request/source tools use the experimental dynamic-tool protocol, so runtime compatibility matters.
-- **Codex (native extension):** **Relay: Connect Native OpenAI Codex** connects the official `openai.chatgpt` extension through project-scoped MCP and selects `relay.codexIntegration: "native"` for this workspace. Relay attaches its handoff instructions to the current native Codex chat using the documented Add to Codex Chat command. Press Send there; login, model/reasoning and permissions remain native.
-- **Claude (default):** the official Claude Code extension, using its existing login, model, effort, native permissions and global/project configuration. Relay opens a prefilled Claude tab and shares its queue/context/results through an additive workspace-local MCP server. **Press Send in Claude** to start each handoff. Model selection and the full native conversation remain there; Relay shows published answers, plans and MCP progress.
-- **Claude (optional SDK):** select `relay.claudeIntegration: "sdk"` for the bundled TypeScript SDK `/core` adapter. It retains the installed executable, `claude_code` preset and `user`, `project`, `local` sources. API keys, supported cloud routes, key helpers and custom-gateway settings are detected from the environment and native settings files. The runtime resolves the actual credentials. Subscription OAuth is not reused through this route.
-- Relay preserves the normal home/configuration environment. It does not enable bare/safe mode, replace global agents, disable hooks or restrict the native MCP server list. Request/source tools are added alongside native capabilities.
-- Tracked project configuration appears in a worktree. Ignored local settings, dependencies and local services still need worktree setup; automated setup/copy manifests are not implemented yet.
-- Native permissions remain in effect. Codex/SDK permission requests use VS Code dialogs; native Claude approvals stay in Claude. A worktree is filesystem separation, not a sandbox for services or MCP side effects.
-
-### Connect native Claude
-
-1. Install Relay in your normal VS Code profile with the official Claude Code extension enabled. F5 uses an isolated profile that does not include Claude.
-2. Open one trusted local workspace and run **Relay: Connect Native Claude Code** from the Command Palette. This adds one uniquely named local-scope MCP entry through `claude mcp add-json`; existing provider settings and other MCP entries are preserved. Node must be on PATH. The first Relay Claude turn also performs this setup.
-3. Open a new Claude conversation to load the MCP server and approve its tools through native prompts. Select Claude in Relay and send your message; then press **Send in Claude**. Keep Relay open in the connected workspace.
-
-Your existing `~/.claude/settings.json` and `~/.codex/config.toml` remain provider-owned. Both configured IBM gateways were identified without printing credentials. The earlier environment-only Claude auth check missed the settings file; the optional SDK check now includes settings scopes. No new API key is required for the native workflow.
-
-The native URL supports prompt/session prefill, not automatic submission or a cwd switch. For implementation, Claude is instructed to inspect/edit the absolute Relay worktree. Relay requires a clean original checkout and checks its HEAD, branch and Git-visible changes before accepting the handoff. This detects mistakes; it does not enforce isolation or detect every ignored-file/service side effect. **Stop** cancels Relay tracking and rejects late results; also stop Claude in its native tab. No hooks are installed or replaced. Native MCP progress is explicit, not a full automatic transcript mirror.
-
-The MCP proxy lives at a stable path in workspace storage and reads a rotating, authenticated loopback descriptor. Remove the workspace entry with `claude mcp remove --scope local relay_workspace_<id>` if disconnecting; its exact name is shown by `claude mcp list`. Relay's bridge is available while the extension host is running. Native extension end-to-end/model execution still needs validation in the normal profile; the bridge is covered by protocol and disposable Git fixture tests.
-
-### Connect native OpenAI Codex
-
-1. Install Relay in your normal VS Code profile with the official OpenAI Codex extension enabled, then open one trusted local workspace. F5's isolated profile does not include Codex.
-2. Run **Relay: Connect Native OpenAI Codex**. Relay appends its uniquely named MCP table to the project's `.codex/config.toml`, preserving existing text/settings and your global `~/.codex/config.toml`. The command selects native Codex in the workspace's VS Code settings. Node must be on PATH; a separate Codex CLI is not required for this native route.
-3. Trust the project in Codex and restart the Codex extension from its MCP settings to load the server. Keep Relay open in the same workspace.
-4. Select Codex in Relay and send your message. Relay opens a small handoff document and attaches the selected instructions to the current native Codex chat. **Press Send in Codex** to process the attached Relay handoff; if the composer is empty, type “Continue the attached Relay turn.” Relay receives the answer/plan/progress through MCP.
-
-Model and reasoning selection remain in Codex. Stop Codex in its own UI when stopping a native run; Relay only cancels tracking. Native edits use explicit absolute worktree instructions plus the same original-checkout checks described above. Commit your new project configuration before requesting an implementation that requires a clean Git checkout. Conflicting/disabled Relay entries or malformed project TOML are preserved and reported for inspection.
-
-Set `relay.codexIntegration` back to `appServer` to run Codex directly inside Relay again. Removing just Relay's `mcp_servers.relay_workspace_<id>` table from the project file disconnects the native MCP registration. Codex and Claude share the queue but have separate native turn storage/endpoints; they cannot finish each other's turns. Windows-to-WSL native proxy routing is not supported in this release.
-
-This uses the documented [Codex MCP project configuration](https://learn.chatgpt.com/docs/extend/mcp) and [IDE commands](https://learn.chatgpt.com/docs/ide/commands), with no automatic submission or private extension APIs. Native model/extension end-to-end handoffs remain unverified; routine tests exercise the standard MCP clients, provider isolation, preserved project configuration and independent Git/check runner.
-
-The `@`, `$`, `/` picker discovers conventional local file/skill/agent metadata. Plugin/managed runtime reference catalogs are not yet complete. Image and UTF-8 text attachments can be sent through **+** or paste; binary files should be referenced with `@`. Sent attachment contents enter the selected provider's native session.
-
-### Required checks
-
-Configure `relay.checks` in your trusted workspace. Commands are executable/argument pairs, without shell fragments. For example, a repository using Node's built-in test runner:
+Add recipes to workspace settings. Commands use executable/argument arrays without a shell:
 
 ```json
 {
+  "relay.nodeExecutable": "node",
+  "relay.pythonExecutable": "python",
+  "relay.flowDepth": 5,
   "relay.checks": [
     {
+      "id": "unit",
       "name": "Unit tests",
       "executable": "node",
       "args": ["--test"],
-      "kind": "unit"
+      "timeoutMs": 120000
     }
-  ],
-  "relay.push": false
+  ]
 }
 ```
 
-Add your actual integration and Playwright recipes (`browser` or `layout`) when applicable. Relay runs configured recipes; it does not infer complete coverage or automatically install dependencies. On Windows, choose an executable rather than an `.cmd` wrapper. Check commands execute project code with your account's permissions.
+Use an absolute executable path when PATH differs between the editor and your terminal. On Windows, invoke scripts through their runtime, rather than using `npm.cmd` as an executable without a shell. Recipes run trusted workspace code with the local user's permissions.
 
-Pushing is disabled initially. Enable `relay.push` only after configuring the repository's `origin`. The extension source folder itself has no Git repository or remote configured; live chat/planning still works, but execution requires a clean repository root with an initial commit. No repository was initialized here by this implementation.
+Agents finish tracked work by running `relay_check_run`, recording criterion evidence, submitting `relay_outcome_submit`, then calling `relay_spec_change` with `action: "complete"` and the returned revision. The outcome response supplies that next action. Relay verifies completion and updates parent milestone/request status. If no recipe exists, the agent can configure the project's existing test/check command in workspace settings using its native editing tools. Missing verification or unresolved blocking findings remain explicit blockers; outcome submission alone leaves a spec open.
 
-## Validation and remaining work
+## Configuration and storage
+
+| Agent       | Project MCP file     | Project hooks                 | Workflow skill                           |
+| ----------- | -------------------- | ----------------------------- | ---------------------------------------- |
+| Codex       | `.codex/config.toml` | `.codex/hooks.json`           | `.agents/skills/relay-workflow/SKILL.md` |
+| Claude Code | `.mcp.json`          | `.claude/settings.local.json` | `.claude/skills/relay-workflow/SKILL.md` |
+| IBM Bob     | `.bob/mcp.json`      | `.bob/settings.json`          | `.bob/skills/relay-workflow/SKILL.md`    |
+
+Connection preserves unrelated configuration and refuses linked files, malformed configuration and unowned name conflicts. Disconnect removes Relay-owned entries. Global provider settings and native permission policies are untouched. Hook commands use absolute managed runtime paths; review them before committing project configuration shared with another machine.
+
+The SQLite ledger, audit, artifacts and rotating credentials live under the extension's global storage, separated by canonical project path. The optional model has its own managed directory. No native prompt, transcript or tool-result mirror is retained. Back up the project storage while its service is stopped if retaining it independently of the editor installation.
+
+Supported deployment in this preview: Windows, one trusted local folder, Node 24+, and all processes on the same host. Multi-root workspaces, WSL/SSH/container path bridging and additional language-specific branch extractors are not qualified.
+
+## Develop and validate
 
 ```powershell
+npm ci
 npm run check
+npm run benchmark
 npm run test:host
-npm run test:native
+npm run package:vsix
 ```
 
-`check` covers type checking, domain/transport/persistence/Git fixtures, the bundles and browser behavior/overflow tests. `test:host` uses an isolated official VS Code runtime and tests the F5 workaround. `test:native` explicitly makes real Codex model calls against disposable fixtures; it is separate from routine tests.
+`npm run preview` serves a fixture-backed sidebar for UI development. F5 prepares an isolated VS Code development host. It does not install native agent extensions into that profile.
 
-See [current implementation and limits](docs/IMPLEMENTATION.md), [validation evidence](docs/VALIDATION.md), [full plan](docs/PLAN.md), [architecture](docs/ARCHITECTURE.md) and [provider compatibility](docs/COMPATIBILITY.md). This is a first live implementation, not the completed production backlog. Automatic repair, full crash/side-effect reconciliation, safe active-work amendments, dependency scheduling, multi-root/remote validation and full native reference discovery remain open. Failed/interrupted worktrees are preserved; inspect them before retrying. Goal Guardian was read as reference and was not adopted or invoked.
+To test the Bob host:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/host-smoke.ps1 -HostName bob -Executable "C:\Users\IgorCamposMicadeiBue\AppData\Local\Programs\IBM Bob\IBM Bob.exe"
+```
+
+For the optional real embedding test, first run `npm run prepare:semantic`; without a prepared model that single test is skipped. Native model conversations can consume provider tokens and are kept separate from routine tests.
+
+Implementation details: [architecture](docs/NATIVE-AGENT-ARCHITECTURE.md), [migration and delivery record](docs/NATIVE-AGENT-PLAN.md), [outcome template](docs/SPEC-OUTCOME-TEMPLATE.md), [validation and limits](docs/VALIDATION.md).

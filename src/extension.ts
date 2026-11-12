@@ -1,249 +1,641 @@
-import * as vscode from 'vscode';
-import { randomBytes } from 'node:crypto';
-import { pathToFileURL } from 'node:url';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
-import { copyFile, mkdir, rename, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
-import { NativeBroker, nativeClaudeUri, nativePrompt } from './native/broker';
-import { NativeMcpServer } from './native/server';
-import { nativeRegistration } from './native/registration';
-import { registerNativeCodex } from './native/codexRegistration';
-import { Coordinator, type LiveState } from './engine/coordinator';
-import { CodexAgent } from './engine/codex';
-import { EngineError, type Agent } from './engine/types';
-import { git, verifyWorktree, type CheckRecipe } from './engine/git';
-import { report } from './shared/report';
-import { checkRuntimes } from './diagnostics';
-import { createDemo } from './shared/fixtures';
-import { findSpec, restoreDemo, type DemoState } from './shared/model';
-import { pickAttachments, searchReferences } from './contextDiscovery';
-import { isToHost, type ToWebview } from './shared/protocol';
-import { webviewDocument } from './webview/document';
-let activeEngine: Coordinator | undefined;
-type NativeProvider = 'claude' | 'codex';
-type NativeConnection = { broker: NativeBroker; server: NativeMcpServer };
-const activeNative: Partial<Record<NativeProvider, NativeConnection>> = {};
-export async function deactivate() { await activeEngine?.close(); activeEngine = undefined; for (const provider of ['claude', 'codex'] as const) { await activeNative[provider]?.server.close(); await activeNative[provider]?.broker.close(); delete activeNative[provider]; } }
-
-export function activate(context: vscode.ExtensionContext): void {
-  const content = new Map<string, string>();
-  context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider('relay-preview', {
-    provideTextDocumentContent(uri) { return content.get(uri.toString()) ?? 'Preview document no longer available. Open it again from Relay.'; }
-  }));
-  async function document(name: string, text: string, language?: string): Promise<vscode.Uri> {
-    const uri = vscode.Uri.parse(`relay-preview:/${Date.now()}-${name}`);
-    content.set(uri.toString(), text);
-    const doc = await vscode.workspace.openTextDocument(uri);
-    if (language) await vscode.languages.setTextDocumentLanguage(doc, language);
-    return uri;
-  }
-  const stored = context.workspaceState.get<unknown>('relay.demo.v1');
-  let state: DemoState = restoreDemo(stored) ?? createDemo();
+import * as vscode from "vscode";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
+import { mkdir, realpath } from "node:fs/promises";
+import { join } from "node:path";
+import { spawn } from "node:child_process";
+import { ServiceClient } from "./service/client";
+import { configureProvider } from "./providers/registration";
+import { editorCallGraph } from "./editor/calls";
+import { webviewDocument } from "./webview/document";
+import type {
+  Dashboard,
+  FlowGraph,
+  FlowInput,
+  Provider,
+  RelationshipGraph,
+} from "./contracts/model";
+let active: ServiceClient | undefined;
+export async function deactivate() {
+  await active?.close();
+  active = undefined;
+}
+export async function activate(context: vscode.ExtensionContext) {
+  const output = vscode.window.createOutputChannel("Relay");
+  context.subscriptions.push(output);
   let view: vscode.WebviewView | undefined;
-  let checking = false;
-  let live = !!vscode.workspace.workspaceFolders?.length && context.workspaceState.get<boolean>('relay.live', true);
-  let opening: Promise<Coordinator> | undefined;
-  const nativeOpening: Partial<Record<NativeProvider, Promise<NativeConnection>>> = {};
-  const nativeClaude = () => vscode.workspace.getConfiguration('relay').get<string>('claudeIntegration', 'native') === 'native';
-  const nativeCodex = () => vscode.workspace.getConfiguration('relay').get<string>('codexIntegration', 'appServer') === 'native';
-  const post = (message: ToWebview) => view?.webview.postMessage(message);
-  const workspaceMessage = (): ToWebview => ({ type: 'workspace', live, name: vscode.workspace.workspaceFolders?.[0]?.name ?? 'Relay', claudeIntegration: nativeClaude() ? 'native' : 'sdk', codexIntegration: nativeCodex() ? 'native' : 'appServer' });
-  const registeredKey = (provider: NativeProvider) => provider === 'codex' ? 'relay.nativeCodexRegistered' : 'relay.nativeClaudeRegistered';
-  const requireNative = (provider: NativeProvider) => {
-    if (provider === 'codex' && process.platform === 'win32' && vscode.workspace.getConfiguration('chatgpt').get<boolean>('runCodexInWindowsSubsystemForLinux', false)) throw new EngineError('Relay native Codex currently requires the same local Windows host. WSL Codex cannot use this Windows MCP proxy; keep using the existing route or connect from a supported local profile.');
-    const id = provider === 'codex' ? 'openai.chatgpt' : 'anthropic.claude-code';
-    const extension = vscode.extensions.getExtension(id);
-    if (!extension) throw new EngineError(`Install/enable the official ${provider === 'codex' ? 'OpenAI Codex' : 'Claude Code'} extension in this VS Code profile. F5 uses an isolated profile; use your normal profile for native integration.`);
-    return extension;
-  };
-  const connectNative = async (provider: NativeProvider, register: boolean) => {
-    if (!vscode.workspace.isTrusted || !context.storageUri || vscode.workspace.workspaceFolders?.length !== 1) throw new EngineError('The native agent bridge requires one trusted local workspace.');
-    const root = vscode.workspace.workspaceFolders[0].uri.fsPath;
-    if (vscode.workspace.workspaceFolders[0].uri.scheme !== 'file') throw new EngineError('The native agent bridge requires a local filesystem workspace.');
-    const prefix = provider === 'codex' ? 'native-codex' : 'native';
-    const descriptor = join(context.storageUri.fsPath, `${prefix}-bridge.json`); const proxy = join(context.storageUri.fsPath, `${prefix}-proxy.mjs`);
-    if (!nativeOpening[provider]) nativeOpening[provider] = (async () => {
-      const broker = new NativeBroker(context.storageUri!.fsPath, {
-        open: async turn => {
-          const extension = requireNative(provider);
-          if (provider === 'claude') {
-            if (!await vscode.env.openExternal(vscode.Uri.parse(nativeClaudeUri(turn, vscode.env.uriScheme)))) throw new EngineError('Could not open the native Claude tab. Open Claude Code and retry the Relay message.');
-          } else {
-            await extension.activate();
-            const commands = await vscode.commands.getCommands(true);
-            if (!commands.includes('chatgpt.addToThread') || !commands.includes('chatgpt.openSidebar')) throw new EngineError('The installed Codex extension lacks the documented context/sidebar commands. Update Codex and retry.');
-            const folder = join(context.storageUri!.fsPath, 'native-codex-handoffs'); await mkdir(folder, { recursive: true });
-            const path = join(folder, `${turn.id}.md`); await writeFile(path, nativePrompt(turn), 'utf8');
-            const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(path));
-            const editor = await vscode.window.showTextDocument(doc, { preview: true });
-            editor.selection = new vscode.Selection(doc.positionAt(0), doc.positionAt(doc.getText().length));
-            // Public command attaches selected context; it does not submit a message.
-            await vscode.commands.executeCommand('chatgpt.addToThread');
-            await vscode.commands.executeCommand('chatgpt.openSidebar');
-          }
+  let panel: vscode.WebviewPanel | undefined;
+  let relationshipPanel: vscode.WebviewPanel | undefined;
+  let lastRelationships: RelationshipGraph | undefined;
+  let relationshipRequest = 0;
+  let pendingRecord: string | undefined;
+  let opening: Promise<ServiceClient> | undefined;
+  let lastGraph: FlowGraph | undefined;
+  let lastSource: FlowInput["root"] | undefined;
+  const rememberEditor = (editor: vscode.TextEditor | undefined) => {
+    if (
+      editor?.document.uri.scheme === "file" &&
+      vscode.workspace.getWorkspaceFolder(editor.document.uri)
+    )
+      lastSource = {
+        path: vscode.workspace.asRelativePath(editor.document.uri, false),
+        position: {
+          line: editor.selection.active.line,
+          character: editor.selection.active.character,
         },
-        activity: text => post({ type: 'activity', text }),
-        history: () => activeEngine?.state.projection.messages.slice(-20).map(m => ({ role: m.role, text: m.text })) ?? [],
-        search: query => activeEngine?.search(query) ?? [], request: id => activeEngine?.get(id) ?? null
-      }, provider);
-      const server = new NativeMcpServer(broker);
-      try { await broker.open(); await server.start(descriptor); await copyFile(vscode.Uri.joinPath(context.extensionUri, 'dist', 'native-proxy.mjs').fsPath, proxy + '.tmp'); await rename(proxy + '.tmp', proxy); }
-      catch (error) { await server.close(); await broker.close(); throw error; }
-      activeNative[provider] = { broker, server }; return activeNative[provider]!;
-    })().catch(error => { delete nativeOpening[provider]; throw error; });
-    const native = await nativeOpening[provider]!;
-    if (register && provider === 'codex') {
-      await registerNativeCodex(root, proxy, descriptor);
-      await context.workspaceState.update(registeredKey(provider), true);
-    } else if (register && !context.workspaceState.get<boolean>(registeredKey(provider), false)) {
-      const registration = nativeRegistration(root, proxy, descriptor);
-      try {
-        await promisify(execFile)(vscode.workspace.getConfiguration('relay').get<string>('claudeExecutable', 'claude'), ['mcp', 'add-json', '--scope', 'local', registration.name, JSON.stringify(registration.config)], { cwd: root, windowsHide: true, timeout: 15000, maxBuffer: 128 * 1024 });
-        await context.workspaceState.update(registeredKey(provider), true);
-      } catch { throw new EngineError('Could not register the Relay MCP server with native Claude. Check relay.claudeExecutable and Node availability. Existing native configuration was not replaced.'); }
-    }
-    return native;
+        start: "cursor",
+      };
   };
-  const agent = async (provider: 'codex' | 'claude'): Promise<Agent> => {
-    if (!vscode.workspace.isTrusted) throw new EngineError('Trust this workspace before connecting a native agent.');
-    const config = vscode.workspace.getConfiguration('relay');
-    if ((provider === 'codex' && nativeCodex()) || (provider === 'claude' && nativeClaude())) {
-      requireNative(provider);
-      return (await connectNative(provider, true)).broker;
-    }
-    if (provider === 'codex') return new CodexAgent(config.get<string>('codexExecutable', 'codex'));
-    let executable = config.get<string>('claudeExecutable', 'claude');
-    if (!/[\\/]/.test(executable)) {
-      try { executable = (await promisify(execFile)(process.platform === 'win32' ? 'where.exe' : 'which', [executable], { windowsHide: true, timeout: 5000 })).stdout.trim().split(/\r?\n/)[0]; } catch { throw new EngineError('Claude executable not found. Configure relay.claudeExecutable.'); }
-    }
-    const module = await (new Function('url', 'return import(url)') as (url: string) => Promise<{ ClaudeAgent: new (path: string) => Agent }>)(pathToFileURL(vscode.Uri.joinPath(context.extensionUri, 'dist', 'claude.mjs').fsPath).href);
-    return new module.ClaudeAgent(executable);
+  rememberEditor(vscode.window.activeTextEditor);
+  context.subscriptions.push(
+    vscode.window.onDidChangeActiveTextEditor(rememberEditor),
+    vscode.window.onDidChangeTextEditorSelection((e) =>
+      rememberEditor(e.textEditor),
+    ),
+  );
+  const post = (message: unknown) => {
+    void view?.webview.postMessage(message);
+    void panel?.webview.postMessage(message);
+    void relationshipPanel?.webview.postMessage(message);
   };
-  const engine = (): Promise<Coordinator> => {
-    if (opening) return opening;
-    opening = (async () => {
-      if (!vscode.workspace.isTrusted || !context.storageUri || vscode.workspace.workspaceFolders?.length !== 1) throw new EngineError('Live Relay currently requires one trusted, local workspace folder.');
-      const root = vscode.workspace.workspaceFolders[0].uri;
-      if (root.scheme !== 'file') throw new EngineError('Live execution requires a local filesystem workspace on the extension host.');
-      const coordinator = new Coordinator({ root: root.fsPath, storage: context.storageUri.fsPath, agent,
-        changed: (s: LiveState) => { if (live) { state = s.projection; post({ type: 'restore', state }); } },
-        activity: text => { if (live) post({ type: 'activity', text }); },
-        approve: async (title, detail) => vscode.window.showWarningMessage(`${title}\n\n${detail}`, { modal: true }, 'Allow once') .then(answer => answer === 'Allow once'),
-        checks: () => vscode.workspace.getConfiguration('relay').get<CheckRecipe[]>('checks', []),
-        push: () => vscode.workspace.getConfiguration('relay').get<boolean>('push', false)
+  const root = () => {
+    const folders = vscode.workspace.workspaceFolders;
+    if (!folders?.length || folders[0].uri.scheme !== "file")
+      throw new Error("Open a trusted local folder to use Relay.");
+    if (folders.length !== 1)
+      throw new Error(
+        "Open this project as a single-folder workspace. Multi-root selection is not yet qualified.",
+      );
+    if (!vscode.workspace.isTrusted)
+      throw new Error(
+        "Trust this workspace before connecting agents or running analysis/checks.",
+      );
+    return folders[0].uri.fsPath;
+  };
+  const refresh = async () => {
+    const client = await service();
+    post({
+      type: "restore",
+      dashboard: await client.call<Dashboard>("dashboard"),
+    });
+  };
+  const handleEvent = (event: Record<string, unknown>) => {
+    if (event.type === "changed" || event.type === "connected")
+      void refresh().catch((error) =>
+        post({ type: "notice", text: error.message }),
+      );
+    else if (event.type === "editor.trace")
+      void editorCallGraph(root(), event.input as FlowInput).then(
+        (graph) => active?.call("editor.response", { id: event.id, graph }),
+        (error) =>
+          active?.call("editor.response", {
+            id: event.id,
+            error: error.message,
+          }),
+      );
+    else if (event.type === "disconnected") {
+      opening = undefined;
+      post({
+        type: "notice",
+        text: "Relay service disconnected. Refresh to reconnect; native work can continue.",
       });
-      await coordinator.open(); activeEngine = coordinator; return coordinator;
-    })().catch(error => { opening = undefined; throw error; });
-    return opening;
+    }
   };
-  const restore = async () => {
-    post(workspaceMessage());
-    if (live) state = (await engine()).state.projection;
-    else state = restoreDemo(context.workspaceState.get<unknown>('relay.demo.v1')) ?? createDemo();
-    post({ type: 'restore', state });
-  };
-  const openPlan = async () => { await vscode.commands.executeCommand('markdown.showPreview', vscode.Uri.joinPath(context.extensionUri, 'docs', 'PLAN.md')); };
-  const diagnostics = async () => {
-    if (checking) return;
-    if (!vscode.workspace.isTrusted) { post({ type: 'notice', text: 'Runtime checks require a trusted workspace. The preview remains available.' }); return; }
-    checking = true;
+  const service = (): Promise<ServiceClient> =>
+    (opening ??= (async () => {
+      const path = await realpath(root());
+      const storage = join(
+        context.globalStorageUri.fsPath,
+        "projects",
+        createHash("sha256")
+          .update(process.platform === "win32" ? path.toLowerCase() : path)
+          .digest("hex")
+          .slice(0, 24),
+      );
+      const client = new ServiceClient(
+        path,
+        storage,
+        context.extensionUri.fsPath,
+        vscode.workspace
+          .getConfiguration("relay")
+          .get("nodeExecutable", "node"),
+        join(context.globalStorageUri.fsPath, "embeddings"),
+        handleEvent,
+        (text) => output.appendLine(text),
+      );
+      await active?.close();
+      active = client;
+      await client.start();
+      await client.call("configure", {
+        recipes: vscode.workspace.getConfiguration("relay").get("checks", []),
+        pythonExecutable: vscode.workspace
+          .getConfiguration("relay")
+          .get("pythonExecutable", "python"),
+      });
+      // Refresh Relay-owned instructions on upgrades for already connected agents.
+      const configured = await client.call<Dashboard>("dashboard");
+      for (const connection of configured.connections.filter(
+        (c) => c.configured,
+      )) {
+        try {
+          await configureProvider({
+            root: path,
+            provider: connection.provider,
+            node: client.node,
+            proxy: join(storage, "runtime/mcp-proxy.mjs"),
+            hook: join(storage, "runtime/relay-hook.mjs"),
+            descriptor: join(storage, `${connection.provider}.json`),
+            hookDescriptor: join(storage, `${connection.provider}-hook.json`),
+          });
+        } catch (error) {
+          output.appendLine(
+            `Managed agent configuration refresh: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        }
+      }
+      return client;
+    })().catch((error) => {
+      opening = undefined;
+      throw error;
+    }));
+  const run = async (work: () => Promise<unknown>) => {
+    post({ type: "busy", value: true });
     try {
-      const config = vscode.workspace.getConfiguration('relay');
-      const results = await checkRuntimes({ codex: config.get<string>('codexExecutable', 'codex'), claude: config.get<string>('claudeExecutable', 'claude') });
-      if (view) post({ type: 'diagnostics', results });
-      else await vscode.window.showInformationMessage(results.map(r => `${r.provider}: ${r.version ?? 'unavailable'}`).join(' · '));
-    } finally { checking = false; }
+      return await work();
+    } catch (error) {
+      const text =
+        error instanceof Error ? error.message : "Relay operation failed.";
+      post({ type: "notice", text });
+      output.appendLine(text);
+      return undefined;
+    } finally {
+      post({ type: "busy", value: false });
+    }
+  };
+  const connect = async (provider: Provider, remove = false) => {
+    const client = await service();
+    const result = await configureProvider(
+      {
+        root: root(),
+        provider,
+        node: client.node,
+        proxy: join(client.storage, "runtime/mcp-proxy.mjs"),
+        hook: join(client.storage, "runtime/relay-hook.mjs"),
+        descriptor: join(client.storage, `${provider}.json`),
+        hookDescriptor: join(client.storage, `${provider}-hook.json`),
+      },
+      remove,
+    );
+    await client.call("provider.configured", { provider, configured: !remove });
+    post({ type: "notice", text: result.instruction });
+    await refresh();
+    return result;
+  };
+  const showMap = () => {
+    if (!panel) {
+      panel = vscode.window.createWebviewPanel(
+        "relay.flow",
+        "Relay · Source Flow",
+        vscode.ViewColumn.Beside,
+        { enableScripts: true, localResourceRoots: [context.extensionUri] },
+      );
+      panel.webview.html = document(panel.webview, "flow");
+      panel.webview.onDidReceiveMessage(
+        (message) => {
+          void receive(message, panel?.webview);
+        },
+        undefined,
+        context.subscriptions,
+      );
+      panel.onDidDispose(() => {
+        panel = undefined;
+      });
+    }
+    panel.reveal(vscode.ViewColumn.Beside, true);
+  };
+  const trace = async (
+    provided?: FlowInput,
+    options?: Pick<FlowInput, "view" | "limits">,
+    inPanel = true,
+  ) => {
+    const client = await service();
+    let input = provided;
+    if (!input) {
+      rememberEditor(vscode.window.activeTextEditor);
+      if (!lastSource)
+        throw new Error("Place the cursor inside a source function first.");
+      input = {
+        root: lastSource,
+        view: /\.(?:[cm]?[jt]sx?|py)$/.test(lastSource.path) ? "flow" : "calls",
+        limits: {
+          callDepth: vscode.workspace
+            .getConfiguration("relay")
+            .get("flowDepth", 5),
+        },
+      };
+    }
+    input.overlays = Object.fromEntries(
+      vscode.workspace.textDocuments
+        .filter(
+          (doc) =>
+            doc.isDirty &&
+            doc.uri.scheme === "file" &&
+            vscode.workspace.getWorkspaceFolder(doc.uri)?.uri.fsPath === root(),
+        )
+        .map((doc) => [
+          vscode.workspace.asRelativePath(doc.uri, false),
+          doc.getText(),
+        ]),
+    );
+    if (options) input = { ...input, ...options };
+    const graph = await client.call<FlowGraph>(
+      "tools/call",
+      { name: "relay_flow_trace", arguments: input },
+      15000,
+    );
+    lastGraph = graph;
+    if (inPanel) showMap();
+    post({ type: "flow", graph });
+    return graph;
+  };
+  const document = (
+    webview: vscode.Webview,
+    surface: "sidebar" | "flow" | "relationships" = "sidebar",
+  ) =>
+    webviewDocument({
+      script: webview
+        .asWebviewUri(
+          vscode.Uri.joinPath(context.extensionUri, "dist/webview.js"),
+        )
+        .toString(),
+      stylesheet: webview
+        .asWebviewUri(
+          vscode.Uri.joinPath(context.extensionUri, "media/sidebar.css"),
+        )
+        .toString(),
+      cspSource: webview.cspSource,
+      nonce: randomBytes(24).toString("hex"),
+      surface,
+    });
+  const showRelationships = async (id: string) => {
+    const request = ++relationshipRequest;
+    const graph = await (
+      await service()
+    ).call<RelationshipGraph>("tools/call", {
+      name: "relay_impact_get",
+      arguments: { id, direction: "both", depth: 5, limit: 60 },
+    });
+    if (request !== relationshipRequest) return graph;
+    lastRelationships = graph;
+    if (!relationshipPanel) {
+      const created = vscode.window.createWebviewPanel(
+        "relay.relationships",
+        "Relay: Relationships",
+        vscode.ViewColumn.Beside,
+        { enableScripts: true, localResourceRoots: [context.extensionUri] },
+      );
+      relationshipPanel = created;
+      created.webview.html = document(created.webview, "relationships");
+      created.webview.onDidReceiveMessage(
+        (message) => {
+          void receive(message, created.webview);
+        },
+        undefined,
+        context.subscriptions,
+      );
+      created.onDidDispose(() => {
+        relationshipPanel = undefined;
+      });
+    }
+    relationshipPanel.reveal(vscode.ViewColumn.Beside);
+    await relationshipPanel.webview.postMessage({
+      type: "relationships",
+      graph,
+    });
+    return graph;
+  };
+  const openSource = async (source: {
+    path: string;
+    line?: number;
+    character?: number;
+  }) => {
+    if (
+      typeof source.path !== "string" ||
+      source.path.includes("..") ||
+      /^[\\/]|^[A-Za-z]:/.test(source.path)
+    )
+      throw new Error("Source link must stay in this workspace.");
+    const path = await (
+      await service()
+    ).call<string>("source.resolve", { path: source.path });
+    const uri = vscode.Uri.file(path);
+    const document = await vscode.workspace.openTextDocument(uri);
+    const position = document.validatePosition(
+      new vscode.Position(source.line ?? 0, source.character ?? 0),
+    );
+    await vscode.window.showTextDocument(document, {
+      selection: new vscode.Range(position, position),
+      preview: true,
+    });
+  };
+  const exportReport = async (requestId?: string) => {
+    const client = await service();
+    if (!requestId) {
+      const dashboard = await client.call<Dashboard>("dashboard");
+      const requests = dashboard.entities.filter((e) => e.kind === "request");
+      if (!requests.length)
+        throw new Error("Create a request before exporting its report.");
+      const picked =
+        requests.length === 1
+          ? requests[0].id
+          : (
+              await vscode.window.showQuickPick(
+                requests.map((e) => ({
+                  label: e.title,
+                  description: e.id,
+                  id: e.id,
+                })),
+                { placeHolder: "Choose the request to export" },
+              )
+            )?.id;
+      if (!picked) return;
+      requestId = picked;
+    }
+    const result = await client.call<{ artifact: string }>("tools/call", {
+      name: "relay_report_export",
+      arguments: { format: "report", requestId },
+    });
+    const uri = vscode.Uri.file(
+      join(client.storage, "artifacts", result.artifact),
+    );
+    await vscode.window.showTextDocument(uri);
+    return uri;
+  };
+  const deliverRecord = async (webview?: vscode.Webview) => {
+    const id = pendingRecord;
+    if (
+      id &&
+      (await webview?.postMessage({ type: "selectRecord", id })) &&
+      pendingRecord === id
+    )
+      pendingRecord = undefined;
+  };
+  const receive = async (raw: unknown, sender?: vscode.Webview) => {
+    if (!raw || typeof raw !== "object") return;
+    const message = raw as Record<string, unknown>;
+    await run(async () => {
+      switch (message.type) {
+        case "ready":
+          await refresh();
+          if (lastGraph && message.surface === "flow")
+            void sender?.postMessage({ type: "flow", graph: lastGraph });
+          if (lastRelationships && message.surface === "relationships")
+            void sender?.postMessage({
+              type: "relationships",
+              graph: lastRelationships,
+            });
+          if (message.surface === "sidebar") await deliverRecord(sender);
+          break;
+        case "refresh":
+          await refresh();
+          break;
+        case "connect":
+          if (["codex", "claude", "bob"].includes(String(message.provider)))
+            await connect(message.provider as Provider);
+          break;
+        case "disconnect":
+          if (["codex", "claude", "bob"].includes(String(message.provider)))
+            await connect(message.provider as Provider, true);
+          break;
+        case "tool": {
+          const client = await service();
+          const result = await client.call("tools/call", {
+            name: message.name,
+            arguments: message.arguments,
+          });
+          post({ type: "toolResult", requestId: message.requestId, result });
+          await refresh();
+          break;
+        }
+        case "trace":
+          await trace(
+            message.input as FlowInput | undefined,
+            message.options as Pick<FlowInput, "view" | "limits"> | undefined,
+            false,
+          );
+          break;
+        case "expand": {
+          const client = await service();
+          const graph = await client.call<FlowGraph>(
+            "tools/call",
+            { name: "relay_flow_expand", arguments: message.arguments },
+            15000,
+          );
+          lastGraph = graph;
+          post({ type: "flow", graph });
+          break;
+        }
+        case "source":
+          await openSource(
+            message.source as {
+              path: string;
+              line?: number;
+              character?: number;
+            },
+          );
+          break;
+        case "relationships":
+          if (typeof message.id === "string")
+            await showRelationships(message.id);
+          break;
+        case "openRecord":
+          if (typeof message.id === "string") {
+            pendingRecord = message.id;
+            await vscode.commands.executeCommand("relay.tasks.focus");
+            await deliverRecord(view?.webview);
+          }
+          break;
+        case "report":
+          await exportReport(
+            typeof message.requestId === "string"
+              ? message.requestId
+              : undefined,
+          );
+          break;
+        case "graphExport": {
+          if (!lastGraph) break;
+          const content =
+            message.format === "json"
+              ? JSON.stringify(lastGraph, null, 2)
+              : message.format === "svg" &&
+                  typeof message.content === "string" &&
+                  message.content.length < 2 * 1024 * 1024
+                ? message.content
+                : undefined;
+          if (content)
+            await vscode.window.showTextDocument(
+              await vscode.workspace.openTextDocument({
+                language: message.format === "json" ? "json" : "xml",
+                content,
+              }),
+            );
+          break;
+        }
+        case "index": {
+          const client = await service();
+          const sources = await client.call("index.sources", {}, 120000);
+          post({
+            type: "notice",
+            text: `Workspace indexed: ${JSON.stringify(sources)}`,
+          });
+          if ((await client.call<Dashboard>("dashboard")).semantic.ready)
+            await client.call("index.vectors", {}, 600000);
+          await refresh();
+          break;
+        }
+        case "prepareSemantic":
+          await vscode.commands.executeCommand("relay.prepareSemantic");
+          break;
+        case "cancelAnalysis":
+          await (await service()).call("analysis.cancel");
+          break;
+      }
+    });
   };
   context.subscriptions.push(
-    vscode.commands.registerCommand('relay.openPlan', openPlan),
-    vscode.commands.registerCommand('relay.checkRuntimes', diagnostics),
-    vscode.commands.registerCommand('relay.connectNativeCodex', async () => {
-      try {
-        requireNative('codex'); await engine(); await connectNative('codex', true);
-        await vscode.workspace.getConfiguration('relay').update('codexIntegration', 'native', vscode.ConfigurationTarget.Workspace);
-        await vscode.commands.executeCommand('chatgpt.openSidebar');
-        post(workspaceMessage());
-        const text = 'Relay is connected to native OpenAI Codex using project MCP configuration. Restart Codex from its MCP settings to load Relay, then send from Relay and press Send in Codex. Native login/model/permissions are preserved.';
-        post({ type: 'notice', text }); await vscode.window.showInformationMessage(text);
-      } catch (error) { const text = error instanceof EngineError ? error.message : 'Native Codex setup failed. Existing provider settings were preserved.'; post({ type: 'notice', text }); await vscode.window.showWarningMessage(text); }
+    vscode.window.registerWebviewViewProvider("relay.tasks", {
+      resolveWebviewView(value) {
+        view = value;
+        view.webview.options = {
+          enableScripts: true,
+          localResourceRoots: [context.extensionUri],
+        };
+        view.webview.html = document(view.webview);
+        view.webview.onDidReceiveMessage(
+          (message) => {
+            void receive(message, view?.webview);
+          },
+          undefined,
+          context.subscriptions,
+        );
+      },
     }),
-    vscode.commands.registerCommand('relay.connectNativeClaude', async () => {
-      try { requireNative('claude'); await engine(); await connectNative('claude', true); const text = 'Relay MCP is connected to native Claude for this workspace. Open a new Claude conversation to load it; keep native MCP approval prompts enabled.'; if (view) post({ type: 'notice', text }); else await vscode.window.showInformationMessage(text); }
-      catch (error) { const text = error instanceof EngineError ? error.message : 'Native Claude setup failed.'; post({ type: 'notice', text }); await vscode.window.showWarningMessage(text); }
-    }),
-    vscode.commands.registerCommand('relay.resetDemo', async () => { live = false; state = createDemo(); await context.workspaceState.update('relay.demo.v1', state); post({ type: 'workspace', live, name: vscode.workspace.workspaceFolders?.[0]?.name ?? 'Relay' }); post({ type: 'reset' }); }),
-    vscode.window.registerWebviewViewProvider('relay.tasks', {
-      resolveWebviewView(webviewView) {
-        view = webviewView;
-        const { webview } = webviewView;
-        webview.options = { enableScripts: true, localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'dist'), vscode.Uri.joinPath(context.extensionUri, 'media')] };
-        webview.html = webviewDocument({ script: webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'dist', 'webview.js')).toString(), stylesheet: webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'sidebar.css')).toString(), cspSource: webview.cspSource, nonce: randomBytes(24).toString('hex') });
-        webviewView.onDidDispose(() => { if (view === webviewView) view = undefined; }, undefined, context.subscriptions);
-        webview.onDidReceiveMessage(async (raw: unknown) => {
-          if (!isToHost(raw)) return;
-          try {
-            if (raw.type === 'ready') { await restore(); return; }
-            if (raw.type === 'setMode') { activeEngine?.stop(); live = raw.live; await context.workspaceState.update('relay.live', live); await restore(); return; }
-            if (raw.type === 'models') { if (live) post({ type: 'models', provider: raw.provider, items: (raw.provider === 'claude' && nativeClaude()) || (raw.provider === 'codex' && nativeCodex()) ? [{ id: 'default', label: `Selected in ${raw.provider === 'codex' ? 'Codex' : 'Claude'} extension`, efforts: ['default'] }] : await (await agent(raw.provider)).models(vscode.workspace.workspaceFolders![0].uri.fsPath) }); return; }
-            if (raw.type === 'liveStop') { activeEngine?.stop(); return; }
-            if (raw.type === 'liveRun') { if (live) await (await engine()).run(raw.id); return; }
-            if (raw.type === 'openWorktree') {
-              if (!live) return;
-              const coordinator = await engine(); const path = coordinator.state.plans[raw.id]?.worktree;
-              if (!path) throw new EngineError('This request has no worktree yet. Run it after configuring checks.');
-              await verifyWorktree(vscode.workspace.workspaceFolders![0].uri.fsPath, path, `relay/${raw.id}/integration`);
-              await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(path), true); return;
-            }
-            if (raw.type === 'liveAnswer') { if (live) await (await engine()).answer(raw.id, raw.text); return; }
-            if (raw.type === 'liveSubmit') {
-              if (!live) return;
-              const images: string[] = []; const files: string[] = [];
-              for (const attachment of raw.attachments) {
-                const data = attachment.data ?? attachment.thumbnail?.split(',')[1];
-                if (!data || Buffer.from(data, 'base64').length !== attachment.size) throw new EngineError(`Attachment ${attachment.name} has no valid content. Attach it again.`);
-                if (attachment.mime.startsWith('image/')) images.push(`data:${attachment.mime};base64,${data}`);
-                else { const bytes = Buffer.from(data, 'base64'); if (bytes.includes(0)) throw new EngineError('Binary files are not supported as text attachments yet. Reference the workspace file with @ instead.'); files.push(`\nAttached file: ${attachment.name}\n${bytes.toString('utf8')}`); }
-              }
-              await (await engine()).submit(raw.text + files.join('\n'), raw.choice, images); return;
-            }
-            if (raw.type === 'save') { if (!live) { state = raw.state; await context.workspaceState.update('relay.demo.v1', state); } }
-            if (raw.type === 'openPlan') await openPlan();
-            if (raw.type === 'checkRuntimes') await diagnostics();
-            if (raw.type === 'pickAttachments') post({ type: 'attachments', files: await pickAttachments() });
-            if (raw.type === 'searchReferences') post({ type: 'references', requestId: raw.requestId, items: await searchReferences(raw.trigger, raw.query, raw.provider) });
-            if (raw.type === 'openReport') {
-              const uri = await document(live ? 'implementation-report.md' : 'demo-report.md', live ? report((await engine()).state.projection, true) : raw.markdown, 'markdown');
-              await vscode.window.showTextDocument(uri, { preview: true });
-            }
-            if (raw.type === 'openSpec') {
-              const found = findSpec(state, raw.id);
-              if (!found) return;
-              const { spec, milestone, request } = found;
-              const text = `# ${spec.id}: ${spec.title}\n\n${live ? '> Saved Relay specification.' : '> Demo specification. No agent is executing this work.'}\n\nRequest: ${request.id}\nMilestone: ${milestone.id}\nRevision: ${spec.revision}\n\n${spec.description}\n\n## Acceptance criteria\n\n${spec.criteria.map(c => `- ${c}`).join('\n')}\n\n## Change requests\n\n${spec.amendments.map(a => `- ${a}`).join('\n') || 'None.'}`;
-              await vscode.window.showTextDocument(await document(`${spec.id}.md`, text, 'markdown'), { preview: true });
-            }
-            if (raw.type === 'openDiff') {
-              const found = findSpec(state, raw.id);
-              if (!found?.spec.commits.some(c => c.sha === raw.sha)) return;
-              if (live) {
-                const cwd = (await engine()).state.plans[found.request.id]?.worktree;
-                if (!cwd) throw new EngineError('Request worktree is unavailable.');
-                const text = await git(cwd, ['show', '--format=fuller', '--stat', '--patch', raw.sha]);
-                await vscode.window.showTextDocument(await document(`${raw.sha}.diff`, text, 'diff'), { preview: true }); return;
-              }
-              const before = await document('sample-before.css', '.settings-panel {\n  width: 640px;\n}\n', 'css');
-              const after = await document('sample-after.css', '.settings-panel {\n  width: 100%;\n  max-width: 640px;\n  min-width: 0;\n}\n', 'css');
-              await vscode.commands.executeCommand('vscode.diff', before, after, `SAMPLE DIFF · ${raw.id} · ${raw.sha}`);
-            }
-          } catch (error) { post({ type: 'notice', text: error instanceof EngineError ? error.message : 'Relay could not finish this action. Check settings and reopen the view to retry.' }); }
-        }, undefined, context.subscriptions);
-      }
-    })
   );
-  context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(event => { if (event.affectsConfiguration('relay.claudeIntegration') || event.affectsConfiguration('relay.codexIntegration')) post(workspaceMessage()); }));
-  for (const provider of ['claude', 'codex'] as const) if (context.workspaceState.get<boolean>(registeredKey(provider), false) && vscode.workspace.isTrusted) {
-    // Refresh the endpoint and stable proxy after reload; no model call or native login is started.
-    void engine().then(() => connectNative(provider, false)).catch(() => {});
-  }
+  const command = (id: string, handler: () => Promise<unknown>) =>
+    context.subscriptions.push(
+      vscode.commands.registerCommand(id, () => run(handler)),
+    );
+  command("relay.refresh", refresh);
+  command("relay.connectNativeCodex", () => connect("codex"));
+  command("relay.connectNativeClaude", () => connect("claude"));
+  command("relay.connectNativeBob", () => connect("bob"));
+  command("relay.disconnectProvider", async () => {
+    const provider = await vscode.window.showQuickPick(
+      ["codex", "claude", "bob"],
+      { placeHolder: "Disconnect Relay from this native agent" },
+    );
+    if (provider) await connect(provider as Provider, true);
+  });
+  command("relay.traceFlowFromHere", () => trace());
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "relay.exportReport",
+      (requestId?: string) => run(() => exportReport(requestId)),
+    ),
+  );
+  command("relay.openPlan", async () =>
+    vscode.window.showTextDocument(
+      vscode.Uri.joinPath(context.extensionUri, "docs/NATIVE-AGENT-PLAN.md"),
+    ),
+  );
+  command("relay.indexWorkspace", async () => {
+    const client = await service();
+    const result = await client.call("index.sources", {}, 120000);
+    if ((await client.call<Dashboard>("dashboard")).semantic.ready)
+      await client.call("index.vectors", {}, 600000);
+    return result;
+  });
+  command("relay.prepareSemantic", async () => {
+    const client = await service();
+    await mkdir(client.embeddings, { recursive: true });
+    await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: "Relay: Preparing optional local semantic search",
+      },
+      () =>
+        new Promise<void>((resolve, reject) => {
+          const child = spawn(
+            client.node,
+            [
+              join(
+                context.extensionUri.fsPath,
+                "scripts/prepare-embeddings.mjs",
+              ),
+              client.embeddings,
+            ],
+            {
+              windowsHide: true,
+              shell: false,
+              stdio: ["ignore", "pipe", "pipe"],
+            },
+          );
+          child.stdout.on("data", (chunk) => output.append(String(chunk)));
+          child.stderr.on("data", (chunk) => output.append(String(chunk)));
+          child.once("error", reject);
+          child.once("exit", (code) =>
+            code === 0
+              ? resolve()
+              : reject(
+                  new Error(
+                    "Local model preparation failed. See Relay output; lexical search remains available.",
+                  ),
+                ),
+          );
+        }),
+    );
+    await refresh();
+  });
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration((event) => {
+      if (
+        (event.affectsConfiguration("relay.checks") ||
+          event.affectsConfiguration("relay.pythonExecutable")) &&
+        active
+      )
+        void active
+          .call("configure", {
+            recipes: vscode.workspace
+              .getConfiguration("relay")
+              .get("checks", []),
+            pythonExecutable: vscode.workspace
+              .getConfiguration("relay")
+              .get("pythonExecutable", "python"),
+          })
+          .catch((error) => output.appendLine(error.message));
+    }),
+  );
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeTextDocument(() => {
+      if (active) void active.call("analysis.invalidate").catch(() => {});
+    }),
+  );
+  if (
+    vscode.workspace.isTrusted &&
+    vscode.workspace.workspaceFolders?.length === 1
+  )
+    setTimeout(() => {
+      void service().catch((error) =>
+        post({ type: "notice", text: error.message }),
+      );
+    }, 0);
+  return {
+    health: async () => (await service()).call("health"),
+    tool: async (name: string, args: unknown) =>
+      (await service()).call("tools/call", { name, arguments: args }),
+    trace,
+    relationships: showRelationships,
+    refresh,
+    storage: async () => (await service()).storage,
+    operationId: () => randomUUID(),
+  };
 }

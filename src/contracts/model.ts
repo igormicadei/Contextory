@@ -1,0 +1,201 @@
+export const version = "0.2.2";
+export type Provider = "codex" | "claude" | "bob";
+export type Kind =
+  | "request"
+  | "milestone"
+  | "spec"
+  | "session"
+  | "finding"
+  | "decision"
+  | "evidence"
+  | "outcome";
+export interface Entity {
+  id: string;
+  kind: Kind;
+  parentId?: string;
+  title: string;
+  revision: number;
+  state: string;
+  data: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+export interface Actor {
+  id: string;
+  provider?: Provider;
+  human: boolean;
+}
+export interface Audit {
+  sequence: number;
+  type: string;
+  entityId: string;
+  actor: string;
+  time: string;
+  data: Record<string, unknown>;
+  title?: string;
+  context?: { id: string; title: string; kind: Kind }[];
+}
+export interface HistoryPage {
+  events: Audit[];
+  nextBefore: number | null;
+}
+export interface CheckRecipe {
+  id: string;
+  name: string;
+  executable: string;
+  args: string[];
+  timeoutMs?: number;
+}
+export interface SourceRef {
+  path: string;
+  line?: number;
+  character?: number;
+  symbol?: string;
+}
+export interface RelationshipRecord {
+  id: string;
+  kind: Kind | "source" | "record";
+  title: string;
+  description: string;
+  state?: string;
+  revision?: number;
+  sources: SourceRef[];
+}
+export interface RelationshipGraph {
+  origin: string;
+  subject: RelationshipRecord;
+  nodes: (RelationshipRecord & { depth: number })[];
+  edges: {
+    id: string;
+    source: string;
+    target: string;
+    kind: string;
+    rationale: string;
+  }[];
+  direction: string;
+  partial: boolean;
+  limit: number;
+  depth: number;
+}
+export interface SourceSnapshot {
+  hash: string;
+  files: number;
+  gitHead?: string;
+  capturedAt: string;
+}
+export interface Descriptor {
+  schema: 1;
+  url: string;
+  token: string;
+  root: string;
+  role: string;
+  instance: string;
+}
+export interface Connection {
+  provider: Provider;
+  configured: boolean;
+  hookSeen?: string;
+  mcpSeen?: string;
+  lastEvent?: string;
+  nativeSession?: string;
+}
+export interface Dashboard {
+  root: string;
+  projectId: string;
+  sequence: number;
+  entities: Entity[];
+  events: Audit[];
+  connections: Connection[];
+  recipes: CheckRecipe[];
+  semantic: { ready: boolean; model: string; detail: string };
+}
+export interface FlowRoot {
+  path: string;
+  position?: { line: number; character: number };
+  symbol?: string;
+  start?: "cursor" | "function";
+}
+export interface FlowLimits {
+  callDepth: number;
+  nodes: number;
+  edges: number;
+  targetsPerCall: number;
+  timeoutMs: number;
+}
+export interface FlowInput {
+  root: FlowRoot;
+  view?: "calls" | "flow";
+  direction?: "outgoing" | "incoming";
+  limits?: Partial<FlowLimits>;
+  overlays?: Record<string, string>;
+}
+export interface FlowNode {
+  id: string;
+  label: string;
+  kind:
+    | "function"
+    | "statement"
+    | "branch"
+    | "call"
+    | "return"
+    | "throw"
+    | "loop"
+    | "exit"
+    | "gap";
+  source?: SourceRef;
+  depth: number;
+  detail?: string;
+}
+export interface FlowEdge {
+  id: string;
+  from: string;
+  to: string;
+  kind: string;
+  label?: string;
+  source?: SourceRef;
+}
+export interface Frontier {
+  nodeId: string;
+  reason: string;
+  handle?: string;
+  target?: FlowRoot;
+}
+export interface FlowGraph {
+  id: string;
+  snapshotId: string;
+  root: FlowRoot;
+  view: string;
+  engine: string;
+  nodes: FlowNode[];
+  edges: FlowEdge[];
+  frontier: Frontier[];
+  gaps: string[];
+  limits: FlowLimits;
+  partial: boolean;
+  unsaved: boolean;
+  durationMs: number;
+}
+export const flowDefaults: FlowLimits = {
+  callDepth: 5,
+  nodes: 150,
+  edges: 300,
+  targetsPerCall: 10,
+  timeoutMs: 2000,
+};
+export class RelayError extends Error {
+  constructor(
+    public code: string,
+    message: string,
+  ) {
+    super(message);
+    this.name = "RelayError";
+  }
+}
+export function requireValue<T>(
+  value: T | undefined | null | false,
+  message: string,
+): T {
+  if (value === undefined || value === null || value === false)
+    throw new RelayError("INVALID_ARGUMENT", message);
+  return value;
+}

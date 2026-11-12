@@ -1,334 +1,665 @@
-import { createDemo } from '../shared/fixtures';
-import { advanceDemo, allSpecs, answerDecision, appendChat, currentWork, findSpec, isActive, progress, record, requestStatus, requestStatusLabels, restoreDemo, setRequestControl, type DemoState, type Provider, type Spec } from '../shared/model';
-import { attachmentLimits, imageMimes, isAttachment, isReference, normalizeChoice, sampleModels, sampleReferences, type Attachment, type ExecutionChoice, type ModelChoice, type Reference } from '../shared/context';
-import { applySubmission, previewRoute, type Incoming, type Route } from '../shared/routing';
-import { discussProject, explainTaskSubmission, messageIntent, rememberUserMessage } from '../shared/conversation';
-import { composer, escape, questionCard, referenceOptions, type AnswerDraft } from './components';
-import { conversationView } from './conversationView';
-import { report } from '../shared/report';
-import type { RuntimeResult, ToHost, ToWebview } from '../shared/protocol';
-import { icon } from './icons';
-
-declare const acquireVsCodeApi: undefined | (() => { postMessage(message: ToHost): void; getState(): unknown; setState(state: DemoState): void });
-const vscode = typeof acquireVsCodeApi === 'function' ? acquireVsCodeApi() : undefined;
-const app = document.querySelector<HTMLDivElement>('#app')!;
-let liveMode = false;
-let nativeClaude = true;
-let nativeCodex = false;
-let workspaceName = 'DevExtension';
-let activity = '';
-let catalogs: Record<Provider, ModelChoice[]> = structuredClone(sampleModels);
-let state: DemoState = vscode ? { schema: 3, requests: [], events: [], selected: '', decisions: [], submissions: [], messages: [], expanded: [], paused: false, nextRequest: 1 } : createDemo();
-try { const saved: unknown = vscode ? null : JSON.parse(localStorage.getItem('relay.demo.v1') ?? 'null'); state = restoreDemo(saved) ?? state; } catch { /* Start with fixtures after invalid or unavailable storage. */ }
-type Section = 'chat' | 'requests' | 'activity' | 'detail' | 'providers';
-let section: Section = 'chat';
-let executionDetailsOpen = false;
-let modelSettingsOpen = false;
-let moreOpen = false;
-let openDecision: string | undefined;
-let scrollToLatest = true;
-let lastRenderedSection: Section = section;
-const scrollPositions: Partial<Record<Section, number>> = {};
-let lastReadMessage = state.messages.at(-1)?.id;
-let detailTab: 'overview' | 'checks' | 'commits' = 'overview';
-let filter = '';
-let draft = '';
-let choice: ExecutionChoice = { provider: 'codex', model: 'default', effort: 'default' };
-let attachments: Attachment[] = [];
-let references: Reference[] = [];
-const answerDrafts: Record<string, AnswerDraft> = {};
-let pendingRoute: { input: Incoming; route: Extract<Route, { kind: 'ask' }> } | undefined;
-let referenceToken: { start: number; end: number; trigger: '@' | '$' | '/'; query: string } | undefined;
-let referenceItems: Reference[] = [];
-let referenceIndex = 0;
-let referenceRequest = 0;
-let referenceTimer: ReturnType<typeof setTimeout> | undefined;
-let notice = '';
-let runtimeResults: RuntimeResult[] = [];
-let checking = false;
-let dialog = '';
-const phase: Record<Spec['status'], string> = { queued: 'Queued', implementing: 'Implementing', testing: 'Testing', committing: 'Committing', pushing: 'Pushing', completed: 'Completed', blocked: 'Blocked' };
-const statusIcon = (s: Spec) => s.status === 'completed' ? 'check' : s.status === 'blocked' ? 'blocked' : isActive(s) ? 'active' : 'circle';
-function persist() { if (liveMode) return; vscode?.setState(state); if (vscode) vscode.postMessage({ type: 'save', state }); else { try { localStorage.setItem('relay.demo.v1', JSON.stringify(state)); } catch { notice = 'Browser storage is unavailable. Changes last for this page only.'; } } }
-function host(message: ToHost) {
-  if (vscode) { vscode.postMessage(message); return; }
-  if (message.type === 'checkRuntimes') { checking = false; notice = 'Open the extension in VS Code to check installed runtimes. Browser preview cannot inspect your computer.'; render(); }
-  if (message.type === 'openPlan') window.open('/plan', '_blank', 'noopener');
-  if (message.type === 'openSpec') {
-    const match = findSpec(state, message.id);
-    if (match) { dialog = `# ${match.spec.id}: ${match.spec.title}\n\nDEMO SPECIFICATION · Revision ${match.spec.revision}\n\n${match.spec.description}\n\nAcceptance criteria\n${match.spec.criteria.map(c => `• ${c}`).join('\n')}\n\nChange requests\n${match.spec.amendments.join('\n') || 'None.'}`; render(); }
-  }
-  if (message.type === 'openDiff') { dialog = `SAMPLE DIFF · ${message.id} · ${message.sha}\n\nThis is illustrative content, not a Git diff from your workspace.\n\n .settings-panel {\n-  width: 640px;\n+  width: 100%;\n+  max-width: 640px;\n+  min-width: 0;\n }`; render(); }
-  if (message.type === 'openReport') {
-    const url = URL.createObjectURL(new Blob([message.markdown], { type: 'text/markdown;charset=utf-8' }));
-    const a = document.createElement('a'); a.href = url; a.download = 'relay-demo-report.md'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
-    notice = 'Demo report exported. All implementation evidence is labeled as simulated.'; render();
+import type {
+  RelationshipGraph,
+  Audit,
+  HistoryPage,
+  Dashboard,
+  Entity,
+  FlowGraph,
+  SourceRef,
+} from "../contracts/model";
+import { escape, button, badge, sourceButton } from "./html";
+import { relationshipView } from "./relationships";
+declare function acquireVsCodeApi(): {
+  postMessage(message: unknown): void;
+  getState(): unknown;
+  setState(state: unknown): void;
+};
+const host = acquireVsCodeApi();
+const app = document.querySelector<HTMLDivElement>("#app")!;
+let dashboard: Dashboard | undefined;
+let entitiesById = new Map<string, Entity>();
+let childrenById = new Map<string, Entity[]>();
+let searchableRequests = new Map<string, string>();
+function indexDashboard(value: Dashboard) {
+  dashboard = value;
+  entitiesById = new Map(value.entities.map((e) => [e.id, e]));
+  childrenById = new Map();
+  searchableRequests = new Map();
+  for (const e of value.entities)
+    if (e.parentId)
+      childrenById.set(e.parentId, [
+        ...(childrenById.get(e.parentId) ?? []),
+        e,
+      ]);
+  for (const e of value.entities) {
+    const r = requestOf(e.id);
+    if (r)
+      searchableRequests.set(
+        r.id,
+        (searchableRequests.get(r.id) ?? "") +
+          ` ${e.id} ${e.title} ${JSON.stringify(e.data)}`.toLowerCase(),
+      );
   }
 }
-function miniProvider(p: Provider) { return `<span class="provider ${p}">${icon(p)}${p === 'codex' ? 'Codex' : 'Claude'}</span>`; }
-function tree(): string {
-  const requests = state.requests.filter(r => !filter || `${r.title} ${r.id} ${r.provider} ${r.milestones.flatMap(m => [m.title, ...m.specs.map(s => `${s.id} ${s.title}`)]).join(' ')}`.toLowerCase().includes(filter.toLowerCase()));
-  if (!requests.length) return `<div class="empty">${icon('search')}<strong>No matching requests</strong><p>Try a title, ID, or provider name.</p><button class="text-button" data-action="clearFilter">Clear filter</button></div>`;
-  return `<ul class="request-list" aria-label="Request hierarchy">${requests.map(r => {
-    const specs = r.milestones.flatMap(m => m.specs); const p = progress(specs); const status = requestStatus(state, r); const expanded = state.expanded.includes(r.id) || !!filter;
-    return `<li class="request ${status}"><button class="request-row" data-expand="${r.id}" aria-expanded="${expanded}"><span class="disclosure ${expanded ? 'open' : ''}">${icon('chevron')}</span><span class="request-body"><span class="request-meta"><span class="mono">${r.id}</span>${miniProvider(r.provider)}<span class="count">${p.total ? `${p.completed}/${p.total}` : 'Unplanned'}</span></span><span class="request-title">${escape(r.title)}</span><span class="request-status ${status}"><span class="status-dot" aria-hidden="true"></span>${requestStatusLabels[status]}</span></span></button>${expanded ? `<div class="request-children"><div class="request-controls">${liveMode ? `<button class="text-button" data-run-request="${r.id}">${icon('play')}Run request</button><button class="text-button" data-worktree="${r.id}">${icon('folder')}Open worktree</button><button class="text-button" data-action="stopLive">${icon('blocked')}Stop</button>` : r.control ? `<button class="text-button" data-request-control="${r.id}" data-control="resume">${icon('play')}Resume</button>` : `<button class="text-button" data-request-control="${r.id}" data-control="paused">${icon('pause')}Pause</button><button class="text-button" data-request-control="${r.id}" data-control="stopped">${icon('blocked')}Stop</button>`}</div>${state.decisions.filter(d => d.requestId === r.id).map(d => questionCard(d, answerDrafts[d.id])).join('')}${r.note ? `<p class="request-note ${status === 'blocked' || status === 'needs-input' ? 'warning' : ''}">${status === 'blocked' ? icon('blocked') : icon('file')}${escape(r.note)}</p>` : ''}<ul class="milestone-list">${r.milestones.map(m => {
-      const mp = progress(m.specs); const open = state.expanded.includes(m.id) || !!filter;
-      return `<li class="milestone"><button class="milestone-row" data-expand="${m.id}" aria-expanded="${open}"><span class="disclosure ${open ? 'open' : ''}">${icon('chevron')}</span><span class="milestone-label">${escape(m.title)}</span><span class="count mono">${mp.completed}/${mp.total}</span></button>${open ? `<ul class="spec-list">${m.specs.map(s => `<li><button class="spec-row ${s.status} ${s.id === state.selected ? 'selected' : ''}" data-select="${s.id}" aria-label="${escape(`${s.id}: ${s.title}, ${phase[s.status]}`)}"><span class="spec-status">${icon(statusIcon(s))}</span><span class="spec-title">${escape(s.title)}</span>${isActive(s) ? '<span class="live-dot" aria-hidden="true"></span>' : ''}</button></li>`).join('')}</ul>` : ''}</li>`;
-    }).join('')}</ul></div>` : ''}</li>`;
-  }).join('')}</ul>`;
+let graph: FlowGraph | undefined;
+const surface = document.body.dataset.surface ?? "sidebar";
+const flowOnly = surface === "flow";
+const relationshipsOnly = surface === "relationships";
+let relationships: RelationshipGraph | undefined;
+let screen = relationshipsOnly
+  ? "relationships"
+  : flowOnly
+    ? "map"
+    : "overview";
+let renderedView = "";
+let history: HistoryPage = { events: [], nextBefore: null };
+let historyScope = "";
+let historyLoaded = false;
+const openMilestones = new Set<string>();
+let selected = "";
+let detailTab = "contract";
+let notice = "";
+let busy = false;
+let nodeId = "";
+let hits: {
+  id: string;
+  title: string;
+  excerpt: string;
+  source?: SourceRef;
+  via: string[];
+  revision: string;
+}[] = [];
+const drafts: Record<string, string> = {};
+const empty = (title: string, body: string, action = "") =>
+  `<div class="empty"><div class="empty-symbol" aria-hidden="true">◇</div><h2>${title}</h2><p>${body}</p>${action}</div>`;
+const children = (id: string, kind?: string) =>
+  (childrenById.get(id) ?? []).filter((e) => !kind || e.kind === kind);
+const requestOf = (id: string): Entity | undefined => {
+  let e = entitiesById.get(id.split("#")[0]);
+  const seen = new Set<string>();
+  while (e && e.kind !== "request" && !seen.has(e.id)) {
+    seen.add(e.id);
+    e = entitiesById.get(e.parentId ?? "");
+  }
+  return e?.kind === "request" ? e : undefined;
+};
+const requestSpecs = (id: string) =>
+  children(id, "milestone").flatMap((m) => children(m.id, "spec"));
+const requestState = (r: Entity) => {
+  const specs = requestSpecs(r.id);
+  if (["completed", "cancelled"].includes(r.state)) return r.state;
+  if (
+    specs.length &&
+    children(r.id, "milestone").every(
+      (m) =>
+        ["completed", "cancelled"].includes(m.state) ||
+        (children(m.id, "spec").length > 0 &&
+          children(m.id, "spec").every((s) =>
+            ["completed", "cancelled"].includes(s.state),
+          )),
+    )
+  )
+    return "completed";
+  return specs.some((s) => s.state === "implementing")
+    ? "implementing"
+    : specs.some((s) => s.state === "blocked")
+      ? "blocked"
+      : "open";
+};
+function connections() {
+  return `<div class="connections" role="group" aria-label="Native agents">${(
+    ["codex", "claude", "bob"] as const
+  )
+    .map((provider) => {
+      const c = dashboard?.connections.find((c) => c.provider === provider);
+      const name =
+        provider === "codex"
+          ? "Codex"
+          : provider === "claude"
+            ? "Claude Code"
+            : "IBM Bob";
+      const online = c?.configured && c.mcpSeen;
+      return `<button class="connection" data-action="${c?.configured ? "disconnect" : "connect"}" data-provider="${provider}" aria-label="${c?.configured ? "Disconnect" : "Connect"} ${name}" title="${name}: ${online ? "MCP observed" : c?.configured ? "Waiting for native connection" : "Disconnected"}"><strong>${name}</strong><span class="status-dot ${online ? "online" : ""}" role="img" aria-label="${online ? "Connected" : "Not connected"}"></span></button>`;
+    })
+    .join("")}</div>`;
 }
-function detail(): string {
-  const found = findSpec(state, state.selected); if (!found) return '<p class="empty">Select a specification to inspect it.</p>';
-  const { request, milestone, spec } = found;
-  return `<section class="detail"><button class="text-button back" data-action="back">${icon('chevron', 'rotate')}Back to requests</button><div class="detail-meta"><span class="mono">${spec.id} · v${spec.revision}</span>${miniProvider(request.provider)}</div><h2>${escape(spec.title)}</h2><span class="phase ${spec.status}">${icon(statusIcon(spec))}${phase[spec.status]}</span><p class="breadcrumb">${request.id}<span>/</span>${escape(milestone.title)}</p><div class="detail-tabs" role="tablist" aria-label="Specification details">${(['overview', 'checks', 'commits'] as const).map(tab => `<button role="tab" aria-selected="${detailTab === tab}" data-detail="${tab}">${tab === 'overview' ? 'Overview' : tab === 'checks' ? `Checks · ${spec.checks.length}` : `Commits · ${spec.commits.length}`}</button>`).join('')}</div><div role="tabpanel" aria-label="${detailTab}">${detailTab === 'overview' ? `
-    <p class="description">${escape(spec.description)}</p><h3>Acceptance criteria</h3><ul class="criteria">${spec.criteria.map(c => `<li>${icon('circle')}<span>${escape(c)}</span></li>`).join('')}</ul>${spec.amendments.length ? `<h3>Change requests</h3><ul class="criteria">${spec.amendments.map(a => `<li>${icon('file')}<span>${escape(a)}</span></li>`).join('')}</ul>` : ''}<div class="branch-box">${icon('branch')}<span>${escape(milestone.branch)}</span></div><button class="secondary full" data-action="openSpec">${icon('file')}Open specification</button>` : detailTab === 'checks' ? `<p class="section-note">${liveMode ? 'Results collected by the Relay check runner.' : 'Simulated evidence. The preview does not run these checks.'}</p><div class="check-list">${spec.checks.map(c => `<article class="check-card"><div class="check-heading">${icon(c.status === 'passed' ? 'check' : c.status === 'stale' ? 'blocked' : 'circle')}<strong>${escape(c.name)}</strong><span class="check-badge ${c.status}">${c.status}</span></div><p>${escape(c.detail)}</p><span class="micro mono">${c.kind.toUpperCase()} · SPEC v${c.revision}</span></article>`).join('')}</div>` : `<p class="section-note">${liveMode ? 'Commits recorded from the request worktree.' : 'Sample commits. No Git changes were made.'}</p>${spec.commits.length ? `<div class="commit-list">${spec.commits.map(c => `<button class="commit-card" data-diff="${c.sha}">${icon('commit')}<span><span class="commit-sha mono">${c.sha}</span><strong>${escape(c.subject)}</strong><span class="micro">Spec v${c.revision} · ${c.pushed ? 'Pushed' : 'Local'}${liveMode ? '' : ' · sample'}</span></span>${icon('chevron')}</button>`).join('')}</div>` : '<div class="empty compact">No commits associated yet.<p>Commits appear here after the spec produces a change.</p></div>'}`}</div></section>`;
+function requestProgress(request: Entity) {
+  const specs = requestSpecs(request.id);
+  const done = specs.filter((s) => s.state === "completed").length;
+  return `<small class="muted">${done} / ${specs.length} specs complete</small><progress class="request-progress" max="${Math.max(1, specs.length)}" value="${done}" aria-label="${escape(request.title)} progress" aria-valuetext="${specs.length ? `${done} of ${specs.length} specifications completed` : "No specifications defined yet"}"></progress>`;
 }
-function providers(): string {
-  return `<section class="detail providers"><button class="text-button back" data-action="back">${icon('chevron', 'rotate')}Back to requests</button><div class="eyebrow">COMPATIBILITY</div><h2>Your agent runtimes</h2><p class="description">Check installed executable versions. This check makes no model calls and does not load skills, hooks, or MCP servers.</p>${(['codex', 'claude'] as const).map(p => {
-    const result = runtimeResults.find(r => r.provider === p);
-    return `<article class="runtime-card"><div class="runtime-title">${miniProvider(p)}<span class="check-badge ${result?.available ? 'passed' : ''}">${result ? result.available ? 'Detected' : 'Unavailable' : 'Not checked'}</span></div><p class="mono">${escape(result?.version ?? (p === 'codex' ? 'codex --version' : 'claude --version'))}</p><p>${escape(result?.message ?? 'Run the version check from the VS Code extension.')}</p><div class="runtime-unverified">Native discovery · Not verified<br>Authentication & execution · Not verified</div></article>`;
-  }).join('')}<button class="primary full" data-action="check" ${checking ? 'disabled' : ''}>${icon('settings')}${checking ? 'Checking runtimes…' : 'Check installed runtimes'}</button><p class="section-note">The separate Codex inspection script can test App Server configuration and skill discovery. See the implementation plan for the live compatibility experiment.</p><button class="secondary full" data-action="plan">${icon('file')}Open implementation plan</button></section>`;
+function activity(events: Audit[], full = false) {
+  return `<ol class="activity">${events.map((e) => `<li><span class="activity-dot"></span><div><strong>${escape(e.title ?? e.type.replaceAll(".", " "))}</strong>${e.context?.length ? `<div class="history-links">${e.context.map((c) => button("select", escape(c.title), `data-id="${escape(c.id)}" title="${escape(c.kind)} ${escape(c.id)}"`, "text-button")).join('<span aria-hidden="true"> / </span>')}</div>` : `<span class="muted">${escape(e.entityId)}</span>`}<span class="muted">${escape(e.actor)}${full ? ` \u00b7 event ${e.sequence}` : ""}</span></div><time datetime="${e.time}">${new Date(e.time).toLocaleString([], full ? {} : { hour: "2-digit", minute: "2-digit" })}</time></li>`).join("") || '<li class="muted">No project activity yet.</li>'}</ol>`;
 }
-function routingQuestion(): string {
-  if (!pendingRoute) return '';
-  return questionCard({ id: 'routing', question: 'Where does this message belong?', context: `${pendingRoute.route.reason} Message: ${pendingRoute.input.text}`, options: [
-    ...pendingRoute.route.matches.map(m => ({ id: m.requestId, label: `${m.requestId} · ${m.title}`, description: `${m.provider === 'codex' ? 'Codex' : 'Claude Code'} · ${requestStatusLabels[m.status]}${m.specId ? ` · ${m.specId}` : ''}. ${m.provider !== pendingRoute!.input.choice.provider ? 'Continue with this request’s agent.' : 'Amend existing work.'}` })),
-    { id: 'new', label: 'Create a separate request', description: 'Keep the current agent selection and start with codebase review.' }
-  ] }, answerDrafts.routing, true);
+function overview() {
+  const specs = dashboard?.entities.filter((e) => e.kind === "spec") ?? [];
+  const requests =
+    dashboard?.entities.filter((e) => e.kind === "request") ?? [];
+  const open = requests.filter(
+    (r) => !["completed", "cancelled"].includes(requestState(r)),
+  );
+  return `<div class="metrics"><div><strong>${open.length}</strong><span>open requests</span></div><div><strong>${specs.filter((e) => e.state === "implementing").length}</strong><span>in progress</span></div><div><strong>${specs.filter((e) => e.state === "completed").length}<small> / ${specs.length}</small></strong><span>completed specs</span></div></div><section><div class="section-heading"><h2>Current work</h2>${button("navigate", "View requests \u2197", 'data-screen="requests"', "text-button")}</div>${open.map((r) => `<button class="work-row" data-action="select" data-id="${r.id}"><div><span class="record-id">${r.id}</span><strong>${escape(r.title)}</strong>${requestProgress(r)}</div>${badge(requestState(r))}<span aria-hidden="true">&#8250;</span></button>`).join("") || '<p class="muted">No open requests. Describe a change in native chat, or create a request.</p>'}</section><section><div class="section-heading"><h2>Recent activity</h2>${button("navigate", "Full history \u2197", 'data-screen="history"', "text-button")}</div>${activity(dashboard?.events.slice(0, 3) ?? [])}</section>`;
+}
+function requestTree() {
+  const requests =
+    dashboard?.entities.filter((e) => e.kind === "request") ?? [];
+  const query = (drafts.query ?? "").toLowerCase().trim();
+  const terms = query.split(/\s+/).filter(Boolean);
+  const matching = requests.filter((r) => {
+    if (!query) return true;
+    const text = searchableRequests.get(r.id) ?? "";
+    return (
+      terms.every((t) => text.includes(t)) ||
+      hits.some((h) => requestOf(h.id)?.id === r.id)
+    );
+  });
+  return `<div class="section-heading"><h1>Requests</h1>${button("newRequest", "+ New request", "", "primary")}</div><form id="search-form"><label class="sr-only" for="query">Filter requests and their history</label><div class="search-box"><input type="search" id="query" name="query" placeholder="Search requests, changes, decisions..." value="${escape(drafts.query)}"><button type="submit" class="small">Search history</button></div></form><p class="muted search-hint">${matching.length} of ${requests.length} requests &middot; Includes milestones, specs, issues and decisions.</p><form id="request-form" class="new-request ${drafts.showRequest === "true" ? "" : "hidden"}"><label>Title<input id="requestTitle" name="requestTitle" maxlength="300" required value="${escape(drafts.requestTitle)}"></label><label>What should change?<textarea id="requestDescription" name="requestDescription" maxlength="12000" required>${escape(drafts.requestDescription)}</textarea></label><button type="submit" class="primary">Create request</button></form>${
+    !requests.length
+      ? empty(
+          "A clear plan starts here",
+          "Create a request from your native conversation. Relay keeps milestones, specs and their history together.",
+        )
+      : !matching.length
+        ? '<p class="muted">No matching requests.</p>'
+        : matching
+            .map(
+              (r) =>
+                `<article class="request-card" id="record-${r.id}"><div class="section-heading"><div class="request-title"><span class="record-id">${r.id}</span><h2>${escape(r.title)}</h2></div>${badge(requestState(r))}</div><p>${escape(r.data.description)}</p><div class="request-actions">${button("report", "Export request report", `data-id="${r.id}"`, "small")}${button("history", "Request history", `data-id="${r.id}"`, "text-button")}</div>${
+                  children(r.id, "milestone")
+                    .map(
+                      (m) =>
+                        `<details class="milestone" data-milestone="${m.id}" ${openMilestones.has(m.id) ? "open" : ""}><summary><span>${escape(m.title)}</span>${badge(m.state)}</summary><div class="milestone-detail"><span class="record-id">${m.id} &middot; revision ${m.revision}</span><p>${escape(m.data.description || "Milestone specifications")}</p>${button("history", "Milestone history", `data-id="${m.id}"`, "text-button")}${
+                          children(m.id, "spec")
+                            .map(
+                              (s) =>
+                                `<button class="spec-row ${selected === s.id ? "selected" : ""}" aria-expanded="${selected === s.id}" aria-controls="detail-${s.id}" data-action="toggleSpec" data-id="${s.id}"><span class="spec-indicator ${s.state}"></span><div><strong>${escape(s.title)}</strong><small>${s.id} &middot; revision ${s.revision}</small></div>${badge(s.state)}</button>${selected === s.id ? specDetails(s) : ""}`,
+                            )
+                            .join("") ||
+                          '<p class="muted">Waiting for specifications.</p>'
+                        }</div></details>`,
+                    )
+                    .join("") ||
+                  '<p class="muted">The native agent can add milestones and specifications through Relay.</p>'
+                }</article>`,
+            )
+            .join("")
+  }`;
+}
+function loadHistory(append = false) {
+  send({
+    type: "tool",
+    name: "relay_history_get",
+    requestId: `history:${historyScope}:${append ? "older" : "new"}`,
+    arguments: {
+      entityId: historyScope || undefined,
+      before: append ? history.nextBefore : undefined,
+      limit: 40,
+    },
+  });
+}
+function historyView() {
+  const scope = dashboard?.entities.find((e) => e.id === historyScope);
+  return `<div class="section-heading"><h1>History</h1>${button("historyRefresh", "Refresh", "", "small")}</div><label>Request<select id="historyFilter" name="historyFilter"><option value="">All project history</option>${dashboard?.entities
+    .filter((e) => e.kind === "request")
+    .map(
+      (r) =>
+        `<option value="${r.id}" ${historyScope === r.id || requestOf(historyScope)?.id === r.id ? "selected" : ""}>${escape(r.title)}</option>`,
+    )
+    .join(
+      "",
+    )}</select></label>${scope ? `<p class="muted">History for ${escape(scope.title)} and its descendants. ${button("history", "Show all", "", "text-button")}</p>` : '<p class="muted">Requests, milestones, specifications and native sessions, with links to their context.</p>'}${activity(history.events, true)}${history.nextBefore ? button("olderHistory", "Load older activity", "", "small") : historyLoaded ? '<p class="muted">Beginning of history.</p>' : '<p class="muted">Loading history...</p>'}`;
+}
+function specDetails(s: Entity) {
+  const records = children(s.id);
+  const criteria = s.data.criteria as { id: string; text: string }[];
+  let body = "";
+  if (detailTab === "contract")
+    body = `<p>${escape(s.data.description)}</p><h3>Acceptance criteria</h3><ul class="criteria">${criteria.map((c) => `<li><span>${escape(c.id)}</span>${escape(c.text)}</li>`).join("")}</ul><h3>Scope</h3><p class="muted">${escape((s.data.paths as string[])?.join(", ") || "Defined by the specification")}</p>`;
+  if (detailTab === "issues")
+    body =
+      records
+        .filter((e) => e.kind === "finding")
+        .map(
+          (e) =>
+            `<article class="record"><div class="section-heading"><h3>${escape(e.title)}</h3>${badge(e.state)}</div><p>${escape(e.data.observation)}</p><p><strong>Impact:</strong> ${escape(e.data.impact)}</p>${e.data.resolution ? `<p><strong>Resolution:</strong> ${escape(e.data.resolution)}</p>` : ""}${((e.data.sources as SourceRef[]) ?? []).map(sourceButton).join("")}</article>`,
+        )
+        .join("") ||
+      '<p class="muted">No findings recorded. The outcome will state whether issues were found.</p>';
+  if (detailTab === "decisions")
+    body =
+      records
+        .filter((e) => e.kind === "decision")
+        .map(
+          (e) =>
+            `<article class="record"><h3>${escape(e.title)}</h3><p>${escape(e.data.choice)}</p><p><strong>Why:</strong> ${escape(e.data.rationale)}</p><p><strong>Tradeoffs:</strong> ${escape(e.data.alternatives)}</p><p><strong>Consequences:</strong> ${escape(e.data.consequences)}</p><small class="muted">${escape(e.data.provenance)}</small></article>`,
+        )
+        .join("") ||
+      '<p class="muted">Choices and their rationale will remain here for future work.</p>';
+  if (detailTab === "evidence")
+    body =
+      records
+        .filter((e) => e.kind === "evidence")
+        .map(
+          (e) =>
+            `<article class="record"><div class="section-heading"><h3>${escape(e.title)}</h3>${badge(e.state)}</div><p class="muted">${e.data.origin === "relay-runner" ? "Independent Relay check" : "Agent-reported observation"} · ${escape((e.data.criteria as string[])?.join(", "))}</p><pre>${escape(e.data.detail)}</pre><small class="muted">Bound to the recorded source, contract and attempt. Completion rechecks eligibility.</small></article>`,
+        )
+        .join("") ||
+      '<p class="muted">No evidence yet. Native agents can run your configured independent checks.</p>';
+  if (detailTab === "outcome")
+    body =
+      records
+        .filter((e) => e.kind === "outcome")
+        .map(
+          (e) =>
+            `<article class="record"><h3>What changed</h3><p>${escape(e.data.summary)}</p><h3>Issues and fixes</h3><p>${escape(e.data.issuesSummary)}</p><h3>Decisions</h3><p>${escape(e.data.decisionsSummary)}</p><h3>Remaining limits</h3><p>${escape(e.data.limitations)}</p><h3>Report</h3><p>${escape(e.data.report)}</p></article>`,
+        )
+        .join("") ||
+      '<p class="muted">The agent submits a durable explanation before completion.</p>';
+  if (detailTab === "history")
+    body = `<p>Explore all events for this specification and its records.</p>${button("history", "Open specification history", `data-id="${s.id}"`, "small")}`;
+  return `<section id="detail-${s.id}" class="spec-detail" aria-label="${escape(s.title)} details"><div class="section-heading"><span class="record-id">${s.id} &middot; revision ${s.revision}</span>${badge(s.state)}</div><div class="detail-tabs" role="tablist" aria-label="Specification details">${["contract", "issues", "decisions", "evidence", "outcome", "history"].map((tab) => `<button id="tab-${tab}" role="tab" aria-selected="${detailTab === tab}" data-action="detailTab" data-tab="${tab}">${tab[0].toUpperCase() + tab.slice(1)}</button>`).join("")}</div><div role="tabpanel" aria-labelledby="tab-${detailTab}">${body}</div><div class="detail-actions">${button("impact", "Explore relationships", `data-id="${s.id}"`)}${s.state === "submitted" ? button("complete", "Check completion", `data-id="${s.id}" data-revision="${s.revision}"`, "primary") : ""}</div></section>`;
+}
+function flowSvg(g: FlowGraph) {
+  const levels = new Map<string, number>();
+  if (g.nodes[0]) levels.set(g.nodes[0].id, 0);
+  const queue = g.nodes[0] ? [g.nodes[0].id] : [];
+  while (queue.length) {
+    const id = queue.shift()!;
+    for (const edge of g.edges.filter((e) => e.from === id))
+      if (!levels.has(edge.to)) {
+        levels.set(edge.to, Math.min(16, (levels.get(id) ?? 0) + 1));
+        queue.push(edge.to);
+      }
+  }
+  const slots = new Map<number, number>();
+  const positions = new Map(
+    g.nodes.map((node) => {
+      const level = levels.get(node.id) ?? node.depth;
+      const row = slots.get(level) ?? 0;
+      slots.set(level, row + 1);
+      return [node.id, { x: 30 + level * 250, y: 32 + row * 102 }];
+    }),
+  );
+  const width = Math.max(700, ...[...positions.values()].map((p) => p.x + 240));
+  const height = Math.max(300, ...[...positions.values()].map((p) => p.y + 95));
+  return `<svg class="flow-diagram" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="Possible source flow"><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z"></path></marker></defs>${g.edges
+    .map((edge) => {
+      const a = positions.get(edge.from);
+      const b = positions.get(edge.to);
+      if (!a || !b) return "";
+      const x1 = a.x + 205;
+      const y1 = a.y + 31;
+      const x2 = b.x;
+      const y2 = b.y + 31;
+      const bend = Math.max(35, Math.abs(x2 - x1) / 2);
+      return `<g class="graph-edge ${escape(edge.kind)}"><path d="M${x1},${y1} C${x1 + bend},${y1} ${x2 - bend},${y2} ${x2},${y2}" marker-end="url(#arrow)"></path><text x="${(x1 + x2) / 2}" y="${(y1 + y2) / 2 - 6}">${escape(edge.label ?? edge.kind)}</text></g>`;
+    })
+    .join("")}${g.nodes
+    .map((node) => {
+      const p = positions.get(node.id)!;
+      return `<g class="graph-node ${node.kind} ${nodeId === node.id ? "selected" : ""}" transform="translate(${p.x},${p.y})" role="button" tabindex="0" aria-label="${escape(node.label)}" data-action="node" data-id="${node.id}"><title>${escape(node.label)}${node.source ? ` — ${escape(node.source.path)}:${(node.source.line ?? 0) + 1}` : ""}</title><rect width="205" height="66" rx="8"></rect><text x="12" y="19" class="node-kind">${escape(node.kind)}</text><text x="12" y="41">${escape(node.label.slice(0, 28))}${node.label.length > 28 ? "…" : ""}</text><text x="12" y="57" class="node-location">${escape(node.source?.path.split("/").pop() ?? "")}</text></g>`;
+    })
+    .join("")}</svg>`;
+}
+function map() {
+  const node = graph?.nodes.find((n) => n.id === nodeId);
+  return `<div class="section-heading"><h1>Source flow</h1>${button("trace", "Trace current symbol", "", "primary")}</div><p class="muted">Explore possible calls and branches from your cursor. No agent or application execution required.</p><div class="flow-controls"><label>View<select id="flowView" name="flowView"><option value="flow" ${(drafts.flowView ?? graph?.view ?? "flow") === "flow" ? "selected" : ""}>Calls + branches</option><option value="calls" ${(drafts.flowView ?? graph?.view ?? "flow") === "calls" ? "selected" : ""}>Calls</option></select></label><label>Call depth<input id="flowDepth" name="flowDepth" type="number" min="0" max="12" value="${escape(drafts.flowDepth ?? graph?.limits.callDepth ?? 5)}"></label>${graph ? button("retrace", "Refresh") : ""}${button("cancelAnalysis", "Cancel", "", "text-button")}${graph ? button("exportGraphJson", "Export JSON", "", "small") + button("exportGraphSvg", "Export SVG", "", "small") : ""}</div>${graph ? `<div class="graph-summary"><strong>${escape(graph.root.path)}</strong><span>${graph.nodes.length} nodes · ${graph.edges.length} edges · ${graph.durationMs} ms</span>${badge(graph.partial ? "partial" : "bounded")}${graph.unsaved ? badge("unsaved snapshot") : ""}</div><div class="diagram-scroll" tabindex="0" aria-label="Scroll source flow diagram">${flowSvg(graph)}</div>${node ? `<div class="node-detail"><strong>${escape(node.label)}</strong>${node.source ? sourceButton(node.source) : ""}${button("expand", "Trace from this node", `data-id="${node.id}"`, "small")}</div>` : ""}<details class="analysis-limits"><summary>Analysis boundaries (${graph.frontier.length})</summary><ul>${graph.frontier.map((f) => `<li>${escape(graph?.nodes.find((n) => n.id === f.nodeId)?.label)}: ${escape(f.reason)}</li>`).join("")}${graph.gaps.map((gap) => `<li>${escape(gap)}</li>`).join("")}</ul></details>` : empty("Choose a starting point", "Place the cursor inside a function, then choose “Trace Flow from Here” in the editor. The default explores five call hops with visible boundaries.")}`;
 }
 function render() {
-  const previous = app.querySelector<HTMLElement>('.main-content');
-  const following = lastRenderedSection === 'chat' && (!previous || previous.scrollHeight - previous.scrollTop - previous.clientHeight < 64);
-  if (previous) scrollPositions[lastRenderedSection] = previous.scrollTop;
-  closeReferences();
-  const overall = progress(allSpecs(state)); const current = currentWork(state); const milestone = current ? progress(current.milestone.specs) : undefined;
-  const unplanned = state.requests.filter(r => !r.milestones.length || r.reviewPending).length;
-  const pendingDecisions = state.decisions.filter(d => !d.answer);
-  const decision = state.decisions.find(d => d.id === openDecision);
-  const latestMessage = state.messages.at(-1)?.id;
-  const unread = section !== 'chat' && latestMessage !== lastReadMessage;
-  if (section === 'chat' && (scrollToLatest || following)) lastReadMessage = latestMessage;
-  app.innerHTML = `<div class="shell"><header class="workspace-header"><div class="workspace-name"><strong>${escape(workspaceName)}</strong><span class="preview-chip" title="${liveMode ? 'Native workspace sessions' : 'Interactive demo data'}">${liveMode ? 'Live' : 'Preview'}</span></div><button class="icon-button" data-action="more" aria-label="More actions" aria-expanded="${moreOpen}">${icon('more')}</button>${moreOpen ? `<div class="utility-menu" aria-label="Workspace actions">${vscode ? `<button data-action="mode">${icon('settings')}${liveMode ? 'Switch to demo preview' : 'Use live workspace'}</button>${liveMode ? `<button data-action="stopLive">${icon('blocked')}Stop active work</button>` : ''}` : ''}<button data-action="providers">${icon('settings')}Provider compatibility</button><button data-action="plan">${icon('file')}Open implementation plan</button><button data-action="report">${icon('download')}${liveMode ? 'Export implementation report' : 'Export demo report'}</button><button data-section="activity">${icon('history')}Activity history</button>${!liveMode ? `<button data-action="reset">${icon('reset')}Reset demo</button>` : ''}</div>` : ''}</header>
-  <nav class="main-tabs" aria-label="Workspace views"><button class="${section === 'chat' ? 'active' : ''}" data-section="chat" aria-label="Chat" ${section === 'chat' ? 'aria-current="page"' : ''}>Chat${unread ? '<span class="unread-dot" aria-label="New messages"></span>' : ''}</button><button class="${section !== 'chat' ? 'active' : ''}" data-section="requests" ${section !== 'chat' ? 'aria-current="page"' : ''}>Requests<span>${state.requests.length}</span></button></nav>
-  <section class="run-summary" aria-label="Execution progress"><div class="run-summary-line"><button class="run-toggle" data-action="progressDetails" aria-label="Progress details" aria-expanded="${executionDetailsOpen}"><span class="status-dot ${state.paused ? 'paused' : ''}"></span><span>${activity ? escape(activity) : state.paused ? 'Demo paused' : current ? `${phase[current.spec.status]} · ${current.request.title}` : 'No eligible work'}</span>${icon('chevron', executionDetailsOpen ? 'open' : '')}</button>${pendingDecisions.length ? `<button class="decision-count" data-action="decisions" aria-label="${pendingDecisions.length} decision waiting for you">${pendingDecisions.length} decision</button>` : ''}</div><div class="compact-progress-grid"><div><div class="compact-progress-label"><span>Overall</span><span>${overall.percent}%</span></div><progress value="${overall.completed}" max="${overall.total || 1}" aria-label="Overall progress">${overall.percent}%</progress></div><div><div class="compact-progress-label"><span>Milestone</span><span>${milestone?.percent ?? 0}%</span></div><progress value="${milestone?.completed ?? 0}" max="${milestone?.total || 1}" aria-label="Current milestone progress">${milestone?.percent ?? 0}%</progress></div></div>${executionDetailsOpen ? `<div class="execution-details"><p class="progress-caption">${overall.completed} of ${overall.total} specs complete${unplanned ? ` · ${unplanned} unplanned` : ''}</p><p class="current-milestone-title">${escape(current?.milestone.title ?? 'No executing milestone')} ${current ? `<span class="mono">· ${current.spec.id}</span>` : ''}</p><div class="execution-actions" ${liveMode ? 'hidden' : ''}><button class="secondary" data-action="pause" aria-label="${state.paused ? 'Resume demo' : 'Pause demo'}">${icon(state.paused ? 'play' : 'pause')}${state.paused ? 'Resume' : 'Pause'}</button><button class="secondary" data-action="advance" aria-label="Advance demo one step" ${state.paused || !current ? 'disabled' : ''}>${icon('step')}Demo step</button></div></div>` : ''}</section>
-  <main class="main-content ${section === 'chat' ? 'chat-content' : ''}">${section === 'chat' ? `${conversationView(state, liveMode)}${routingQuestion()}${decision && !decision.answer ? `<div class="chat-question">${questionCard(decision, answerDrafts[decision.id])}</div>` : pendingDecisions.length ? `<div class="conversation-decision"><span>${icon('blocked')}${liveMode ? 'Your input is needed' : 'Search needs your input'}</span><button class="text-button" data-action="decisions">Review decision${icon('chevron')}</button></div>` : ''}<button class="latest-messages" data-action="latest" id="latest-messages" hidden>${icon('arrow', 'rotate-down')}Latest messages</button>` : section === 'requests' ? `<div class="queue-toolbar"><span class="eyebrow">REQUESTS</span><button class="text-button" data-section="activity">${icon('history')}History</button></div><label class="search-field">${icon('search')}<input id="filter" aria-label="Filter requests" placeholder="Find a request…" value="${escape(filter)}" autocomplete="off"></label><div id="tree">${tree()}</div>` : section === 'detail' ? detail() : section === 'providers' ? providers() : `<section class="activity"><button class="text-button back activity-back" data-action="back">${icon('chevron', 'rotate')}Back to requests</button><div class="queue-toolbar"><span class="eyebrow">ACTIVITY HISTORY</span><span class="micro">${liveMode ? 'Workspace' : 'Demo'}</span></div><ol>${state.events.map(e => `<li class="event ${e.kind}"><span class="event-dot"></span><div><p>${escape(e.text)}</p><span class="micro">${escape(e.time.slice(11, 16))} · ${e.kind}</span></div></li>`).join('')}</ol></section>`}</main>
-  ${notice ? `<div class="notice" role="status"><span>${escape(notice)}</span><button class="icon-button" data-action="dismiss" aria-label="Dismiss notification">${icon('close')}</button></div>` : ''}
-  ${composer({ draft, choice, attachments, references, settingsOpen: modelSettingsOpen, live: liveMode, catalog: catalogs, nativeClaude, nativeCodex })}</div>${dialog ? `<dialog open class="preview-dialog" aria-label="Preview document"><header><strong>Preview document</strong><button class="icon-button" data-action="closeDialog" aria-label="Close preview document">${icon('close')}</button></header><pre>${escape(dialog)}</pre></dialog>` : ''}`;
-  const main = app.querySelector<HTMLElement>('.main-content')!;
-  main.scrollTop = section === 'chat' && (scrollToLatest || following) ? main.scrollHeight : scrollPositions[section] ?? 0;
-  scrollToLatest = false; lastRenderedSection = section;
-  const latest = app.querySelector<HTMLElement>('#latest-messages');
-  const updateLatest = () => { if (latest) { latest.hidden = main.scrollHeight - main.scrollTop - main.clientHeight < 64; if (latest.hidden) lastReadMessage = state.messages.at(-1)?.id; } };
-  main.addEventListener('scroll', updateLatest, { passive: true }); updateLatest();
-  if (dialog) { document.querySelector<HTMLDialogElement>('dialog')?.querySelector<HTMLButtonElement>('button')?.focus(); }
-}
-function closeReferences() {
-  referenceToken = undefined; referenceItems = []; referenceRequest++;
-  clearTimeout(referenceTimer);
-  const picker = app.querySelector<HTMLElement>('#reference-picker'); if (picker) picker.hidden = true;
-  app.querySelector('#draft')?.removeAttribute('aria-activedescendant');
-}
-function paintReferences() {
-  const picker = app.querySelector<HTMLElement>('#reference-picker'); if (!picker || !referenceToken) return;
-  picker.hidden = false; picker.innerHTML = referenceOptions(referenceItems, referenceIndex, !!vscode);
-  if (referenceItems.length) app.querySelector('#draft')?.setAttribute('aria-activedescendant', `ref-option-${referenceIndex}`);
-  app.querySelector(`#ref-option-${referenceIndex}`)?.scrollIntoView({ block: 'nearest' });
-}
-function updateReferences(textarea: HTMLTextAreaElement) {
-  if (modelSettingsOpen) { modelSettingsOpen = false; app.querySelector('.composer-settings')?.remove(); app.querySelector('.model-trigger')?.setAttribute('aria-expanded', 'false'); }
-  const caret = textarea.selectionStart;
-  const match = /(?:^|\s)([@$/])([^\s@$]*)$/.exec(textarea.value.slice(0, caret));
-  if (!match || match[2].length > 200) { closeReferences(); return; }
-  const trigger = match[1] as '@' | '$' | '/'; const query = match[2];
-  referenceToken = { start: caret - query.length - 1, end: caret, trigger, query }; referenceIndex = 0;
-  clearTimeout(referenceTimer); const requestId = ++referenceRequest;
-  if (vscode) {
-    referenceItems = []; paintReferences();
-    referenceTimer = setTimeout(() => vscode.postMessage({ type: 'searchReferences', requestId, trigger, query, provider: choice.provider }), 120);
-  } else {
-    referenceItems = sampleReferences.filter(r => (trigger === '@' ? ['file', 'folder'].includes(r.kind) : trigger === '/' ? r.kind === 'skill' : ['agent', 'skill'].includes(r.kind)) && r.label.toLowerCase().includes(query.toLowerCase())).map(r => ({ ...r, value: trigger === '/' ? r.value.replace(/^\$/, '/') : r.value }));
-    paintReferences();
+  const viewKey = `${screen}:${screen === "history" ? historyScope : screen === "requests" ? (drafts.query ?? "") : ""}`;
+  const contentScroll =
+    renderedView === viewKey
+      ? (document.querySelector("main")?.scrollTop ?? 0)
+      : 0;
+  const focused = document.activeElement as HTMLInputElement | null;
+  const focusId = focused?.id;
+  const selection =
+    focused && "selectionStart" in focused ? focused.selectionStart : undefined;
+  const diagram = document.querySelector(".diagram-scroll");
+  const scroll = {
+    left: diagram?.scrollLeft ?? 0,
+    top: diagram?.scrollTop ?? 0,
+  };
+  app.innerHTML = `<header class="app-header"><div class="brand"><span class="brand-mark" aria-hidden="true">↗</span><strong>relay</strong><span class="brand-subtitle">workspace companion</span></div>${button("refresh", "↻", 'aria-label="Refresh workspace" title="Refresh workspace"', "icon-button")}</header><nav class="main-nav ${surface !== "sidebar" ? "hidden" : ""}" aria-label="Relay views">${[
+    ["overview", "Overview"],
+    ["requests", "Requests"],
+    ["history", "History"],
+    ["map", "Code map"],
+  ]
+    .map(
+      ([id, label]) =>
+        `<button data-action="navigate" data-screen="${id}" class="${screen === id ? "active" : ""}" aria-current="${screen === id ? "page" : "false"}">${label}</button>`,
+    )
+    .join(
+      "",
+    )}</nav>${notice ? `<div class="notice" role="status"><span>${escape(notice)}</span>${button("dismiss", "×", 'aria-label="Dismiss notification"', "icon-button")}</div>` : ""}${busy ? '<div class="loading-line" role="progressbar" aria-label="Relay is working"></div>' : ""}<main>${!dashboard && screen !== "map" && screen !== "relationships" ? empty("Open your workspace", "Relay connects your native agents to shared project records. Open a trusted folder, then refresh.", button("refresh", "Refresh", "", "primary")) : screen === "relationships" ? relationshipView(relationships) : screen === "requests" ? requestTree() : screen === "history" ? historyView() : screen === "map" ? map() : overview()}</main><footer>${surface === "sidebar" ? connections() : ""}<div class="workspace-status"><span class="status-dot ${dashboard ? "online" : ""}"></span><span>${dashboard ? escape(dashboard.root.split(/[\\/]/).pop()) : "Open a workspace"}</span><span class="footer-label">Native conversation &middot; durable context</span></div></footer>`;
+  if (focusId) {
+    const replacement = document.getElementById(
+      focusId,
+    ) as HTMLInputElement | null;
+    replacement?.focus({ preventScroll: true });
+    if (
+      selection !== undefined &&
+      selection !== null &&
+      replacement?.type !== "number"
+    )
+      replacement?.setSelectionRange?.(selection, selection);
   }
-}
-function insertReference(index: number) {
-  const ref = referenceItems[index]; const token = referenceToken; if (!ref || !token) return;
-  draft = `${draft.slice(0, token.start)}${ref.value} ${draft.slice(token.end)}`;
-  if (!references.some(r => r.id === ref.id && r.value === ref.value) && references.length < 30) references.push(ref);
-  const caret = token.start + ref.value.length + 1; render();
-  const textarea = app.querySelector<HTMLTextAreaElement>('#draft'); textarea?.focus(); textarea?.setSelectionRange(caret, caret);
-}
-function appendAttachments(files: Attachment[]) {
-  if (!files.length) return;
-  let skipped = false;
-  for (const file of files) {
-    if (!isAttachment(file) || attachments.length >= attachmentLimits.count || attachments.reduce((sum, a) => sum + a.size, 0) + file.size > attachmentLimits.totalBytes) { skipped = true; continue; }
-    attachments.push(file);
+  const replacement = document.querySelector(".diagram-scroll");
+  if (replacement) {
+    replacement.scrollLeft = scroll.left;
+    replacement.scrollTop = scroll.top;
   }
-  notice = skipped ? 'Attachment limit: 6 files, 4 MiB each, 12 MiB total. Some files were skipped.' : liveMode ? 'Attachments ready. Contents will be sent to the selected native agent.' : 'Attachments added locally. No files are uploaded; only metadata is saved on send.';
-  render(); app.querySelector<HTMLTextAreaElement>('#draft')?.focus();
+  const content = document.querySelector("main");
+  if (content) content.scrollTop = contentScroll;
+  renderedView = viewKey;
 }
-async function takeFiles(files: File[]) {
-  const selected: Attachment[] = [];
-  for (const file of files.slice(0, attachmentLimits.count + 1)) {
-    if (file.size > attachmentLimits.fileBytes) { selected.push({ id: crypto.randomUUID(), name: file.name, size: file.size, mime: file.type }); continue; }
-    let thumbnail: string | undefined;
-    const encoded = await new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = () => reject(new Error('Image preview unavailable')); reader.readAsDataURL(file); });
-    if (imageMimes.includes(file.type)) thumbnail = encoded;
-    selected.push({ id: crypto.randomUUID(), name: file.name, size: file.size, mime: file.type || 'application/octet-stream', thumbnail, data: encoded.split(',')[1] });
-  }
-  appendAttachments(selected);
+const send = (message: unknown) => host.postMessage(message);
+function selectRecord(id: string) {
+  const e = entitiesById.get(id);
+  let owner = e;
+  while (owner && !["request", "milestone", "spec"].includes(owner.kind))
+    owner = entitiesById.get(owner.parentId ?? "");
+  selected = owner?.kind === "spec" ? owner.id : "";
+  detailTab =
+    (
+      {
+        finding: "issues",
+        decision: "decisions",
+        evidence: "evidence",
+        outcome: "outcome",
+      } as Record<string, string>
+    )[e?.kind ?? ""] ?? "contract";
+  if (owner?.kind === "spec" && owner.parentId)
+    openMilestones.add(owner.parentId);
+  if (e?.kind === "milestone") openMilestones.add(e.id);
+  const r = requestOf(id);
+  if (e?.kind === "request")
+    children(e.id, "milestone").forEach((m) => openMilestones.add(m.id));
+  drafts.query = "";
+  hits = [];
+  screen = "requests";
+  render();
+  document
+    .getElementById(selected ? `detail-${selected}` : `record-${r?.id}`)
+    ?.scrollIntoView({ block: "nearest" });
 }
-function completeSubmission(input: Incoming, route: Exclude<Route, { kind: 'ask' }>, clearDraft = true) {
-  state = explainTaskSubmission(applySubmission(state, input, route)); pendingRoute = undefined; delete answerDrafts.routing;
-  const latest = state.submissions[0];
-  notice = ''; scrollToLatest = true; section = 'chat'; if (latest.specId) state.selected = latest.specId;
-  filter = ''; detailTab = 'overview'; if (clearDraft) { draft = ''; attachments = []; references = []; }
-  persist(); render(); app.querySelector<HTMLTextAreaElement>('#draft')?.focus();
-}
-app.addEventListener('input', event => {
-  const target = event.target as HTMLInputElement;
-  if (target.id === 'draft') { draft = target.value; app.querySelector<HTMLButtonElement>('.send-button')!.disabled = !draft.trim() && !attachments.length; updateReferences(target as unknown as HTMLTextAreaElement); }
-  if (target.id === 'filter') { filter = target.value; app.querySelector('#tree')!.innerHTML = tree(); }
-  if (target.dataset.customAnswer) {
-    answerDrafts[target.dataset.customAnswer] = { custom: target.value };
-    const form = target.closest('form')!; form.querySelectorAll<HTMLInputElement>('input[type="radio"]').forEach(r => { r.checked = false; });
-    form.querySelector<HTMLButtonElement>('button[type="submit"]')!.disabled = !target.value.trim();
-  }
-});
-app.addEventListener('change', event => {
-  const target = event.target as HTMLInputElement;
-  if (['provider', 'model', 'effort'].includes(target.id)) {
-    if (target.id === 'provider') choice = { provider: target.value === 'claude' ? 'claude' : 'codex', model: 'default', effort: 'default' };
-    else choice = normalizeChoice({ ...choice, [target.id]: target.value }, catalogs);
-    render(); app.querySelector<HTMLSelectElement>(`#${target.id}`)?.focus();
-  }
-  if (target.id === 'attachment-input') void takeFiles(Array.from(target.files ?? [])).catch(() => { notice = 'Could not read that image preview. Try another file.'; render(); });
-  if (target.type === 'radio') {
-    const form = target.closest<HTMLFormElement>('form[data-question]')!;
-    answerDrafts[form.dataset.question!] = { optionId: target.value, custom: '' };
-    const textarea = form.querySelector<HTMLTextAreaElement>('textarea'); if (textarea) textarea.value = '';
-    form.querySelector<HTMLButtonElement>('button[type="submit"]')!.disabled = false;
-  }
-});
-app.addEventListener('submit', event => {
-  event.preventDefault(); const form = event.target as HTMLFormElement;
-  if (form.dataset.question) {
-    const id = form.dataset.question; const answer = answerDrafts[id]; if (!answer) return;
-    if (id === 'routing' && pendingRoute) {
-      const { input, route } = pendingRoute; const match = route.matches.find(m => m.requestId === answer.optionId);
-      if (match) { if (input.choice.provider !== match.provider) input.choice = { provider: match.provider, model: 'default', effort: 'default' }; completeSubmission(input, { kind: 'amend', match, reason: 'User resolved an ambiguous or cross-agent routing question.' }, false); }
-      else if (answer.optionId === 'new') completeSubmission(input, { kind: 'new', reason: 'User chose separate work after the preview search.' }, false);
-      return;
+function action(element: Element) {
+  const data = (element as HTMLElement).dataset;
+  switch (data.action) {
+    case "exportGraphJson":
+      send({ type: "graphExport", format: "json" });
+      break;
+    case "exportGraphSvg": {
+      const svg = document.querySelector<SVGSVGElement>(".flow-diagram");
+      if (!svg) break;
+      const clone = svg.cloneNode(true) as SVGSVGElement;
+      clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      const originals = [svg, ...svg.querySelectorAll("*")];
+      const copies = [clone, ...clone.querySelectorAll("*")];
+      originals.forEach((element, index) => {
+        const style = getComputedStyle(element);
+        for (const property of [
+          "fill",
+          "stroke",
+          "stroke-width",
+          "stroke-dasharray",
+          "font-family",
+          "font-size",
+          "opacity",
+        ])
+          copies[index].setAttribute(
+            property,
+            style.getPropertyValue(property),
+          );
+      });
+      send({ type: "graphExport", format: "svg", content: clone.outerHTML });
+      break;
     }
-    const decision = state.decisions.find(d => d.id === id); if (!decision) return;
-    if (liveMode) { const text = answer.custom.trim() || decision.options.find(o => o.id === answer.optionId)?.label || ''; host({ type: 'liveAnswer', id, text }); return; }
-    const text = answer.custom.trim() || decision.options.find(o => o.id === answer.optionId)?.label || '';
-    const next = answerDecision(state, id, text, answer.optionId);
-    notice = next.decisions.find(d => d.id === id)?.answer ? '' : 'This decision changed. Review the latest specification before answering.';
-    state = next; section = 'chat'; openDecision = undefined; scrollToLatest = true; persist(); render(); return;
+    case "navigate":
+      screen = data.screen!;
+      if (screen === "history") loadHistory();
+      render();
+      break;
+    case "select":
+      selectRecord(data.id!);
+      break;
+    case "openRecord":
+      send({ type: "openRecord", id: data.id });
+      break;
+    case "refreshRelationships":
+      send({ type: "relationships", id: relationships?.origin });
+      break;
+    case "toggleSpec":
+      selected = selected === data.id ? "" : data.id!;
+      detailTab = "contract";
+      render();
+      break;
+    case "history":
+      historyScope = data.id ?? "";
+      history = { events: [], nextBefore: null };
+      historyLoaded = false;
+      screen = "history";
+      loadHistory();
+      render();
+      break;
+    case "historyRefresh":
+      loadHistory();
+      break;
+    case "olderHistory":
+      loadHistory(true);
+      break;
+    case "report":
+      send({ type: "report", requestId: data.id });
+      break;
+    case "detailTab":
+      detailTab = data.tab!;
+      render();
+      break;
+    case "dismiss":
+      notice = "";
+      render();
+      break;
+    case "newRequest":
+      drafts.showRequest = drafts.showRequest === "true" ? "false" : "true";
+      render();
+      document.getElementById("requestTitle")?.focus();
+      break;
+    case "connect":
+    case "disconnect":
+      send({ type: data.action, provider: data.provider });
+      break;
+    case "source":
+      send({ type: "source", source: JSON.parse(data.source!) });
+      break;
+    case "node":
+      nodeId = data.id!;
+      render();
+      break;
+    case "trace":
+      send({
+        type: "trace",
+        options: {
+          view: drafts.flowView ?? "flow",
+          limits: { callDepth: Number(drafts.flowDepth ?? 5) },
+        },
+      });
+      break;
+    case "retrace":
+      send({
+        type: "trace",
+        input: {
+          root: graph!.root,
+          view: (document.getElementById("flowView") as HTMLSelectElement)
+            .value,
+          limits: {
+            callDepth: Number(
+              (document.getElementById("flowDepth") as HTMLInputElement).value,
+            ),
+          },
+        },
+      });
+      break;
+    case "expand":
+      send({
+        type: "expand",
+        arguments: {
+          graphId: graph!.id,
+          snapshotId: graph!.snapshotId,
+          nodeId: data.id,
+        },
+      });
+      break;
+    case "complete":
+      send({
+        type: "tool",
+        name: "relay_spec_change",
+        arguments: {
+          operationId: crypto.randomUUID(),
+          action: "complete",
+          id: data.id,
+          expectedRevision: Number(data.revision),
+        },
+      });
+      break;
+    case "impact":
+      send({ type: "relationships", id: data.id });
+      break;
+    default:
+      send({ type: data.action });
   }
-  if (form.id !== 'request-form' || (!draft.trim() && !attachments.length)) return;
-  if (liveMode) { host({ type: 'liveSubmit', text: draft.trim() || 'Review the attached context.', choice, attachments }); draft = ''; attachments = []; references = []; section = 'chat'; scrollToLatest = true; modelSettingsOpen = false; render(); return; }
-  const input: Incoming = { text: draft.trim() || 'Review the attached context.', choice: { ...choice }, attachments: attachments.map(({ id, name, size, mime }) => ({ id, name, size, mime })), references: references.filter(r => draft.includes(r.value)) };
-  if (messageIntent(input.text) === 'conversation') {
-    state = discussProject(state, input); draft = ''; attachments = []; references = []; notice = ''; modelSettingsOpen = false;
-    section = 'chat'; scrollToLatest = true; persist(); render(); app.querySelector<HTMLTextAreaElement>('#draft')?.focus(); return;
-  }
-  if (pendingRoute) { notice = 'Finish the pending routing choice before sending another change. You can still ask questions.'; render(); return; }
-  if (state.requests.length >= 200 || allSpecs(state).some(s => s.amendments.length >= 200)) { notice = 'Preview storage limit reached. Export a report or reset the demo.'; render(); return; }
-  state = rememberUserMessage(state, input); persist(); modelSettingsOpen = false;
-  const route = previewRoute(state, input.text, choice.provider);
-  if (route.kind === 'ask') { pendingRoute = { input, route }; draft = ''; attachments = []; references = []; section = 'chat'; scrollToLatest = true; render(); app.querySelector<HTMLFormElement>('[data-question="routing"]')?.querySelector<HTMLInputElement>('input')?.focus(); }
-  else completeSubmission(input, route);
+}
+app.addEventListener("click", (event) => {
+  const element = (event.target as Element).closest("[data-action]");
+  if (element) action(element);
 });
-app.addEventListener('paste', event => {
-  if ((event.target as HTMLElement).id !== 'draft') return;
-  const files = Array.from((event as ClipboardEvent).clipboardData?.files ?? []); if (!files.length) return;
-  event.preventDefault(); void takeFiles(files).catch(() => { notice = 'Could not read the pasted attachment.'; render(); });
-});
-app.addEventListener('click', event => {
-  const button = (event.target as Element).closest<HTMLButtonElement>('button'); if (!button || button.disabled) return;
-  if (button.dataset.reference !== undefined) { insertReference(Number(button.dataset.reference)); return; }
-  if (button.dataset.removeAttachment) { attachments = attachments.filter(a => a.id !== button.dataset.removeAttachment); render(); return; }
-  if (button.dataset.removeReference) {
-    const ref = references.find(r => r.id === button.dataset.removeReference); if (ref) draft = draft.replace(ref.value, '');
-    references = references.filter(r => r.id !== button.dataset.removeReference); render(); return;
-  }
-  if (button.dataset.worktree) { host({ type: 'openWorktree', id: button.dataset.worktree }); return; }
-  if (button.dataset.runRequest) { host({ type: 'liveRun', id: button.dataset.runRequest }); return; }
-  if (button.dataset.requestControl) { state = setRequestControl(state, button.dataset.requestControl, button.dataset.control === 'resume' ? undefined : button.dataset.control as 'paused' | 'stopped'); persist(); render(); return; }
-  if (button.dataset.openRequest) {
-    const id = button.dataset.openRequest; if (!state.expanded.includes(id)) state.expanded.push(id);
-    section = 'requests'; moreOpen = false; persist(); render();
-    app.querySelector<HTMLButtonElement>(`[data-expand="${id}"]`)?.scrollIntoView({ block: 'start' }); return;
-  }
-  if (button.dataset.expand) { const id = button.dataset.expand; state.expanded = state.expanded.includes(id) ? state.expanded.filter(x => x !== id) : [...state.expanded, id]; persist(); render(); app.querySelector<HTMLButtonElement>(`[data-expand="${id}"]`)?.focus(); return; }
-  if (button.dataset.select) { state.selected = button.dataset.select; section = 'detail'; detailTab = 'overview'; persist(); render(); return; }
-  if (button.dataset.section) { section = button.dataset.section as Section; moreOpen = false; if (section === 'chat') scrollToLatest = true; render(); return; }
-  if (button.dataset.detail) { detailTab = button.dataset.detail as typeof detailTab; render(); app.querySelector<HTMLButtonElement>(`[data-detail="${detailTab}"]`)?.focus(); return; }
-  if (button.dataset.diff) { host({ type: 'openDiff', id: state.selected, sha: button.dataset.diff }); return; }
-  switch (button.dataset.action) {
-    case 'mode': host({ type: 'setMode', live: !liveMode }); return;
-    case 'stopLive': host({ type: 'liveStop' }); return;
-    case 'discoverModels': host({ type: 'models', provider: choice.provider }); notice = 'Loading the native runtime model catalog...'; render(); return;
-    case 'more': moreOpen = !moreOpen; modelSettingsOpen = false; break;
-    case 'progressDetails': executionDetailsOpen = !executionDetailsOpen; break;
-    case 'modelSettings': modelSettingsOpen = !modelSettingsOpen; moreOpen = false; break;
-    case 'latest': app.querySelector<HTMLElement>('.main-content')?.scrollTo({ top: app.querySelector<HTMLElement>('.main-content')!.scrollHeight }); return;
-    case 'focusComposer': app.querySelector<HTMLTextAreaElement>('#draft')?.focus(); return;
-    case 'attach': if (vscode) host({ type: 'pickAttachments' }); else app.querySelector<HTMLInputElement>('#attachment-input')?.click(); return;
-    case 'decisions': {
-      const decision = state.decisions.find(d => !d.answer)!;
-      openDecision = decision.id; section = 'chat'; scrollToLatest = true; render();
-      const form = app.querySelector<HTMLFormElement>(`[data-question="${decision.id}"]`); form?.scrollIntoView({ block: 'center' }); form?.querySelector<HTMLInputElement>('input')?.focus(); return;
+app.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" || event.key === " ") {
+    const element = (event.target as Element).closest("g[data-action]");
+    if (element) {
+      event.preventDefault();
+      action(element);
     }
-    case 'clearFilter': filter = ''; render(); app.querySelector<HTMLInputElement>('#filter')?.focus(); return;
-    case 'back': section = 'requests'; break;
-    case 'providers': section = 'providers'; moreOpen = false; break;
-    case 'plan': host({ type: 'openPlan' }); return;
-    case 'report': host({ type: 'openReport', markdown: report(state, liveMode) }); return;
-    case 'pause': state.paused = !state.paused; record(state, `Demo ${state.paused ? 'paused' : 'resumed'}.`); appendChat(state, { role: 'assistant', text: `The demo is ${state.paused ? 'paused' : 'running again'}. You can keep discussing the project here.`, kind: 'update', requestIds: [] }); persist(); break;
-    case 'advance': state = advanceDemo(state); persist(); break;
-    case 'reset': state = createDemo(); section = 'chat'; filter = ''; draft = ''; attachments = []; references = []; pendingRoute = undefined; openDecision = undefined; executionDetailsOpen = false; modelSettingsOpen = false; moreOpen = false; scrollToLatest = true; Object.keys(answerDrafts).forEach(id => { delete answerDrafts[id]; }); notice = 'Preview data reset.'; persist(); break;
-    case 'check': checking = true; render(); host({ type: 'checkRuntimes' }); return;
-    case 'openSpec': host({ type: 'openSpec', id: state.selected }); return;
-    case 'dismiss': notice = ''; break;
-    case 'closeDialog': dialog = ''; break;
-    default: return;
   }
+});
+app.addEventListener("keydown", (event) => {
+  const tab = (event.target as Element).closest('[role="tab"]');
+  if (!tab || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key))
+    return;
+  event.preventDefault();
+  const tabs = [...app.querySelectorAll<HTMLElement>('[role="tab"]')];
+  const index = tabs.indexOf(tab as HTMLElement);
+  const next =
+    event.key === "Home"
+      ? 0
+      : event.key === "End"
+        ? tabs.length - 1
+        : (index + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) %
+          tabs.length;
+  action(tabs[next]);
+  document.getElementById(tabs[next].id)?.focus();
+});
+app.addEventListener("input", (event) => {
+  const input = event.target as HTMLInputElement;
+  if (input.name) drafts[input.name] = input.value;
+  if (input.name === "query") {
+    hits = [];
+    render();
+  }
+});
+app.addEventListener("change", (event) => {
+  const input = event.target as HTMLInputElement;
+  if (input.name) drafts[input.name] = input.value;
+  if (input.name === "historyFilter") {
+    historyScope = input.value;
+    historyLoaded = false;
+    history = { events: [], nextBefore: null };
+    loadHistory();
+    render();
+  }
+});
+app.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const form = event.target as HTMLFormElement;
+  if (form.id === "request-form") {
+    send({
+      type: "tool",
+      name: "relay_request_change",
+      arguments: {
+        operationId: crypto.randomUUID(),
+        action: "create",
+        title: drafts.requestTitle,
+        description: drafts.requestDescription,
+      },
+    });
+    drafts.showRequest = "false";
+    drafts.requestTitle = "";
+    drafts.requestDescription = "";
+  }
+  if (form.id === "search-form" && drafts.query?.trim())
+    send({
+      type: "tool",
+      requestId: `search:${drafts.query}`,
+      name: "relay_search",
+      arguments: {
+        query: drafts.query,
+        mode: drafts.searchMode ?? "hybrid",
+        limit: 10,
+      },
+    });
+});
+window.addEventListener("message", (event) => {
+  const message = event.data;
+  if (message.type === "restore") indexDashboard(message.dashboard);
+  if (message.type === "notice") notice = message.text;
+  if (message.type === "busy") busy = message.value;
+  if (message.type === "flow" && !relationshipsOnly) {
+    graph = message.graph;
+    screen = "map";
+    nodeId = "";
+  }
+  if (
+    message.type === "toolResult" &&
+    message.requestId === `search:${drafts.query}`
+  ) {
+    hits = message.result.hits;
+    if (message.result.degraded) notice = message.result.reason;
+  }
+  if (
+    message.type === "toolResult" &&
+    String(message.requestId).startsWith(`history:${historyScope}:`)
+  ) {
+    history = {
+      events: String(message.requestId).endsWith(":older")
+        ? [...history.events, ...message.result.events].filter(
+            (e, i, all) =>
+              all.findIndex((a) => a.sequence === e.sequence) === i,
+          )
+        : message.result.events,
+      nextBefore: message.result.nextBefore,
+    };
+    historyLoaded = true;
+  }
+  if (message.type === "relationships" && relationshipsOnly)
+    relationships = message.graph;
+  if (
+    message.type === "selectRecord" &&
+    surface === "sidebar" &&
+    typeof message.id === "string"
+  )
+    selectRecord(message.id);
   render();
 });
-document.addEventListener('keydown', event => {
-  if (referenceToken && document.activeElement?.id === 'draft') {
-    if (['ArrowDown', 'ArrowUp'].includes(event.key) && referenceItems.length) { event.preventDefault(); referenceIndex = (referenceIndex + (event.key === 'ArrowDown' ? 1 : -1) + referenceItems.length) % referenceItems.length; paintReferences(); return; }
-    if (event.key === 'Enter' && !event.ctrlKey && !event.metaKey && referenceItems.length) { event.preventDefault(); insertReference(referenceIndex); return; }
-    if (event.key === 'Escape') { event.preventDefault(); closeReferences(); return; }
-  }
-  if (event.key === 'Escape' && dialog) { event.preventDefault(); dialog = ''; render(); }
-  else if (event.key === 'Escape' && (modelSettingsOpen || moreOpen)) { event.preventDefault(); modelSettingsOpen = false; moreOpen = false; render(); app.querySelector<HTMLButtonElement>('.model-trigger')?.focus(); }
-  if ((event.ctrlKey || event.metaKey) && event.key === 'Enter' && document.activeElement?.id === 'draft') { event.preventDefault(); app.querySelector<HTMLFormElement>('#request-form')?.requestSubmit(); }
-});
-app.addEventListener('click', event => {
-  const target = event.target as Element;
-  if (!target.closest('.composer')) closeReferences();
-  if (moreOpen && !target.closest('.workspace-header')) { moreOpen = false; app.querySelector('.utility-menu')?.remove(); app.querySelector('[data-action="more"]')?.setAttribute('aria-expanded', 'false'); }
-  if (modelSettingsOpen && !target.closest('.composer-settings, .model-trigger')) { modelSettingsOpen = false; app.querySelector('.composer-settings')?.remove(); app.querySelector('.model-trigger')?.setAttribute('aria-expanded', 'false'); }
-});
-app.addEventListener('keyup', event => { if ((event.target as HTMLElement).id === 'draft' && ['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes((event as KeyboardEvent).key)) updateReferences(event.target as HTMLTextAreaElement); });
-window.addEventListener('message', (event: MessageEvent<ToWebview>) => {
-  // Only VS Code uses this bridge. The browser preview never accepts host messages.
-  if (!vscode || !event.data || typeof event.data !== 'object') return;
-  const message = event.data;
-  if (message.type === 'workspace') { liveMode = message.live; nativeClaude = message.claudeIntegration !== 'sdk'; nativeCodex = message.codexIntegration === 'native'; workspaceName = message.name; catalogs = liveMode ? { codex: [{ id: 'default', label: 'Runtime default', efforts: ['default'] }], claude: [{ id: 'default', label: 'Runtime default', efforts: ['default'] }] } : structuredClone(sampleModels); if (liveMode && nativeClaude) catalogs.claude = [{ id: 'default', label: 'Selected in Claude extension', efforts: ['default'] }]; if (liveMode && nativeCodex) catalogs.codex = [{ id: 'default', label: 'Selected in Codex extension', efforts: ['default'] }]; choice = { provider: choice.provider, model: 'default', effort: 'default' }; render(); }
-  if (message.type === 'activity') { activity = message.text; render(); }
-  if (message.type === 'models') { catalogs[message.provider] = message.items; choice = normalizeChoice(choice, catalogs); notice = 'Native model catalog loaded.'; render(); }
-  if (message.type === 'restore') { const restored = restoreDemo(message.state); if (restored) { state = restored; render(); } }
-  if (message.type === 'reset') { state = createDemo(); section = 'chat'; openDecision = undefined; pendingRoute = undefined; scrollToLatest = true; persist(); render(); }
-  if (message.type === 'diagnostics' && Array.isArray(message.results)) { runtimeResults = message.results; checking = false; section = 'providers'; render(); }
-  if (message.type === 'attachments' && Array.isArray(message.files)) appendAttachments(message.files.filter(isAttachment));
-  if (message.type === 'references' && referenceToken && message.requestId === referenceRequest && Array.isArray(message.items)) { referenceItems = message.items.filter(isReference).slice(0, 40); referenceIndex = 0; paintReferences(); }
-  if (message.type === 'notice' && typeof message.text === 'string') { checking = false; notice = message.text; render(); }
-});
-if (!vscode) document.body.dataset.theme = new URLSearchParams(location.search).get('theme') ?? 'dark';
+app.addEventListener(
+  "toggle",
+  (event) => {
+    const d = event.target as HTMLDetailsElement;
+    if (d.dataset.milestone) {
+      if (d.open) openMilestones.add(d.dataset.milestone);
+      else openMilestones.delete(d.dataset.milestone);
+    }
+  },
+  true,
+);
 render();
-vscode?.postMessage({ type: 'ready' });
+send({ type: "ready", surface });

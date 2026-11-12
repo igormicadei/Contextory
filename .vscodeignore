@@ -1,7 +1,9 @@
 node_modules/**
+dist/*.map
 src/**
 tests/**
 scripts/**
+!scripts/prepare-embeddings.mjs
 preview/**
 .vscode/**
 .relay-local/**
