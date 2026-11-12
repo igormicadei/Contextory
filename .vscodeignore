@@ -1,0 +1,13 @@
+node_modules/**
+src/**
+tests/**
+scripts/**
+preview/**
+.vscode/**
+.relay-local/**
+artifacts/**
+test-results/**
+playwright-report/**
+*.ts
+tsconfig.json
+package-lock.json

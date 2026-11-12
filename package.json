@@ -1,0 +1,189 @@
+{
+  "name": "relay-workspace",
+  "displayName": "Relay — Workspace Tasks (Experimental)",
+  "description": "Conversation, planning and isolated task execution with native Codex and Claude runtimes.",
+  "version": "0.1.2",
+  "publisher": "relay-local",
+  "private": true,
+  "license": "UNLICENSED",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "extensionKind": [
+    "workspace"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onView:relay.tasks",
+    "onStartupFinished"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "The demo UI works; runtime checks require a trusted workspace."
+    },
+    "virtualWorkspaces": false
+  },
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "relay",
+          "title": "Relay",
+          "icon": "media/relay.svg"
+        }
+      ]
+    },
+    "views": {
+      "relay": [
+        {
+          "type": "webview",
+          "id": "relay.tasks",
+          "name": "Workspace Tasks",
+          "contextualTitle": "Relay"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "relay.openPlan",
+        "title": "Relay: Open Implementation Plan"
+      },
+      {
+        "command": "relay.checkRuntimes",
+        "title": "Relay: Check Installed Runtimes"
+      },
+      {
+        "command": "relay.connectNativeCodex",
+        "title": "Relay: Connect Native OpenAI Codex"
+      },
+      {
+        "command": "relay.connectNativeClaude",
+        "title": "Relay: Connect Native Claude Code"
+      },
+      {
+        "command": "relay.resetDemo",
+        "title": "Relay: Reset Preview Data"
+      }
+    ],
+    "configuration": {
+      "title": "Relay Preview",
+      "properties": {
+        "relay.codexExecutable": {
+          "type": "string",
+          "default": "codex",
+          "scope": "machine",
+          "description": "Path to the native Codex executable for App Server sessions and version checks."
+        },
+        "relay.claudeExecutable": {
+          "type": "string",
+          "default": "claude",
+          "scope": "machine",
+          "description": "Path to Claude Code. Used to add Relay's workspace-local MCP registration; the optional SDK route also uses it for sessions."
+        },
+        "relay.claudeIntegration": {
+          "type": "string",
+          "enum": [
+            "native",
+            "sdk"
+          ],
+          "default": "native",
+          "scope": "resource",
+          "description": "Native opens the official Claude extension with Relay context and MCP tools, preserving its configured login and model. SDK is an optional direct API/cloud/custom-gateway route."
+        },
+        "relay.codexIntegration": {
+          "type": "string", "enum": ["appServer", "native"], "default": "appServer", "scope": "resource",
+          "description": "App Server runs Codex directly in Relay. Native attaches Relay handoffs to the official Codex extension and shares tasks through project MCP configuration. The Connect Native OpenAI Codex command selects native for this workspace."
+        },
+        "relay.checks": {
+          "type": "array",
+          "default": [],
+          "scope": "resource",
+          "description": "Required independent checks in each request worktree. Use executable plus args, without shell fragments. Configure worktree setup dependencies before running.",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "executable",
+              "args",
+              "kind"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "executable": {
+                "type": "string",
+                "minLength": 1
+              },
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "kind": {
+                "enum": [
+                  "unit",
+                  "browser",
+                  "layout"
+                ]
+              },
+              "timeoutMs": {
+                "type": "integer",
+                "minimum": 1000,
+                "maximum": 1800000
+              }
+            }
+          }
+        },
+        "relay.push": {
+          "type": "boolean",
+          "default": false,
+          "scope": "resource",
+          "description": "Push verified milestone commits to origin. Disabled until you configure a remote and enable publishing."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "prepare:debug": "npm run build && node scripts/prepare-debug.mjs",
+    "watch": "node scripts/build.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "preview": "node scripts/preview.mjs",
+    "test": "npm run build && node --import tsx --test tests/domain.test.ts tests/diagnostics.test.ts tests/protocol.test.ts tests/probe.test.mjs tests/engine.test.ts tests/nativeBridge.test.ts tests/nativeCodex.test.ts",
+    "test:native": "node --import tsx --test tests/native.test.ts",
+    "test:ui": "playwright test",
+    "test:host": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/host-smoke.ps1",
+    "check": "npm run typecheck && npm test && npm run test:ui",
+    "probe": "node scripts/probe.mjs",
+    "package:vsix": "npm run build && node scripts/licenses.mjs && vsce package --no-dependencies --allow-missing-repository --no-rewrite-relative-links --skip-license -o artifacts/relay-workspace-0.1.2.vsix"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "@types/node": "^24.0.0",
+    "@types/vscode": "1.96.0",
+    "@vscode/test-electron": "^3.1.0",
+    "@vscode/vsce": "^4.1.0",
+    "esbuild": "^0.25.12",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "@vscode/vsce": {
+      "minimatch": "^11.0.1"
+    }
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "0.3.322",
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "smol-toml": "1.9.1",
+    "zod": "4.6.7"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [{
+    "name": "Relay Preview", "type": "extensionHost", "request": "launch",
+    "noDebug": true,
+    "runtimeExecutable": "${workspaceFolder}/.relay-local/debug-runtime/code",
+    "windows": { "runtimeExecutable": "${workspaceFolder}/.relay-local/debug-runtime/Code.exe" },
+    "osx": { "runtimeExecutable": "${workspaceFolder}/.relay-local/debug-runtime/Visual Studio Code.app/Contents/MacOS/Electron" },
+    "args": [
+      "--new-window",
+      "--extensionDevelopmentPath=${workspaceFolder}",
+      "--user-data-dir=${workspaceFolder}/.relay-local/debug-user",
+      "--extensions-dir=${workspaceFolder}/.relay-local/debug-extensions",
+      "--disable-extensions", "--disable-updates", "--skip-welcome", "--skip-release-notes",
+      "${workspaceFolder}"
+    ],
+    "outFiles": ["${workspaceFolder}/dist/**/*.js"],
+    "preLaunchTask": "npm: prepare:debug"
+  }]
+}

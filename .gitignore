@@ -1,0 +1,9 @@
+node_modules/
+dist/
+artifacts/*.vsix
+artifacts/probe*.json
+artifacts/host-smoke.json
+test-results/
+playwright-report/
+.relay-local/
+*.log
