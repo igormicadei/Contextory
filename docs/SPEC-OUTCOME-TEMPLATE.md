@@ -38,9 +38,9 @@ Use “No new design decision” when appropriate. Superseded decisions remain l
 
 ## Acceptance and validation
 
-| Criterion        | Evidence / run      | Result and relevant assertion                   | Origin                                                  | Source / contract freshness                      |
-| ---------------- | ------------------- | ----------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------ |
-| `<criterion ID>` | `<run/artifact ID>` | `<passed / failed / not run; what was checked>` | `<Relay runner / external report / manual observation>` | `<eligible / stale / superseded, with snapshot>` |
+| Criterion        | Evidence / run      | Result and relevant assertion                   | Origin                                                       | Source / contract freshness                      |
+| ---------------- | ------------------- | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------ |
+| `<criterion ID>` | `<run/artifact ID>` | `<passed / failed / not run; what was checked>` | `<Contextory runner / external report / manual observation>` | `<eligible / stale / superseded, with snapshot>` |
 
 Store exact recipe identity/revision, argv/cwd, exit status and bounded output artifacts with the run. Agent statements do not become independent check results. If a check was not run, record why and whether policy permits completion. A later failure, changed source, revised contract or new attempt may invalidate earlier eligibility while preserving this history.
 
@@ -66,4 +66,4 @@ A call graph or similar search result is supporting navigation, not proof that e
 
 Submitting this outcome requests validation. It does not let the agent overwrite evidence provenance, approve its own scope expansion, or mark stale evidence current. Optional external summaries can be regenerated from these records; the records remain authoritative.
 
-After `relay_outcome_submit`, use its returned revision to call `relay_spec_change` with `action: "complete"`, the spec ID and a new operation ID. Confirm the returned state is `completed`. If rejected, resolve or report the verification blocker. Submission alone does not close a spec. Successful completion updates its milestone and request; export the full report with `relay_report_export` and that request's ID.
+After `contextory_outcome_submit`, use its returned revision to call `contextory_spec_change` with `action: "complete"`, the spec ID and a new operation ID. Confirm the returned state is `completed`. If rejected, resolve or report the verification blocker. Submission alone does not close a spec. Successful completion updates its milestone and request; export the full report with `contextory_report_export` and that request's ID.

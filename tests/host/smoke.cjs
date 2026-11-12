@@ -13,7 +13,7 @@ exports.run = async function () {
   };
   try {
     const extension = vscode.extensions.getExtension(
-      "relay-local.relay-workspace",
+      "contextory-local.contextory-workspace",
     );
     assert.ok(extension);
     result.extensionPath = extension.extensionPath;
@@ -22,19 +22,19 @@ exports.run = async function () {
     result.checks.push("extension activation");
     const commands = await vscode.commands.getCommands(true);
     for (const command of [
-      "relay.refresh",
-      "relay.traceFlowFromHere",
-      "relay.connectNativeClaude",
-      "relay.connectNativeCodex",
-      "relay.connectNativeBob",
+      "contextory.refresh",
+      "contextory.traceFlowFromHere",
+      "contextory.connectNativeClaude",
+      "contextory.connectNativeCodex",
+      "contextory.connectNativeBob",
     ])
       assert.ok(commands.includes(command), command);
     const health = await api.health();
     assert.ok(Number(health.node.split(".")[0]) >= 24);
     result.checks.push("isolated Node 24 workspace service");
-    await vscode.commands.executeCommand("relay.tasks.focus");
+    await vscode.commands.executeCommand("contextory.tasks.focus");
     result.checks.push("sidebar view opens");
-    const request = await api.tool("relay_request_change", {
+    const request = await api.tool("contextory_request_change", {
       operationId: crypto.randomUUID(),
       action: "create",
       title: "Host smoke request",
@@ -44,7 +44,7 @@ exports.run = async function () {
     result.checks.push("host to service workflow mutation");
     const root = vscode.workspace.workspaceFolders[0].uri.fsPath;
     for (const provider of ["Codex", "Claude", "Bob"])
-      await vscode.commands.executeCommand(`relay.connectNative${provider}`);
+      await vscode.commands.executeCommand(`contextory.connectNative${provider}`);
     for (const file of [
       ".codex/config.toml",
       ".codex/hooks.json",
@@ -101,7 +101,7 @@ exports.run = async function () {
     );
     const pythonEditor = await vscode.window.showTextDocument(pythonSource);
     pythonEditor.selection = new vscode.Selection(1, 4, 1, 4);
-    await vscode.commands.executeCommand("relay.tasks.focus");
+    await vscode.commands.executeCommand("contextory.tasks.focus");
     const mapTabs = () =>
       vscode.window.tabGroups.all
         .flatMap((g) => g.tabs)
@@ -118,7 +118,7 @@ exports.run = async function () {
     result.checks.push(
       "Python AST flow from remembered editor cursor; sidebar tracing creates no extra editor tab",
     );
-    const nativePythonGraph = await api.tool("relay_flow_trace", {
+    const nativePythonGraph = await api.tool("contextory_flow_trace", {
       root: { path: "main.py", symbol: "main" },
       view: "flow",
     });
@@ -126,13 +126,13 @@ exports.run = async function () {
     result.checks.push(
       "Python agent-tool flow without an editor language provider",
     );
-    const milestone = await api.tool("relay_spec_change", {
+    const milestone = await api.tool("contextory_spec_change", {
       operationId: crypto.randomUUID(),
       action: "milestone",
       parentId: request.id,
       title: "Source navigation",
     });
-    const spec = await api.tool("relay_spec_change", {
+    const spec = await api.tool("contextory_spec_change", {
       operationId: crypto.randomUUID(),
       action: "create",
       parentId: milestone.id,
@@ -141,7 +141,7 @@ exports.run = async function () {
       paths: ["main.ts"],
       criteria: ["Related source is identifiable"],
     });
-    await api.tool("relay_relationship_change", {
+    await api.tool("contextory_relationship_change", {
       operationId: crypto.randomUUID(),
       from: spec.id,
       source: { path: "main.ts", symbol: "start" },
@@ -159,13 +159,13 @@ exports.run = async function () {
     assert.ok(
       vscode.window.tabGroups.all
         .flatMap((g) => g.tabs)
-        .some((t) => t.label === "Relay: Relationships"),
+        .some((t) => t.label === "Contextory: Relationships"),
     );
     result.checks.push(
       "dedicated relationship workbench tab with request titles, descriptions and source files",
     );
     await api.refresh();
-    await vscode.commands.executeCommand("relay.exportReport", request.id);
+    await vscode.commands.executeCommand("contextory.exportReport", request.id);
     result.checks.push("request-scoped report opens from service artifact");
     const storage = await api.storage();
     assert.ok(fs.existsSync(path.join(storage, "project.sqlite3")));
@@ -175,11 +175,11 @@ exports.run = async function () {
     result.error = error instanceof Error ? error.stack : String(error);
     throw error;
   } finally {
-    fs.mkdirSync(path.dirname(process.env.RELAY_SMOKE_REPORT), {
+    fs.mkdirSync(path.dirname(process.env.CONTEXTORY_SMOKE_REPORT), {
       recursive: true,
     });
     fs.writeFileSync(
-      process.env.RELAY_SMOKE_REPORT,
+      process.env.CONTEXTORY_SMOKE_REPORT,
       JSON.stringify(result, null, 2) + "\n",
     );
   }

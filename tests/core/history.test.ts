@@ -19,7 +19,7 @@ test("history reads every event beyond the dashboard cap and filters descendants
   const events: HistoryPage["events"] = [];
   let before: number | null | undefined;
   do {
-    const page = (await call("relay_history_get", {
+    const page = (await call("contextory_history_get", {
       entityId: request.id,
       before: before ?? undefined,
       limit: 40,

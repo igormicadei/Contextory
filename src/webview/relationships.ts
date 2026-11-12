@@ -28,5 +28,5 @@ export function relationshipView(graph?: RelationshipGraph): string {
       })
       .join("") ||
     '<p class="muted">No relationships have been recorded for this work yet.</p>'
-  }</div><p class="muted relationship-note">Select a record title to open its request in Relay, or a source reference to open the file.</p>`;
+  }</div><p class="muted relationship-note">Select a record title to open its request in Contextory, or a source reference to open the file.</p>`;
 }

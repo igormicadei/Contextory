@@ -4,7 +4,7 @@ import { join, relative, isAbsolute } from "node:path";
 import { z } from "zod";
 import { tools, type Input, type ToolName } from "../contracts/tools";
 import {
-  RelayError,
+  ContextoryError,
   type Actor,
   type Dashboard,
   type FlowGraph,
@@ -82,22 +82,22 @@ export class Application {
         .all("request")
         .filter((r) => !["completed", "cancelled"].includes(r.state)),
       workflow: [
-        "Search earlier requests, changes and decisions with relay_search; inspect relevant source with relay_flow_trace/relay_impact_get.",
+        "Search earlier requests, changes and decisions with contextory_search; inspect relevant source with contextory_flow_trace/contextory_impact_get.",
         "Create the authorized request, milestones and specs; attach a session and claim a spec lease.",
-        "Record findings/fixes and decisions; run configured relay_check_run checks and read the job until finished.",
-        "Submit relay_outcome_submit with evidence for every criterion. Then call relay_spec_change action=complete, id=specId, expectedRevision=the returned revision. Read the spec to confirm state=completed.",
-        "If completion is blocked, fix or report the explicit blocker; do not silently leave finished work open. With no configured checks, use native editing to add the project's existing test/check command to relay.checks in workspace settings, then reread context for recipes. If no meaningful check is available, explicitly report that verification is pending. Parent milestones and requests close automatically when all their work is complete.",
+        "Record findings/fixes and decisions; run configured contextory_check_run checks and read the job until finished.",
+        "Submit contextory_outcome_submit with evidence for every criterion. Then call contextory_spec_change action=complete, id=specId, expectedRevision=the returned revision. Read the spec to confirm state=completed.",
+        "If completion is blocked, fix or report the explicit blocker; do not silently leave finished work open. With no configured checks, use native editing to add the project's existing test/check command to contextory.checks in workspace settings, then reread context for recipes. If no meaningful check is available, explicitly report that verification is pending. Parent milestones and requests close automatically when all their work is complete.",
       ],
-      note: "Keep chatting in the native agent. Search past decisions and trace affected source before changes. Submit an outcome, then explicitly mark the spec done with relay_spec_change action=complete and the latest revision. Submission or stopping chat does not complete it. Completion requires current independently passing evidence and resolved blocking issues.",
+      note: "Keep chatting in the native agent. Search past decisions and trace affected source before changes. Submit an outcome, then explicitly mark the spec done with contextory_spec_change action=complete and the latest revision. Submission or stopping chat does not complete it. Completion requires current independently passing evidence and resolved blocking issues.",
     };
   }
   async call(name: string, raw: unknown, actor: Actor): Promise<unknown> {
     if (!(name in tools))
-      throw new RelayError("UNKNOWN_TOOL", `Unknown tool: ${name}`);
+      throw new ContextoryError("UNKNOWN_TOOL", `Unknown tool: ${name}`);
     const key = name as ToolName;
     const parsed = tools[key].schema.safeParse(raw);
     if (!parsed.success)
-      throw new RelayError(
+      throw new ContextoryError(
         "INVALID_ARGUMENT",
         parsed.error.issues
           .map((i) => `${i.path.join(".")}: ${i.message}`)
@@ -106,13 +106,13 @@ export class Application {
       );
     const a = parsed.data;
     switch (key) {
-      case "relay_context_get":
+      case "contextory_context_get":
         return this.brief((a as Input<typeof key>).specId);
-      case "relay_history_get": {
+      case "contextory_history_get": {
         const p = a as Input<typeof key>;
         return historyPage(this.ledger, p.limit, p.before, p.entityId);
       }
-      case "relay_entity_get": {
+      case "contextory_entity_get": {
         const p = a as Input<typeof key>;
         if (/^ART-[\da-f-]{36}$/.test(p.id)) {
           const content = await readFile(
@@ -140,9 +140,9 @@ export class Application {
               offset: p.offset,
             };
       }
-      case "relay_request_change":
+      case "contextory_request_change":
         return this.workflow.request(a as Input<typeof key>, actor);
-      case "relay_spec_change": {
+      case "contextory_spec_change": {
         const p = a as Input<typeof key>;
         return this.workflow.spec(
           p,
@@ -152,31 +152,31 @@ export class Application {
             : undefined,
         );
       }
-      case "relay_session_attach":
+      case "contextory_session_attach":
         return this.workflow.session(a as Input<typeof key>, actor);
-      case "relay_spec_lease":
+      case "contextory_spec_lease":
         return this.workflow.lease(a as Input<typeof key>, actor);
-      case "relay_finding_record": {
+      case "contextory_finding_record": {
         const p = a as Input<typeof key>;
         for (const source of p.sources)
           await workspacePath(this.ledger.root, source.path);
         return this.workflow.finding(p, actor);
       }
-      case "relay_decision_record": {
+      case "contextory_decision_record": {
         const p = a as Input<typeof key>;
         for (const source of p.sources)
           await workspacePath(this.ledger.root, source.path);
         return this.workflow.decision(p, actor);
       }
-      case "relay_evidence_record":
+      case "contextory_evidence_record":
         return this.workflow.evidence(
           a as Input<typeof key>,
           actor,
           await sourceSnapshot(this.ledger.root),
         );
-      case "relay_check_run":
+      case "contextory_check_run":
         return this.checks.start(a as Input<typeof key>, actor);
-      case "relay_outcome_submit": {
+      case "contextory_outcome_submit": {
         const spec = this.workflow.outcome(
           a as Input<typeof key>,
           actor,
@@ -185,7 +185,7 @@ export class Application {
         return {
           ...spec,
           nextAction: {
-            tool: "relay_spec_change",
+            tool: "contextory_spec_change",
             arguments: {
               action: "complete",
               id: spec.id,
@@ -196,16 +196,16 @@ export class Application {
           },
         };
       }
-      case "relay_search": {
+      case "contextory_search": {
         const p = a as Input<typeof key>;
         return this.knowledge.search(p.query, p.mode, p.limit);
       }
-      case "relay_relationship_change": {
+      case "contextory_relationship_change": {
         const p = a as Input<typeof key>;
         this.ledger.get(p.from);
         if (p.to) this.ledger.get(p.to);
         if (!p.to && !p.source)
-          throw new RelayError(
+          throw new ContextoryError(
             "INVALID_ARGUMENT",
             "Supply a target record or source reference.",
           );
@@ -222,11 +222,11 @@ export class Application {
           return { id };
         });
       }
-      case "relay_impact_get": {
+      case "contextory_impact_get": {
         const p = a as Input<typeof key>;
         return this.knowledge.impact(p.id, p.direction, p.depth, p.limit);
       }
-      case "relay_flow_trace": {
+      case "contextory_flow_trace": {
         const input: FlowInput = a as Input<typeof key>;
         if (actor.human && raw && typeof raw === "object" && "overlays" in raw)
           input.overlays = z
@@ -234,11 +234,11 @@ export class Application {
             .parse(raw.overlays);
         return this.trace(input);
       }
-      case "relay_flow_expand": {
+      case "contextory_flow_expand": {
         const p = a as Input<typeof key>;
         const stored = this.analysis.graphs.get(p.graphId);
         if (!stored || stored.graph.snapshotId !== p.snapshotId)
-          throw new RelayError(
+          throw new ContextoryError(
             "STALE_GRAPH",
             "Graph was evicted or its snapshot differs. Trace from the current source again.",
           );
@@ -251,13 +251,13 @@ export class Application {
           };
         const node = stored.graph.nodes.find((n) => n.id === p.nodeId);
         if (!node?.source)
-          throw new RelayError(
+          throw new ContextoryError(
             "INVALID_FRONTIER",
             "Choose a graph node with a source location.",
           );
         const current = await this.trace(stored.input);
         if (current.snapshotId !== p.snapshotId)
-          throw new RelayError(
+          throw new ContextoryError(
             "STALE_GRAPH",
             "Source changed. Refresh before expanding.",
           );
@@ -275,7 +275,7 @@ export class Application {
           limits: p.limits ?? stored.input.limits,
         });
       }
-      case "relay_report_export": {
+      case "contextory_report_export": {
         const p = a as Input<typeof key>;
         const content = renderReport(this.ledger, p.format, p.requestId);
         const artifact = `report-${randomUUID()}.${p.format === "json" ? "json" : "md"}`;
@@ -309,7 +309,7 @@ export class Application {
     const generation = this.analysis.generation;
     const current = () => {
       if (generation !== this.analysis.generation)
-        throw new RelayError("CANCELLED", "Source analysis was cancelled.");
+        throw new ContextoryError("CANCELLED", "Source analysis was cancelled.");
     };
     await workspacePath(this.ledger.root, input.root.path);
     current();
@@ -346,17 +346,17 @@ export class Application {
       })
       .parse(raw);
     if (!isAbsolute(event.cwd))
-      throw new RelayError(
+      throw new ContextoryError(
         "WRONG_WORKSPACE",
         "Hook cwd must identify this workspace.",
       );
     const cwd = relative(this.ledger.root, await realpath(event.cwd));
     if (cwd.startsWith("..") || isAbsolute(cwd))
-      throw new RelayError(
+      throw new ContextoryError(
         "WRONG_WORKSPACE",
         "Hook cwd belongs to a different workspace.",
       );
-    if (event.tool?.includes("relay_")) return this.brief();
+    if (event.tool?.includes("contextory_")) return this.brief();
     const now = new Date().toISOString();
     const result = this.ledger.db
       .prepare("INSERT OR IGNORE INTO hooks VALUES (?,?,?,?,?)")

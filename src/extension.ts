@@ -20,7 +20,7 @@ export async function deactivate() {
   active = undefined;
 }
 export async function activate(context: vscode.ExtensionContext) {
-  const output = vscode.window.createOutputChannel("Relay");
+  const output = vscode.window.createOutputChannel("Contextory");
   context.subscriptions.push(output);
   let view: vscode.WebviewView | undefined;
   let panel: vscode.WebviewPanel | undefined;
@@ -60,7 +60,7 @@ export async function activate(context: vscode.ExtensionContext) {
   const root = () => {
     const folders = vscode.workspace.workspaceFolders;
     if (!folders?.length || folders[0].uri.scheme !== "file")
-      throw new Error("Open a trusted local folder to use Relay.");
+      throw new Error("Open a trusted local folder to use Contextory.");
     if (folders.length !== 1)
       throw new Error(
         "Open this project as a single-folder workspace. Multi-root selection is not yet qualified.",
@@ -96,7 +96,7 @@ export async function activate(context: vscode.ExtensionContext) {
       opening = undefined;
       post({
         type: "notice",
-        text: "Relay service disconnected. Refresh to reconnect; native work can continue.",
+        text: "Contextory service disconnected. Refresh to reconnect; native work can continue.",
       });
     }
   };
@@ -116,7 +116,7 @@ export async function activate(context: vscode.ExtensionContext) {
         storage,
         context.extensionUri.fsPath,
         vscode.workspace
-          .getConfiguration("relay")
+          .getConfiguration("contextory")
           .get("nodeExecutable", "node"),
         join(context.globalStorageUri.fsPath, "embeddings"),
         handleEvent,
@@ -126,12 +126,12 @@ export async function activate(context: vscode.ExtensionContext) {
       active = client;
       await client.start();
       await client.call("configure", {
-        recipes: vscode.workspace.getConfiguration("relay").get("checks", []),
+        recipes: vscode.workspace.getConfiguration("contextory").get("checks", []),
         pythonExecutable: vscode.workspace
-          .getConfiguration("relay")
+          .getConfiguration("contextory")
           .get("pythonExecutable", "python"),
       });
-      // Refresh Relay-owned instructions on upgrades for already connected agents.
+      // Refresh Contextory-owned instructions on upgrades for already connected agents.
       const configured = await client.call<Dashboard>("dashboard");
       for (const connection of configured.connections.filter(
         (c) => c.configured,
@@ -142,7 +142,7 @@ export async function activate(context: vscode.ExtensionContext) {
             provider: connection.provider,
             node: client.node,
             proxy: join(storage, "runtime/mcp-proxy.mjs"),
-            hook: join(storage, "runtime/relay-hook.mjs"),
+            hook: join(storage, "runtime/contextory-hook.mjs"),
             descriptor: join(storage, `${connection.provider}.json`),
             hookDescriptor: join(storage, `${connection.provider}-hook.json`),
           });
@@ -163,7 +163,7 @@ export async function activate(context: vscode.ExtensionContext) {
       return await work();
     } catch (error) {
       const text =
-        error instanceof Error ? error.message : "Relay operation failed.";
+        error instanceof Error ? error.message : "Contextory operation failed.";
       post({ type: "notice", text });
       output.appendLine(text);
       return undefined;
@@ -179,7 +179,7 @@ export async function activate(context: vscode.ExtensionContext) {
         provider,
         node: client.node,
         proxy: join(client.storage, "runtime/mcp-proxy.mjs"),
-        hook: join(client.storage, "runtime/relay-hook.mjs"),
+        hook: join(client.storage, "runtime/contextory-hook.mjs"),
         descriptor: join(client.storage, `${provider}.json`),
         hookDescriptor: join(client.storage, `${provider}-hook.json`),
       },
@@ -193,8 +193,8 @@ export async function activate(context: vscode.ExtensionContext) {
   const showMap = () => {
     if (!panel) {
       panel = vscode.window.createWebviewPanel(
-        "relay.flow",
-        "Relay · Source Flow",
+        "contextory.flow",
+        "Contextory · Source Flow",
         vscode.ViewColumn.Beside,
         { enableScripts: true, localResourceRoots: [context.extensionUri] },
       );
@@ -228,7 +228,7 @@ export async function activate(context: vscode.ExtensionContext) {
         view: /\.(?:[cm]?[jt]sx?|py)$/.test(lastSource.path) ? "flow" : "calls",
         limits: {
           callDepth: vscode.workspace
-            .getConfiguration("relay")
+            .getConfiguration("contextory")
             .get("flowDepth", 5),
         },
       };
@@ -249,7 +249,7 @@ export async function activate(context: vscode.ExtensionContext) {
     if (options) input = { ...input, ...options };
     const graph = await client.call<FlowGraph>(
       "tools/call",
-      { name: "relay_flow_trace", arguments: input },
+      { name: "contextory_flow_trace", arguments: input },
       15000,
     );
     lastGraph = graph;
@@ -281,15 +281,15 @@ export async function activate(context: vscode.ExtensionContext) {
     const graph = await (
       await service()
     ).call<RelationshipGraph>("tools/call", {
-      name: "relay_impact_get",
+      name: "contextory_impact_get",
       arguments: { id, direction: "both", depth: 5, limit: 60 },
     });
     if (request !== relationshipRequest) return graph;
     lastRelationships = graph;
     if (!relationshipPanel) {
       const created = vscode.window.createWebviewPanel(
-        "relay.relationships",
-        "Relay: Relationships",
+        "contextory.relationships",
+        "Contextory: Relationships",
         vscode.ViewColumn.Beside,
         { enableScripts: true, localResourceRoots: [context.extensionUri] },
       );
@@ -361,7 +361,7 @@ export async function activate(context: vscode.ExtensionContext) {
       requestId = picked;
     }
     const result = await client.call<{ artifact: string }>("tools/call", {
-      name: "relay_report_export",
+      name: "contextory_report_export",
       arguments: { format: "report", requestId },
     });
     const uri = vscode.Uri.file(
@@ -427,7 +427,7 @@ export async function activate(context: vscode.ExtensionContext) {
           const client = await service();
           const graph = await client.call<FlowGraph>(
             "tools/call",
-            { name: "relay_flow_expand", arguments: message.arguments },
+            { name: "contextory_flow_expand", arguments: message.arguments },
             15000,
           );
           lastGraph = graph;
@@ -450,7 +450,7 @@ export async function activate(context: vscode.ExtensionContext) {
         case "openRecord":
           if (typeof message.id === "string") {
             pendingRecord = message.id;
-            await vscode.commands.executeCommand("relay.tasks.focus");
+            await vscode.commands.executeCommand("contextory.tasks.focus");
             await deliverRecord(view?.webview);
           }
           break;
@@ -493,7 +493,7 @@ export async function activate(context: vscode.ExtensionContext) {
           break;
         }
         case "prepareSemantic":
-          await vscode.commands.executeCommand("relay.prepareSemantic");
+          await vscode.commands.executeCommand("contextory.prepareSemantic");
           break;
         case "cancelAnalysis":
           await (await service()).call("analysis.cancel");
@@ -502,7 +502,7 @@ export async function activate(context: vscode.ExtensionContext) {
     });
   };
   context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider("relay.tasks", {
+    vscode.window.registerWebviewViewProvider("contextory.tasks", {
       resolveWebviewView(value) {
         view = value;
         view.webview.options = {
@@ -524,43 +524,43 @@ export async function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
       vscode.commands.registerCommand(id, () => run(handler)),
     );
-  command("relay.refresh", refresh);
-  command("relay.connectNativeCodex", () => connect("codex"));
-  command("relay.connectNativeClaude", () => connect("claude"));
-  command("relay.connectNativeBob", () => connect("bob"));
-  command("relay.disconnectProvider", async () => {
+  command("contextory.refresh", refresh);
+  command("contextory.connectNativeCodex", () => connect("codex"));
+  command("contextory.connectNativeClaude", () => connect("claude"));
+  command("contextory.connectNativeBob", () => connect("bob"));
+  command("contextory.disconnectProvider", async () => {
     const provider = await vscode.window.showQuickPick(
       ["codex", "claude", "bob"],
-      { placeHolder: "Disconnect Relay from this native agent" },
+      { placeHolder: "Disconnect Contextory from this native agent" },
     );
     if (provider) await connect(provider as Provider, true);
   });
-  command("relay.traceFlowFromHere", () => trace());
+  command("contextory.traceFlowFromHere", () => trace());
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "relay.exportReport",
+      "contextory.exportReport",
       (requestId?: string) => run(() => exportReport(requestId)),
     ),
   );
-  command("relay.openPlan", async () =>
+  command("contextory.openPlan", async () =>
     vscode.window.showTextDocument(
       vscode.Uri.joinPath(context.extensionUri, "docs/NATIVE-AGENT-PLAN.md"),
     ),
   );
-  command("relay.indexWorkspace", async () => {
+  command("contextory.indexWorkspace", async () => {
     const client = await service();
     const result = await client.call("index.sources", {}, 120000);
     if ((await client.call<Dashboard>("dashboard")).semantic.ready)
       await client.call("index.vectors", {}, 600000);
     return result;
   });
-  command("relay.prepareSemantic", async () => {
+  command("contextory.prepareSemantic", async () => {
     const client = await service();
     await mkdir(client.embeddings, { recursive: true });
     await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: "Relay: Preparing optional local semantic search",
+        title: "Contextory: Preparing optional local semantic search",
       },
       () =>
         new Promise<void>((resolve, reject) => {
@@ -587,7 +587,7 @@ export async function activate(context: vscode.ExtensionContext) {
               ? resolve()
               : reject(
                   new Error(
-                    "Local model preparation failed. See Relay output; lexical search remains available.",
+                    "Local model preparation failed. See Contextory output; lexical search remains available.",
                   ),
                 ),
           );
@@ -598,17 +598,17 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((event) => {
       if (
-        (event.affectsConfiguration("relay.checks") ||
-          event.affectsConfiguration("relay.pythonExecutable")) &&
+        (event.affectsConfiguration("contextory.checks") ||
+          event.affectsConfiguration("contextory.pythonExecutable")) &&
         active
       )
         void active
           .call("configure", {
             recipes: vscode.workspace
-              .getConfiguration("relay")
+              .getConfiguration("contextory")
               .get("checks", []),
             pythonExecutable: vscode.workspace
-              .getConfiguration("relay")
+              .getConfiguration("contextory")
               .get("pythonExecutable", "python"),
           })
           .catch((error) => output.appendLine(error.message));

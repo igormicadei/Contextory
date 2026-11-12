@@ -7,7 +7,7 @@ import { application, operationId, claimed } from "../helpers";
 import type { Entity, RelationshipGraph } from "../../src/contracts/model";
 test("lexical retrieval cites revisions and omits changed source; graph traversal terminates cycles", async (t) => {
   const { call, app, root } = await application(t);
-  const record = (await call("relay_request_change", {
+  const record = (await call("contextory_request_change", {
     operationId: operationId(),
     action: "create",
     title: "Retry backoff",
@@ -15,20 +15,20 @@ test("lexical retrieval cites revisions and omits changed source; graph traversa
   })) as Entity;
   await writeFile(join(root, "main.ts"), "function uniqueRetryMarker() {}");
   await app.indexSources();
-  const first = (await call("relay_search", {
+  const first = (await call("contextory_search", {
     query: "uniqueRetryMarker",
     mode: "lexical",
   })) as { hits: { source: unknown }[] };
   assert.equal(first.hits.length, 1);
   assert.ok(first.hits[0].source);
   await writeFile(join(root, "main.ts"), "function changed() {}");
-  const stale = (await call("relay_search", {
+  const stale = (await call("contextory_search", {
     query: "uniqueRetryMarker",
     mode: "lexical",
   })) as { hits: unknown[]; staleOmitted: number };
   assert.equal(stale.hits.length, 0);
   assert.equal(stale.staleOmitted, 1);
-  const second = (await call("relay_request_change", {
+  const second = (await call("contextory_request_change", {
     operationId: operationId(),
     action: "create",
     title: "Circuit breaker",
@@ -38,14 +38,14 @@ test("lexical retrieval cites revisions and omits changed source; graph traversa
     [record.id, second.id],
     [second.id, record.id],
   ])
-    await call("relay_relationship_change", {
+    await call("contextory_relationship_change", {
       operationId: operationId(),
       from,
       to,
       kind: "related_to",
       rationale: "Network reliability",
     });
-  const impact = (await call("relay_impact_get", {
+  const impact = (await call("contextory_impact_get", {
     id: record.id,
     direction: "both",
   })) as { nodes: unknown[] };
@@ -54,7 +54,7 @@ test("lexical retrieval cites revisions and omits changed source; graph traversa
 test("relationship exploration returns readable records, source references and deduplicated bounded connections", async (t) => {
   const { call } = await application(t);
   const work = await claimed(call);
-  await call("relay_decision_record", {
+  await call("contextory_decision_record", {
     operationId: operationId(),
     specId: work.spec.id,
     leaseId: work.leaseId,
@@ -63,14 +63,14 @@ test("relationship exploration returns readable records, source references and d
     rationale: "Existing callers need the contract",
     consequences: "Changes stay inside the implementation",
   });
-  await call("relay_relationship_change", {
+  await call("contextory_relationship_change", {
     operationId: operationId(),
     from: work.spec.id,
     source: { path: "main.ts", symbol: "hello" },
     kind: "implements",
     rationale: "The function implements this specification",
   });
-  const graph = (await call("relay_impact_get", {
+  const graph = (await call("contextory_impact_get", {
     id: work.spec.id,
     direction: "both",
     depth: 5,
@@ -102,7 +102,7 @@ test("relationship exploration returns readable records, source references and d
     ),
   );
   assert.equal(new Set(graph.edges.map((e) => e.id)).size, graph.edges.length);
-  const bounded = (await call("relay_impact_get", {
+  const bounded = (await call("contextory_impact_get", {
     id: work.spec.id,
     direction: "both",
     depth: 1,
@@ -116,19 +116,19 @@ test("relationship exploration returns readable records, source references and d
 test(
   "real local embeddings support semantic/hybrid retrieval and reject stale vectors",
   {
-    skip: !existsSync(resolve(".relay-local/embeddings/profile.json")),
+    skip: !existsSync(resolve(".contextory-local/embeddings/profile.json")),
     timeout: 60000,
   },
   async (t) => {
     const { call, app } = await application(t);
-    const relevant = (await call("relay_request_change", {
+    const relevant = (await call("contextory_request_change", {
       operationId: operationId(),
       action: "create",
       title: "Credential renewal",
       description:
         "Refresh expired authentication tokens so signed-in users can continue their sessions",
     })) as Entity;
-    await call("relay_request_change", {
+    await call("contextory_request_change", {
       operationId: operationId(),
       action: "create",
       title: "Color palette",
@@ -136,13 +136,13 @@ test(
     });
     const indexed = await app.knowledge.indexVectors();
     assert.equal(indexed.indexed, 2);
-    const results = (await call("relay_search", {
+    const results = (await call("contextory_search", {
       query: "renew login credentials after expiry",
       mode: "semantic",
     })) as { hits: { id: string; via: string[] }[] };
     assert.equal(results.hits[0].id, relevant.id);
     assert.ok(results.hits[0].via.includes("semantic"));
-    await call("relay_request_change", {
+    await call("contextory_request_change", {
       operationId: operationId(),
       action: "revise",
       id: relevant.id,
@@ -151,7 +151,7 @@ test(
       description: "Changed contract",
       reason: "New request detail",
     });
-    const stale = (await call("relay_search", {
+    const stale = (await call("contextory_search", {
       query: "login credentials",
       mode: "semantic",
     })) as { hits: { id: string }[] };

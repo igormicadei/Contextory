@@ -5,5 +5,5 @@ artifacts/probe*.json
 artifacts/host-smoke.json
 test-results/
 playwright-report/
-.relay-local/
+.contextory-local/
 *.log

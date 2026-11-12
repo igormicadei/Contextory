@@ -17,7 +17,7 @@ const registration = (
   provider,
   node: process.execPath,
   proxy: "C:/path with spaces/mcp-proxy.mjs",
-  hook: "C:/path with spaces/relay-hook.mjs",
+  hook: "C:/path with spaces/contextory-hook.mjs",
   descriptor: "C:/data/provider.json",
   hookDescriptor: "C:/data/hook.json",
 });
@@ -65,8 +65,8 @@ for (const provider of ["codex", "claude", "bob"] as const)
     const result = await configureProvider(r);
     const workflow = await readFile(result.files[2], "utf8");
     assert.match(workflow, /action=complete/);
-    assert.match(workflow, /relay_flow_trace/);
-    assert.match(workflow, /relay_search/);
+    assert.match(workflow, /contextory_flow_trace/);
+    assert.match(workflow, /contextory_search/);
     const first = await readFile(hooksFile, "utf8");
     await configureProvider(r);
     assert.equal(await readFile(hooksFile, "utf8"), first);
@@ -89,7 +89,7 @@ for (const provider of ["codex", "claude", "bob"] as const)
   });
 test("late configuration conflict leaves every earlier file untouched", async (t) => {
   const { root } = await fixture(t);
-  const skillDirectory = join(root, ".claude/skills/relay-workflow");
+  const skillDirectory = join(root, ".claude/skills/contextory-workflow");
   await mkdir(skillDirectory, { recursive: true });
   await writeFile(join(skillDirectory, "SKILL.md"), "user-owned skill");
   await assert.rejects(configureProvider(registration(root, "claude")), {

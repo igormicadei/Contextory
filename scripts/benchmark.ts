@@ -6,7 +6,7 @@ import { spawn } from "node:child_process";
 import { startService } from "../src/service/server";
 import { rpc } from "../src/service/rpc";
 async function main() {
-  const directory = await mkdtemp(join(tmpdir(), "relay-benchmark-"));
+  const directory = await mkdtemp(join(tmpdir(), "contextory-benchmark-"));
   const root = join(directory, "project");
   const storage = join(directory, "storage");
   await mkdir(root);
@@ -34,7 +34,7 @@ async function main() {
       root,
       storage,
       workerPath: resolve("dist/analysis-worker.mjs"),
-      embeddingDirectory: resolve(".relay-local/embeddings"),
+      embeddingDirectory: resolve(".contextory-local/embeddings"),
     }),
   );
   try {
@@ -60,7 +60,7 @@ async function main() {
     for (let i = 0; i < 20; i++)
       await measure("lexicalSearch", () =>
         rpc(descriptor, "tools/call", {
-          name: "relay_search",
+          name: "contextory_search",
           arguments: { query: "retry credentials", mode: "lexical", limit: 10 },
         }),
       );
@@ -71,20 +71,20 @@ async function main() {
     };
     const cold = await measure("flowColdWorker", () =>
       rpc(descriptor, "tools/call", {
-        name: "relay_flow_trace",
+        name: "contextory_flow_trace",
         arguments: flow,
       }),
     );
     for (let i = 0; i < 10; i++)
       await measure("flowWarm", () =>
         rpc(descriptor, "tools/call", {
-          name: "relay_flow_trace",
+          name: "contextory_flow_trace",
           arguments: flow,
         }),
       );
     const healthDuringAnalysis: Promise<unknown>[] = [];
     const tracing = rpc(descriptor, "tools/call", {
-      name: "relay_flow_trace",
+      name: "contextory_flow_trace",
       arguments: flow,
     });
     for (let i = 0; i < 20; i++)
@@ -95,19 +95,19 @@ async function main() {
     const pythonFlow = { ...flow, root: { path: "file0.py", symbol: "start" } };
     const pythonCold = await measure("pythonFlowCold", () =>
       rpc(descriptor, "tools/call", {
-        name: "relay_flow_trace",
+        name: "contextory_flow_trace",
         arguments: pythonFlow,
       }),
     );
     for (let i = 0; i < 10; i++)
       await measure("pythonFlowRepeat", () =>
         rpc(descriptor, "tools/call", {
-          name: "relay_flow_trace",
+          name: "contextory_flow_trace",
           arguments: pythonFlow,
         }),
       );
     const pythonTracing = rpc(descriptor, "tools/call", {
-      name: "relay_flow_trace",
+      name: "contextory_flow_trace",
       arguments: pythonFlow,
     });
     await Promise.all([
@@ -126,7 +126,7 @@ async function main() {
             const child = spawn(
               process.execPath,
               [
-                resolve("dist/relay-hook.mjs"),
+                resolve("dist/contextory-hook.mjs"),
                 join(storage, "bob-hook.json"),
                 "bob",
               ],
@@ -203,7 +203,7 @@ async function main() {
     );
   } finally {
     await service.close();
-    if (!directory.startsWith(join(tmpdir(), "relay-benchmark-")))
+    if (!directory.startsWith(join(tmpdir(), "contextory-benchmark-")))
       throw new Error("Unexpected benchmark directory");
     await rm(directory, { recursive: true, force: true });
   }

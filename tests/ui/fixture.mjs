@@ -109,7 +109,7 @@ const dashboard = {
       "EV-demo",
       "evidence",
       "Payment unit tests",
-      { origin: "relay-runner", detail: "12 tests passed", criteria: ["AC-1"] },
+      { origin: "contextory-runner", detail: "12 tests passed", criteria: ["AC-1"] },
       "SPEC-demo",
       "passed",
     ),
@@ -260,12 +260,12 @@ const relationshipGraph = {
     },
   ],
 };
-window.relayMessages = [];
+window.contextoryMessages = [];
 window.acquireVsCodeApi = () => ({
   getState() {},
   setState() {},
   postMessage(message) {
-    window.relayMessages.push(message);
+    window.contextoryMessages.push(message);
     queueMicrotask(() => {
       if (message.type === "ready" || message.type === "refresh")
         send({ type: "restore", dashboard });
@@ -285,7 +285,7 @@ window.acquireVsCodeApi = () => ({
         );
       if (message.type === "trace" || message.type === "expand")
         send({ type: "flow", graph });
-      if (message.type === "tool" && message.name === "relay_search")
+      if (message.type === "tool" && message.name === "contextory_search")
         send({
           type: "toolResult",
           requestId: message.requestId,
@@ -302,7 +302,7 @@ window.acquireVsCodeApi = () => ({
             ],
           },
         });
-      if (message.type === "tool" && message.name === "relay_history_get") {
+      if (message.type === "tool" && message.name === "contextory_history_get") {
         const events = historyEvents.filter(
           (e) =>
             (!message.arguments.before ||
@@ -321,7 +321,7 @@ window.acquireVsCodeApi = () => ({
           },
         });
       }
-      if (message.type === "tool" && message.name === "relay_request_change") {
+      if (message.type === "tool" && message.name === "contextory_request_change") {
         dashboard.entities.push(
           entity("REQ-created", "request", message.arguments.title, {
             description: message.arguments.description,

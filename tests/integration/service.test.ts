@@ -23,25 +23,25 @@ test("real stdio MCP proxy, role isolation, advisory hooks and descriptor rotati
     stderr: "pipe",
   });
   const client = new Client({
-    name: "relay-integration-test",
+    name: "contextory-integration-test",
     version: "1.0.0",
   });
   f.cleanups.push(() => client.close());
   await client.connect(transport);
   const list = await client.listTools();
-  assert.ok(list.tools.some((tool) => tool.name === "relay_outcome_submit"));
+  assert.ok(list.tools.some((tool) => tool.name === "contextory_outcome_submit"));
   assert.equal(list.tools.length, 18);
   for (const name of [
-    "relay_request_change",
-    "relay_spec_change",
-    "relay_spec_lease",
-    "relay_history_get",
-    "relay_search",
-    "relay_flow_trace",
+    "contextory_request_change",
+    "contextory_spec_change",
+    "contextory_spec_lease",
+    "contextory_history_get",
+    "contextory_search",
+    "contextory_flow_trace",
   ])
     assert.ok(list.tools.some((t) => t.name === name));
   const created = await client.callTool({
-    name: "relay_request_change",
+    name: "contextory_request_change",
     arguments: {
       operationId: operationId(),
       action: "create",
@@ -64,7 +64,7 @@ test("real stdio MCP proxy, role isolation, advisory hooks and descriptor rotati
     const hook = spawn(
       process.execPath,
       [
-        resolve("dist/relay-hook.mjs"),
+        resolve("dist/contextory-hook.mjs"),
         join(f.storage, `${provider}-hook.json`),
         provider,
       ],
@@ -89,7 +89,7 @@ test("real stdio MCP proxy, role isolation, advisory hooks and descriptor rotati
         code === 0 ? resolve() : reject(new Error(`hook ${code}`)),
       );
     });
-    assert.match(output, /Relay companion/);
+    assert.match(output, /Contextory companion/);
     if (provider !== "bob")
       assert.equal(
         JSON.parse(output).hookSpecificOutput.hookEventName,
@@ -138,7 +138,7 @@ test("real stdio MCP proxy, role isolation, advisory hooks and descriptor rotati
   let largeRequest: Entity | undefined;
   for (let i = 0; i < 5; i++)
     largeRequest = await rpc<Entity>(codex, "tools/call", {
-      name: "relay_request_change",
+      name: "contextory_request_change",
       arguments: {
         operationId: operationId(),
         action: "create",
@@ -147,7 +147,7 @@ test("real stdio MCP proxy, role isolation, advisory hooks and descriptor rotati
       },
     });
   const report = await rpc<{ artifactId: string }>(codex, "tools/call", {
-    name: "relay_report_export",
+    name: "contextory_report_export",
     arguments: { format: "json", requestId: largeRequest!.id },
   });
   assert.match(report.artifactId, /^ART-/);
@@ -155,7 +155,7 @@ test("real stdio MCP proxy, role isolation, advisory hooks and descriptor rotati
     codex,
     "tools/call",
     {
-      name: "relay_entity_get",
+      name: "contextory_entity_get",
       arguments: { id: report.artifactId, limit: 10 },
     },
   );
@@ -169,14 +169,14 @@ test("real stdio MCP proxy, role isolation, advisory hooks and descriptor rotati
     oldInstance,
   );
   const context = await client.callTool({
-    name: "relay_context_get",
+    name: "contextory_context_get",
     arguments: {},
   });
   assert.equal(context.isError, undefined);
   const health = await rpc<{ projectId: string }>(ui, "health");
   assert.equal(health.projectId, service.app.ledger.projectId);
   const flow = await rpc<{ nodes: { label: string }[] }>(ui, "tools/call", {
-    name: "relay_flow_trace",
+    name: "contextory_flow_trace",
     arguments: { root: { path: "main.ts", symbol: "hello" }, view: "flow" },
   });
   assert.ok(flow.nodes.some((node) => node.label === "hello"));
@@ -197,7 +197,7 @@ test("real stdio MCP proxy, role isolation, advisory hooks and descriptor rotati
       },
     ],
   });
-  const job = await nativeCall("relay_check_run", {
+  const job = await nativeCall("contextory_check_run", {
     operationId: operationId(),
     specId: work.spec.id,
     leaseId: work.leaseId,
@@ -205,7 +205,7 @@ test("real stdio MCP proxy, role isolation, advisory hooks and descriptor rotati
     criteria: ["AC-1"],
   });
   const checked = await waitJob(nativeCall, job.jobId);
-  const submitted = await nativeCall("relay_outcome_submit", {
+  const submitted = await nativeCall("contextory_outcome_submit", {
     operationId: operationId(),
     specId: work.spec.id,
     leaseId: work.leaseId,
@@ -219,41 +219,41 @@ test("real stdio MCP proxy, role isolation, advisory hooks and descriptor rotati
     criteria: [{ criterionId: "AC-1", evidenceIds: [checked.data.evidenceId] }],
   });
   assert.equal(submitted.state, "submitted");
-  assert.equal(submitted.nextAction.tool, "relay_spec_change");
+  assert.equal(submitted.nextAction.tool, "contextory_spec_change");
   const completed = await nativeCall(submitted.nextAction.tool, {
     ...submitted.nextAction.arguments,
     operationId: operationId(),
   });
   assert.equal(completed.state, "completed");
   assert.equal(
-    (await nativeCall("relay_entity_get", { id: work.milestone.id })).entity
+    (await nativeCall("contextory_entity_get", { id: work.milestone.id })).entity
       .state,
     "completed",
   );
   assert.equal(
-    (await nativeCall("relay_entity_get", { id: work.request.id })).entity
+    (await nativeCall("contextory_entity_get", { id: work.request.id })).entity
       .state,
     "completed",
   );
-  const exported = await nativeCall("relay_report_export", {
+  const exported = await nativeCall("contextory_report_export", {
     format: "report",
     requestId: work.request.id,
   });
   assert.match(exported.content, /Contract implemented/);
   assert.match(exported.content, /Contract test/);
   assert.ok(!exported.content.includes("Native request"));
-  await nativeCall("relay_spec_change", {
+  await nativeCall("contextory_spec_change", {
     operationId: operationId(),
     action: "milestone",
     parentId: work.request.id,
     title: "Next planned milestone",
   });
   assert.equal(
-    (await nativeCall("relay_entity_get", { id: work.request.id })).entity
+    (await nativeCall("contextory_entity_get", { id: work.request.id })).entity
       .state,
     "active",
   );
-  await nativeCall("relay_spec_change", {
+  await nativeCall("contextory_spec_change", {
     operationId: operationId(),
     action: "reopen",
     id: completed.id,
@@ -261,7 +261,7 @@ test("real stdio MCP proxy, role isolation, advisory hooks and descriptor rotati
     reason: "Authorized follow-up work",
   });
   assert.equal(
-    (await nativeCall("relay_entity_get", { id: work.milestone.id })).entity
+    (await nativeCall("contextory_entity_get", { id: work.milestone.id })).entity
       .state,
     "active",
   );

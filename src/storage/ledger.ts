@@ -3,7 +3,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import {
-  RelayError,
+  ContextoryError,
   type Actor,
   type Audit,
   type Entity,
@@ -27,9 +27,9 @@ export class Ledger {
     );
     if (schema > 2) {
       this.db.close();
-      throw new RelayError(
+      throw new ContextoryError(
         "SCHEMA_TOO_NEW",
-        "This ledger was created by a newer Relay version.",
+        "This ledger was created by a newer Contextory version.",
       );
     }
     this.db
@@ -56,7 +56,7 @@ export class Ledger {
     const storedRoot = this.meta("root");
     if (storedRoot && storedRoot !== root) {
       this.db.close();
-      throw new RelayError(
+      throw new ContextoryError(
         "WRONG_WORKSPACE",
         "This ledger belongs to a different workspace.",
       );
@@ -94,7 +94,7 @@ export class Ledger {
         .get(operationId) as { signature: string; result: string } | undefined;
       if (old) {
         if (old.signature !== signature)
-          throw new RelayError(
+          throw new ContextoryError(
             "OPERATION_CONFLICT",
             "operationId was already used with different input or actor.",
           );
@@ -134,14 +134,14 @@ export class Ledger {
         )
         .get(id, revision);
       if (!row)
-        throw new RelayError(
+        throw new ContextoryError(
           "NOT_FOUND",
           `Revision ${revision} of ${id} was not found.`,
         );
       return JSON.parse(String(row.record));
     }
     const row = this.db.prepare("SELECT * FROM entities WHERE id=?").get(id);
-    if (!row) throw new RelayError("NOT_FOUND", `Record ${id} was not found.`);
+    if (!row) throw new ContextoryError("NOT_FOUND", `Record ${id} was not found.`);
     return this.decode(row);
   }
   list(parentId?: string, limit = 1000, offset = 0): Entity[] {
@@ -209,7 +209,7 @@ export class Ledger {
     patch: Partial<Pick<Entity, "title" | "state" | "data">>,
   ): Entity {
     if (expectedRevision !== entity.revision)
-      throw new RelayError(
+      throw new ContextoryError(
         "REVISION_CONFLICT",
         `Read ${entity.id} again and use expectedRevision ${entity.revision}.`,
       );

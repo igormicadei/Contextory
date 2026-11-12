@@ -1,5 +1,5 @@
 {
-  "files.exclude": { ".relay-local": true },
-  "files.watcherExclude": { "**/.relay-local/**": true },
-  "search.exclude": { "**/.relay-local/**": true }
+  "files.exclude": { ".contextory-local": true },
+  "files.watcherExclude": { "**/.contextory-local/**": true },
+  "search.exclude": { "**/.contextory-local/**": true }
 }

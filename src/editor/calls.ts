@@ -3,7 +3,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { relative } from "node:path";
 import {
   flowDefaults,
-  RelayError,
+  ContextoryError,
   type FlowGraph,
   type FlowInput,
 } from "../contracts/model";
@@ -23,7 +23,7 @@ export async function editorCallGraph(
           timer = setTimeout(
             () =>
               reject(
-                new RelayError(
+                new ContextoryError(
                   "EDITOR_TIMEOUT",
                   "Language service exceeded the source query budget.",
                 ),
@@ -52,7 +52,7 @@ export async function editorCallGraph(
     ),
   );
   if (!candidates?.length)
-    throw new RelayError(
+    throw new ContextoryError(
       "NO_CALL_PROVIDER",
       "No installed language service resolved a call hierarchy here. Use TS/JS Flow mode or enable a language extension.",
     );

@@ -1,92 +1,123 @@
-# Relay — Native Agent Companion
+# Contextory
 
-Relay keeps project specifications, issues, fixes, decisions and evidence alongside your native Codex, Claude Code or IBM Bob conversation. Native agents own their chats, models, authentication and editing. Relay supplies a shared local workflow through MCP and advisory lifecycle hooks.
+**Manage requests. Give agents the full picture.**
 
-Version **0.2.2** adds a compact overview with request progress, pinned footer agent controls and a readable relationship workbench view. The native-agent rebuild also provides linked history, request reports, Python source flow and explicit agent completion guidance. There is no legacy data importer or direct agent runner.
+<img src="media/contextory-icon.png" alt="Contextory: a request connected to context nodes" width="96" align="right">
 
-## Use it
+Contextory is a VS Code and IBM Bob extension that connects your requests, milestones, specifications, code, decisions, and test evidence. Keep working in the native **Codex**, **Claude Code**, or **IBM Bob** chat while Contextory gives the agent durable project context through MCP tools and lifecycle hooks.
 
-1. Install Node.js **24+** and the Relay VSIX. Open one trusted local project folder in VS Code or IBM Bob.
-2. Open the Relay activity-bar view. Run **Relay: Connect Native Codex**, **Relay: Connect Native Claude Code**, or **Relay: Connect Native IBM Bob**.
-3. Review the project configuration changes and trust the hooks/MCP server through the native client. Reload its MCP configuration or restart the native extension/session as needed. Relay never changes native approval settings.
-4. Keep talking to the agent in its native chat. The installed `relay-workflow` skill, MCP instructions and session/prompt reminders describe how to record the authorized request, milestones, specs and explanations.
-5. Relay displays the resulting records. Agent buttons stay in the sidebar footer while the content scrolls; click the agent name to connect or disconnect. A green light means configured MCP traffic has been observed; grey means unconfigured or awaiting traffic. Tooltips retain connection details. Keep the workspace editor open for the local service.
+Your agent keeps its own conversation, model, authentication, and editing tools. Contextory manages the project records that need to survive the next session or a switch to another agent.
 
-After upgrading, reload the native client's MCP configuration/session so it reads the updated tool instructions. Relay refreshes its owned workflow skills for configured agents. If an older workspace service is still alive, Relay explains how to let it stop before reopening; it does not silently attach the new UI to an incompatible service.
+[Download v0.2.3](https://github.com/igormicadei/Contextory/releases/tag/v0.2.3) · [User guide](docs/USER-GUIDE.md) · [Agent tools](docs/MCP-TOOLS.md) · [Development](docs/DEVELOPMENT.md)
 
-The native adapters are a preview: configuration, protocol, hooks and editor hosts have automated coverage. Authenticated model conversations in each native agent extension remain an explicit qualification step; see [validation](docs/VALIDATION.md).
+## What it offers
 
-## What is available
+| Capability           | What you get                                                                                                                                |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Request management   | Requests broken into milestones and specs, with acceptance criteria, dependencies, progress, immutable revisions, and original user intent. |
+| Durable explanations | Issues and fixes, design choices and tradeoffs, evidence, and implementation outcomes attached to each spec.                                |
+| Shared agent context | MCP tools and managed workflow instructions let native agents retrieve and update the same project records.                                 |
+| Search               | Local lexical search over project records and indexed source; optional local vector and hybrid retrieval.                                   |
+| Relationships        | Explore how requests, specs, decisions, and source files connect, with titles, summaries, directions, and link rationale.                   |
+| Code flow            | Bounded Python and TypeScript/JavaScript call and branch diagrams, source navigation, expansion, and SVG/JSON export.                       |
+| Verified completion  | Configured checks run independently, with criterion evidence and source fingerprints checked before completion.                             |
+| Request reports      | Export a request's contracts, changes, decisions, findings, evidence, tests, and outcomes, or a completed-work changelog.                   |
+| Daily workspace UI   | All open requests, progress bars, three recent activities, full linked history, pinned agent controls, and live VS Code theme support.      |
 
-- Requests → milestones → specs, with immutable record revisions, original intent, dependency checks, implementation leases and an audit trail.
-- Overview starts with workspace metrics, lists every open request with a specification progress bar, and shows the three latest activities with readable titles. Requests has one expandable card per request, inline milestone/spec details and a filter that includes descendant issues and decisions. The separate History tab pages the entire audit trail and links back to requests, milestones and specs.
-- Spec tabs retain findings/fixes, decisions, evidence and outcomes across native conversations and agent switches.
-- Independent named check recipes, asynchronous jobs, cancellation, bounded logs and source fingerprints. Completion requires a current outcome, passing runner evidence for each criterion, completed dependencies and resolved blocking findings. Agent-reported evidence remains labeled.
-- Deterministic request reports include original/current contracts, acceptance criteria, changes, issues/fixes, decisions, test commands/results, evidence origins/snapshots and outcomes. Export from a request card, the command palette, or `relay_report_export` with `requestId`. Changelogs include completed specs only.
-- SQLite lexical search and a relationship graph with bounded forward/reverse impact traversal. Records index automatically; **Index Workspace Knowledge** adds selected workspace source. Search and source mapping remain first-class agent MCP tools, independent of whether the user opens their UI.
-- **Explore relationships** opens a dedicated workbench tab. It shows connected requests, milestones, specs, decisions and source files with titles, IDs, short descriptions, relationship directions and link rationale. Record titles open the corresponding request/spec detail; source references open files. MCP impact results include the same readable summaries and retain explicit traversal limits.
-- Optional local vector/hybrid search. **Prepare Local Semantic Search** installs a pinned model/runtime once; **Index Workspace Knowledge** builds vectors. Queries then run locally. Preparation currently occupies about **486 MiB** on Windows; none of it is bundled in the VSIX. Lexical search works without it.
-- **Trace Flow from Here** in the editor context menu. Python and TypeScript/JavaScript support calls and branch flow. Python needs **Python 3.10+** (`relay.pythonExecutable`); its isolated standard-library AST engine parses source without importing or executing it and works for agents without an editor language provider. Other languages use an installed editor call-hierarchy provider. Sidebar tracing stays in the sidebar; the editor command opens a dedicated flow panel. Both remember the source cursor across sidebar focus changes and support source navigation, bounded expansion and SVG/JSON export.
+Search, relationships, source tracing, and request/spec management are available to the **agent through MCP**, as well as to the user through the interface. Contextory does not require a separate chat turn to expose them.
 
-Flow defaults to **five call hops**, 150 nodes, 300 edges and a two-second query budget. Recursion, limits, unresolved targets and static-analysis gaps remain visible. Diagrams describe possible source paths; they do not establish runtime coverage. Unsaved buffers are labeled and never count as check evidence.
+## Install
 
-## Configure independent checks
+The current release is **0.2.3**, a preview for **Windows with one trusted local project folder**.
 
-Add recipes to workspace settings. Commands use executable/argument arrays without a shell:
+1. Install [Node.js](https://nodejs.org/en/download) **24 or newer**. Check `node --version` in a terminal; restart the editor if you just installed Node.
+2. Use VS Code **1.96 or newer**, or IBM Bob. The packaged extension has been tested in VS Code **1.145.3** and Bob's VS Code API **1.126.0**.
+3. Download [`contextory-workspace-0.2.3.vsix`](https://github.com/igormicadei/Contextory/releases/download/v0.2.3/contextory-workspace-0.2.3.vsix) from the release assets.
+4. In the editor's Extensions view, open the **…** menu, choose **Install from VSIX…**, and select the file. Reload the editor when prompted.
+5. Open a single trusted local project folder and select **Contextory** in the activity bar.
 
-```json
-{
-  "relay.nodeExecutable": "node",
-  "relay.pythonExecutable": "python",
-  "relay.flowDepth": 5,
-  "relay.checks": [
-    {
-      "id": "unit",
-      "name": "Unit tests",
-      "executable": "node",
-      "args": ["--test"],
-      "timeoutMs": 120000
-    }
-  ]
-}
-```
-
-Use an absolute executable path when PATH differs between the editor and your terminal. On Windows, invoke scripts through their runtime, rather than using `npm.cmd` as an executable without a shell. Recipes run trusted workspace code with the local user's permissions.
-
-Agents finish tracked work by running `relay_check_run`, recording criterion evidence, submitting `relay_outcome_submit`, then calling `relay_spec_change` with `action: "complete"` and the returned revision. The outcome response supplies that next action. Relay verifies completion and updates parent milestone/request status. If no recipe exists, the agent can configure the project's existing test/check command in workspace settings using its native editing tools. Missing verification or unresolved blocking findings remain explicit blockers; outcome submission alone leaves a spec open.
-
-## Configuration and storage
-
-| Agent       | Project MCP file     | Project hooks                 | Workflow skill                           |
-| ----------- | -------------------- | ----------------------------- | ---------------------------------------- |
-| Codex       | `.codex/config.toml` | `.codex/hooks.json`           | `.agents/skills/relay-workflow/SKILL.md` |
-| Claude Code | `.mcp.json`          | `.claude/settings.local.json` | `.claude/skills/relay-workflow/SKILL.md` |
-| IBM Bob     | `.bob/mcp.json`      | `.bob/settings.json`          | `.bob/skills/relay-workflow/SKILL.md`    |
-
-Connection preserves unrelated configuration and refuses linked files, malformed configuration and unowned name conflicts. Disconnect removes Relay-owned entries. Global provider settings and native permission policies are untouched. Hook commands use absolute managed runtime paths; review them before committing project configuration shared with another machine.
-
-The SQLite ledger, audit, artifacts and rotating credentials live under the extension's global storage, separated by canonical project path. The optional model has its own managed directory. No native prompt, transcript or tool-result mirror is retained. Back up the project storage while its service is stopped if retaining it independently of the editor installation.
-
-Supported deployment in this preview: Windows, one trusted local folder, Node 24+, and all processes on the same host. Multi-root workspaces, WSL/SSH/container path bridging and additional language-specific branch extractors are not qualified.
-
-## Develop and validate
+You can also install in VS Code from PowerShell:
 
 ```powershell
-npm ci
-npm run check
-npm run benchmark
-npm run test:host
-npm run package:vsix
+code --install-extension .\contextory-workspace-0.2.3.vsix
 ```
 
-`npm run preview` serves a fixture-backed sidebar for UI development. F5 prepares an isolated VS Code development host. It does not install native agent extensions into that profile.
+Install your chosen native agent separately and sign in through its own interface. Python source tracing additionally needs **Python 3.10+**; it does not require a Python editor extension. Optional semantic search downloads its model/runtime separately. Installing the VSIX does not require npm, Rust, a database server, or a model download.
 
-To test the Bob host:
+The release includes a SHA-256 checksum. Installation details, upgrades, and troubleshooting are in the [user guide](docs/USER-GUIDE.md).
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/host-smoke.ps1 -HostName bob -Executable "C:\Users\IgorCamposMicadeiBue\AppData\Local\Programs\IBM Bob\IBM Bob.exe"
+## Connect an agent and start work
+
+1. Click the agent's name in the sidebar footer, or run **Contextory: Connect Native Codex**, **Contextory: Connect Native Claude Code**, or **Contextory: Connect Native IBM Bob** from the Command Palette.
+2. Review the generated project MCP/hook configuration. Approve it through the native client's own trust flow, then reload its MCP configuration or restart its session as needed.
+3. Configure your project's check recipes in workspace settings so the agent can verify tracked specs. The [user guide](docs/USER-GUIDE.md#configure-checks) has examples.
+4. Continue in your native agent's chat. For example:
+
+   > Use Contextory to track this request: add retry handling to checkout. Look up earlier payment decisions, split the request into milestones and specs, inspect the affected call flow, and record the changes, decisions, and test evidence. Complete each spec after verification.
+
+The managed `contextory-workflow` skill and MCP instructions describe the workflow. The agent reads context, registers its session, claims a spec, records explanations, runs checks, submits an outcome, and explicitly requests verified completion. Completing every spec rolls up the milestone and request status.
+
+A green agent light means configured MCP traffic has been observed. Grey means unconfigured or awaiting traffic; hover for detail. Clicking a configured agent disconnects its owned configuration. The light is not a model sign-in indicator.
+
+## How it works
+
+```mermaid
+flowchart LR
+  Developer <--> Chat[Native agent chat]
+  Chat <--> MCP[Contextory MCP tools]
+  Chat --> Hooks[Lifecycle observations]
+  MCP <--> Service[Local workspace service]
+  Hooks --> Service
+  Sidebar[Contextory sidebar and workbench views] <--> Service
+  Service <--> Records[(SQLite records, search and relationships)]
+  Service --> Analysis[Source analysis and configured checks]
 ```
 
-For the optional real embedding test, first run `npm run prepare:semantic`; without a prepared model that single test is skipped. Native model conversations can consume provider tokens and are kept separate from routine tests.
+The extension hosts the UI and editor integration. An isolated Node.js service stores request history and handles tools. Heavier source analysis runs outside the extension host; Python source is parsed without importing or executing workspace modules. The relationship graph and optional vectors live alongside the records in SQLite, so there is no separate graph or vector database to run.
 
-Implementation details: [architecture](docs/NATIVE-AGENT-ARCHITECTURE.md), [migration and delivery record](docs/NATIVE-AGENT-PLAN.md), [outcome template](docs/SPEC-OUTCOME-TEMPLATE.md), [validation and limits](docs/VALIDATION.md).
+Hooks provide bounded context reminders and lifecycle metadata. They do not intercept every native action or guarantee that a model follows a workflow. The developer keeps control of native tool permissions. Contextory stores concise explanations and evidence rather than a mirror of native chat history.
+
+See the [architecture](docs/NATIVE-AGENT-ARCHITECTURE.md) for process boundaries, data invariants, retrieval, analysis limits, and transport details.
+
+## Explore the interface
+
+- **Overview:** every open request with spec progress, the three latest activities, and pinned native-agent controls.
+- **Requests:** one card per request; expand milestones and specs inline, inspect contracts/issues/decisions/evidence/outcomes, search previous work, export reports, or explore relationships.
+- **History:** full paginated history with links back to the owning request, milestone, and spec.
+- **Code map:** trace from the last source cursor with a default of five call hops. The editor context-menu command **Contextory: Trace Flow from Here** opens a separate workbench view.
+
+All views follow live VS Code theme changes, including custom and high-contrast themes, without resetting drafts or navigation.
+
+[Theme previews](artifacts/themes.png) · [Request details](artifacts/request-details.png) · [Relationships](artifacts/relationships.png) · [Source flow](artifacts/source-flow.png)
+
+<details>
+<summary>See the sidebar</summary>
+
+![Contextory sidebar](artifacts/companion-sidebar.png)
+
+</details>
+
+## Storage and current scope
+
+Records, immutable revisions, audit events, artifacts, and service credentials live under the extension's editor-managed global storage, separated by canonical project path. Native MCP/hook configuration and workflow skills are written into the project. The [user guide](docs/USER-GUIDE.md#configuration-and-storage) lists the files and explains backup and disconnect behavior.
+
+This is a local preview. Remote WSL/SSH/container workspaces, multi-root projects, other operating systems, large-monorepo performance, and universal language flow extraction are not qualified. Authenticated conversations in all three native agent extensions remain a separate qualification step; automated checks cover MCP workflows, hooks, configuration, and actual editor hosts. Static diagrams show possible bounded paths and expose unresolved dynamic behavior.
+
+Version 0.2.3 uses the Contextory extension identity and tool/settings namespace. Disconnect a build installed under the previous name before replacing it. Its records remain in the former extension storage and are not imported automatically.
+
+## Documentation
+
+| Document                                               | Contents                                                                                                                |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| [User guide](docs/USER-GUIDE.md)                       | Prerequisites, installation, first use, workflows, settings, search, code maps, reports, upgrades, and troubleshooting. |
+| [MCP tools](docs/MCP-TOOLS.md)                         | Available agent tools, examples, version/lease rules, and the completion sequence.                                      |
+| [Architecture](docs/NATIVE-AGENT-ARCHITECTURE.md)      | Runtime components, storage, boundaries, retrieval, source analysis, and resource limits.                               |
+| [Development](docs/DEVELOPMENT.md)                     | Build, tests, debugging, packaging, and the release process.                                                            |
+| [Validation](docs/VALIDATION.md)                       | Test coverage, packaged editor-host checks, benchmarks, and qualification limits.                                       |
+| [Spec outcome template](docs/SPEC-OUTCOME-TEMPLATE.md) | Guidance for useful findings, decisions, evidence, and report explanations.                                             |
+| [Delivery record](docs/NATIVE-AGENT-PLAN.md)           | Architectural choices and the implementation history.                                                                   |
+| [Changelog](CHANGELOG.md)                              | Changes included in each version.                                                                                       |
+
+## License
+
+The project is currently marked **UNLICENSED**; no open-source license has been granted. Bundled dependency licenses are listed in [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt).

@@ -28,7 +28,7 @@ test("Python works through agent tools without an editor or importing workspace 
     join(root, "main.py"),
     'raise RuntimeError("must never execute")\ndef main():\n    print_2(val="Hello, world!")\n\ndef print_2(val: str) -> None:\n    print(val)\n',
   );
-  const graph = (await call("relay_flow_trace", {
+  const graph = (await call("contextory_flow_trace", {
     root: { path: "main.py", symbol: "main" },
     view: "flow",
   })) as FlowGraph;
@@ -64,10 +64,10 @@ test("Python resolves workspace imports, aliases and instance methods; depth exp
     view: "flow",
     limits: { callDepth: 0 },
   };
-  const graph = (await call("relay_flow_trace", input)) as FlowGraph;
+  const graph = (await call("contextory_flow_trace", input)) as FlowGraph;
   const frontier = graph.frontier.find((f) => f.target)!;
   assert.equal(frontier.target?.symbol, "helper");
-  const expanded = (await call("relay_flow_expand", {
+  const expanded = (await call("contextory_flow_expand", {
     graphId: graph.id,
     snapshotId: graph.snapshotId,
     nodeId: frontier.nodeId,
@@ -76,7 +76,7 @@ test("Python resolves workspace imports, aliases and instance methods; depth exp
   assert.ok(expanded.nodes.some((n) => n.label === "Worker.work"));
   assert.ok(expanded.nodes.some((n) => n.label === "leaf"));
   const overlaid = (await call(
-    "relay_flow_trace",
+    "contextory_flow_trace",
     {
       ...input,
       overlays: {
@@ -95,7 +95,7 @@ test("Python resolves workspace imports, aliases and instance methods; depth exp
     "def helper():\n    return 2\n",
   );
   await assert.rejects(
-    call("relay_flow_expand", {
+    call("contextory_flow_expand", {
       graphId: graph.id,
       snapshotId: graph.snapshotId,
       nodeId: frontier.nodeId,
@@ -110,7 +110,7 @@ test("Python branches terminate, finally runs on return, loops and recursive cal
     "def left():\n    return 1\ndef right():\n    return 2\ndef cleanup():\n    pass\ndef main(ok):\n    if ok:\n        return left()\n    right()\ndef guarded():\n    try:\n        return left()\n    except ValueError:\n        right()\n    finally:\n        cleanup()\ndef loop(items):\n    for item in items:\n        if item:\n            continue\n        else:\n            break\n    loop(items)\n",
   );
   const run = (symbol: string, limits = {}) =>
-    call("relay_flow_trace", {
+    call("contextory_flow_trace", {
       root: { path: "main.py", symbol },
       view: "flow",
       limits,
@@ -153,7 +153,7 @@ test("Python incoming calls and parameter dispatch preserve explicit analysis bo
     join(root, "main.py"),
     "def leaf():\n    pass\ndef caller():\n    leaf()\ndef dynamic(leaf):\n    leaf()\n",
   );
-  const g = (await call("relay_flow_trace", {
+  const g = (await call("contextory_flow_trace", {
     root: { path: "main.py", symbol: "leaf" },
     view: "calls",
     direction: "incoming",
@@ -161,7 +161,7 @@ test("Python incoming calls and parameter dispatch preserve explicit analysis bo
   assert.ok(g.nodes.some((n) => n.label === "caller"));
   assert.ok(!g.nodes.some((n) => n.label === "dynamic"));
   assert.ok(g.partial);
-  const dynamic = (await call("relay_flow_trace", {
+  const dynamic = (await call("contextory_flow_trace", {
     root: { path: "main.py", symbol: "dynamic" },
     view: "calls",
   })) as FlowGraph;

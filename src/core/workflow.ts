@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { Ledger, digest } from "../storage/ledger";
 import {
-  RelayError,
+  ContextoryError,
   requireValue,
   type Actor,
   type Entity,
@@ -20,7 +20,7 @@ export class Workflow {
   private dependencies(id: string, dependencies: string[]) {
     const visit = (current: string, seen: Set<string>) => {
       if (current === id)
-        throw new RelayError(
+        throw new ContextoryError(
           "DEPENDENCY_CYCLE",
           "Spec dependencies must not form a cycle.",
         );
@@ -45,7 +45,7 @@ export class Workflow {
   private kind(id: string, kind: Entity["kind"]) {
     const e = this.ledger.get(id);
     if (e.kind !== kind)
-      throw new RelayError("WRONG_KIND", `Expected a ${kind} record.`);
+      throw new ContextoryError("WRONG_KIND", `Expected a ${kind} record.`);
     return e;
   }
   private save(
@@ -96,7 +96,7 @@ export class Workflow {
     if (["spec", "milestone"].includes(kind)) this.rollup(parentId, actor);
     return e;
   }
-  request(a: Input<"relay_request_change">, actor: Actor) {
+  request(a: Input<"contextory_request_change">, actor: Actor) {
     return this.ledger.transaction(a.operationId, actor, "request", a, () => {
       if (a.action === "create")
         return this.create(
@@ -144,7 +144,7 @@ export class Workflow {
       );
     });
   }
-  spec(a: Input<"relay_spec_change">, actor: Actor, snapshot?: SourceSnapshot) {
+  spec(a: Input<"contextory_spec_change">, actor: Actor, snapshot?: SourceSnapshot) {
     return this.ledger.transaction(a.operationId, actor, "spec", a, () => {
       if (a.action === "milestone" || a.action === "create") {
         const parent = this.kind(
@@ -192,19 +192,19 @@ export class Workflow {
       }
       const e = this.kind(requireValue(a.id, "Action needs an id."), "spec");
       if (e.revision !== a.expectedRevision)
-        throw new RelayError(
+        throw new ContextoryError(
           "REVISION_CONFLICT",
           `Read ${e.id} again before changing it.`,
         );
       if (a.action === "complete") {
         if (e.state !== "submitted")
-          throw new RelayError(
+          throw new ContextoryError(
             "INVALID_STATE",
             "Submit a current outcome before requesting completion.",
           );
         for (const id of e.data.dependencies as string[])
           if (this.kind(id, "spec").state !== "completed")
-            throw new RelayError(
+            throw new ContextoryError(
               "DEPENDENCY_OPEN",
               `Dependency ${id} is no longer completed.`,
             );
@@ -229,12 +229,12 @@ export class Workflow {
       requireValue(a.reason, "Explain the reason for this change.");
       if (a.action === "revise" || a.action === "reopen") {
         if (e.state === "implementing" && !actor.human)
-          throw new RelayError(
+          throw new ContextoryError(
             "ACTIVE_ATTEMPT",
             "Release the active lease before revising its contract.",
           );
         if (a.action === "revise" && e.state === "completed")
-          throw new RelayError(
+          throw new ContextoryError(
             "REOPEN_REQUIRED",
             "Reopen completed work before revising it.",
           );
@@ -279,7 +279,7 @@ export class Workflow {
       );
     });
   }
-  session(a: Input<"relay_session_attach">, actor: Actor) {
+  session(a: Input<"contextory_session_attach">, actor: Actor) {
     return this.ledger.transaction(a.operationId, actor, "session", a, () =>
       this.create(
         "session",
@@ -293,35 +293,35 @@ export class Workflow {
       ),
     );
   }
-  lease(a: Input<"relay_spec_lease">, actor: Actor) {
+  lease(a: Input<"contextory_spec_lease">, actor: Actor) {
     return this.ledger.transaction(a.operationId, actor, "lease", a, () => {
       const spec = this.kind(a.specId, "spec");
       const session = this.kind(a.sessionId, "session");
       if (session.data.actor !== actor.id)
-        throw new RelayError(
+        throw new ContextoryError(
           "WRONG_OWNER",
           "This session belongs to another connection/provider.",
         );
       const previous = spec.data.lease as Lease | undefined;
       if (a.action === "claim") {
         if (spec.revision !== a.expectedRevision)
-          throw new RelayError(
+          throw new ContextoryError(
             "REVISION_CONFLICT",
             "Read the latest spec before claiming it.",
           );
         if (["completed", "cancelled"].includes(spec.state))
-          throw new RelayError(
+          throw new ContextoryError(
             "REOPEN_REQUIRED",
             "Reopen this spec before starting another attempt.",
           );
         if (previous && previous.expiresAt > Date.now())
-          throw new RelayError(
+          throw new ContextoryError(
             "LEASE_CONFLICT",
             "This spec already has an active implementation lease.",
           );
         for (const id of spec.data.dependencies as string[])
           if (this.kind(id, "spec").state !== "completed")
-            throw new RelayError(
+            throw new ContextoryError(
               "DEPENDENCY_OPEN",
               `Dependency ${id} is not completed.`,
             );
@@ -349,7 +349,7 @@ export class Workflow {
         actor,
       );
       if (previous!.sessionId !== a.sessionId)
-        throw new RelayError(
+        throw new ContextoryError(
           "WRONG_OWNER",
           "This lease belongs to another session.",
         );
@@ -379,18 +379,18 @@ export class Workflow {
       lease.actor !== actor.id ||
       lease.expiresAt <= Date.now()
     )
-      throw new RelayError(
+      throw new ContextoryError(
         "STALE_LEASE",
         "Claim or renew this spec with your own current session before recording work.",
       );
     if (!["implementing", "submitted"].includes(e.state))
-      throw new RelayError(
+      throw new ContextoryError(
         "INVALID_STATE",
         "This spec is not accepting implementation records.",
       );
     return e;
   }
-  finding(a: Input<"relay_finding_record">, actor: Actor) {
+  finding(a: Input<"contextory_finding_record">, actor: Actor) {
     return this.ledger.transaction(a.operationId, actor, "finding", a, () => {
       const spec = this.assertLease(a.specId, a.leaseId, actor);
       if (a.status === "resolved")
@@ -407,7 +407,7 @@ export class Workflow {
         return this.create("finding", a.title, data, actor, spec.id, a.status);
       const old = this.kind(a.id, "finding");
       if (old.parentId !== spec.id)
-        throw new RelayError(
+        throw new ContextoryError(
           "WRONG_SPEC",
           "Finding belongs to a different spec.",
         );
@@ -423,14 +423,14 @@ export class Workflow {
       );
     });
   }
-  decision(a: Input<"relay_decision_record">, actor: Actor) {
+  decision(a: Input<"contextory_decision_record">, actor: Actor) {
     return this.ledger.transaction(a.operationId, actor, "decision", a, () => {
       this.assertLease(a.specId, a.leaseId, actor);
       if (
         a.supersedes &&
         this.kind(a.supersedes, "decision").parentId !== a.specId
       )
-        throw new RelayError(
+        throw new ContextoryError(
           "WRONG_SPEC",
           "Superseded decision belongs to another spec.",
         );
@@ -454,7 +454,7 @@ export class Workflow {
     });
   }
   evidence(
-    a: Input<"relay_evidence_record">,
+    a: Input<"contextory_evidence_record">,
     actor: Actor,
     snapshot: SourceSnapshot,
   ) {
@@ -483,20 +483,20 @@ export class Workflow {
   criteria(spec: Entity, ids: string[]) {
     const known = (spec.data.criteria as { id: string }[]).map((c) => c.id);
     if (ids.some((id) => !known.includes(id)))
-      throw new RelayError(
+      throw new ContextoryError(
         "UNKNOWN_CRITERION",
         "Evidence references an unknown acceptance criterion.",
       );
   }
   outcome(
-    a: Input<"relay_outcome_submit">,
+    a: Input<"contextory_outcome_submit">,
     actor: Actor,
     snapshot: SourceSnapshot,
   ) {
     return this.ledger.transaction(a.operationId, actor, "outcome", a, () => {
       const spec = this.assertLease(a.specId, a.leaseId, actor);
       if (a.expectedRevision !== spec.revision)
-        throw new RelayError(
+        throw new ContextoryError(
           "REVISION_CONFLICT",
           "Read the latest spec before submitting.",
         );
@@ -508,7 +508,7 @@ export class Workflow {
         (spec.data.criteria as unknown[]).length !== a.criteria.length ||
         a.criteria.length !== new Set(a.criteria.map((c) => c.criterionId)).size
       )
-        throw new RelayError(
+        throw new ContextoryError(
           "MISSING_CRITERIA",
           "Map evidence for every current acceptance criterion exactly once.",
         );
@@ -519,7 +519,7 @@ export class Workflow {
             e.parentId !== spec.id ||
             !(e.data.criteria as string[]).includes(item.criterionId)
           )
-            throw new RelayError(
+            throw new ContextoryError(
               "WRONG_EVIDENCE",
               "Evidence does not support this spec/criterion.",
             );
@@ -552,7 +552,7 @@ export class Workflow {
   }
   assertEligible(spec: Entity, snapshot: SourceSnapshot) {
     if (!spec.data.latestOutcome)
-      throw new RelayError(
+      throw new ContextoryError(
         "MISSING_OUTCOME",
         "Submit an outcome with issue/fix/decision explanations first.",
       );
@@ -562,7 +562,7 @@ export class Workflow {
       outcome.data.generation !== spec.data.generation ||
       (outcome.data.snapshot as SourceSnapshot).hash !== snapshot.hash
     )
-      throw new RelayError(
+      throw new ContextoryError(
         "STALE_OUTCOME",
         "The source or spec changed. Submit fresh evidence and an outcome.",
       );
@@ -577,7 +577,7 @@ export class Workflow {
         );
       })
     )
-      throw new RelayError(
+      throw new ContextoryError(
         "CHECKS_PENDING",
         "Wait for current checks to finish before completing.",
       );
@@ -588,7 +588,7 @@ export class Workflow {
         )
         .get(spec.id)
     )
-      throw new RelayError(
+      throw new ContextoryError(
         "OPEN_FINDINGS",
         "Resolve blocking findings before completing the spec.",
       );
@@ -600,7 +600,7 @@ export class Workflow {
         .map((id) => this.ledger.get(id))
         .some(
           (e) =>
-            e.data.origin === "relay-runner" &&
+            e.data.origin === "contextory-runner" &&
             e.state === "passed" &&
             e.data.contract === spec.data.contract &&
             e.data.generation === spec.data.generation &&
@@ -620,7 +620,7 @@ export class Workflow {
               }),
         );
       if (!eligible)
-        throw new RelayError(
+        throw new ContextoryError(
           "INELIGIBLE_EVIDENCE",
           `${item.criterionId} needs current independently executed passing evidence. Agent reports remain available for review.`,
         );

@@ -4,7 +4,7 @@ import { dirname, join } from "node:path";
 import { createHash } from "node:crypto";
 import {
   flowDefaults,
-  RelayError,
+  ContextoryError,
   type FlowGraph,
   type FlowInput,
 } from "../contracts/model";
@@ -41,7 +41,7 @@ export class PythonAnalysis {
     let size = 0;
     for (const path of paths) {
       if (generation !== this.generation)
-        throw new RelayError("CANCELLED", "Python analysis stopped.");
+        throw new ContextoryError("CANCELLED", "Python analysis stopped.");
       if (
         Object.keys(files).length >= 500 ||
         size >= 12 * 1024 * 1024 ||
@@ -67,7 +67,7 @@ export class PythonAnalysis {
       }
     }
     if (!files[rootPath])
-      throw new RelayError(
+      throw new ContextoryError(
         "UNREADABLE_SOURCE",
         "Choose a readable Python source file under 512 KiB.",
       );
@@ -77,7 +77,7 @@ export class PythonAnalysis {
     const remaining = Math.max(100, limits.timeoutMs - (Date.now() - began));
     const graph = await new Promise<FlowGraph>((resolve, reject) => {
       if (generation !== this.generation) {
-        reject(new RelayError("CANCELLED", "Python analysis stopped."));
+        reject(new ContextoryError("CANCELLED", "Python analysis stopped."));
         return;
       }
       const child = spawn(
@@ -90,7 +90,7 @@ export class PythonAnalysis {
         stderr = "",
         failure: Error | undefined;
       const timer = setTimeout(() => {
-        failure = new RelayError(
+        failure = new ContextoryError(
           "ANALYSIS_TIMEOUT",
           "Python analysis exceeded its time budget. Reduce the workspace or increase timeoutMs.",
         );
@@ -99,7 +99,7 @@ export class PythonAnalysis {
       child.stdout!.on("data", (chunk) => {
         output += chunk;
         if (output.length > 3 * 1024 * 1024) {
-          failure = new RelayError(
+          failure = new ContextoryError(
             "SOURCE_LIMIT",
             "Python graph exceeded its output bound.",
           );
@@ -111,20 +111,20 @@ export class PythonAnalysis {
       });
       child.stdin!.on("error", () => {});
       child.once("error", () => {
-        failure = new RelayError(
+        failure = new ContextoryError(
           "PYTHON_REQUIRED",
-          "Python 3.10+ is required for Python source flow. Configure relay.pythonExecutable with its executable path.",
+          "Python 3.10+ is required for Python source flow. Configure contextory.pythonExecutable with its executable path.",
         );
       });
       child.once("close", (code) => {
         clearTimeout(timer);
         this.children.delete(child);
         if (generation !== this.generation)
-          reject(new RelayError("CANCELLED", "Python analysis stopped."));
+          reject(new ContextoryError("CANCELLED", "Python analysis stopped."));
         else if (failure) reject(failure);
         else if (code !== 0)
           reject(
-            new RelayError(
+            new ContextoryError(
               "PYTHON_ANALYSIS_FAILED",
               stderr || "Python parser failed.",
             ),
@@ -133,11 +133,11 @@ export class PythonAnalysis {
           try {
             const value = JSON.parse(output);
             if (value.error)
-              reject(new RelayError(value.error.code, value.error.message));
+              reject(new ContextoryError(value.error.code, value.error.message));
             else resolve(value);
           } catch {
             reject(
-              new RelayError(
+              new ContextoryError(
                 "PYTHON_ANALYSIS_FAILED",
                 "Python parser returned invalid output.",
               ),

@@ -1,4 +1,4 @@
-import { RelayError, type Entity } from "../contracts/model";
+import { ContextoryError, type Entity } from "../contracts/model";
 import { Ledger } from "../storage/ledger";
 
 export function renderReport(
@@ -7,7 +7,7 @@ export function renderReport(
   requestId?: string,
 ): string {
   if (requestId && ledger.get(requestId).kind !== "request")
-    throw new RelayError(
+    throw new ContextoryError(
       "WRONG_KIND",
       "Reports must be exported for a request.",
     );
@@ -49,7 +49,7 @@ export function renderReport(
       "",
     ].join("\n");
   const lines = [
-    "# Relay request implementation report",
+    "# Contextory request implementation report",
     "",
     `Project: ${ledger.projectId}. Record sequence: ${ledger.sequence()}.`,
     "",
@@ -168,7 +168,7 @@ export function renderReport(
     }
   }
   lines.push(
-    "Evidence retains its recorded origin and source/contract snapshot. Completed status reflects verification at completion; later edits require fresh verification. Agent-reported evidence is identified separately from independently executed relay-runner checks.",
+    "Evidence retains its recorded origin and source/contract snapshot. Completed status reflects verification at completion; later edits require fresh verification. Agent-reported evidence is identified separately from independently executed contextory-runner checks.",
     "",
   );
   return lines.join("\n");

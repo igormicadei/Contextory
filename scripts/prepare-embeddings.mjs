@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { delimiter, dirname, isAbsolute, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-const directory = resolve(process.argv[2] ?? ".relay-local/embeddings");
+const directory = resolve(process.argv[2] ?? ".contextory-local/embeddings");
 if (!isAbsolute(directory))
   throw new Error("Embedding directory must be absolute.");
 await mkdir(directory, { recursive: true });
@@ -32,7 +32,7 @@ await writeFile(
   join(directory, "package.json"),
   JSON.stringify(
     {
-      name: "relay-local-embedding-runtime",
+      name: "contextory-local-embedding-runtime",
       private: true,
       version: "1.0.0",
       dependencies: { "@huggingface/transformers": profile.packageVersion },
@@ -78,7 +78,7 @@ const extractor = await pipeline("feature-extraction", profile.model, {
   device: "cpu",
   session_options: { intraOpNumThreads: 2, interOpNumThreads: 1 },
 });
-const check = await extractor("Relay local semantic search preparation", {
+const check = await extractor("Contextory local semantic search preparation", {
   pooling: "mean",
   normalize: true,
 });
@@ -86,7 +86,7 @@ if (check.data.length !== profile.dimensions)
   throw new Error("Unexpected embedding dimensions.");
 await extractor.dispose();
 const notices = [
-  "Optional Relay embedding runtime",
+  "Optional Contextory embedding runtime",
   `Model: ${profile.model}@${profile.revision}`,
   "Model license: Apache-2.0; https://www.apache.org/licenses/LICENSE-2.0",
   "Model source: https://huggingface.co/Xenova/all-MiniLM-L6-v2",

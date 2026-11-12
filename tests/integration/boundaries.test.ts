@@ -7,20 +7,20 @@ import { Embeddings, Knowledge } from "../../src/knowledge/search";
 import type { Entity, FlowGraph } from "../../src/contracts/model";
 test("chunking retains late explanations and historical revisions without stale search records", async (t) => {
   const { call, ledger } = await application(t);
-  const request = (await call("relay_request_change", {
+  const request = (await call("contextory_request_change", {
     operationId: operationId(),
     action: "create",
     title: "Long record",
     description: "early ".repeat(1000) + "lateUnusualDecision",
   })) as Entity;
-  const results = (await call("relay_search", {
+  const results = (await call("contextory_search", {
     query: "lateUnusualDecision",
     mode: "lexical",
   })) as { hits: { id: string; excerpt: string }[] };
   assert.equal(results.hits[0].id, request.id);
   assert.match(results.hits[0].excerpt, /lateUnusualDecision/);
   await assert.rejects(
-    call("relay_request_change", {
+    call("contextory_request_change", {
       operationId: operationId(),
       action: "revise",
       id: request.id,
@@ -30,7 +30,7 @@ test("chunking retains late explanations and historical revisions without stale 
     }),
     { code: "INVALID_ARGUMENT" },
   );
-  await call("relay_request_change", {
+  await call("contextory_request_change", {
     operationId: operationId(),
     action: "revise",
     id: request.id,
@@ -69,11 +69,11 @@ test("worker cancellation recovers and source changes invalidate expansion handl
   const rejected = assert.rejects(pending, { code: "CANCELLED" });
   await app.analysis.close();
   await rejected;
-  const graph = (await call("relay_flow_trace", input)) as FlowGraph;
+  const graph = (await call("contextory_flow_trace", input)) as FlowGraph;
   assert.ok(graph.nodes.length);
   await writeFile(join(root, "main.ts"), "export function hello(){return 44;}");
   await assert.rejects(
-    call("relay_flow_expand", {
+    call("contextory_flow_expand", {
       graphId: graph.id,
       snapshotId: graph.snapshotId,
       nodeId: graph.nodes[0].id,
@@ -84,13 +84,13 @@ test("worker cancellation recovers and source changes invalidate expansion handl
 test("native source analysis ignores injected overlays and rejects workspace escape", async (t) => {
   const { call } = await application(t);
   await assert.rejects(
-    call("relay_flow_trace", {
+    call("contextory_flow_trace", {
       root: { path: "../outside.ts", symbol: "hello" },
       view: "flow",
     }),
     { code: "INVALID_PATH" },
   );
-  const graph = (await call("relay_flow_trace", {
+  const graph = (await call("contextory_flow_trace", {
     root: { path: "main.ts", symbol: "hello" },
     view: "flow",
     overlays: { "main.ts": "function malicious(){}" },

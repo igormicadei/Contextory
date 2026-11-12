@@ -2,7 +2,7 @@
 
 2026-11-12 · Branch `redesign/native-agent-foundation` · Base `4fcbc44` · Version 0.2.0
 
-The approved direction is implemented as a replacement architecture. Native chat owns the conversation; Relay owns durable project workflow, checks, knowledge and source navigation. The earlier chat composer, agent dispatch, runtime adapters, handoff broker, conversation stores and their obsolete fixtures/docs/assets were removed. Git history preserves that implementation. No compatibility layer or legacy data migration is provided.
+The approved direction is implemented as a replacement architecture. Native chat owns the conversation; Contextory owns durable project workflow, checks, knowledge and source navigation. The earlier chat composer, agent dispatch, runtime adapters, handoff broker, conversation stores and their obsolete fixtures/docs/assets were removed. Git history preserves that implementation. No compatibility layer or legacy data migration is provided.
 
 ## Milestone results
 
@@ -66,3 +66,11 @@ Python adds an isolated standard-library AST backend, including incoming/outgoin
 ## Visual refinement and relationship view — 0.2.2
 
 Removed the Overview introduction, added completed/total spec progress to current requests, and moved agent controls into a pinned footer using names and status lights. Main content scrolls independently and retains its position during updates. Replaced the relationship-ID banner with a dedicated workbench view containing record titles/IDs, summaries, states, source references, relationship direction and rationale. Related records navigate back to the owning spec's detail tab. Impact queries now return readable bounded projections and deduplicated edges, also available through MCP.
+
+## Contextory identity — 0.2.3
+
+Renamed the extension, commands, settings, MCP tool/server names, provider-managed workflow skills, hooks, service errors, report branding, developer paths and package artifacts to Contextory. The extension identity is `contextory-local.contextory-workspace`; tool names use `contextory_` and settings use `contextory.`. Previous builds should be disconnected before replacement; prior extension storage is retained without automatic import.
+
+The new symbol combines a request card with three linked context nodes. A theme-aware monochrome version is shared by the activity bar and webview header; a matching color version is supplied as vector artwork and a generated 256-pixel extension icon. Superseded release checksums were removed; Git retains previous releases.
+
+All surfaces now use live VS Code semantic color tokens instead of fixed dark fallback colors, including buttons, input/select fields, links, focus rings, progress bars, status indicators, diagrams and pinned agent controls. Workbench views use editor colors and the sidebar uses sidebar colors. High-contrast borders, badges and graph edges receive explicit treatment. Theme changes rely on the editor's existing CSS-token updates, so they do not reload the webview or reset work in progress. UI regression checks switch through light, dark, custom and both high-contrast modes while preserving request elements and draft text.

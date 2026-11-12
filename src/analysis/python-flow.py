@@ -10,7 +10,7 @@ import time
 import uuid
 
 if sys.version_info < (3, 10):
-    json.dump({"error": {"code": "PYTHON_REQUIRED", "message": "Python 3.10+ is required; configure relay.pythonExecutable."}}, sys.stdout)
+    json.dump({"error": {"code": "PYTHON_REQUIRED", "message": "Python 3.10+ is required; configure contextory.pythonExecutable."}}, sys.stdout)
     sys.exit(0)
 
 

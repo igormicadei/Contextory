@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { Ledger, digest } from "../storage/ledger";
 import {
-  RelayError,
+  ContextoryError,
   type RelationshipGraph,
   type RelationshipRecord,
   type SourceRef,
@@ -40,9 +40,9 @@ export class Embeddings {
     if (this.extractor) return;
     this.loading ??= (async () => {
       if (!this.status().ready)
-        throw new RelayError(
+        throw new ContextoryError(
           "SEMANTIC_UNAVAILABLE",
-          "Prepare local semantic search from Relay before using semantic mode.",
+          "Prepare local semantic search from Contextory before using semantic mode.",
         );
       this.profile = JSON.parse(
         await readFile(join(this.directory, "profile.json"), "utf8"),
@@ -56,7 +56,7 @@ export class Embeddings {
       const transformer = await import(/* @vite-ignore */ moduleUrl);
       transformer.env.allowRemoteModels = false;
       transformer.env.fetch = async () => {
-        throw new Error("Remote model access is disabled for Relay queries.");
+        throw new Error("Remote model access is disabled for Contextory queries.");
       };
       transformer.env.cacheDir = join(this.directory, "models");
       const options = {
@@ -86,7 +86,7 @@ export class Embeddings {
       });
     })().catch((error) => {
       this.loading = undefined;
-      throw new RelayError(
+      throw new ContextoryError(
         "SEMANTIC_UNAVAILABLE",
         `Local embedding runtime could not load: ${error instanceof Error ? error.message : "unknown error"}`,
       );
@@ -353,7 +353,7 @@ export class Knowledge {
           .slice(0, 10),
       };
     } catch (error) {
-      if (!(error instanceof RelayError) || error.code !== "NOT_FOUND")
+      if (!(error instanceof ContextoryError) || error.code !== "NOT_FOUND")
         throw error;
       return {
         id,

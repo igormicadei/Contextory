@@ -2,7 +2,7 @@ import { readFile, readdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 const lock = JSON.parse(await readFile("package-lock.json", "utf8"));
 const notices = [
-  "Relay bundled runtime dependency notices",
+  "Contextory bundled runtime dependency notices",
   "",
   "Native Codex, Claude Code and IBM Bob are separately installed and are not included.",
   "Optional semantic search installs @huggingface/transformers 4.3.2 (Apache-2.0) and ONNX Runtime separately in managed local storage. The pinned Xenova/all-MiniLM-L6-v2 model is Apache-2.0: https://huggingface.co/Xenova/all-MiniLM-L6-v2/tree/751bff37182d3f1213fa05d7196b954e230abad9. Those optional assets are not included in this VSIX; preparation retains their dependency notices.",

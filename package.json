@@ -1,11 +1,20 @@
 {
-  "name": "relay-workspace",
-  "displayName": "Relay - Native Agent Companion",
-  "description": "Shared specs, decisions, evidence, workspace search and source flow alongside native Codex, Claude Code and IBM Bob.",
-  "version": "0.2.2",
-  "publisher": "relay-local",
+  "name": "contextory-workspace",
+  "displayName": "Contextory - Requests & Agent Context",
+  "description": "Manage requests, milestones and specs. Give native agents shared context through decisions, evidence, workspace search and code flow.",
+  "version": "0.2.3",
+  "publisher": "contextory-local",
+  "icon": "media/contextory-icon.png",
   "private": true,
   "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/igormicadei/Contextory.git"
+  },
+  "homepage": "https://github.com/igormicadei/Contextory#readme",
+  "bugs": {
+    "url": "https://github.com/igormicadei/Contextory/issues"
+  },
   "engines": {
     "vscode": "^1.96.0",
     "node": ">=24.0.0"
@@ -18,7 +27,7 @@
   ],
   "main": "./dist/extension.js",
   "activationEvents": [
-    "onView:relay.tasks",
+    "onView:contextory.tasks",
     "onStartupFinished"
   ],
   "capabilities": {
@@ -32,74 +41,74 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "relay",
-          "title": "Relay",
-          "icon": "media/relay.svg"
+          "id": "contextory",
+          "title": "Contextory",
+          "icon": "media/contextory.svg"
         }
       ]
     },
     "views": {
-      "relay": [
+      "contextory": [
         {
           "type": "webview",
-          "id": "relay.tasks",
+          "id": "contextory.tasks",
           "name": "Workspace Tasks",
-          "contextualTitle": "Relay"
+          "contextualTitle": "Contextory"
         }
       ]
     },
     "commands": [
       {
-        "command": "relay.openPlan",
-        "title": "Relay: Open Rebuild Plan"
+        "command": "contextory.openPlan",
+        "title": "Contextory: Open Rebuild Plan"
       },
       {
-        "command": "relay.refresh",
-        "title": "Relay: Refresh Workspace"
+        "command": "contextory.refresh",
+        "title": "Contextory: Refresh Workspace"
       },
       {
-        "command": "relay.connectNativeCodex",
-        "title": "Relay: Connect Native Codex"
+        "command": "contextory.connectNativeCodex",
+        "title": "Contextory: Connect Native Codex"
       },
       {
-        "command": "relay.connectNativeClaude",
-        "title": "Relay: Connect Native Claude Code"
+        "command": "contextory.connectNativeClaude",
+        "title": "Contextory: Connect Native Claude Code"
       },
       {
-        "command": "relay.connectNativeBob",
-        "title": "Relay: Connect Native IBM Bob"
+        "command": "contextory.connectNativeBob",
+        "title": "Contextory: Connect Native IBM Bob"
       },
       {
-        "command": "relay.disconnectProvider",
-        "title": "Relay: Disconnect an Agent"
+        "command": "contextory.disconnectProvider",
+        "title": "Contextory: Disconnect an Agent"
       },
       {
-        "command": "relay.traceFlowFromHere",
-        "title": "Relay: Trace Flow from Here"
+        "command": "contextory.traceFlowFromHere",
+        "title": "Contextory: Trace Flow from Here"
       },
       {
-        "command": "relay.prepareSemantic",
-        "title": "Relay: Prepare Local Semantic Search"
+        "command": "contextory.prepareSemantic",
+        "title": "Contextory: Prepare Local Semantic Search"
       },
       {
-        "command": "relay.indexWorkspace",
-        "title": "Relay: Index Workspace Knowledge"
+        "command": "contextory.indexWorkspace",
+        "title": "Contextory: Index Workspace Knowledge"
       },
       {
-        "command": "relay.exportReport",
-        "title": "Relay: Export Implementation Report"
+        "command": "contextory.exportReport",
+        "title": "Contextory: Export Implementation Report"
       }
     ],
     "configuration": {
-      "title": "Relay Companion",
+      "title": "Contextory Companion",
       "properties": {
-        "relay.nodeExecutable": {
+        "contextory.nodeExecutable": {
           "type": "string",
           "default": "node",
           "scope": "machine",
-          "description": "Node.js 24+ executable for the isolated workspace service. Native provider executables are not launched by Relay."
+          "description": "Node.js 24+ executable for the isolated workspace service. Native provider executables are not launched by Contextory."
         },
-        "relay.flowDepth": {
+        "contextory.flowDepth": {
           "type": "number",
           "default": 5,
           "minimum": 0,
@@ -107,13 +116,13 @@
           "scope": "resource",
           "description": "Default call-hop depth for source flow diagrams."
         },
-        "relay.pythonExecutable": {
+        "contextory.pythonExecutable": {
           "type": "string",
           "default": "python",
           "scope": "machine",
           "description": "Python 3.10+ executable for isolated AST source-flow analysis. Workspace code is parsed, never imported or executed."
         },
-        "relay.checks": {
+        "contextory.checks": {
           "type": "array",
           "default": [],
           "scope": "resource",
@@ -157,7 +166,7 @@
     "menus": {
       "editor/context": [
         {
-          "command": "relay.traceFlowFromHere",
+          "command": "contextory.traceFlowFromHere",
           "when": "editorTextFocus",
           "group": "navigation@20"
         }
@@ -166,6 +175,7 @@
   },
   "scripts": {
     "build": "node scripts/build.mjs",
+    "icons:render": "node scripts/render-icons.mjs",
     "prepare:debug": "npm run build && node scripts/prepare-debug.mjs",
     "watch": "node scripts/build.mjs --watch",
     "typecheck": "tsc --noEmit",
@@ -176,7 +186,7 @@
     "benchmark": "node --import tsx scripts/benchmark.ts",
     "prepare:semantic": "node scripts/prepare-embeddings.mjs",
     "check": "npm run typecheck && npm run build && npm test && npm run test:ui",
-    "package:vsix": "npm run build && node scripts/licenses.mjs && vsce package --no-dependencies --allow-missing-repository --no-rewrite-relative-links --skip-license -o artifacts/relay-workspace-0.2.2.vsix",
+    "package:vsix": "npm run build && node scripts/licenses.mjs && vsce package --no-dependencies --skip-license -o artifacts/contextory-workspace-0.2.3.vsix",
     "format": "prettier --write src tests scripts docs README.md package.json tsconfig.json playwright.config.ts"
   },
   "devDependencies": {

@@ -3,16 +3,16 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { lstat, readFile, readdir, realpath } from "node:fs/promises";
 import { isAbsolute, relative, resolve } from "node:path";
-import { RelayError, type SourceSnapshot } from "../contracts/model";
+import { ContextoryError, type SourceSnapshot } from "../contracts/model";
 const exec = promisify(execFile);
 const blocked =
-  /(^|[\\/])(?:\.git|node_modules|\.relay-local|\.venv|venv|__pycache__)(?:[\\/]|$)/;
+  /(^|[\\/])(?:\.git|node_modules|\.contextory-local|\.venv|venv|__pycache__)(?:[\\/]|$)/;
 export async function workspacePath(
   root: string,
   input: string,
 ): Promise<string> {
   if (!input || isAbsolute(input) || /(^|[\\/])\.\.(?:[\\/]|$)/.test(input))
-    throw new RelayError(
+    throw new ContextoryError(
       "INVALID_PATH",
       "Use a workspace-relative path without parent traversal.",
     );
@@ -20,7 +20,7 @@ export async function workspacePath(
   const path = await realpath(resolve(base, input));
   const rel = relative(base, path);
   if (rel.startsWith("..") || isAbsolute(rel) || blocked.test(rel))
-    throw new RelayError(
+    throw new ContextoryError(
       "INVALID_PATH",
       "Path is outside the authorized source workspace.",
     );
@@ -50,13 +50,13 @@ export async function workspaceFiles(
       ),
     ].sort();
     if (files.length > limit)
-      throw new RelayError(
+      throw new ContextoryError(
         "SOURCE_LIMIT",
         `Source manifest exceeds ${limit} files; narrow the workspace.`,
       );
     return files;
   } catch (error) {
-    if (error instanceof RelayError) throw error;
+    if (error instanceof ContextoryError) throw error;
   }
   const found: string[] = [];
   const walk = async (directory: string) => {
@@ -75,7 +75,7 @@ export async function workspaceFiles(
       if (entry.isDirectory()) await walk(name);
       else if (entry.isFile()) found.push(name);
       if (found.length > limit)
-        throw new RelayError(
+        throw new ContextoryError(
           "SOURCE_LIMIT",
           `Source manifest exceeds ${limit} files; narrow the workspace.`,
         );
@@ -98,7 +98,7 @@ export async function sourceSnapshot(root: string): Promise<SourceSnapshot> {
       }
       if (!stat.isFile()) continue;
       if (stat.size > 20 * 1024 * 1024)
-        throw new RelayError(
+        throw new ContextoryError(
           "SOURCE_LIMIT",
           `Source file ${name} exceeds snapshot limits.`,
         );

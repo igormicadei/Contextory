@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL("../", import.meta.url));
 // Pin the portable runtime so F5 and native smoke tests use the same tested build.
 const version = "1.145.3";
-const local = join(root, ".relay-local");
+const local = join(root, ".contextory-local");
 await mkdir(local, { recursive: true });
 const executable = await download({
   version,
@@ -26,7 +26,7 @@ try {
     actual.toLowerCase() !== (await realpath(runtimeRoot)).toLowerCase()
   ) {
     throw new Error(
-      "The existing .relay-local/debug-runtime points elsewhere. Keep it intact and choose a new runtime link before changing the pinned version.",
+      "The existing .contextory-local/debug-runtime points elsewhere. Keep it intact and choose a new runtime link before changing the pinned version.",
     );
   }
 } catch (error) {
@@ -45,5 +45,5 @@ await Promise.all(
     "host-smoke-extensions",
   ].map((name) => mkdir(join(local, name), { recursive: true })),
 );
-console.log(`Relay debug runtime ready: VS Code ${version}`);
+console.log(`Contextory debug runtime ready: VS Code ${version}`);
 console.log(executable);

@@ -6,7 +6,7 @@ scripts/**
 !scripts/prepare-embeddings.mjs
 preview/**
 .vscode/**
-.relay-local/**
+.contextory-local/**
 artifacts/**
 test-results/**
 playwright-report/**

@@ -16,15 +16,15 @@ test("idempotency, revisions, lease exclusivity and native actor ownership", asy
     description: "Intent",
   };
   assert.deepEqual(
-    await call("relay_request_change", args),
-    await call("relay_request_change", args),
+    await call("contextory_request_change", args),
+    await call("contextory_request_change", args),
   );
   await assert.rejects(
-    call("relay_request_change", { ...args, title: "Changed" }),
+    call("contextory_request_change", { ...args, title: "Changed" }),
     { code: "OPERATION_CONFLICT" },
   );
   await assert.rejects(
-    call("relay_spec_change", {
+    call("contextory_spec_change", {
       operationId: operationId(),
       action: "revise",
       id: spec.id,
@@ -36,7 +36,7 @@ test("idempotency, revisions, lease exclusivity and native actor ownership", asy
   const other = { id: "claude", provider: "claude" as const, human: false };
   await assert.rejects(
     call(
-      "relay_spec_lease",
+      "contextory_spec_lease",
       {
         operationId: operationId(),
         action: "renew",
@@ -49,13 +49,13 @@ test("idempotency, revisions, lease exclusivity and native actor ownership", asy
     { code: "WRONG_OWNER" },
   );
   const s = (await call(
-    "relay_session_attach",
+    "contextory_session_attach",
     { operationId: operationId() },
     other,
   )) as Entity;
   await assert.rejects(
     call(
-      "relay_spec_lease",
+      "contextory_spec_lease",
       {
         operationId: operationId(),
         action: "claim",
@@ -71,7 +71,7 @@ test("idempotency, revisions, lease exclusivity and native actor ownership", asy
   (expired.data.lease as { expiresAt: number }).expiresAt = 1;
   ledger.update(expired, expired.revision, { data: expired.data });
   await assert.rejects(
-    call("relay_decision_record", {
+    call("contextory_decision_record", {
       operationId: operationId(),
       specId: spec.id,
       leaseId,
@@ -87,7 +87,7 @@ test("idempotency, revisions, lease exclusivity and native actor ownership", asy
 test("dependencies reject cycles and stay aligned with relationship traversal", async (t) => {
   const { call, ledger } = await application(t);
   const { milestone, spec } = await claimed(call);
-  const second = (await call("relay_spec_change", {
+  const second = (await call("contextory_spec_change", {
     operationId: operationId(),
     action: "create",
     parentId: milestone.id,
@@ -97,7 +97,7 @@ test("dependencies reject cycles and stay aligned with relationship traversal", 
   })) as Entity;
   await assert.rejects(
     call(
-      "relay_spec_change",
+      "contextory_spec_change",
       {
         operationId: operationId(),
         action: "revise",
@@ -113,7 +113,7 @@ test("dependencies reject cycles and stay aligned with relationship traversal", 
   assert.equal(ledger.get(spec.id).revision, spec.revision);
   assert.equal(ledger.get(spec.id, 1).state, "ready");
   assert.equal(ledger.get(spec.id, 1).data.generation, 0);
-  await call("relay_spec_change", {
+  await call("contextory_spec_change", {
     operationId: operationId(),
     action: "revise",
     id: second.id,
@@ -142,7 +142,7 @@ test("completion needs independent current evidence, resolved findings and a dur
       args: ["-e", 'console.log("all checks passed")'],
     },
   ];
-  const issue = (await call("relay_finding_record", {
+  const issue = (await call("contextory_finding_record", {
     operationId: operationId(),
     specId: spec.id,
     leaseId,
@@ -151,7 +151,7 @@ test("completion needs independent current evidence, resolved findings and a dur
     impact: "Missing result",
     status: "open",
   })) as Entity;
-  await call("relay_decision_record", {
+  await call("contextory_decision_record", {
     operationId: operationId(),
     specId: spec.id,
     leaseId,
@@ -160,7 +160,7 @@ test("completion needs independent current evidence, resolved findings and a dur
     rationale: "The contract requires a value",
     consequences: "All inputs have a result",
   });
-  const reported = (await call("relay_evidence_record", {
+  const reported = (await call("contextory_evidence_record", {
     operationId: operationId(),
     specId: spec.id,
     leaseId,
@@ -170,7 +170,7 @@ test("completion needs independent current evidence, resolved findings and a dur
     result: "passed",
   })) as Entity;
   const submit = async (evidenceIds: string[]) =>
-    call("relay_outcome_submit", {
+    call("contextory_outcome_submit", {
       operationId: operationId(),
       specId: spec.id,
       leaseId,
@@ -190,7 +190,7 @@ test("completion needs independent current evidence, resolved findings and a dur
       ],
     });
   const complete = () =>
-    call("relay_spec_change", {
+    call("contextory_spec_change", {
       operationId: operationId(),
       action: "complete",
       id: spec.id,
@@ -198,7 +198,7 @@ test("completion needs independent current evidence, resolved findings and a dur
     });
   await submit([reported.id]);
   await assert.rejects(complete(), { code: "OPEN_FINDINGS" });
-  await call("relay_finding_record", {
+  await call("contextory_finding_record", {
     operationId: operationId(),
     specId: spec.id,
     leaseId,
@@ -211,7 +211,7 @@ test("completion needs independent current evidence, resolved findings and a dur
     resolution: "Return the correct result in both branches",
   });
   await assert.rejects(complete(), { code: "INELIGIBLE_EVIDENCE" });
-  const job = (await call("relay_check_run", {
+  const job = (await call("contextory_check_run", {
     operationId: operationId(),
     specId: spec.id,
     leaseId,
@@ -226,7 +226,7 @@ test("completion needs independent current evidence, resolved findings and a dur
     "export function hello() { return 43; }\n",
   );
   await assert.rejects(complete(), { code: "STALE_OUTCOME" });
-  const freshJob = (await call("relay_check_run", {
+  const freshJob = (await call("contextory_check_run", {
     operationId: operationId(),
     specId: spec.id,
     leaseId,
@@ -240,7 +240,7 @@ test("completion needs independent current evidence, resolved findings and a dur
   const report = renderReport(ledger, "report", request.id);
   assert.match(report, /Return the correct result/);
   assert.match(report, /The contract requires a value/);
-  assert.match(report, /relay-runner/);
+  assert.match(report, /contextory-runner/);
   assert.match(renderReport(ledger, "changelog"), /Handle both branches/);
 });
 
@@ -261,7 +261,7 @@ test("a later failure invalidates an older pass; jobs capture failed and cancell
       args: ["-e", "process.exit(0)"],
     },
   ];
-  const pass = (await call("relay_check_run", {
+  const pass = (await call("contextory_check_run", {
     operationId: operationId(),
     ...args,
   })) as { jobId: string };
@@ -270,12 +270,12 @@ test("a later failure invalidates an older pass; jobs capture failed and cancell
     ...app.checks.recipes[0],
     args: ["-e", "process.exit(1)"],
   };
-  const fail = (await call("relay_check_run", {
+  const fail = (await call("contextory_check_run", {
     operationId: operationId(),
     ...args,
   })) as { jobId: string };
   assert.equal((await waitJob(call, fail.jobId)).state, "failed");
-  await call("relay_outcome_submit", {
+  await call("contextory_outcome_submit", {
     operationId: operationId(),
     specId: spec.id,
     leaseId,
@@ -295,7 +295,7 @@ test("a later failure invalidates an older pass; jobs capture failed and cancell
     ],
   });
   await assert.rejects(
-    call("relay_spec_change", {
+    call("contextory_spec_change", {
       operationId: operationId(),
       action: "complete",
       id: spec.id,
@@ -307,7 +307,7 @@ test("a later failure invalidates an older pass; jobs capture failed and cancell
     ...app.checks.recipes[0],
     args: ["-e", "setTimeout(()=>{},10000)"],
   };
-  const running = (await call("relay_check_run", {
+  const running = (await call("contextory_check_run", {
     operationId: operationId(),
     ...args,
   })) as { jobId: string };

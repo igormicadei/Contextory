@@ -11,7 +11,7 @@ export const human: Actor = { id: "ui", human: true };
 export const operationId = () => randomUUID();
 export async function fixture(t: TestContext) {
   const directory = await realpath(
-    await mkdtemp(join(tmpdir(), "relay-test-")),
+    await mkdtemp(join(tmpdir(), "contextory-test-")),
   );
   const cleanups: (() => Promise<unknown>)[] = [];
   const root = join(directory, "project");
@@ -24,7 +24,7 @@ export async function fixture(t: TestContext) {
   );
   t.after(async () => {
     for (const cleanup of cleanups.reverse()) await cleanup();
-    if (!directory.startsWith(join(await realpath(tmpdir()), "relay-test-")))
+    if (!directory.startsWith(join(await realpath(tmpdir()), "contextory-test-")))
       throw new Error("Unexpected test directory");
     await rm(directory, { recursive: true, force: true });
   });
@@ -34,7 +34,7 @@ export async function fixture(t: TestContext) {
     storage,
     cleanups,
     workerPath: resolve("dist/analysis-worker.mjs"),
-    embeddingDirectory: resolve(".relay-local/embeddings"),
+    embeddingDirectory: resolve(".contextory-local/embeddings"),
   };
 }
 export async function application(t: TestContext) {
@@ -54,19 +54,19 @@ export async function application(t: TestContext) {
 export async function claimed(
   call: (name: string, args: object, actor?: Actor) => Promise<unknown>,
 ) {
-  const request = (await call("relay_request_change", {
+  const request = (await call("contextory_request_change", {
     operationId: operationId(),
     action: "create",
     title: "Feature",
     description: "Authorized feature",
   })) as Entity;
-  const milestone = (await call("relay_spec_change", {
+  const milestone = (await call("contextory_spec_change", {
     operationId: operationId(),
     action: "milestone",
     parentId: request.id,
     title: "Delivery",
   })) as Entity;
-  let spec = (await call("relay_spec_change", {
+  let spec = (await call("contextory_spec_change", {
     operationId: operationId(),
     action: "create",
     parentId: milestone.id,
@@ -74,11 +74,11 @@ export async function claimed(
     criteria: ["Works correctly"],
     paths: ["main.ts"],
   })) as Entity;
-  const session = (await call("relay_session_attach", {
+  const session = (await call("contextory_session_attach", {
     operationId: operationId(),
     nativeSessionId: "native-session",
   })) as Entity;
-  spec = (await call("relay_spec_lease", {
+  spec = (await call("contextory_spec_lease", {
     operationId: operationId(),
     action: "claim",
     specId: spec.id,
@@ -94,7 +94,7 @@ export async function waitJob(
 ) {
   const deadline = Date.now() + 10000;
   while (Date.now() < deadline) {
-    const job = (await call("relay_entity_get", { id: jobId })) as {
+    const job = (await call("contextory_entity_get", { id: jobId })) as {
       state: string;
       data: { evidenceId: string };
     };

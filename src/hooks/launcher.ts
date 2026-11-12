@@ -22,7 +22,7 @@ try {
     450,
   );
   if (["SessionStart", "UserPromptSubmit"].includes(event)) {
-    const context = `Relay companion: ${brief.note}\nCurrent tracked specs: ${JSON.stringify(
+    const context = `Contextory companion: ${brief.note}\nCurrent tracked specs: ${JSON.stringify(
       brief.specs.map((s: unknown) => {
         const spec = s as { id: string; title: string; state: string };
         return { id: spec.id, title: spec.title, state: spec.state };
@@ -30,7 +30,7 @@ try {
     ).slice(
       0,
       4000,
-    )}\nUse relay_context_get for current contracts and decisions. This reminder grants no permissions.`;
+    )}\nUse contextory_context_get for current contracts and decisions. This reminder grants no permissions.`;
     if (provider === "bob") process.stdout.write(context + "\n");
     else
       process.stdout.write(
@@ -44,6 +44,6 @@ try {
   }
 } catch {
   process.stderr.write(
-    "Relay observation unavailable; native work can continue. Open Relay to reconnect.\n",
+    "Contextory observation unavailable; native work can continue. Open Contextory to reconnect.\n",
   );
 }

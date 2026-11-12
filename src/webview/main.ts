@@ -9,6 +9,7 @@ import type {
 } from "../contracts/model";
 import { escape, button, badge, sourceButton } from "./html";
 import { relationshipView } from "./relationships";
+import contextoryIcon from "../../media/contextory.svg";
 declare function acquireVsCodeApi(): {
   postMessage(message: unknown): void;
   getState(): unknown;
@@ -157,7 +158,7 @@ function requestTree() {
     !requests.length
       ? empty(
           "A clear plan starts here",
-          "Create a request from your native conversation. Relay keeps milestones, specs and their history together.",
+          "Create a request from your native conversation. Contextory keeps milestones, specs and their history together.",
         )
       : !matching.length
         ? '<p class="muted">No matching requests.</p>'
@@ -179,7 +180,7 @@ function requestTree() {
                         }</div></details>`,
                     )
                     .join("") ||
-                  '<p class="muted">The native agent can add milestones and specifications through Relay.</p>'
+                  '<p class="muted">The native agent can add milestones and specifications through Contextory.</p>'
                 }</article>`,
             )
             .join("")
@@ -188,7 +189,7 @@ function requestTree() {
 function loadHistory(append = false) {
   send({
     type: "tool",
-    name: "relay_history_get",
+    name: "contextory_history_get",
     requestId: `history:${historyScope}:${append ? "older" : "new"}`,
     arguments: {
       entityId: historyScope || undefined,
@@ -241,7 +242,7 @@ function specDetails(s: Entity) {
         .filter((e) => e.kind === "evidence")
         .map(
           (e) =>
-            `<article class="record"><div class="section-heading"><h3>${escape(e.title)}</h3>${badge(e.state)}</div><p class="muted">${e.data.origin === "relay-runner" ? "Independent Relay check" : "Agent-reported observation"} · ${escape((e.data.criteria as string[])?.join(", "))}</p><pre>${escape(e.data.detail)}</pre><small class="muted">Bound to the recorded source, contract and attempt. Completion rechecks eligibility.</small></article>`,
+            `<article class="record"><div class="section-heading"><h3>${escape(e.title)}</h3>${badge(e.state)}</div><p class="muted">${e.data.origin === "contextory-runner" ? "Independent Contextory check" : "Agent-reported observation"} · ${escape((e.data.criteria as string[])?.join(", "))}</p><pre>${escape(e.data.detail)}</pre><small class="muted">Bound to the recorded source, contract and attempt. Completion rechecks eligibility.</small></article>`,
         )
         .join("") ||
       '<p class="muted">No evidence yet. Native agents can run your configured independent checks.</p>';
@@ -320,7 +321,7 @@ function render() {
     left: diagram?.scrollLeft ?? 0,
     top: diagram?.scrollTop ?? 0,
   };
-  app.innerHTML = `<header class="app-header"><div class="brand"><span class="brand-mark" aria-hidden="true">↗</span><strong>relay</strong><span class="brand-subtitle">workspace companion</span></div>${button("refresh", "↻", 'aria-label="Refresh workspace" title="Refresh workspace"', "icon-button")}</header><nav class="main-nav ${surface !== "sidebar" ? "hidden" : ""}" aria-label="Relay views">${[
+  app.innerHTML = `<header class="app-header"><div class="brand"><span class="brand-mark" aria-hidden="true">${contextoryIcon}</span><strong>Contextory</strong><span class="brand-subtitle">requests &amp; context</span></div>${button("refresh", "↻", 'aria-label="Refresh workspace" title="Refresh workspace"', "icon-button")}</header><nav class="main-nav ${surface !== "sidebar" ? "hidden" : ""}" aria-label="Contextory views">${[
     ["overview", "Overview"],
     ["requests", "Requests"],
     ["history", "History"],
@@ -332,7 +333,7 @@ function render() {
     )
     .join(
       "",
-    )}</nav>${notice ? `<div class="notice" role="status"><span>${escape(notice)}</span>${button("dismiss", "×", 'aria-label="Dismiss notification"', "icon-button")}</div>` : ""}${busy ? '<div class="loading-line" role="progressbar" aria-label="Relay is working"></div>' : ""}<main>${!dashboard && screen !== "map" && screen !== "relationships" ? empty("Open your workspace", "Relay connects your native agents to shared project records. Open a trusted folder, then refresh.", button("refresh", "Refresh", "", "primary")) : screen === "relationships" ? relationshipView(relationships) : screen === "requests" ? requestTree() : screen === "history" ? historyView() : screen === "map" ? map() : overview()}</main><footer>${surface === "sidebar" ? connections() : ""}<div class="workspace-status"><span class="status-dot ${dashboard ? "online" : ""}"></span><span>${dashboard ? escape(dashboard.root.split(/[\\/]/).pop()) : "Open a workspace"}</span><span class="footer-label">Native conversation &middot; durable context</span></div></footer>`;
+    )}</nav>${notice ? `<div class="notice" role="status"><span>${escape(notice)}</span>${button("dismiss", "×", 'aria-label="Dismiss notification"', "icon-button")}</div>` : ""}${busy ? '<div class="loading-line" role="progressbar" aria-label="Contextory is working"></div>' : ""}<main>${!dashboard && screen !== "map" && screen !== "relationships" ? empty("Open your workspace", "Contextory connects your native agents to shared project records. Open a trusted folder, then refresh.", button("refresh", "Refresh", "", "primary")) : screen === "relationships" ? relationshipView(relationships) : screen === "requests" ? requestTree() : screen === "history" ? historyView() : screen === "map" ? map() : overview()}</main><footer>${surface === "sidebar" ? connections() : ""}<div class="workspace-status"><span class="status-dot ${dashboard ? "online" : ""}"></span><span>${dashboard ? escape(dashboard.root.split(/[\\/]/).pop()) : "Open a workspace"}</span><span class="footer-label">Native conversation &middot; durable context</span></div></footer>`;
   if (focusId) {
     const replacement = document.getElementById(
       focusId,
@@ -513,7 +514,7 @@ function action(element: Element) {
     case "complete":
       send({
         type: "tool",
-        name: "relay_spec_change",
+        name: "contextory_spec_change",
         arguments: {
           operationId: crypto.randomUUID(),
           action: "complete",
@@ -584,7 +585,7 @@ app.addEventListener("submit", (event) => {
   if (form.id === "request-form") {
     send({
       type: "tool",
-      name: "relay_request_change",
+      name: "contextory_request_change",
       arguments: {
         operationId: crypto.randomUUID(),
         action: "create",
@@ -600,7 +601,7 @@ app.addEventListener("submit", (event) => {
     send({
       type: "tool",
       requestId: `search:${drafts.query}`,
-      name: "relay_search",
+      name: "contextory_search",
       arguments: {
         query: drafts.query,
         mode: drafts.searchMode ?? "hybrid",

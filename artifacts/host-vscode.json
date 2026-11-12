@@ -1,5 +1,5 @@
 {
-  "recordedAt": "2026-11-12T17:40:31.644Z",
+  "recordedAt": "2026-11-12T18:51:42.292Z",
   "host": "Visual Studio Code",
   "vscode": "1.145.3",
   "checks": [
@@ -17,5 +17,5 @@
     "persistent SQLite ledger"
   ],
   "passed": true,
-  "extensionPath": "C:\\Projetos\\DevExtension\\.relay-local\\package-0.2.2-447bce7525ec47e48de7fd13c39e2043\\extension"
+  "extensionPath": "C:\\Projetos\\DevExtension\\.contextory-local\\package-release-0.2.3\\extension"
 }

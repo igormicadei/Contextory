@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { mkdir, copyFile } from "node:fs/promises";
 import { join } from "node:path";
 import { rpc, readDescriptor } from "./rpc";
-import { RelayError, version } from "../contracts/model";
+import { ContextoryError, version } from "../contracts/model";
 export class ServiceClient {
   readonly id = randomUUID();
   readonly descriptor: string;
@@ -39,14 +39,14 @@ export class ServiceClient {
       path: string;
     };
     if (runtime.major < 24)
-      throw new RelayError(
+      throw new ContextoryError(
         "NODE_REQUIRED",
-        "Relay needs Node.js 24+ with node:sqlite. Configure relay.nodeExecutable.",
+        "Contextory needs Node.js 24+ with node:sqlite. Configure contextory.nodeExecutable.",
       );
     this.node = runtime.path;
     await mkdir(this.storage, { recursive: true });
     await mkdir(join(this.storage, "runtime"), { recursive: true });
-    for (const file of ["mcp-proxy.mjs", "relay-hook.mjs"])
+    for (const file of ["mcp-proxy.mjs", "contextory-hook.mjs"])
       await copyFile(
         join(this.extensionRoot, "dist", file),
         join(this.storage, "runtime", file),
@@ -87,13 +87,13 @@ export class ServiceClient {
     }
     const health = await this.call<{ version?: string }>("health");
     if (health.version !== version)
-      throw new RelayError(
+      throw new ContextoryError(
         "SERVICE_RESTART_REQUIRED",
-        "An earlier Relay service is still running. Close the editors for this project for 65 seconds, then reopen the project to finish updating Relay.",
+        "An earlier Contextory service is still running. Close the editors for this project for 65 seconds, then reopen the project to finish updating Contextory.",
       );
     const descriptor = await readDescriptor(this.descriptor);
     if (descriptor.root.toLowerCase() !== this.root.toLowerCase())
-      throw new RelayError(
+      throw new ContextoryError(
         "WRONG_WORKSPACE",
         "Connected service belongs to a different root.",
       );

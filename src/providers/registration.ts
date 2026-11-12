@@ -12,7 +12,7 @@ import {
 import { dirname, join, relative, isAbsolute } from "node:path";
 import { parse as parseToml, stringify } from "smol-toml";
 import { parse, modify, applyEdits, type ParseError } from "jsonc-parser";
-import { RelayError, type Provider } from "../contracts/model";
+import { ContextoryError, type Provider } from "../contracts/model";
 export interface Registration {
   root: string;
   provider: Provider;
@@ -24,7 +24,7 @@ export interface Registration {
 }
 export function registrationName(root: string) {
   const canonical = realpathSync(root);
-  return `relay_companion_${createHash("sha256")
+  return `contextory_companion_${createHash("sha256")
     .update(process.platform === "win32" ? canonical.toLowerCase() : canonical)
     .digest("hex")
     .slice(0, 12)}`;
@@ -32,7 +32,7 @@ export function registrationName(root: string) {
 function quote(value: string) {
   if (process.platform === "win32") {
     if (/["%!\r\n]/.test(value))
-      throw new RelayError(
+      throw new ContextoryError(
         "UNSUPPORTED_PATH",
         "Native hook command paths cannot contain quotes, percent signs or control characters on Windows.",
       );
@@ -47,7 +47,7 @@ type Edit = { path: string; transform(text: string): string | undefined };
 async function inspect(root: string, path: string) {
   const rel = relative(root, path);
   if (rel.startsWith("..") || isAbsolute(rel))
-    throw new RelayError(
+    throw new ContextoryError(
       "LINKED_CONFIG",
       "Configuration must stay inside the workspace.",
     );
@@ -59,12 +59,12 @@ async function inspect(root: string, path: string) {
       throw error;
     });
     if (stat?.isSymbolicLink())
-      throw new RelayError(
+      throw new ContextoryError(
         "LINKED_CONFIG",
         "Linked provider configuration is preserved; use regular workspace directories.",
       );
     if (stat && (current === path ? !stat.isFile() : !stat.isDirectory()))
-      throw new RelayError(
+      throw new ContextoryError(
         "INVALID_CONFIG",
         "Provider configuration paths must use regular files and directories.",
       );
@@ -98,7 +98,7 @@ async function applyFiles(root: string, edits: Edit[]) {
     }
     await mkdir(dirname(edit.path), { recursive: true });
     await inspect(root, edit.path);
-    const temp = `${edit.path}.relay-${process.pid}-${Date.now()}.tmp`;
+    const temp = `${edit.path}.contextory-${process.pid}-${Date.now()}.tmp`;
     try {
       await writeFile(temp, value, { flag: "wx", mode: 0o600 });
       await rename(temp, edit.path);
@@ -109,7 +109,7 @@ async function applyFiles(root: string, edits: Edit[]) {
   try {
     for (const edit of prepared) {
       if ((await inspect(root, edit.path)) !== edit.original)
-        throw new RelayError(
+        throw new ContextoryError(
           "CONFIG_CHANGED",
           "Configuration changed during connection. Retry without overwriting it.",
         );
@@ -128,7 +128,7 @@ function jsonEdit(text: string, changes: { path: string[]; value: unknown }[]) {
   const errors: ParseError[] = [];
   parse(next, errors, { allowTrailingComma: true });
   if (errors.length)
-    throw new RelayError(
+    throw new ContextoryError(
       "INVALID_CONFIG",
       "Fix the existing provider JSON configuration before connecting.",
     );
@@ -146,13 +146,13 @@ function jsonEdit(text: string, changes: { path: string[]; value: unknown }[]) {
   return next;
 }
 const skill = `---
-name: relay-workflow
-description: Track authorized software implementation in the connected Relay companion. Use for requests, milestones, specs, issues, design decisions, evidence and continuing tracked work; ordinary questions need no new request.
+name: contextory-workflow
+description: Track authorized software implementation in the connected Contextory companion. Use for requests, milestones, specs, issues, design decisions, evidence and continuing tracked work; ordinary questions need no new request.
 ---
-<!-- relay-managed-workflow -->
-Keep conversation and editing in this native agent. Read relay_context_get before tracked implementation. Use relay_search to recover earlier requests, changes and decisions, relay_impact_get for relationships and relay_flow_trace for affected Python/TS/JS source calls and branches. These tools are part of implementation, even if the user never opens search or Code map.
-Create/update the authorized request, milestones and specs through Relay MCP. Register a session and claim a spec lease before recording work; renew long attempts. Preserve user scope and native permissions. Record issues, their impact and fixes with relay_finding_record; record concise choices, rationale and tradeoffs with relay_decision_record. Run configured relay_check_run recipes for independent evidence and poll the returned job with relay_entity_get. External results remain reported evidence.
-When finished, submit relay_outcome_submit explaining changes, issues, decisions, validation and remaining limits; map every criterion to evidence. THEN call relay_spec_change with action=complete, id=specId, expectedRevision=the returned revision and a new operationId. Confirm state=completed. Outcome submission alone does not mark a spec done. Completion validates current evidence and resolved issues. If no recipes exist, configure the project's existing test/check command in relay.checks workspace settings using native editing, then reread context. If blocked, resolve the blocker or explicitly tell the user what is pending. Never silently leave finished work open, claim unperformed verification or grant yourself approval for new scope. Milestones and requests close automatically when all their children complete. Use relay_report_export with requestId for the complete request report.
+<!-- contextory-managed-workflow -->
+Keep conversation and editing in this native agent. Read contextory_context_get before tracked implementation. Use contextory_search to recover earlier requests, changes and decisions, contextory_impact_get for relationships and contextory_flow_trace for affected Python/TS/JS source calls and branches. These tools are part of implementation, even if the user never opens search or Code map.
+Create/update the authorized request, milestones and specs through Contextory MCP. Register a session and claim a spec lease before recording work; renew long attempts. Preserve user scope and native permissions. Record issues, their impact and fixes with contextory_finding_record; record concise choices, rationale and tradeoffs with contextory_decision_record. Run configured contextory_check_run recipes for independent evidence and poll the returned job with contextory_entity_get. External results remain reported evidence.
+When finished, submit contextory_outcome_submit explaining changes, issues, decisions, validation and remaining limits; map every criterion to evidence. THEN call contextory_spec_change with action=complete, id=specId, expectedRevision=the returned revision and a new operationId. Confirm state=completed. Outcome submission alone does not mark a spec done. Completion validates current evidence and resolved issues. If no recipes exist, configure the project's existing test/check command in contextory.checks workspace settings using native editing, then reread context. If blocked, resolve the blocker or explicitly tell the user what is pending. Never silently leave finished work open, claim unperformed verification or grant yourself approval for new scope. Milestones and requests close automatically when all their children complete. Use contextory_report_export with requestId for the complete request report.
 `;
 export async function configureProvider(r: Registration, remove = false) {
   r = { ...r, root: await realpath(r.root) };
@@ -175,14 +175,14 @@ export async function configureProvider(r: Registration, remove = false) {
       path: mcpFile,
       transform: (text) => {
         const parsed = parseToml(text.replace(/^\uFEFF/, ""));
-        const begin = `# relay:begin ${name}`;
-        const end = `# relay:end ${name}`;
+        const begin = `# contextory:begin ${name}`;
+        const end = `# contextory:end ${name}`;
         const start = text.indexOf(begin);
         const finish = text.indexOf(end);
         if (start >= 0 && finish < start)
-          throw new RelayError(
+          throw new ContextoryError(
             "INVALID_CONFIG",
-            "Relay configuration markers are incomplete.",
+            "Contextory configuration markers are incomplete.",
           );
         const stanza = `${begin}\n${stringify({ mcp_servers: { [name]: { command: config.command, args: config.args } } })}${end}\n`;
         let next: string;
@@ -195,9 +195,9 @@ export async function configureProvider(r: Registration, remove = false) {
           if (
             (parsed.mcp_servers as Record<string, unknown> | undefined)?.[name]
           )
-            throw new RelayError(
+            throw new ContextoryError(
               "CONFIG_CONFLICT",
-              "An unowned server uses the Relay name; it was preserved.",
+              "An unowned server uses the Contextory name; it was preserved.",
             );
           next = remove
             ? text
@@ -220,9 +220,9 @@ export async function configureProvider(r: Registration, remove = false) {
           (existing.command !== config.command ||
             existing.args?.[0] !== r.proxy)
         )
-          throw new RelayError(
+          throw new ContextoryError(
             "CONFIG_CONFLICT",
-            "An unowned server uses the Relay name; it was preserved.",
+            "An unowned server uses the Contextory name; it was preserved.",
           );
         return remove && !existing
           ? text
@@ -264,7 +264,7 @@ export async function configureProvider(r: Registration, remove = false) {
       ]) {
         const rows = parsed.hooks?.[event] ?? [];
         if (!Array.isArray(rows))
-          throw new RelayError(
+          throw new ContextoryError(
             "INVALID_CONFIG",
             `Existing ${event} hooks must be an array; configuration was preserved.`,
           );
@@ -295,18 +295,18 @@ export async function configureProvider(r: Registration, remove = false) {
   const skillFile = join(
     r.root,
     r.provider === "codex"
-      ? ".agents/skills/relay-workflow/SKILL.md"
+      ? ".agents/skills/contextory-workflow/SKILL.md"
       : r.provider === "claude"
-        ? ".claude/skills/relay-workflow/SKILL.md"
-        : ".bob/skills/relay-workflow/SKILL.md",
+        ? ".claude/skills/contextory-workflow/SKILL.md"
+        : ".bob/skills/contextory-workflow/SKILL.md",
   );
   edits.push({
     path: skillFile,
     transform: (text) => {
-      if (text && !text.includes("<!-- relay-managed-workflow -->"))
-        throw new RelayError(
+      if (text && !text.includes("<!-- contextory-managed-workflow -->"))
+        throw new ContextoryError(
           "CONFIG_CONFLICT",
-          "An existing relay-workflow skill is unowned and was preserved.",
+          "An existing contextory-workflow skill is unowned and was preserved.",
         );
       return remove ? undefined : skill;
     },
@@ -316,7 +316,7 @@ export async function configureProvider(r: Registration, remove = false) {
     name,
     files: [mcpFile, hooksFile, skillFile],
     instruction: remove
-      ? "Owned Relay entries removed. Reload native MCP configuration."
-      : "Reload native MCP configuration and review/trust the Relay hooks in the native client. Keep chatting there; Relay will display project records. Hook visibility becomes confirmed after an observed event.",
+      ? "Owned Contextory entries removed. Reload native MCP configuration."
+      : "Reload native MCP configuration and review/trust the Contextory hooks in the native client. Keep chatting there; Contextory will display project records. Hook visibility becomes confirmed after an observed event.",
   };
 }

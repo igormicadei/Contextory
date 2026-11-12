@@ -9,6 +9,7 @@ const port = portIndex >= 0 ? Number(process.argv[portIndex + 1]) : 4317;
 if (!Number.isInteger(port) || port < 1024 || port > 65535)
   throw new Error("Use a port from 1024 to 65535.");
 const routes = new Map([
+  ["/theme.js", ["tests/ui/themes.js", "text/javascript"]],
   ["/fixture.js", ["tests/ui/fixture.mjs", "text/javascript"]],
   ["/webview.js", ["dist/webview.js", "text/javascript"]],
   ["/sidebar.css", ["media/sidebar.css", "text/css"]],
@@ -27,7 +28,7 @@ createServer(async (request, response) => {
       const nonce = randomBytes(24).toString("hex");
       response.setHeader("content-type", "text/html; charset=utf-8");
       response.end(
-        `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'nonce-${nonce}'; connect-src 'none'; base-uri 'none'; form-action 'none'"><title>Relay companion preview</title><link rel="stylesheet" href="/sidebar.css"></head><body data-surface="${path === "/flow.html" ? "flow" : path === "/relationships.html" ? "relationships" : "sidebar"}"><div id="app"></div><script nonce="${nonce}" src="/fixture.js"></script><script nonce="${nonce}" src="/webview.js"></script></body></html>`,
+        `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'nonce-${nonce}'; connect-src 'none'; base-uri 'none'; form-action 'none'"><title>Contextory companion preview</title><link rel="stylesheet" href="/sidebar.css"></head><body data-surface="${path === "/flow.html" ? "flow" : path === "/relationships.html" ? "relationships" : "sidebar"}"><div id="app"></div><script nonce="${nonce}" src="/theme.js"></script><script nonce="${nonce}" src="/fixture.js"></script><script nonce="${nonce}" src="/webview.js"></script></body></html>`,
       );
       return;
     }
@@ -42,5 +43,5 @@ createServer(async (request, response) => {
     response.writeHead(503).end("Run npm run build first.");
   }
 }).listen(port, "127.0.0.1", () =>
-  console.log(`Relay preview: http://127.0.0.1:${port}`),
+  console.log(`Contextory preview: http://127.0.0.1:${port}`),
 );

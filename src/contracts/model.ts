@@ -1,4 +1,4 @@
-export const version = "0.2.2";
+export const version = "0.2.3";
 export type Provider = "codex" | "claude" | "bob";
 export type Kind =
   | "request"
@@ -182,13 +182,13 @@ export const flowDefaults: FlowLimits = {
   targetsPerCall: 10,
   timeoutMs: 2000,
 };
-export class RelayError extends Error {
+export class ContextoryError extends Error {
   constructor(
     public code: string,
     message: string,
   ) {
     super(message);
-    this.name = "RelayError";
+    this.name = "ContextoryError";
   }
 }
 export function requireValue<T>(
@@ -196,6 +196,6 @@ export function requireValue<T>(
   message: string,
 ): T {
   if (value === undefined || value === null || value === false)
-    throw new RelayError("INVALID_ARGUMENT", message);
+    throw new ContextoryError("INVALID_ARGUMENT", message);
   return value;
 }

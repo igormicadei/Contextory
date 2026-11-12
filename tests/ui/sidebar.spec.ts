@@ -67,7 +67,7 @@ test("spec explanations, keyboard tabs, evidence origins and escaped content", a
     page.getByText("Retries must refer to the same transaction."),
   ).toBeVisible();
   await page.getByRole("tab", { name: "Evidence", exact: true }).click();
-  await expect(page.getByText(/Independent Relay check/)).toBeVisible();
+  await expect(page.getByText(/Independent Contextory check/)).toBeVisible();
   await page.getByRole("tab", { name: "Outcome", exact: true }).click();
   await expect(
     page.getByText("Preserved transaction identity across retries."),
@@ -112,8 +112,8 @@ test("search and bounded source diagram support navigation and expansion", async
   expect(
     await page.evaluate(() =>
       (
-        window as unknown as { relayMessages: { type: string }[] }
-      ).relayMessages.some((m) => m.type === "source"),
+        window as unknown as { contextoryMessages: { type: string }[] }
+      ).contextoryMessages.some((m) => m.type === "source"),
     ),
   ).toBe(true);
 });
@@ -148,9 +148,9 @@ test("full history pages beyond recent events and navigates to linked specs", as
     await page.evaluate(() =>
       (
         window as unknown as {
-          relayMessages: { type: string; requestId?: string }[];
+          contextoryMessages: { type: string; requestId?: string }[];
         }
-      ).relayMessages.some(
+      ).contextoryMessages.some(
         (m) => m.type === "report" && m.requestId === "REQ-demo",
       ),
     ),
@@ -167,7 +167,7 @@ test("standalone diagram surface renders flow without a duplicate overview", asy
     page.getByRole("img", { name: "Possible source flow" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("navigation", { name: "Relay views" }),
+    page.getByRole("navigation", { name: "Contextory views" }),
   ).toBeHidden();
   await expect(page.getByRole("heading", { name: /Your project/ })).toHaveCount(
     0,
@@ -212,8 +212,8 @@ test("relationship workbench view explains records, sources and links back to th
   expect(
     await relationships.evaluate(() =>
       (
-        window as unknown as { relayMessages: { type: string }[] }
-      ).relayMessages.some((m) => m.type === "source"),
+        window as unknown as { contextoryMessages: { type: string }[] }
+      ).contextoryMessages.some((m) => m.type === "source"),
     ),
   ).toBe(true);
   await relationships

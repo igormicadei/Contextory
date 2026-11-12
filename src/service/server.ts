@@ -15,7 +15,7 @@ import { Ledger } from "../storage/ledger";
 import { workspacePath } from "../verification/workspace";
 import { toolDefinitions } from "../contracts/tools";
 import {
-  RelayError,
+  ContextoryError,
   version,
   type Actor,
   type CheckRecipe,
@@ -36,7 +36,7 @@ export async function writePrivate(path: string, value: unknown) {
 }
 export async function startService(options: ServiceOptions) {
   if (!isAbsolute(options.root) || !isAbsolute(options.storage))
-    throw new RelayError(
+    throw new ContextoryError(
       "ABSOLUTE_ROOT_REQUIRED",
       "Service paths must be absolute.",
     );
@@ -52,7 +52,7 @@ export async function startService(options: ServiceOptions) {
       live = (error as NodeJS.ErrnoException).code !== "ESRCH";
     }
     if (live)
-      throw new RelayError(
+      throw new ContextoryError(
         "SERVICE_BUSY",
         "Another service owns this project. Attach using its descriptor.",
       );
@@ -115,7 +115,7 @@ export async function startService(options: ServiceOptions) {
       new Promise((resolve, reject) => {
         if (!streams.size) {
           reject(
-            new RelayError(
+            new ContextoryError(
               "EDITOR_UNAVAILABLE",
               "No editor host is connected.",
             ),
@@ -126,7 +126,7 @@ export async function startService(options: ServiceOptions) {
         const timer = setTimeout(() => {
           pendingEditor.delete(id);
           reject(
-            new RelayError(
+            new ContextoryError(
               "EDITOR_TIMEOUT",
               "Editor language service did not respond within the query budget.",
             ),
@@ -137,7 +137,7 @@ export async function startService(options: ServiceOptions) {
       });
     const parseRecipes = (value: unknown): CheckRecipe[] => {
       if (!Array.isArray(value) || value.length > 30)
-        throw new RelayError(
+        throw new ContextoryError(
           "INVALID_CHECKS",
           "Configure at most 30 check recipes.",
         );
@@ -159,7 +159,7 @@ export async function startService(options: ServiceOptions) {
               r.timeoutMs < 1000 ||
               r.timeoutMs > 1800000))
         )
-          throw new RelayError(
+          throw new ContextoryError(
             "INVALID_CHECKS",
             "Checks require a unique id, name, executable, args and optional 1–1800 second timeout.",
           );
@@ -187,7 +187,7 @@ export async function startService(options: ServiceOptions) {
       };
       if (role.endsWith("-hook")) {
         if (method !== "hook")
-          throw new RelayError(
+          throw new ContextoryError(
             "FORBIDDEN",
             "Hook credentials can only ingest observations.",
           );
@@ -225,7 +225,7 @@ export async function startService(options: ServiceOptions) {
         return {
           artifactId,
           detail:
-            "Result exceeds the native context budget. Read this artifact with relay_entity_get using offset/limit, or page graph nodes with relay_flow_expand.",
+            "Result exceeds the native context budget. Read this artifact with contextory_entity_get using offset/limit, or page graph nodes with contextory_flow_expand.",
           graphId: graph.id,
           snapshotId: graph.snapshotId,
           nodes: graph.nodes?.length,
@@ -233,7 +233,7 @@ export async function startService(options: ServiceOptions) {
         };
       }
       if (!actor.human)
-        throw new RelayError(
+        throw new ContextoryError(
           "FORBIDDEN",
           "This operation belongs to the editor UI.",
         );
@@ -261,7 +261,7 @@ export async function startService(options: ServiceOptions) {
           return { configured: true };
         case "provider.configured":
           if (!["codex", "claude", "bob"].includes(String(params.provider)))
-            throw new RelayError(
+            throw new ContextoryError(
               "INVALID_PROVIDER",
               "Choose a supported provider.",
             );
@@ -284,7 +284,7 @@ export async function startService(options: ServiceOptions) {
           for (const pending of pendingEditor.values()) {
             clearTimeout(pending.timer);
             pending.reject(
-              new RelayError("CANCELLED", "Source analysis stopped."),
+              new ContextoryError("CANCELLED", "Source analysis stopped."),
             );
           }
           pendingEditor.clear();
@@ -297,13 +297,13 @@ export async function startService(options: ServiceOptions) {
           pendingEditor.delete(String(params.id));
           if (params.error)
             p.reject(
-              new RelayError("EDITOR_UNSUPPORTED", String(params.error)),
+              new ContextoryError("EDITOR_UNSUPPORTED", String(params.error)),
             );
           else p.resolve(params.graph as FlowGraph);
           return { received: true };
         }
         default:
-          throw new RelayError("UNKNOWN_METHOD", "Unknown editor operation.");
+          throw new ContextoryError("UNKNOWN_METHOD", "Unknown editor operation.");
       }
     };
     const http: Server = createServer(async (request, response) => {
@@ -352,7 +352,7 @@ export async function startService(options: ServiceOptions) {
         for await (const part of request) {
           size += part.length;
           if (size > 1024 * 1024)
-            throw new RelayError("PAYLOAD_LIMIT", "RPC payload exceeds 1 MiB.");
+            throw new ContextoryError("PAYLOAD_LIMIT", "RPC payload exceeds 1 MiB.");
           chunks.push(part);
         }
         const body = JSON.parse(Buffer.concat(chunks).toString("utf8")) as {
@@ -365,7 +365,7 @@ export async function startService(options: ServiceOptions) {
         response.end(
           JSON.stringify({
             error: {
-              code: error instanceof RelayError ? error.code : "REQUEST_FAILED",
+              code: error instanceof ContextoryError ? error.code : "REQUEST_FAILED",
               message:
                 error instanceof Error ? error.message : "Request failed",
             },
@@ -409,7 +409,7 @@ export async function startService(options: ServiceOptions) {
       ledger.onChange = () => {};
       for (const p of pendingEditor.values()) {
         clearTimeout(p.timer);
-        p.reject(new RelayError("SERVICE_STOPPED", "Editor service stopped."));
+        p.reject(new ContextoryError("SERVICE_STOPPED", "Editor service stopped."));
       }
       pendingEditor.clear();
       for (const stream of streams) stream.end();

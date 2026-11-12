@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { RelayError, type Descriptor } from "../contracts/model";
+import { ContextoryError, type Descriptor } from "../contracts/model";
 export async function readDescriptor(path: string): Promise<Descriptor> {
   const d = JSON.parse(await readFile(path, "utf8")) as Descriptor;
   const url = new URL(d.url);
@@ -12,9 +12,9 @@ export async function readDescriptor(path: string): Promise<Descriptor> {
     url.password ||
     !/^[a-f0-9]{64}$/.test(d.token)
   )
-    throw new RelayError(
+    throw new ContextoryError(
       "INVALID_DESCRIPTOR",
-      "Relay service descriptor is invalid.",
+      "Contextory service descriptor is invalid.",
     );
   return d;
 }
@@ -28,9 +28,9 @@ export async function rpc<T = unknown>(
   try {
     d = await readDescriptor(descriptorPath);
   } catch {
-    throw new RelayError(
+    throw new ContextoryError(
       "SERVICE_UNAVAILABLE",
-      "Open Relay in the connected workspace and retry.",
+      "Open Contextory in the connected workspace and retry.",
     );
   }
   const response = await fetch(d.url, {
@@ -44,15 +44,15 @@ export async function rpc<T = unknown>(
     redirect: "error",
   });
   if (!response.ok)
-    throw new RelayError(
+    throw new ContextoryError(
       "SERVICE_UNAVAILABLE",
-      `Relay service returned HTTP ${response.status}.`,
+      `Contextory service returned HTTP ${response.status}.`,
     );
   const packet = (await response.json()) as {
     result: T;
     error?: { code: string; message: string };
   };
   if (packet.error)
-    throw new RelayError(packet.error.code, packet.error.message);
+    throw new ContextoryError(packet.error.code, packet.error.message);
   return packet.result;
 }

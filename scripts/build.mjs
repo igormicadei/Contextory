@@ -3,7 +3,7 @@ import { mkdir, readdir, unlink, copyFile } from "node:fs/promises";
 await mkdir("dist", { recursive: true });
 await mkdir("artifacts", { recursive: true });
 const requireBanner = {
-  js: "import { createRequire as relayRequire } from 'node:module'; import { fileURLToPath as relayFilePath } from 'node:url'; import { dirname as relayDirname } from 'node:path'; const require = relayRequire(import.meta.url); const __filename = relayFilePath(import.meta.url); const __dirname = relayDirname(__filename);",
+  js: "import { createRequire as contextoryRequire } from 'node:module'; import { fileURLToPath as contextoryFilePath } from 'node:url'; import { dirname as contextoryDirname } from 'node:path'; const require = contextoryRequire(import.meta.url); const __filename = contextoryFilePath(import.meta.url); const __dirname = contextoryDirname(__filename);",
 };
 const jobs = [
   {
@@ -23,7 +23,7 @@ const jobs = [
     ["src/service/main.ts", "service"],
     ["src/analysis/worker.ts", "analysis-worker"],
     ["src/mcp/proxy.ts", "mcp-proxy"],
-    ["src/hooks/launcher.ts", "relay-hook"],
+    ["src/hooks/launcher.ts", "contextory-hook"],
   ].map(([entry, name]) => ({
     entryPoints: [entry],
     outfile: `dist/${name}.mjs`,
@@ -48,6 +48,7 @@ const shared = {
   sourcemap: true,
   target: "es2022",
   mainFields: ["module", "main"],
+  loader: { ".svg": "text" },
   logLevel: "info",
 };
 if (process.argv.includes("--watch"))

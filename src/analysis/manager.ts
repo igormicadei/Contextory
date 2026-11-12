@@ -1,6 +1,6 @@
 import { Worker } from "node:worker_threads";
 import { randomUUID } from "node:crypto";
-import { RelayError, type FlowGraph, type FlowInput } from "../contracts/model";
+import { ContextoryError, type FlowGraph, type FlowInput } from "../contracts/model";
 import { PythonAnalysis } from "./python";
 export class AnalysisManager {
   generation = 0;
@@ -42,7 +42,7 @@ export class AnalysisManager {
         this.pending.delete(message.id);
         if (message.error)
           pending.reject(
-            new RelayError(message.error.code, message.error.message),
+            new ContextoryError(message.error.code, message.error.message),
           );
         else pending.resolve(message.result!);
       },
@@ -53,7 +53,7 @@ export class AnalysisManager {
     worker.on("exit", () => {
       if (this.worker === worker)
         this.fail(
-          new RelayError(
+          new ContextoryError(
             "ANALYSIS_INTERRUPTED",
             "Analysis worker exited. Retry to start a fresh worker.",
           ),
@@ -71,7 +71,7 @@ export class AnalysisManager {
   }
   async trace(input: FlowInput): Promise<FlowGraph> {
     if (this.pending.size + this.pythonPending >= 2)
-      throw new RelayError(
+      throw new ContextoryError(
         "ANALYSIS_BUSY",
         "Two source queries are already queued. Retry after they finish.",
       );
@@ -92,7 +92,7 @@ export class AnalysisManager {
         () => {
           void worker.terminate();
           this.fail(
-            new RelayError(
+            new ContextoryError(
               "ANALYSIS_TIMEOUT",
               "Source analysis exceeded its time budget. Use Calls mode or a smaller workspace.",
             ),
@@ -115,7 +115,7 @@ export class AnalysisManager {
     this.generation++;
     this.python.cancel();
     const worker = this.worker;
-    this.fail(new RelayError("CANCELLED", "Analysis stopped."));
+    this.fail(new ContextoryError("CANCELLED", "Analysis stopped."));
     await worker?.terminate();
   }
 }

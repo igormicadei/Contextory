@@ -5,7 +5,7 @@ import { randomUUID } from "node:crypto";
 import { Workflow } from "../core/workflow";
 import { sourceSnapshot } from "./workspace";
 import {
-  RelayError,
+  ContextoryError,
   type Actor,
   type CheckRecipe,
   type SourceSnapshot,
@@ -18,14 +18,14 @@ export class CheckRunner {
     private artifactRoot: string,
     public recipes: CheckRecipe[],
   ) {}
-  start(a: Input<"relay_check_run">, actor: Actor) {
+  start(a: Input<"contextory_check_run">, actor: Actor) {
     const ledger = this.workflow.ledger;
     const result = ledger.transaction(a.operationId, actor, "check", a, () => {
       const spec = this.workflow.assertLease(a.specId, a.leaseId, actor);
       this.workflow.criteria(spec, a.criteria);
       const recipe = this.recipes.find((r) => r.id === a.recipeId);
       if (!recipe)
-        throw new RelayError(
+        throw new ContextoryError(
           "UNKNOWN_RECIPE",
           "Choose a check recipe configured by the developer.",
         );
@@ -80,7 +80,7 @@ export class CheckRunner {
     },
   ) {
     const ledger = this.workflow.ledger;
-    const actor = { id: "relay-runner", human: false };
+    const actor = { id: "contextory-runner", human: false };
     const controller = new AbortController();
     this.running.set(id, controller);
     let detail = "";
@@ -159,7 +159,7 @@ export class CheckRunner {
           "evidence",
           job.recipe.name,
           {
-            origin: "relay-runner",
+            origin: "contextory-runner",
             recipeId: job.recipe.id,
             recipe: job.recipe,
             criteria: job.criteria,
@@ -196,14 +196,14 @@ export class CheckRunner {
   cancel(id: string) {
     const running = this.running.get(id);
     if (!running)
-      throw new RelayError("NOT_RUNNING", "This job is no longer running.");
+      throw new ContextoryError("NOT_RUNNING", "This job is no longer running.");
     running.abort();
   }
   job(id: string): { state: string; data: unknown } {
     const row = this.workflow.ledger.db
       .prepare("SELECT * FROM jobs WHERE id=?")
       .get(id);
-    if (!row) throw new RelayError("NOT_FOUND", "Check job was not found.");
+    if (!row) throw new ContextoryError("NOT_FOUND", "Check job was not found.");
     return { state: String(row.state), data: JSON.parse(String(row.data)) };
   }
   async close() {

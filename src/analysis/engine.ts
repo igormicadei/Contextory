@@ -4,7 +4,7 @@ import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { isAbsolute, relative, resolve } from "node:path";
 import {
   flowDefaults,
-  RelayError,
+  ContextoryError,
   type FlowGraph,
   type FlowInput,
   type FlowNode,
@@ -33,17 +33,17 @@ export class SourceEngine {
       return (
         !rel.startsWith("..") &&
         !isAbsolute(rel) &&
-        !/(^|[\\/])(?:node_modules|\.git|\.relay-local)([\\/]|$)/.test(rel)
+        !/(^|[\\/])(?:node_modules|\.git|\.contextory-local)([\\/]|$)/.test(rel)
       );
     };
     const file = resolve(this.root, input.root.path);
     if (!safe(file) || !existsSync(file) || !safe(realpathSync(file)))
-      throw new RelayError(
+      throw new ContextoryError(
         "INVALID_PATH",
         "Choose a source file inside this workspace.",
       );
     if (!/\.[cm]?[jt]sx?$/.test(file))
-      throw new RelayError(
+      throw new ContextoryError(
         "UNSUPPORTED_LANGUAGE",
         "Use Calls mode with an installed editor call-hierarchy provider for this language. Static flow is available for Python and TypeScript/JavaScript.",
       );
@@ -125,7 +125,7 @@ export class SourceEngine {
     this.oldProgram = program;
     const sf = program.getSourceFile(file);
     if (!sf)
-      throw new RelayError(
+      throw new ContextoryError(
         "UNREADABLE_SOURCE",
         "Source is missing or exceeds the 2 MiB analysis limit.",
       );
@@ -174,12 +174,12 @@ export class SourceEngine {
     };
     find(sf);
     if (!rootFn)
-      throw new RelayError(
+      throw new ContextoryError(
         "NO_SYMBOL",
         "Place the cursor inside a function/method, or provide its symbol name.",
       );
     if (input.direction === "incoming")
-      throw new RelayError(
+      throw new ContextoryError(
         "EDITOR_PROVIDER_REQUIRED",
         "Incoming calls use the editor call-hierarchy provider. Open the workspace in the extension.",
       );

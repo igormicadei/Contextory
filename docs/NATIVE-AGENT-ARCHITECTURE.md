@@ -1,12 +1,12 @@
 # Native-agent companion architecture
 
-Implemented on `redesign/native-agent-foundation`, version 0.2.2, 2026-11-12. [Delivery record](NATIVE-AGENT-PLAN.md) · [Validation](VALIDATION.md).
+Current version 0.2.3, 2026-11-12. [User guide](USER-GUIDE.md) · [Agent tools](MCP-TOOLS.md) · [Delivery record](NATIVE-AGENT-PLAN.md) · [Validation](VALIDATION.md).
 
 ## Responsibility boundary
 
-The developer stays in the native agent UI. Codex, Claude Code or IBM Bob owns message processing, models, credentials, history, compaction, editing and native tool permissions. Relay owns shared project records, independent configured checks, retrieval and navigation. No Relay turn needs to be opened before a native agent can call MCP.
+The developer stays in the native agent UI. Codex, Claude Code or IBM Bob owns message processing, models, credentials, history, compaction, editing and native tool permissions. Contextory owns shared project records, independent configured checks, retrieval and navigation. No Contextory turn needs to be opened before a native agent can call MCP.
 
-Routing through Relay means routing supported lifecycle observations and project operations through its local service. Hooks cannot intercept every native action, guarantee that a model uses a tool, or reconstruct missing explanations. Relay neither proxies model traffic nor runs a second chat.
+Routing through Contextory means routing supported lifecycle observations and project operations through its local service. Hooks cannot intercept every native action, guarantee that a model uses a tool, or reconstruct missing explanations. Contextory neither proxies model traffic nor runs a second chat.
 
 ```mermaid
 flowchart LR
@@ -36,15 +36,15 @@ The optional embedding runtime is prepared outside the VSIX: `@huggingface/trans
 
 SQLite WAL stores entities, immutable revisions, audit events, operation results, project relationships, check jobs, normalized hook metadata, FTS chunks and vectors. A project ID and canonical root bind each ledger. There is no importer for the old chat/router data model.
 
-The hierarchy is request → milestone → spec. Findings, decisions, evidence and outcomes belong to specs. Sessions correlate native work; they do not store native chat. Requests retain their original intent and append amendments. Historical revisions can be retrieved with `relay_entity_get` and `revision`.
+The hierarchy is request → milestone → spec. Findings, decisions, evidence and outcomes belong to specs. Sessions correlate native work; they do not store native chat. Requests retain their original intent and append amendments. Historical revisions can be retrieved with `contextory_entity_get` and `revision`.
 
 Mutations validate schemas, use idempotency keys and require revisions where records are edited. An active 30-minute implementation lease belongs to a provider/session; renewal and expiry are checked. Declared dependencies are part of the spec contract and must stay acyclic. Generic relationships cannot silently change dependency readiness.
 
 The normal spec path is ready → implementing → submitted → completed. Block, cancel, revise and reopen preserve history. Claiming another attempt increments its generation. Revised contracts invalidate prior completion eligibility.
 
-`relay_outcome_submit` returns the current spec revision and an explicit next action: `relay_spec_change` with `action=complete`. The MCP bootstrap, tool descriptions, workspace brief and managed provider skills all describe this final call. Completion rolls up milestone/request state; reopening or adding planned work reopens the affected parents. An empty milestone remains open. Missing check recipes are a configuration task for native editing, rather than a reason to silently abandon an open spec.
+`contextory_outcome_submit` returns the current spec revision and an explicit next action: `contextory_spec_change` with `action=complete`. The MCP bootstrap, tool descriptions, workspace brief and managed provider skills all describe this final call. Completion rolls up milestone/request state; reopening or adding planned work reopens the affected parents. An empty milestone remains open. Missing check recipes are a configuration task for native editing, rather than a reason to silently abandon an open spec.
 
-Audit reads use stable sequence cursors, an indexed descendant scope and `relay_history_get`; the full History tab is not capped by Overview's three recent events. Titles describe operations using stored record titles, and hierarchy breadcrumbs link back to inline request details. Reports require a request ID through MCP and include its descendant records, original/amended contracts, acceptance criteria, outcome history, findings, decisions, check recipes, output, provenance and snapshots. Unrelated requests are excluded.
+Audit reads use stable sequence cursors, an indexed descendant scope and `contextory_history_get`; the full History tab is not capped by Overview's three recent events. Titles describe operations using stored record titles, and hierarchy breadcrumbs link back to inline request details. Reports require a request ID through MCP and include its descendant records, original/amended contracts, acceptance criteria, outcome history, findings, decisions, check recipes, output, provenance and snapshots. Unrelated requests are excluded.
 
 An outcome maps each criterion exactly once to evidence and preserves summaries of issues/fixes, choices, validation, limitations and changelog text. Completion requires matching source/contract/attempt, passing independently run evidence, no later failed run of the same recipe, no current pending checks, resolved blocking findings and completed dependencies. Agent-authored claims remain reported evidence. A Stop hook never completes a spec.
 
@@ -54,7 +54,7 @@ Check recipes come from trusted workspace settings. The runner accepts recipe ID
 
 The service listens only on an ephemeral `127.0.0.1` port. Private descriptors contain separate rotating tokens for editor, each provider and each provider's hooks. Browser-origin requests are refused. Hook credentials can only ingest metadata; native MCP credentials cannot configure checks or impersonate editor actions.
 
-Managed stdio proxies use the official MCP SDK and reread the descriptor on every call. Existing native connections survive service descriptor rotation. Large native results return `ART-` handles; `relay_entity_get` reads bounded 400-character pages. Flow graphs also support paged node reads and snapshot-checked expansion.
+Managed stdio proxies use the official MCP SDK and reread the descriptor on every call. Existing native connections survive service descriptor rotation. Large native results return `ART-` handles; `contextory_entity_get` reads bounded 400-character pages. Flow graphs also support paged node reads and snapshot-checked expansion.
 
 Provider registration preflights every file, preserves comments/unrelated entries, refuses symlink/junction ancestors and rolls back its own unchanged writes after a later failure. Global provider files and permission policies are not changed. Native clients remain responsible for trust/reload. Hook commands use bounded stdin, a 450 ms RPC deadline and advisory failure behavior. Only event/session/cwd/tool metadata is retained; raw prompts, outputs and transcript paths are discarded.
 
