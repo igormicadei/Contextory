@@ -1,4 +1,22 @@
-# Validation — Contextory 0.2.3
+# Validation records
+
+## 0.2.5: horizontal Panel and startup preparation
+
+Recorded 2026-11-13: production builds, TypeScript checking, **38 backend tests** and **19 Playwright tests** pass. Four new startup policy cases cover actual MCP/hook timestamps, later manual choices, local/global fallback, explicit defaults, `none` and preserved disconnects. The service notifies the editor of native MCP discovery/read activity so agent memory and connection indicators refresh without waiting for a record mutation.
+
+The production webview was visually reviewed with fixture records at **760×260**, **1280×420** and **1920×360**, plus the **320×800** sidebar, light and high-contrast themes. Screenshots cover Overview, Requests, fully loaded History and source flow. Follow-up changes tightened recent activity and spec spacing and kept a useful diagram area in very short panels. Geometry checks cover pinned footers, no page-width overflow, scrollable long lists and a readable selected-spec inspector. Resize tests preserve drafts, the detail tab and expanded milestones. Workspace names remain visible on every tab and standalone view; long names truncate without interpreting markup.
+
+The host smoke scenario also checks that a configured startup provider's project MCP/hooks and service descriptor exist before the view opens or a native session starts. This prepares the bridge; it does not emulate an authenticated native session or bypass client trust/reload.
+
+The **extracted 0.2.5 VSIX passed** the full host scenario in **VS Code 1.145.3** and **IBM Bob (VS Code API 1.126.0)**, including startup preparation before opening the view. Both runs used disposable workspaces and isolated editor profiles. Local reports: [VS Code](../artifacts/host-panel-vscode.json) and [Bob](../artifacts/host-panel-bob.json).
+
+## 0.2.4: native model and usage records
+
+Recorded 2026-11-12 on `feat/agent-usage-records`: TypeScript checking, all production bundles, **34 backend tests** and **11 Playwright UI tests** pass, including the real local embedding check. Seven new backend cases cover metadata-only normalization, identical/retried attempts, null versus zero counters, exact session/lease attribution, ambiguity/expiry/subagents, model changes, report filtering, additive migration, restart persistence and pagination. The actual built hook launcher forwards token fixtures over authenticated loopback RPC without transcript/prompt/error retention or model-visible output. The actual MCP transport advertises all 19 tools. UI coverage includes the Usage tab, refresh, missing counters and escaping native model names.
+
+These are protocol fixtures and automated checks; live authenticated `PostModelRequest` delivery and provider-native trust/reload remain user qualification steps. Codex token counters require a native version exposing that hook. Claude model-switch hooks require 2.1.251+; Claude/Bob standard lifecycle hooks do not supply general token totals. Usage observations are local metadata, not billing or quota. Packages exclude project-specific agent configuration and skills.
+
+## 0.2.3 qualification record
 
 Recorded 2026-11-12 on Windows with Node 24.19.0. Branch: `redesign/native-agent-foundation`.
 

@@ -202,11 +202,17 @@ export async function startService(options: ServiceOptions) {
           projectId: ledger.projectId,
         };
       if (method === "tools/list") {
-        if (actor.provider) app.seen(`mcp:${actor.provider}`);
+        if (actor.provider) {
+          app.seen(`mcp:${actor.provider}`);
+          ledger.onChange();
+        }
         return { tools: toolDefinitions() };
       }
       if (method === "tools/call") {
-        if (actor.provider) app.seen(`mcp:${actor.provider}`);
+        if (actor.provider) {
+          app.seen(`mcp:${actor.provider}`);
+          ledger.onChange();
+        }
         const result = await app.call(
           String(params.name),
           params.arguments,
@@ -303,7 +309,10 @@ export async function startService(options: ServiceOptions) {
           return { received: true };
         }
         default:
-          throw new ContextoryError("UNKNOWN_METHOD", "Unknown editor operation.");
+          throw new ContextoryError(
+            "UNKNOWN_METHOD",
+            "Unknown editor operation.",
+          );
       }
     };
     const http: Server = createServer(async (request, response) => {
@@ -352,7 +361,10 @@ export async function startService(options: ServiceOptions) {
         for await (const part of request) {
           size += part.length;
           if (size > 1024 * 1024)
-            throw new ContextoryError("PAYLOAD_LIMIT", "RPC payload exceeds 1 MiB.");
+            throw new ContextoryError(
+              "PAYLOAD_LIMIT",
+              "RPC payload exceeds 1 MiB.",
+            );
           chunks.push(part);
         }
         const body = JSON.parse(Buffer.concat(chunks).toString("utf8")) as {
@@ -365,7 +377,10 @@ export async function startService(options: ServiceOptions) {
         response.end(
           JSON.stringify({
             error: {
-              code: error instanceof ContextoryError ? error.code : "REQUEST_FAILED",
+              code:
+                error instanceof ContextoryError
+                  ? error.code
+                  : "REQUEST_FAILED",
               message:
                 error instanceof Error ? error.message : "Request failed",
             },
@@ -409,7 +424,9 @@ export async function startService(options: ServiceOptions) {
       ledger.onChange = () => {};
       for (const p of pendingEditor.values()) {
         clearTimeout(p.timer);
-        p.reject(new ContextoryError("SERVICE_STOPPED", "Editor service stopped."));
+        p.reject(
+          new ContextoryError("SERVICE_STOPPED", "Editor service stopped."),
+        );
       }
       pendingEditor.clear();
       for (const stream of streams) stream.end();

@@ -42,6 +42,22 @@ Review the changed files, then use the native client's own trust/reload mechanis
 
 Clicking a configured agent disconnects its owned entries. The tooltip and accessible label identify whether clicking will connect or disconnect. Multiple providers can be configured for a project; they use the same Contextory records. Spec leases prevent two sessions from implementing the same spec at the same time.
 
+### Prepare the connection at startup
+
+Contextory starts its local service as soon as the extension is ready in a trusted local folder, even when its view is closed. `contextory.startupAgent` defaults to `last-used`: it remembers manual connections and observed native MCP/hook activity in each workspace. A new workspace falls back to the last agent used in another workspace. On first use with no history, choose an agent once or set a default in Settings.
+
+To always prepare Codex, for example:
+
+```json
+{
+  "contextory.startupAgent": "codex"
+}
+```
+
+Other values are `claude`, `bob`, `last-used`, and `none`. `none` disables automatic agent selection; existing configured bridges and the local service remain available. Manually disconnecting a provider opts it out of startup in that workspace until you connect it again. Configuration errors appear in the Contextory output channel without preventing access to project records.
+
+Startup prepares the project's MCP entry, hooks and workflow instructions. The native client still controls starting its agent session, trusting the entry and reloading MCP configuration. Its light turns green when MCP traffic is observed. Contextory also prepares startup connections after you grant workspace trust.
+
 ## A normal day of work
 
 1. **Describe an authorized change in native chat.** Ask the agent to use Contextory. Ordinary questions do not need new requests.
@@ -60,13 +76,19 @@ If scope changes, revise the request/spec with a reason. Contextory preserves ea
 
 ## Use the sidebar and workbench
 
+The header always shows the workspace name, including in source-flow and relationship workbench views. Hover over it to see the full folder path.
+
+To dock Contextory horizontally, right-click **Workspace Tasks** and use **Move View → Panel** (or **Move View…** and choose a Panel destination). Wide views of at least 760 pixels with a width-to-height ratio of 3:2 or greater use the horizontal layout automatically. Narrow or tall views retain the sidebar layout. Resize the Panel to give long records more room.
+
+In the Panel, Overview places metrics, current requests and recent activity alongside each other. Requests shows the request list on the left and the selected spec on the right. History has a filter rail beside the feed; source diagrams have a bounded scroll area. Long lists scroll independently and agent controls stay at the bottom. Moving or resizing the view keeps selected details, expanded milestones and request drafts.
+
 ### Overview
 
 The metrics show open requests, implementing specs, and completed specs. **Current work** lists every open request and its completed/total spec progress. The three most recent activities have readable titles and links; **Full history** opens the complete audit view. Agent controls stay at the bottom while the main content scrolls.
 
 ### Requests
 
-Each request has one card. Expand a milestone and click a spec to show its detail inside that card. Detail tabs expose its contract, issues, decisions, evidence, outcome, and history. The search bar filters requests and their descendant records, so an issue or design decision can reveal its owning request. **Search history** also queries the indexed project knowledge.
+Each request has one card. Expand a milestone and click a spec to show its detail inside that card, or in the adjacent inspector in a horizontal Panel. Detail tabs expose its contract, issues, decisions, evidence, outcome, usage, and history. The search bar filters requests and their descendant records, so an issue or design decision can reveal its owning request. **Search history** also queries the indexed project knowledge.
 
 **Explore relationships** opens a separate workbench view with record titles, IDs, short descriptions, states, source files, link directions, and rationale. Select a record to return to its owning request/spec and explanation tab; select a file reference to navigate to source.
 
@@ -86,7 +108,7 @@ Python analysis uses an isolated standard-library parser and never imports or ex
 
 ### Theme behavior
 
-The sidebar uses the active theme's sidebar colors; workbench panels use its editor colors. Buttons, fields, progress, links, diagrams, focus rings, and the inline icon use VS Code semantic tokens. Theme changes apply immediately, including custom and both high-contrast modes, without reloading the view or discarding drafts. See the [theme previews](https://github.com/igormicadei/Contextory/blob/v0.2.3/artifacts/themes.png).
+The sidebar uses the active theme's sidebar colors; a horizontal Panel uses its panel/editor colors and dedicated workbench views use editor colors. Buttons, fields, progress, links, diagrams, focus rings, and the inline icon use VS Code semantic tokens. Theme changes apply immediately, including custom and both high-contrast modes, without reloading the view or discarding drafts. See the [theme previews](https://github.com/igormicadei/Contextory/blob/v0.2.3/artifacts/themes.png).
 
 ## Configure checks
 
@@ -146,6 +168,24 @@ Model queries run locally after preparation and disable remote fetching. Vectors
 Use **Export request report** on a request card or **Contextory: Export Implementation Report** in the Command Palette. The report covers that request and its descendants: original/current contracts, revisions, acceptance criteria, changes, findings/fixes, decisions, evidence provenance, check commands/output, and outcomes. Unrelated requests are excluded.
 
 The agent can use `contextory_report_export` with a request ID and `format: "report"`, `"changelog"`, or `"json"`. Changelogs include completed specs only. Exports open as editor documents; use **Save As** to retain a copy outside Contextory's managed storage. These are request deliverables, not an export of the activity feed.
+
+## Agent models and usage (0.2.4+)
+
+Open a specification's **Usage** tab to see its recorded models and observed token counts. Use **Refresh usage** for the latest observations. Request reports include model/usage summaries for the request and its specs; JSON exports include structured summaries. Agents can inspect the same records with `contextory_usage_get`, including project-wide observations that could not be assigned to a spec.
+
+| Native client | What the hooks can record                                                                                                                                                                       |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Codex         | Active model and `PostModelRequest` attempt metadata, including input/output, cached-input, reasoning and total tokens when the native client supplies them. Older clients may lack this event. |
+| Claude Code   | Model from `SessionStart` and model changes from `PostModelSwitch` (Claude Code 2.1.251+). Standard lifecycle hooks do not expose a general token total.                                        |
+| IBM Bob       | Lifecycle metadata. Bob's documented hooks currently expose neither model nor token counters, so these remain unavailable.                                                                      |
+
+When attaching a Contextory session, the agent should pass the exact `nativeSessionId` from the hook reminder. Observations link to a spec only when that native session has one active, unexpired lease. Missing IDs, multiple concurrent leases, completed work, and subagent events carrying only the parent session stay unassigned. Planning before a lease is also unassigned. This deliberately makes request totals a record of attributed observations rather than a complete task-cost calculation.
+
+Missing token fields remain **Unavailable**, while an observed zero remains zero. Cached input is included in input tokens, and reasoning is included in output tokens; do not add these subsets again. Failed/cancelled attempts and retries remain separate where reported. Contextory does not calculate subscription usage, account balances, Bobcoins or monetary charges.
+
+Capture uses native hook fields only. It does not read transcripts or store prompts, tool inputs/results or raw model errors. Records stay in the local workspace ledger and survive restarts. Per-request telemetry is kept out of the recent-activity feed. On upgrade, reload the editor and native agent so the new managed hooks and MCP tool are discovered; hook trust still belongs to the native client. Existing work cannot be backfilled from this capture path.
+
+Provider references: [official OpenAI documentation: Codex model-request hooks](https://learn.chatgpt.com/docs/hooks#premodelrequest-and-postmodelrequest), [Claude hook fields](https://code.claude.com/docs/en/hooks), [IBM Bob lifecycle hooks](https://bob.ibm.com/docs/ide/configuration/lifecycle-hooks).
 
 ## Configuration and storage
 

@@ -20,6 +20,14 @@ exports.run = async function () {
     const api = await extension.activate();
     assert.ok(extension.isActive);
     result.checks.push("extension activation");
+    await api.ready;
+    const root = vscode.workspace.workspaceFolders[0].uri.fsPath;
+    assert.ok(fs.existsSync(path.join(root, ".bob/mcp.json")));
+    assert.ok(fs.existsSync(path.join(root, ".bob/settings.json")));
+    assert.ok(fs.existsSync(path.join(await api.storage(), "bob.json")));
+    result.checks.push(
+      "configured startup agent MCP/hooks ready before opening Contextory or starting a native session",
+    );
     const commands = await vscode.commands.getCommands(true);
     for (const command of [
       "contextory.refresh",
@@ -42,9 +50,19 @@ exports.run = async function () {
     });
     assert.equal(request.data.provenance, "developer");
     result.checks.push("host to service workflow mutation");
-    const root = vscode.workspace.workspaceFolders[0].uri.fsPath;
+    const usage = await api.tool("contextory_usage_get", {
+      entityId: request.id,
+    });
+    assert.equal(usage.origin, "native-hook");
+    assert.equal(usage.availability, "unavailable");
+    assert.equal(usage.attempts, 0);
+    result.checks.push(
+      "native model/usage query with explicit unavailable counters",
+    );
     for (const provider of ["Codex", "Claude", "Bob"])
-      await vscode.commands.executeCommand(`contextory.connectNative${provider}`);
+      await vscode.commands.executeCommand(
+        `contextory.connectNative${provider}`,
+      );
     for (const file of [
       ".codex/config.toml",
       ".codex/hooks.json",

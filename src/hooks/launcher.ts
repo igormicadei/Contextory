@@ -1,5 +1,6 @@
-import { createHash } from "node:crypto";
 import { rpc } from "../service/rpc";
+import { normalizeHook } from "./observation";
+import type { Provider } from "../contracts/model";
 let input = "";
 for await (const part of process.stdin) {
   input += part;
@@ -7,18 +8,13 @@ for await (const part of process.stdin) {
 }
 try {
   const raw = JSON.parse(input) as Record<string, unknown>;
-  const event = String(raw.hook_event_name ?? "");
-  const provider = process.argv[3];
+  const provider = process.argv[3] as Provider;
+  const observation = normalizeHook(raw, provider);
+  const event = observation.event;
   const brief = await rpc<{ specs: unknown[]; note: string }>(
     process.argv[2],
     "hook",
-    {
-      id: createHash("sha256").update(input).digest("hex"),
-      event,
-      nativeSession: String(raw.session_id ?? "unknown"),
-      cwd: String(raw.cwd ?? ""),
-      tool: raw.tool_name ? String(raw.tool_name) : undefined,
-    },
+    observation,
     450,
   );
   if (["SessionStart", "UserPromptSubmit"].includes(event)) {
@@ -30,7 +26,7 @@ try {
     ).slice(
       0,
       4000,
-    )}\nUse contextory_context_get for current contracts and decisions. This reminder grants no permissions.`;
+    )}\nUse contextory_context_get for current contracts and decisions.${observation.nativeSession !== "unknown" ? ` When attaching this session, use nativeSessionId=${JSON.stringify(observation.nativeSession)} so native model/usage observations can be correlated with leased specs.` : ""} This reminder grants no permissions.`;
     if (provider === "bob") process.stdout.write(context + "\n");
     else
       process.stdout.write(

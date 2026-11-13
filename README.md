@@ -10,6 +10,8 @@ Your agent keeps its own conversation, model, authentication, and editing tools.
 
 [Download v0.2.3](https://github.com/igormicadei/Contextory/releases/tag/v0.2.3) · [User guide](docs/USER-GUIDE.md) · [Agent tools](docs/MCP-TOOLS.md) · [Development](docs/DEVELOPMENT.md)
 
+The local development package is **0.2.5**; the latest published GitHub release remains **0.2.3**. The Panel layout and startup-agent settings described below are included in [0.2.5](docs/releases/v0.2.5.md).
+
 ## What it offers
 
 | Capability           | What you get                                                                                                                                |
@@ -22,7 +24,7 @@ Your agent keeps its own conversation, model, authentication, and editing tools.
 | Code flow            | Bounded Python and TypeScript/JavaScript call and branch diagrams, source navigation, expansion, and SVG/JSON export.                       |
 | Verified completion  | Configured checks run independently, with criterion evidence and source fingerprints checked before completion.                             |
 | Request reports      | Export a request's contracts, changes, decisions, findings, evidence, tests, and outcomes, or a completed-work changelog.                   |
-| Daily workspace UI   | All open requests, progress bars, three recent activities, full linked history, pinned agent controls, and live VS Code theme support.      |
+| Daily workspace UI   | Adaptive sidebar/Panel layouts, workspace identity, request progress, recent activity, full history, pinned agent controls and live themes. |
 
 Search, relationships, source tracing, and request/spec management are available to the **agent through MCP**, as well as to the user through the interface. Contextory does not require a separate chat turn to expose them.
 
@@ -59,6 +61,8 @@ The managed `contextory-workflow` skill and MCP instructions describe the workfl
 
 A green agent light means configured MCP traffic has been observed. Grey means unconfigured or awaiting traffic; hover for detail. Clicking a configured agent disconnects its owned configuration. The light is not a model sign-in indicator.
 
+Starting with 0.2.5, Contextory prepares the last-used agent's MCP/hooks as soon as the extension is ready in a trusted folder, even with its view closed. Set `contextory.startupAgent` to `codex`, `claude`, or `bob` for a fixed default, or `none` to disable automatic selection. Native clients still own session startup and trust/reload. A manual disconnect stays disabled in that workspace until reconnected. See [startup settings](docs/USER-GUIDE.md#prepare-the-connection-at-startup).
+
 ## How it works
 
 ```mermaid
@@ -88,6 +92,8 @@ See the [architecture](docs/NATIVE-AGENT-ARCHITECTURE.md) for process boundaries
 
 All views follow live VS Code theme changes, including custom and high-contrast themes, without resetting drafts or navigation.
 
+The header shows the workspace name on every tab. Move **Workspace Tasks** to VS Code's **Panel** for a horizontal layout: current work and activity share columns, and the request list sits beside a spec inspector. The view adapts to its available width and height while preserving selection and drafts. The [user guide](docs/USER-GUIDE.md#use-the-sidebar-and-workbench) explains docking and scrolling.
+
 [Theme previews](artifacts/themes.png) · [Request details](artifacts/request-details.png) · [Relationships](artifacts/relationships.png) · [Source flow](artifacts/source-flow.png)
 
 <details>
@@ -98,6 +104,8 @@ All views follow live VS Code theme changes, including custom and high-contrast 
 </details>
 
 ## Storage and current scope
+
+Version **0.2.4** development builds add native model and usage records: a specification **Usage** tab, request-report summaries and the agent-facing `contextory_usage_get` tool. Codex can supply per-request token counts; Claude supplies model metadata; Bob's documented hooks currently supply neither. Capture stays local and does not read chat transcripts. Missing counts remain unavailable. See [provider coverage and task association](docs/USER-GUIDE.md#agent-models-and-usage-024).
 
 Records, immutable revisions, audit events, artifacts, and service credentials live under the extension's editor-managed global storage, separated by canonical project path. Native MCP/hook configuration and workflow skills are written into the project. The [user guide](docs/USER-GUIDE.md#configuration-and-storage) lists the files and explains backup and disconnect behavior.
 

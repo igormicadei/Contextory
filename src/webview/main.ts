@@ -10,6 +10,7 @@ import type {
 import { escape, button, badge, sourceButton } from "./html";
 import { relationshipView } from "./relationships";
 import contextoryIcon from "../../media/contextory.svg";
+import type { UsageSummary } from "../contracts/usage";
 declare function acquireVsCodeApi(): {
   postMessage(message: unknown): void;
   getState(): unknown;
@@ -46,6 +47,10 @@ let graph: FlowGraph | undefined;
 const surface = document.body.dataset.surface ?? "sidebar";
 const flowOnly = surface === "flow";
 const relationshipsOnly = surface === "relationships";
+const panelShape = window.matchMedia(
+  "(min-width: 760px) and (min-aspect-ratio: 3/2)",
+);
+const horizontalLayout = () => surface === "sidebar" && panelShape.matches;
 let relationships: RelationshipGraph | undefined;
 let screen = relationshipsOnly
   ? "relationships"
@@ -59,6 +64,7 @@ let historyLoaded = false;
 const openMilestones = new Set<string>();
 let selected = "";
 let detailTab = "contract";
+const usageBySpec = new Map<string, UsageSummary>();
 let notice = "";
 let busy = false;
 let nodeId = "";
@@ -139,7 +145,52 @@ function overview() {
   const open = requests.filter(
     (r) => !["completed", "cancelled"].includes(requestState(r)),
   );
-  return `<div class="metrics"><div><strong>${open.length}</strong><span>open requests</span></div><div><strong>${specs.filter((e) => e.state === "implementing").length}</strong><span>in progress</span></div><div><strong>${specs.filter((e) => e.state === "completed").length}<small> / ${specs.length}</small></strong><span>completed specs</span></div></div><section><div class="section-heading"><h2>Current work</h2>${button("navigate", "View requests \u2197", 'data-screen="requests"', "text-button")}</div>${open.map((r) => `<button class="work-row" data-action="select" data-id="${r.id}"><div><span class="record-id">${r.id}</span><strong>${escape(r.title)}</strong>${requestProgress(r)}</div>${badge(requestState(r))}<span aria-hidden="true">&#8250;</span></button>`).join("") || '<p class="muted">No open requests. Describe a change in native chat, or create a request.</p>'}</section><section><div class="section-heading"><h2>Recent activity</h2>${button("navigate", "Full history \u2197", 'data-screen="history"', "text-button")}</div>${activity(dashboard?.events.slice(0, 3) ?? [])}</section>`;
+  return `<div class="overview-layout">
+    <div class="metrics" aria-label="Workspace progress"><div><strong>${open.length}</strong><span>open requests</span></div><div><strong>${specs.filter((e) => e.state === "implementing").length}</strong><span>in progress</span></div><div><strong>${specs.filter((e) => e.state === "completed").length}<small> / ${specs.length}</small></strong><span>completed specs</span></div></div>
+    <section class="overview-work"><div class="section-heading"><h2 id="work-heading">Current work</h2>${button("navigate", "View requests \u2197", 'data-screen="requests"', "text-button")}</div>
+      <div class="work-list" data-scroll="work" role="region" aria-labelledby="work-heading" tabindex="0">${open.map((r) => `<button class="work-row" data-action="select" data-id="${r.id}"><div><span class="record-id">${r.id}</span><strong>${escape(r.title)}</strong>${requestProgress(r)}</div>${badge(requestState(r))}<span aria-hidden="true">&#8250;</span></button>`).join("") || '<p class="muted">No open requests. Describe a change in native chat, or create a request.</p>'}</div>
+    </section>
+    <section class="overview-activity"><div class="section-heading"><h2 id="activity-heading">Recent activity</h2>${button("navigate", "Full history \u2197", 'data-screen="history"', "text-button")}</div><div class="activity-list" data-scroll="activity" role="region" aria-labelledby="activity-heading" tabindex="0">${activity(dashboard?.events.slice(0, 3) ?? [])}</div></section>
+  </div>`;
+}
+function requestCard(r: Entity) {
+  const inline = !horizontalLayout();
+  return `<article class="request-card ${requestOf(selected)?.id === r.id ? "selected-request" : ""}" id="record-${r.id}">
+    <div class="section-heading"><div class="request-title"><span class="record-id">${r.id}</span><h2>${escape(r.title)}</h2></div>${badge(requestState(r))}</div>
+    <p>${escape(r.data.description)}</p>
+    <div class="request-actions">${button("report", "Export request report", `data-id="${r.id}"`, "small")}${button("history", "Request history", `data-id="${r.id}"`, "text-button")}</div>
+    ${
+      children(r.id, "milestone")
+        .map(
+          (
+            m,
+          ) => `<details class="milestone" data-milestone="${m.id}" ${openMilestones.has(m.id) ? "open" : ""}>
+      <summary><span>${escape(m.title)}</span>${badge(m.state)}</summary>
+      <div class="milestone-detail"><span class="record-id">${m.id} &middot; revision ${m.revision}</span><p>${escape(m.data.description || "Milestone specifications")}</p>${button("history", "Milestone history", `data-id="${m.id}"`, "text-button")}
+      ${
+        children(m.id, "spec")
+          .map(
+            (s) =>
+              `<button class="spec-row ${selected === s.id ? "selected" : ""}" aria-expanded="${selected === s.id}" ${selected === s.id ? `aria-controls="detail-${s.id}"` : ""} data-action="toggleSpec" data-id="${s.id}"><span class="spec-indicator ${s.state}"></span><div><strong>${escape(s.title)}</strong><small>${s.id} &middot; revision ${s.revision}</small></div>${badge(s.state)}</button>${inline && selected === s.id ? specDetails(s) : ""}`,
+          )
+          .join("") || '<p class="muted">Waiting for specifications.</p>'
+      }
+      </div></details>`,
+        )
+        .join("") ||
+      '<p class="muted">The native agent can add milestones and specifications through Contextory.</p>'
+    }
+  </article>`;
+}
+function requestInspector(spec: Entity | undefined) {
+  if (!spec)
+    return empty(
+      "Select a specification",
+      "Expand a milestone in the request list to review its contract, issues, decisions and evidence.",
+    );
+  const request = requestOf(spec.id);
+  const milestone = entitiesById.get(spec.parentId ?? "");
+  return `<header class="inspector-heading"><p class="muted">${escape(request?.title)} / ${escape(milestone?.title)}</p><h2>${escape(spec.title)}</h2></header>${specDetails(spec)}`;
 }
 function requestTree() {
   const requests =
@@ -154,7 +205,10 @@ function requestTree() {
       hits.some((h) => requestOf(h.id)?.id === r.id)
     );
   });
-  return `<div class="section-heading"><h1>Requests</h1>${button("newRequest", "+ New request", "", "primary")}</div><form id="search-form"><label class="sr-only" for="query">Filter requests and their history</label><div class="search-box"><input type="search" id="query" name="query" placeholder="Search requests, changes, decisions..." value="${escape(drafts.query)}"><button type="submit" class="small">Search history</button></div></form><p class="muted search-hint">${matching.length} of ${requests.length} requests &middot; Includes milestones, specs, issues and decisions.</p><form id="request-form" class="new-request ${drafts.showRequest === "true" ? "" : "hidden"}"><label>Title<input id="requestTitle" name="requestTitle" maxlength="300" required value="${escape(drafts.requestTitle)}"></label><label>What should change?<textarea id="requestDescription" name="requestDescription" maxlength="12000" required>${escape(drafts.requestDescription)}</textarea></label><button type="submit" class="primary">Create request</button></form>${
+  const visibleSpec = matching.some((r) => r.id === requestOf(selected)?.id)
+    ? entitiesById.get(selected)
+    : undefined;
+  return `<div class="requests-view"><div class="requests-toolbar"><div class="section-heading"><h1>Requests</h1>${button("newRequest", "+ New request", "", "primary")}</div><form id="search-form"><label class="sr-only" for="query">Filter requests and their history</label><div class="search-box"><input type="search" id="query" name="query" placeholder="Search requests, changes, decisions..." value="${escape(drafts.query)}"><button type="submit" class="small">Search history</button></div></form><p class="muted search-hint">${matching.length} of ${requests.length} requests &middot; Includes milestones, specs, issues and decisions.</p></div><div class="requests-layout"><div class="request-list" data-scroll="requests" role="region" aria-label="Request list" tabindex="0"><form id="request-form" class="new-request ${drafts.showRequest === "true" ? "" : "hidden"}"><label>Title<input id="requestTitle" name="requestTitle" maxlength="300" required value="${escape(drafts.requestTitle)}"></label><label>What should change?<textarea id="requestDescription" name="requestDescription" maxlength="12000" required>${escape(drafts.requestDescription)}</textarea></label><button type="submit" class="primary">Create request</button></form>${
     !requests.length
       ? empty(
           "A clear plan starts here",
@@ -162,29 +216,8 @@ function requestTree() {
         )
       : !matching.length
         ? '<p class="muted">No matching requests.</p>'
-        : matching
-            .map(
-              (r) =>
-                `<article class="request-card" id="record-${r.id}"><div class="section-heading"><div class="request-title"><span class="record-id">${r.id}</span><h2>${escape(r.title)}</h2></div>${badge(requestState(r))}</div><p>${escape(r.data.description)}</p><div class="request-actions">${button("report", "Export request report", `data-id="${r.id}"`, "small")}${button("history", "Request history", `data-id="${r.id}"`, "text-button")}</div>${
-                  children(r.id, "milestone")
-                    .map(
-                      (m) =>
-                        `<details class="milestone" data-milestone="${m.id}" ${openMilestones.has(m.id) ? "open" : ""}><summary><span>${escape(m.title)}</span>${badge(m.state)}</summary><div class="milestone-detail"><span class="record-id">${m.id} &middot; revision ${m.revision}</span><p>${escape(m.data.description || "Milestone specifications")}</p>${button("history", "Milestone history", `data-id="${m.id}"`, "text-button")}${
-                          children(m.id, "spec")
-                            .map(
-                              (s) =>
-                                `<button class="spec-row ${selected === s.id ? "selected" : ""}" aria-expanded="${selected === s.id}" aria-controls="detail-${s.id}" data-action="toggleSpec" data-id="${s.id}"><span class="spec-indicator ${s.state}"></span><div><strong>${escape(s.title)}</strong><small>${s.id} &middot; revision ${s.revision}</small></div>${badge(s.state)}</button>${selected === s.id ? specDetails(s) : ""}`,
-                            )
-                            .join("") ||
-                          '<p class="muted">Waiting for specifications.</p>'
-                        }</div></details>`,
-                    )
-                    .join("") ||
-                  '<p class="muted">The native agent can add milestones and specifications through Contextory.</p>'
-                }</article>`,
-            )
-            .join("")
-  }`;
+        : matching.map(requestCard).join("")
+  }</div>${horizontalLayout() ? `<aside class="request-inspector" data-scroll="inspector" aria-label="Specification inspector" tabindex="0">${requestInspector(visibleSpec)}</aside>` : ""}</div></div>`;
 }
 function loadHistory(append = false) {
   send({
@@ -200,7 +233,7 @@ function loadHistory(append = false) {
 }
 function historyView() {
   const scope = dashboard?.entities.find((e) => e.id === historyScope);
-  return `<div class="section-heading"><h1>History</h1>${button("historyRefresh", "Refresh", "", "small")}</div><label>Request<select id="historyFilter" name="historyFilter"><option value="">All project history</option>${dashboard?.entities
+  return `<div class="history-view"><div class="history-toolbar"><div class="section-heading"><h1>History</h1>${button("historyRefresh", "Refresh", "", "small")}</div><label>Request<select id="historyFilter" name="historyFilter"><option value="">All project history</option>${dashboard?.entities
     .filter((e) => e.kind === "request")
     .map(
       (r) =>
@@ -208,7 +241,7 @@ function historyView() {
     )
     .join(
       "",
-    )}</select></label>${scope ? `<p class="muted">History for ${escape(scope.title)} and its descendants. ${button("history", "Show all", "", "text-button")}</p>` : '<p class="muted">Requests, milestones, specifications and native sessions, with links to their context.</p>'}${activity(history.events, true)}${history.nextBefore ? button("olderHistory", "Load older activity", "", "small") : historyLoaded ? '<p class="muted">Beginning of history.</p>' : '<p class="muted">Loading history...</p>'}`;
+    )}</select></label>${scope ? `<p class="muted">History for ${escape(scope.title)} and its descendants. ${button("history", "Show all", "", "text-button")}</p>` : '<p class="muted">Requests, milestones, specifications and native sessions, with links to their context.</p>'}</div><div class="history-feed" data-scroll="history" role="region" aria-label="Project history" tabindex="0">${activity(history.events, true)}${history.nextBefore ? button("olderHistory", "Load older activity", "", "small") : historyLoaded ? '<p class="muted">Beginning of history.</p>' : '<p class="muted">Loading history...</p>'}</div></div>`;
 }
 function specDetails(s: Entity) {
   const records = children(s.id);
@@ -258,7 +291,15 @@ function specDetails(s: Entity) {
       '<p class="muted">The agent submits a durable explanation before completion.</p>';
   if (detailTab === "history")
     body = `<p>Explore all events for this specification and its records.</p>${button("history", "Open specification history", `data-id="${s.id}"`, "small")}`;
-  return `<section id="detail-${s.id}" class="spec-detail" aria-label="${escape(s.title)} details"><div class="section-heading"><span class="record-id">${s.id} &middot; revision ${s.revision}</span>${badge(s.state)}</div><div class="detail-tabs" role="tablist" aria-label="Specification details">${["contract", "issues", "decisions", "evidence", "outcome", "history"].map((tab) => `<button id="tab-${tab}" role="tab" aria-selected="${detailTab === tab}" data-action="detailTab" data-tab="${tab}">${tab[0].toUpperCase() + tab.slice(1)}</button>`).join("")}</div><div role="tabpanel" aria-labelledby="tab-${detailTab}">${body}</div><div class="detail-actions">${button("impact", "Explore relationships", `data-id="${s.id}"`)}${s.state === "submitted" ? button("complete", "Check completion", `data-id="${s.id}" data-revision="${s.revision}"`, "primary") : ""}</div></section>`;
+  if (detailTab === "usage") {
+    const usage = usageBySpec.get(s.id);
+    const count = (value: number | null | undefined) =>
+      value === null || value === undefined
+        ? "Unavailable"
+        : value.toLocaleString();
+    body = `<div class="section-heading"><h3>Agent models and usage</h3>${button("refreshUsage", "Refresh usage", "", "small")}</div>${usage ? `<p>${usage.attempts} native request attempts observed; ${usage.measuredAttempts} with token counts.</p>${usage.groups.map((g) => `<article class="record"><h3>${escape(g.provider)} &middot; ${escape(g.model ?? "Model unavailable")}</h3><p>Input: ${count(g.tokens.inputTokens)} &middot; Output: ${count(g.tokens.outputTokens)} &middot; Total: ${count(g.tokens.totalTokens)}</p><p class="muted">Cached input (included in input): ${count(g.tokens.cachedInputTokens)}<br>Reasoning (included in output): ${count(g.tokens.reasoningTokens)}</p></article>`).join("") || '<p class="muted">No native model or usage records linked to this specification.</p>'}${usage.groupsTruncated ? '<p class="muted">Only the first 100 model groups are shown. Filter with contextory_usage_get.</p>' : ""}<p class="muted">${escape(usage.note)}</p>` : '<p class="muted">Loading native usage records...</p>'}`;
+  }
+  return `<section id="detail-${s.id}" class="spec-detail" aria-label="${escape(s.title)} details"><div class="section-heading"><span class="record-id">${s.id} &middot; revision ${s.revision}</span>${badge(s.state)}</div><div class="detail-tabs" role="tablist" aria-label="Specification details">${["contract", "issues", "decisions", "evidence", "outcome", "usage", "history"].map((tab) => `<button id="tab-${tab}" role="tab" aria-selected="${detailTab === tab}" data-action="detailTab" data-tab="${tab}">${tab[0].toUpperCase() + tab.slice(1)}</button>`).join("")}</div><div role="tabpanel" aria-labelledby="tab-${detailTab}">${body}</div><div class="detail-actions">${button("impact", "Explore relationships", `data-id="${s.id}"`)}${s.state === "submitted" ? button("complete", "Check completion", `data-id="${s.id}" data-revision="${s.revision}"`, "primary") : ""}</div></section>`;
 }
 function flowSvg(g: FlowGraph) {
   const levels = new Map<string, number>();
@@ -308,6 +349,17 @@ function map() {
 }
 function render() {
   const viewKey = `${screen}:${screen === "history" ? historyScope : screen === "requests" ? (drafts.query ?? "") : ""}`;
+  const scrollAreas =
+    renderedView === viewKey
+      ? [...document.querySelectorAll<HTMLElement>("[data-scroll]")].map(
+          (element) => ({
+            key: element.dataset.scroll!,
+            top: element.scrollTop,
+            left: element.scrollLeft,
+          }),
+        )
+      : [];
+  document.body.dataset.layout = horizontalLayout() ? "horizontal" : "vertical";
   const contentScroll =
     renderedView === viewKey
       ? (document.querySelector("main")?.scrollTop ?? 0)
@@ -321,7 +373,13 @@ function render() {
     left: diagram?.scrollLeft ?? 0,
     top: diagram?.scrollTop ?? 0,
   };
-  app.innerHTML = `<header class="app-header"><div class="brand"><span class="brand-mark" aria-hidden="true">${contextoryIcon}</span><strong>Contextory</strong><span class="brand-subtitle">requests &amp; context</span></div>${button("refresh", "↻", 'aria-label="Refresh workspace" title="Refresh workspace"', "icon-button")}</header><nav class="main-nav ${surface !== "sidebar" ? "hidden" : ""}" aria-label="Contextory views">${[
+  const workspaceName =
+    document.body.dataset.workspaceName ||
+    dashboard?.root.split(/[\\/]/).pop() ||
+    "No workspace open";
+  const workspacePath =
+    document.body.dataset.workspacePath || dashboard?.root || workspaceName;
+  app.innerHTML = `<header class="app-header"><div class="brand"><span class="brand-mark" aria-hidden="true">${contextoryIcon}</span><div class="brand-copy"><strong>Contextory</strong><span class="workspace-name" aria-label="Workspace" title="${escape(workspacePath)}">${escape(workspaceName)}</span></div></div>${button("refresh", "↻", 'aria-label="Refresh workspace" title="Refresh workspace"', "icon-button")}</header><nav class="main-nav ${surface !== "sidebar" ? "hidden" : ""}" aria-label="Contextory views">${[
     ["overview", "Overview"],
     ["requests", "Requests"],
     ["history", "History"],
@@ -334,6 +392,16 @@ function render() {
     .join(
       "",
     )}</nav>${notice ? `<div class="notice" role="status"><span>${escape(notice)}</span>${button("dismiss", "×", 'aria-label="Dismiss notification"', "icon-button")}</div>` : ""}${busy ? '<div class="loading-line" role="progressbar" aria-label="Contextory is working"></div>' : ""}<main>${!dashboard && screen !== "map" && screen !== "relationships" ? empty("Open your workspace", "Contextory connects your native agents to shared project records. Open a trusted folder, then refresh.", button("refresh", "Refresh", "", "primary")) : screen === "relationships" ? relationshipView(relationships) : screen === "requests" ? requestTree() : screen === "history" ? historyView() : screen === "map" ? map() : overview()}</main><footer>${surface === "sidebar" ? connections() : ""}<div class="workspace-status"><span class="status-dot ${dashboard ? "online" : ""}"></span><span>${dashboard ? escape(dashboard.root.split(/[\\/]/).pop()) : "Open a workspace"}</span><span class="footer-label">Native conversation &middot; durable context</span></div></footer>`;
+  document.querySelector<HTMLElement>("main")!.dataset.screen = screen;
+  for (const scroll of scrollAreas) {
+    const replacement = document.querySelector<HTMLElement>(
+      `[data-scroll="${scroll.key}"]`,
+    );
+    if (replacement) {
+      replacement.scrollTop = scroll.top;
+      replacement.scrollLeft = scroll.left;
+    }
+  }
   if (focusId) {
     const replacement = document.getElementById(
       focusId,
@@ -356,6 +424,43 @@ function render() {
   renderedView = viewKey;
 }
 const send = (message: unknown) => host.postMessage(message);
+function preparePanelSelection(requestId?: string) {
+  if (
+    !horizontalLayout() ||
+    (selected && (!requestId || requestOf(selected)?.id === requestId))
+  )
+    return;
+  const request = requestId
+    ? entitiesById.get(requestId)
+    : (dashboard?.entities.find(
+        (e) =>
+          e.kind === "request" &&
+          requestSpecs(e.id).some((s) => s.state === "implementing"),
+      ) ??
+      dashboard?.entities.find(
+        (e) => e.kind === "request" && requestSpecs(e.id).length,
+      ));
+  const specs = request ? requestSpecs(request.id) : [];
+  const spec = specs.find((s) => s.state === "implementing") ?? specs[0];
+  if (spec) {
+    selected = spec.id;
+    detailTab = "contract";
+    if (spec.parentId) openMilestones.add(spec.parentId);
+  }
+}
+function revealSelection() {
+  if (horizontalLayout()) {
+    document
+      .querySelector(`.spec-row[data-id="${CSS.escape(selected)}"]`)
+      ?.scrollIntoView({ block: "nearest" });
+  } else {
+    document
+      .getElementById(
+        selected ? `detail-${selected}` : `record-${requestOf(selected)?.id}`,
+      )
+      ?.scrollIntoView({ block: "nearest" });
+  }
+}
 function selectRecord(id: string) {
   const e = entitiesById.get(id);
   let owner = e;
@@ -380,10 +485,13 @@ function selectRecord(id: string) {
   drafts.query = "";
   hits = [];
   screen = "requests";
+  preparePanelSelection(r?.id);
   render();
-  document
-    .getElementById(selected ? `detail-${selected}` : `record-${r?.id}`)
-    ?.scrollIntoView({ block: "nearest" });
+  if (selected) revealSelection();
+  else
+    document
+      .getElementById(`record-${r?.id}`)
+      ?.scrollIntoView({ block: "nearest" });
 }
 function action(element: Element) {
   const data = (element as HTMLElement).dataset;
@@ -420,7 +528,9 @@ function action(element: Element) {
     case "navigate":
       screen = data.screen!;
       if (screen === "history") loadHistory();
+      if (screen === "requests") preparePanelSelection();
       render();
+      if (screen === "requests" && horizontalLayout()) revealSelection();
       break;
     case "select":
       selectRecord(data.id!);
@@ -435,6 +545,10 @@ function action(element: Element) {
       selected = selected === data.id ? "" : data.id!;
       detailTab = "contract";
       render();
+      if (horizontalLayout()) {
+        const inspector = document.querySelector(".request-inspector");
+        if (inspector) inspector.scrollTop = 0;
+      }
       break;
     case "history":
       historyScope = data.id ?? "";
@@ -455,7 +569,15 @@ function action(element: Element) {
       break;
     case "detailTab":
       detailTab = data.tab!;
+      if (detailTab === "usage") loadUsage();
       render();
+      if (horizontalLayout()) {
+        const inspector = document.querySelector(".request-inspector");
+        if (inspector) inspector.scrollTop = 0;
+      }
+      break;
+    case "refreshUsage":
+      loadUsage();
       break;
     case "dismiss":
       notice = "";
@@ -609,11 +731,25 @@ app.addEventListener("submit", (event) => {
       },
     });
 });
+function loadUsage() {
+  if (selected)
+    send({
+      type: "tool",
+      name: "contextory_usage_get",
+      requestId: `usage:${selected}`,
+      arguments: { entityId: selected, limit: 1 },
+    });
+}
 window.addEventListener("message", (event) => {
   const message = event.data;
   if (message.type === "restore") indexDashboard(message.dashboard);
   if (message.type === "notice") notice = message.text;
   if (message.type === "busy") busy = message.value;
+  if (
+    message.type === "toolResult" &&
+    String(message.requestId).startsWith("usage:")
+  )
+    usageBySpec.set(String(message.requestId).slice(6), message.result);
   if (message.type === "flow" && !relationshipsOnly) {
     graph = message.graph;
     screen = "map";
@@ -650,6 +786,14 @@ window.addEventListener("message", (event) => {
   )
     selectRecord(message.id);
   render();
+  if (
+    message.type === "flow" &&
+    horizontalLayout() &&
+    window.innerHeight <= 320
+  )
+    document
+      .querySelector(".diagram-scroll")
+      ?.scrollIntoView({ block: "nearest" });
 });
 app.addEventListener(
   "toggle",
@@ -662,5 +806,11 @@ app.addEventListener(
   },
   true,
 );
+panelShape.addEventListener("change", () => {
+  if (surface !== "sidebar") return;
+  if (screen === "requests") preparePanelSelection();
+  render();
+  if (screen === "requests" && selected) revealSelection();
+});
 render();
 send({ type: "ready", surface });

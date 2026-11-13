@@ -72,6 +72,14 @@ for (const provider of ["codex", "claude", "bob"] as const)
     assert.equal(await readFile(hooksFile, "utf8"), first);
     assert.ok(first.includes("// existing comment"));
     assert.equal(parse(first).hooks.Stop.length, 3);
+    assert.equal(
+      Boolean(parse(first).hooks.PostModelRequest),
+      provider === "codex",
+    );
+    assert.equal(
+      Boolean(parse(first).hooks.PostModelSwitch),
+      provider === "claude",
+    );
     if (provider === "codex")
       assert.match(
         await readFile(result.files[0], "utf8"),

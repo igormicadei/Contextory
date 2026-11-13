@@ -1,5 +1,6 @@
 import { ContextoryError, type Entity } from "../contracts/model";
 import { Ledger } from "../storage/ledger";
+import { usageReport, usageSummary } from "./usage";
 
 export function renderReport(
   ledger: Ledger,
@@ -32,6 +33,7 @@ export function renderReport(
         requestId,
         sequence: ledger.sequence(),
         records,
+        usage: usageSummary(ledger, { entityId: requestId, limit: 0 }),
       },
       null,
       2,
@@ -80,6 +82,10 @@ export function renderReport(
       field("Original user intent", e.data.original);
       field("Contract amendments", e.data.amendments);
     }
+    if (e.kind === "request" || e.kind === "spec")
+      lines.push(
+        ...usageReport(usageSummary(ledger, { entityId: e.id, limit: 0 })),
+      );
     if (e.kind !== "spec") continue;
     lines.push(
       "**Acceptance criteria**",

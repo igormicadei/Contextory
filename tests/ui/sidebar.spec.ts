@@ -81,6 +81,52 @@ test("spec explanations, keyboard tabs, evidence origins and escaped content", a
   await expect(page.getByRole("status")).toContainText("<img src=x");
   await expect(page.locator("img")).toHaveCount(0);
 });
+test("spec usage displays observed counters, keeps missing counts distinct and escapes native model names", async ({
+  page,
+}) => {
+  await page.goto("/sidebar.html");
+  await page.locator('.work-row[data-id="REQ-demo"]').click();
+  await page
+    .getByRole("button", { name: /Retry temporary payment failures/ })
+    .click();
+  await page.getByRole("tab", { name: "Usage", exact: true }).click();
+  await expect(
+    page.getByText("3 native request attempts observed; 2 with token counts."),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: /fixture-model/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/Reasoning \(included in output\): Unavailable/),
+  ).toBeVisible();
+  await expect(page.getByText(/Total: 1,200/)).toBeVisible();
+  await page.getByRole("button", { name: "Refresh usage" }).click();
+  await page.evaluate(() =>
+    window.postMessage(
+      {
+        type: "toolResult",
+        requestId: "usage:SPEC-demo",
+        result: {
+          attempts: 1,
+          measuredAttempts: 0,
+          groups: [
+            {
+              provider: "codex",
+              model: "<img src=x onerror=alert(1)>",
+              tokens: {},
+            },
+          ],
+          note: "Counts unavailable.",
+        },
+      },
+      "*",
+    ),
+  );
+  await expect(page.getByRole("heading", { name: /<img src=x/ })).toBeVisible();
+  await expect(page.getByText(/Total: Unavailable/)).toBeVisible();
+  await expect(page.locator("img")).toHaveCount(0);
+});
+
 test("search and bounded source diagram support navigation and expansion", async ({
   page,
 }) => {

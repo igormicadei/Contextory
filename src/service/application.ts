@@ -15,6 +15,8 @@ import { Ledger, digest } from "../storage/ledger";
 import { Workflow } from "../core/workflow";
 import { renderReport } from "../core/report";
 import { historyPage } from "../core/history";
+import { recordUsage, usageSummary } from "../core/usage";
+import { hookObservation } from "../contracts/usage";
 import { AnalysisManager } from "../analysis/manager";
 import { Knowledge, Embeddings } from "../knowledge/search";
 import { CheckRunner } from "../verification/checks";
@@ -112,6 +114,8 @@ export class Application {
         const p = a as Input<typeof key>;
         return historyPage(this.ledger, p.limit, p.before, p.entityId);
       }
+      case "contextory_usage_get":
+        return usageSummary(this.ledger, a as Input<typeof key>);
       case "contextory_entity_get": {
         const p = a as Input<typeof key>;
         if (/^ART-[\da-f-]{36}$/.test(p.id)) {
@@ -309,7 +313,10 @@ export class Application {
     const generation = this.analysis.generation;
     const current = () => {
       if (generation !== this.analysis.generation)
-        throw new ContextoryError("CANCELLED", "Source analysis was cancelled.");
+        throw new ContextoryError(
+          "CANCELLED",
+          "Source analysis was cancelled.",
+        );
     };
     await workspacePath(this.ledger.root, input.root.path);
     current();
@@ -336,15 +343,11 @@ export class Application {
     return this.analysis.trace(input);
   }
   async hook(provider: Provider, raw: unknown) {
-    const event = z
-      .object({
-        id: z.string().max(200),
-        event: z.string().max(100),
-        nativeSession: z.string().max(200),
-        cwd: z.string().max(4000),
-        tool: z.string().max(200).optional(),
-      })
-      .parse(raw);
+    const event = hookObservation.parse(raw);
+    const response = () =>
+      ["SessionStart", "UserPromptSubmit"].includes(event.event)
+        ? this.brief()
+        : { observed: true };
     if (!isAbsolute(event.cwd))
       throw new ContextoryError(
         "WRONG_WORKSPACE",
@@ -356,23 +359,46 @@ export class Application {
         "WRONG_WORKSPACE",
         "Hook cwd belongs to a different workspace.",
       );
-    if (event.tool?.includes("contextory_")) return this.brief();
+    if (event.tool?.includes("contextory_")) return response();
     const now = new Date().toISOString();
-    const result = this.ledger.db
-      .prepare("INSERT OR IGNORE INTO hooks VALUES (?,?,?,?,?)")
-      .run(event.id, provider, event.nativeSession, event.event, now);
-    if (result.changes) {
-      this.seen(`hook:${provider}`, now);
-      this.seen(`event:${provider}`, event.event);
-      this.ledger.audit(
-        `native.${event.event}`,
-        provider,
-        { id: provider, provider, human: false },
-        { session: event.nativeSession, tool: event.tool },
-      );
-      this.ledger.onChange();
+    this.ledger.db.exec("BEGIN IMMEDIATE");
+    let changed = false;
+    try {
+      const result = this.ledger.db
+        .prepare("INSERT OR IGNORE INTO hooks VALUES (?,?,?,?,?)")
+        .run(
+          `${provider}:${event.id}`,
+          provider,
+          event.nativeSession,
+          event.event,
+          now,
+        );
+      changed = Boolean(result.changes);
+      if (changed) {
+        recordUsage(this.ledger, provider, event, now);
+        this.seen(`hook:${provider}`, now);
+        this.seen(`event:${provider}`, event.event);
+        // Per-request telemetry stays in its own indexed records, so it does not
+        // displace meaningful project activity in the Overview or history.
+        if (event.event !== "PostModelRequest")
+          this.ledger.audit(
+            `native.${event.event}`,
+            provider,
+            { id: provider, provider, human: false },
+            {
+              session: event.nativeSession,
+              tool: event.tool,
+              model: event.model,
+            },
+          );
+      }
+      this.ledger.db.exec("COMMIT");
+    } catch (error) {
+      this.ledger.db.exec("ROLLBACK");
+      throw error;
     }
-    return this.brief();
+    if (changed) this.ledger.onChange();
+    return response();
   }
   seen(key: string, value = new Date().toISOString()) {
     this.ledger.db

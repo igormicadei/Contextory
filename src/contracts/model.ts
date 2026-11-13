@@ -1,4 +1,4 @@
-export const version = "0.2.3";
+export const version = "0.2.5";
 export type Provider = "codex" | "claude" | "bob";
 export type Kind =
   | "request"

@@ -84,8 +84,19 @@ export const tools = {
   },
   contextory_session_attach: {
     description:
-      "Register this native agent session and return a Contextory session ID. Session/model/history remain provider-owned; this records correlation only.",
+      "Register this native agent session and return a Contextory session ID. Pass the exact nativeSessionId supplied by the Contextory hook reminder to link native model/usage metadata to leased specs. If unavailable, omit it; never guess. Chat and model routing remain native.",
     schema: z.object({ operationId, nativeSessionId: id.optional() }),
+  },
+  contextory_usage_get: {
+    description:
+      "Read recorded native models and observed token usage, optionally for a request/milestone/spec and its descendants. Counters may be unavailable or partial. Exact session/lease correlation only; no billing or quota estimates. Cached/reasoning tokens are subsets. Includes paged metadata records; no chat transcript is read or stored.",
+    schema: z.object({
+      entityId: id.optional(),
+      provider: z.enum(["codex", "claude", "bob"]).optional(),
+      nativeSessionId: z.string().min(1).max(200).optional(),
+      offset: z.number().int().nonnegative().default(0),
+      limit: z.number().int().min(1).max(50).default(20),
+    }),
   },
   contextory_spec_lease: {
     description:
@@ -266,6 +277,7 @@ export function toolDefinitions() {
         "contextory_context_get",
         "contextory_entity_get",
         "contextory_history_get",
+        "contextory_usage_get",
         "contextory_search",
         "contextory_impact_get",
         "contextory_flow_trace",

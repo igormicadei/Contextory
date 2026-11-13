@@ -25,7 +25,7 @@ export class Ledger {
     const schema = Number(
       this.db.prepare("PRAGMA user_version").get()!.user_version,
     );
-    if (schema > 2) {
+    if (schema > 3) {
       this.db.close();
       throw new ContextoryError(
         "SCHEMA_TOO_NEW",
@@ -46,8 +46,12 @@ export class Ledger {
       CREATE VIRTUAL TABLE IF NOT EXISTS search USING fts5(id UNINDEXED,title,body,tokenize='unicode61');
       CREATE TABLE IF NOT EXISTS vectors(id TEXT PRIMARY KEY,revision TEXT NOT NULL,model TEXT NOT NULL,vector BLOB NOT NULL);
       CREATE TABLE IF NOT EXISTS hooks(id TEXT PRIMARY KEY,provider TEXT NOT NULL,native_session TEXT NOT NULL,event TEXT NOT NULL,time TEXT NOT NULL);
+      CREATE TABLE IF NOT EXISTS agent_usage(id TEXT PRIMARY KEY,provider TEXT NOT NULL,native_session TEXT NOT NULL,event TEXT NOT NULL,model TEXT,turn_id TEXT,agent_id TEXT,status TEXT,spec_id TEXT REFERENCES entities(id),time TEXT NOT NULL,tokens TEXT);
+      CREATE INDEX IF NOT EXISTS agent_usage_spec ON agent_usage(spec_id,provider,model);
+      CREATE INDEX IF NOT EXISTS agent_usage_session ON agent_usage(provider,native_session,agent_id);
+      CREATE INDEX IF NOT EXISTS agent_usage_time ON agent_usage(time);
       CREATE TABLE IF NOT EXISTS jobs(id TEXT PRIMARY KEY,state TEXT NOT NULL,data TEXT NOT NULL);
-      PRAGMA user_version=2;`);
+      PRAGMA user_version=3;`);
     if (schema === 1)
       for (const entity of this.list(undefined, 100000)) {
         this.remember(entity);
@@ -141,7 +145,8 @@ export class Ledger {
       return JSON.parse(String(row.record));
     }
     const row = this.db.prepare("SELECT * FROM entities WHERE id=?").get(id);
-    if (!row) throw new ContextoryError("NOT_FOUND", `Record ${id} was not found.`);
+    if (!row)
+      throw new ContextoryError("NOT_FOUND", `Record ${id} was not found.`);
     return this.decode(row);
   }
   list(parentId?: string, limit = 1000, offset = 0): Entity[] {

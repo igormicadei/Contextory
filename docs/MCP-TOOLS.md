@@ -2,9 +2,11 @@
 
 Contextory exposes project workflow, retrieval, source tracing, and reporting through a standard stdio MCP server. Agents use these tools from their native conversation; Contextory does not host a second chat or handle model routing.
 
-Connect through the extension's provider command rather than assembling private descriptor paths by hand. The project-specific server name is `contextory_companion_<project hash>`. The authoritative input schemas and descriptions are in [src/contracts/tools.ts](https://github.com/igormicadei/Contextory/blob/v0.2.3/src/contracts/tools.ts); the running server advertises them through MCP `tools/list`.
+Connect through the extension's provider command rather than assembling private descriptor paths by hand. The project-specific server name is `contextory_companion_<project hash>`. The authoritative input schemas and descriptions are in [src/contracts/tools.ts](../src/contracts/tools.ts); the running server advertises them through MCP `tools/list`.
 
 ## Available tools
+
+Version 0.2.4 adds `contextory_usage_get` to the native tool list. It reads recorded models and observed token usage, with optional `entityId` (request/milestone/spec), `provider`, `nativeSessionId`, `offset` and `limit` filters. Responses include model groups, nulls for unavailable token fields, coverage counts, and paged metadata records. Request-level totals include descendant specs; project-level results also include unassigned observations. This is a read-only record, without billing estimates or transcript access. See [usage capture and provider limits](USER-GUIDE.md#agent-models-and-usage-024).
 
 | Tool                             | Purpose                                                                                                                                                 |
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -28,6 +30,8 @@ Connect through the extension's provider command rather than assembling private 
 | `contextory_report_export`       | Export one request's full report, completed-work changelog, or JSON records.                                                                            |
 
 ## Mutation and session rules
+
+Pass the exact `nativeSessionId` supplied in Contextory's hook reminder when calling `contextory_session_attach`. This enables automatic association of native model/usage observations with a single active spec lease. Omit the ID when unavailable; do not invent it or infer token counts. Session/model routing and conversation history remain native.
 
 - Read existing records before editing them. Operations on existing versioned records require their current `expectedRevision`; resolve conflicts by rereading.
 - Each mutation takes an `operationId` of 8–160 characters. Use a new ID for a new operation and reuse the same ID for a retry of that operation.

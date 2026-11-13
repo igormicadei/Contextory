@@ -203,13 +203,20 @@ section {
   height: 22px;
   stroke: currentColor;
 }
-.brand-subtitle {
-  color: var(--muted);
-  font-size: 0.8rem;
-  border-left: 1px solid var(--line);
-  padding-left: 9px;
-  margin-left: 3px;
+.brand-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+.workspace-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--foreground);
 }
 .icon-button {
   background: transparent;
@@ -1000,11 +1007,6 @@ footer {
   overflow: hidden;
   clip-path: inset(50%);
 }
-@media (max-width: 440px) {
-  .brand-subtitle {
-    display: none;
-  }
-}
 @media (max-width: 370px) {
   main {
     padding: 18px 12px 30px;
@@ -1035,6 +1037,389 @@ footer {
   }
   .section-heading .muted {
     font-size: 0.8rem;
+  }
+}
+/* A docked panel is usually wide and shallow. The renderer switches this
+   layout only when its shape changes, retaining selection, drafts and scroll. */
+body[data-layout="horizontal"] {
+  --background: var(
+    --vscode-panel-background,
+    var(--vscode-editor-background, Canvas)
+  );
+  --foreground: var(--vscode-foreground, CanvasText);
+}
+body[data-layout="horizontal"] #app {
+  display: grid;
+  grid-template-columns: minmax(200px, 30%) minmax(0, 1fr);
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  grid-template-areas: "brand nav" "notice notice" "loading loading" "content content" "footer footer";
+}
+body[data-layout="horizontal"] .app-header {
+  grid-area: brand;
+  min-width: 0;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--line);
+}
+body[data-layout="horizontal"] .brand strong {
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+body[data-layout="horizontal"] .brand-mark {
+  width: 23px;
+  height: 23px;
+}
+body[data-layout="horizontal"] .workspace-name {
+  font-size: 0.85rem;
+}
+body[data-layout="horizontal"] .main-nav {
+  grid-area: nav;
+  padding: 0;
+  align-items: stretch;
+}
+body[data-layout="horizontal"] .main-nav button {
+  padding: 8px 14px;
+}
+body[data-layout="horizontal"] .notice {
+  grid-area: notice;
+  padding: 8px 14px;
+  max-height: 22vh;
+}
+body[data-layout="horizontal"] .loading-line {
+  grid-area: loading;
+}
+body[data-layout="horizontal"] main {
+  grid-area: content;
+  max-width: none;
+  padding: 12px 14px;
+  overflow: hidden;
+}
+body[data-layout="horizontal"] footer {
+  grid-area: footer;
+  flex-direction: row;
+  align-items: center;
+  gap: 18px;
+  padding: 5px 14px;
+}
+body[data-layout="horizontal"] .workspace-status {
+  flex: 1;
+  order: -1;
+}
+body[data-layout="horizontal"] .footer-label {
+  display: none;
+}
+body[data-layout="horizontal"] .connections {
+  width: 310px;
+  gap: 6px;
+}
+body[data-layout="horizontal"] .connection {
+  padding: 5px 8px;
+  border-radius: 5px;
+}
+body[data-layout="horizontal"] .overview-layout {
+  height: 100%;
+  display: grid;
+  grid-template-columns: 100px minmax(260px, 1fr) minmax(240px, 340px);
+  gap: 16px;
+}
+body[data-layout="horizontal"] .metrics {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  padding: 0 14px 0 0;
+  margin: 0;
+  border-bottom: none;
+  border-right: 1px solid var(--line);
+  gap: 8px;
+  min-height: 0;
+  overflow: auto;
+}
+body[data-layout="horizontal"] .metrics > div {
+  align-content: center;
+  gap: 3px;
+}
+body[data-layout="horizontal"] .metrics strong {
+  font-size: 1.85rem;
+}
+body[data-layout="horizontal"] .overview-work,
+body[data-layout="horizontal"] .overview-activity {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+  min-width: 0;
+  margin: 0;
+}
+body[data-layout="horizontal"] .overview-layout .section-heading {
+  flex-wrap: nowrap;
+  gap: 8px;
+}
+body[data-layout="horizontal"] [data-scroll] {
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  scrollbar-gutter: stable;
+}
+body[data-layout="horizontal"] .work-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  align-content: start;
+  gap: 8px;
+}
+body[data-layout="horizontal"] .work-row {
+  min-height: 82px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+}
+body[data-layout="horizontal"] .work-row:hover {
+  background: var(--hover);
+}
+body[data-layout="horizontal"] .work-row > div {
+  gap: 4px;
+}
+body[data-layout="horizontal"] .work-row > .badge {
+  align-self: flex-start;
+}
+body[data-layout="horizontal"] .work-row > span:last-child {
+  display: none;
+}
+body[data-layout="horizontal"] .overview-activity .activity li {
+  padding: 6px 0;
+}
+body[data-layout="horizontal"] .overview-activity .activity li > div {
+  gap: 4px;
+}
+body[data-layout="horizontal"] .overview-activity .history-links > span,
+body[data-layout="horizontal"]
+  .overview-activity
+  .history-links
+  button:not(:first-child) {
+  display: none;
+}
+body[data-layout="horizontal"] .requests-view {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
+}
+body[data-layout="horizontal"] .requests-toolbar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 4px 24px;
+}
+body[data-layout="horizontal"] .requests-toolbar .section-heading {
+  grid-row: span 2;
+  margin: 0;
+  gap: 16px;
+}
+body[data-layout="horizontal"] .requests-toolbar h1,
+body[data-layout="horizontal"] .history-toolbar h1,
+body[data-layout="horizontal"] main[data-screen="map"] h1 {
+  font-size: 1.2rem;
+  margin: 0;
+}
+body[data-layout="horizontal"] .search-hint {
+  margin: 0;
+}
+body[data-layout="horizontal"] .requests-layout {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(260px, 34%) minmax(0, 1fr);
+  gap: 18px;
+}
+body[data-layout="horizontal"] .request-card {
+  margin: 0 0 10px;
+  padding: 12px;
+}
+body[data-layout="horizontal"] .request-list {
+  scroll-padding-top: 64px;
+}
+body[data-layout="horizontal"] .request-card .section-heading {
+  align-items: flex-start;
+  flex-wrap: nowrap;
+}
+body[data-layout="horizontal"] .request-card.selected-request {
+  border-color: var(--accent);
+}
+body[data-layout="horizontal"] .selected-request > .section-heading {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface);
+  padding: 6px 0;
+}
+body[data-layout="horizontal"] .request-title {
+  gap: 5px;
+}
+body[data-layout="horizontal"] .request-title h2 {
+  font-size: 0.95rem;
+}
+body[data-layout="horizontal"] .milestone summary {
+  padding: 10px 0;
+}
+body[data-layout="horizontal"] .request-inspector {
+  border-left: 1px solid var(--line);
+  padding: 0 0 0 18px;
+}
+body[data-layout="horizontal"] .inspector-heading h2 {
+  font-size: 1.1rem;
+  line-height: 1.4;
+  margin: 4px 0 6px;
+}
+body[data-layout="horizontal"] .inspector-heading p {
+  margin: 0;
+  font-size: 0.8rem;
+}
+body[data-layout="horizontal"] .request-inspector .spec-detail {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+body[data-layout="horizontal"]
+  .request-inspector
+  .spec-detail
+  > .section-heading {
+  margin-bottom: 6px;
+}
+body[data-layout="horizontal"] .request-inspector .detail-tabs {
+  margin: 4px 0 8px;
+}
+body[data-layout="horizontal"] .request-inspector .detail-tabs button {
+  padding: 6px 8px;
+}
+body[data-layout="horizontal"] .request-inspector .record {
+  padding: 10px 0;
+}
+body[data-layout="horizontal"] .request-inspector .record h3:first-child {
+  margin-top: 0;
+}
+body[data-layout="horizontal"] .request-inspector .record p {
+  margin: 8px 0;
+  line-height: 1.5;
+}
+body[data-layout="horizontal"] .request-inspector p {
+  max-width: 100ch;
+}
+body[data-layout="horizontal"] .history-view {
+  height: 100%;
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 24px;
+}
+body[data-layout="horizontal"] .history-toolbar {
+  min-width: 0;
+  overflow: auto;
+}
+body[data-layout="horizontal"] .history-toolbar .section-heading {
+  margin-bottom: 18px;
+}
+body[data-layout="horizontal"] .history-toolbar p {
+  font-size: 0.85rem;
+}
+body[data-layout="horizontal"] .history-feed .activity li {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+body[data-layout="horizontal"] main[data-screen="map"] {
+  display: grid;
+  grid-template-columns: minmax(220px, auto) minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  column-gap: 18px;
+}
+body[data-layout="horizontal"] main[data-screen="map"] > .section-heading {
+  grid-area: 1 / 1;
+  margin: 0;
+  justify-content: flex-start;
+}
+body[data-layout="horizontal"] main[data-screen="map"] > p {
+  display: none;
+}
+body[data-layout="horizontal"] main[data-screen="map"] .flow-controls {
+  grid-area: 1 / 2;
+  margin: 0;
+  gap: 8px;
+}
+body[data-layout="horizontal"] main[data-screen="map"] .flow-controls label {
+  font-size: 0.8rem;
+  gap: 3px;
+}
+body[data-layout="horizontal"] main[data-screen="map"] .flow-controls input,
+body[data-layout="horizontal"] main[data-screen="map"] .flow-controls select {
+  padding: 5px 7px;
+}
+body[data-layout="horizontal"] main[data-screen="map"] .graph-summary {
+  grid-area: 2 / 1 / 3 / 3;
+  padding: 8px 0;
+}
+body[data-layout="horizontal"] main[data-screen="map"] .diagram-scroll {
+  grid-area: 3 / 1 / 4 / 3;
+  min-height: 0;
+  max-height: none;
+}
+body[data-layout="horizontal"] main[data-screen="map"] .node-detail {
+  grid-area: 4 / 1 / 5 / 3;
+  padding: 6px 0;
+}
+body[data-layout="horizontal"] main[data-screen="map"] .analysis-limits {
+  grid-area: 5 / 1 / 6 / 3;
+  margin-top: 6px;
+  max-height: 100px;
+  overflow: auto;
+}
+body[data-layout="horizontal"] main[data-screen="map"] > .empty {
+  grid-area: 2 / 1 / 6 / 3;
+  align-self: center;
+  padding: 12px;
+  margin: auto;
+}
+body[data-layout="horizontal"] main > .empty {
+  max-height: 100%;
+  overflow: auto;
+  padding: 12px 8px;
+  margin: 0 auto;
+}
+@media (max-height: 320px) {
+  body[data-layout="horizontal"] main {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  body[data-layout="horizontal"] .metrics {
+    gap: 4px;
+  }
+  body[data-layout="horizontal"] .metrics strong {
+    font-size: 1.35rem;
+  }
+  body[data-layout="horizontal"] .metrics > div {
+    gap: 1px;
+  }
+  body[data-layout="horizontal"] .requests-view {
+    gap: 8px;
+  }
+  body[data-layout="horizontal"] .requests-toolbar .section-heading {
+    grid-row: auto;
+  }
+  body[data-layout="horizontal"] .search-hint,
+  body[data-layout="horizontal"] .inspector-heading p {
+    display: none;
+  }
+  body[data-layout="horizontal"] main[data-screen="map"] {
+    overflow: auto;
+    grid-template-rows: auto auto minmax(120px, 1fr) auto auto;
+  }
+  body[data-layout="horizontal"] main[data-screen="map"] .flow-controls {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    min-width: 0;
+  }
+  body[data-layout="horizontal"] main[data-screen="map"] .flow-controls label,
+  body[data-layout="horizontal"] main[data-screen="map"] .flow-controls button {
+    flex-shrink: 0;
+  }
+  body[data-layout="horizontal"] main[data-screen="map"] .graph-summary {
+    padding: 5px 0;
+  }
+  body[data-layout="horizontal"] main[data-screen="map"] .analysis-limits {
+    min-height: 22px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

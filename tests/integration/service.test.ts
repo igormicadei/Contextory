@@ -29,8 +29,10 @@ test("real stdio MCP proxy, role isolation, advisory hooks and descriptor rotati
   f.cleanups.push(() => client.close());
   await client.connect(transport);
   const list = await client.listTools();
-  assert.ok(list.tools.some((tool) => tool.name === "contextory_outcome_submit"));
-  assert.equal(list.tools.length, 18);
+  assert.ok(
+    list.tools.some((tool) => tool.name === "contextory_outcome_submit"),
+  );
+  assert.equal(list.tools.length, 19);
   for (const name of [
     "contextory_request_change",
     "contextory_spec_change",
@@ -38,6 +40,7 @@ test("real stdio MCP proxy, role isolation, advisory hooks and descriptor rotati
     "contextory_history_get",
     "contextory_search",
     "contextory_flow_trace",
+    "contextory_usage_get",
   ])
     assert.ok(list.tools.some((t) => t.name === name));
   const created = await client.callTool({
@@ -226,8 +229,8 @@ test("real stdio MCP proxy, role isolation, advisory hooks and descriptor rotati
   });
   assert.equal(completed.state, "completed");
   assert.equal(
-    (await nativeCall("contextory_entity_get", { id: work.milestone.id })).entity
-      .state,
+    (await nativeCall("contextory_entity_get", { id: work.milestone.id }))
+      .entity.state,
     "completed",
   );
   assert.equal(
@@ -261,8 +264,8 @@ test("real stdio MCP proxy, role isolation, advisory hooks and descriptor rotati
     reason: "Authorized follow-up work",
   });
   assert.equal(
-    (await nativeCall("contextory_entity_get", { id: work.milestone.id })).entity
-      .state,
+    (await nativeCall("contextory_entity_get", { id: work.milestone.id }))
+      .entity.state,
     "active",
   );
 });

@@ -109,7 +109,11 @@ const dashboard = {
       "EV-demo",
       "evidence",
       "Payment unit tests",
-      { origin: "contextory-runner", detail: "12 tests passed", criteria: ["AC-1"] },
+      {
+        origin: "contextory-runner",
+        detail: "12 tests passed",
+        criteria: ["AC-1"],
+      },
       "SPEC-demo",
       "passed",
     ),
@@ -302,7 +306,40 @@ window.acquireVsCodeApi = () => ({
             ],
           },
         });
-      if (message.type === "tool" && message.name === "contextory_history_get") {
+      if (message.type === "tool" && message.name === "contextory_usage_get")
+        send({
+          type: "toolResult",
+          requestId: message.requestId,
+          result: {
+            origin: "native-hook",
+            availability: "partial",
+            attempts: 3,
+            measuredAttempts: 2,
+            groups: [
+              {
+                provider: "codex",
+                model: "fixture-model",
+                attempts: 3,
+                measuredAttempts: 2,
+                tokens: {
+                  inputTokens: 1000,
+                  outputTokens: 200,
+                  cachedInputTokens: 600,
+                  reasoningTokens: null,
+                  totalTokens: 1200,
+                },
+              },
+            ],
+            records: [],
+            totalRecords: 3,
+            nextOffset: null,
+            note: "Observed native metadata only; missing counts are unavailable, not zero. No transcripts are read.",
+          },
+        });
+      if (
+        message.type === "tool" &&
+        message.name === "contextory_history_get"
+      ) {
         const events = historyEvents.filter(
           (e) =>
             (!message.arguments.before ||
@@ -321,7 +358,10 @@ window.acquireVsCodeApi = () => ({
           },
         });
       }
-      if (message.type === "tool" && message.name === "contextory_request_change") {
+      if (
+        message.type === "tool" &&
+        message.name === "contextory_request_change"
+      ) {
         dashboard.entities.push(
           entity("REQ-created", "request", message.arguments.title, {
             description: message.arguments.description,

@@ -6,6 +6,11 @@ scripts/**
 !scripts/prepare-embeddings.mjs
 preview/**
 .vscode/**
+.agents/**
+.codex/**
+.claude/**
+.bob/**
+.mcp.json
 .contextory-local/**
 artifacts/**
 test-results/**

@@ -8,6 +8,7 @@ import {
   type SourceSnapshot,
 } from "../contracts/model";
 import type { Input } from "../contracts/tools";
+import { linkSessionModel } from "./usage";
 type Lease = {
   id: string;
   sessionId: string;
@@ -144,7 +145,11 @@ export class Workflow {
       );
     });
   }
-  spec(a: Input<"contextory_spec_change">, actor: Actor, snapshot?: SourceSnapshot) {
+  spec(
+    a: Input<"contextory_spec_change">,
+    actor: Actor,
+    snapshot?: SourceSnapshot,
+  ) {
     return this.ledger.transaction(a.operationId, actor, "spec", a, () => {
       if (a.action === "milestone" || a.action === "create") {
         const parent = this.kind(
@@ -333,7 +338,7 @@ export class Workflow {
           expiresAt: Date.now() + 30 * 60 * 1000,
           generation,
         };
-        return this.save(
+        const claimed = this.save(
           spec,
           {
             state: "implementing",
@@ -342,6 +347,8 @@ export class Workflow {
           actor,
           "spec.claimed",
         );
+        linkSessionModel(this.ledger, claimed, session);
+        return claimed;
       }
       this.assertLease(
         spec.id,

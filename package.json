@@ -2,7 +2,7 @@
   "name": "contextory-workspace",
   "displayName": "Contextory - Requests & Agent Context",
   "description": "Manage requests, milestones and specs. Give native agents shared context through decisions, evidence, workspace search and code flow.",
-  "version": "0.2.3",
+  "version": "0.2.5",
   "publisher": "contextory-local",
   "icon": "media/contextory-icon.png",
   "private": true,
@@ -102,6 +102,26 @@
     "configuration": {
       "title": "Contextory Companion",
       "properties": {
+        "contextory.startupAgent": {
+          "type": "string",
+          "enum": [
+            "last-used",
+            "codex",
+            "claude",
+            "bob",
+            "none"
+          ],
+          "enumDescriptions": [
+            "Prepare the last agent used in this workspace, falling back to the last agent used in another workspace.",
+            "Prepare the native Codex bridge at startup.",
+            "Prepare the native Claude Code bridge at startup.",
+            "Prepare the native IBM Bob bridge at startup.",
+            "Do not select an agent automatically. Existing connections remain configured."
+          ],
+          "default": "last-used",
+          "scope": "resource",
+          "description": "Agent MCP/hook bridge to prepare when Contextory starts in a trusted local workspace. Native agents own session startup and MCP trust/reload. A manually disconnected agent stays disabled in this workspace until reconnected."
+        },
         "contextory.nodeExecutable": {
           "type": "string",
           "default": "node",
@@ -186,7 +206,7 @@
     "benchmark": "node --import tsx scripts/benchmark.ts",
     "prepare:semantic": "node scripts/prepare-embeddings.mjs",
     "check": "npm run typecheck && npm run build && npm test && npm run test:ui",
-    "package:vsix": "npm run build && node scripts/licenses.mjs && vsce package --no-dependencies --skip-license -o artifacts/contextory-workspace-0.2.3.vsix",
+    "package:vsix": "npm run build && node scripts/licenses.mjs && vsce package --no-dependencies --skip-license -o artifacts/contextory-workspace-0.2.5.vsix",
     "format": "prettier --write src tests scripts docs README.md package.json tsconfig.json playwright.config.ts"
   },
   "devDependencies": {

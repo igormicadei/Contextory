@@ -1,8 +1,10 @@
 # Native-agent companion architecture
 
-Current version 0.2.3, 2026-11-12. [User guide](USER-GUIDE.md) · [Agent tools](MCP-TOOLS.md) · [Delivery record](NATIVE-AGENT-PLAN.md) · [Validation](VALIDATION.md).
+Current version 0.2.5, 2026-11-13. [User guide](USER-GUIDE.md) · [Agent tools](MCP-TOOLS.md) · [Delivery record](NATIVE-AGENT-PLAN.md) · [Validation](VALIDATION.md).
 
 ## Responsibility boundary
+
+Model and usage records are observations from native hooks, not a model proxy. Ledger schema 3 adds an indexed `agent_usage` projection with provider/session/turn/agent identity, model, optional token fields, status, timestamp and optional spec reference. Migration from schema 2 is additive. Capture is transactional and idempotent per observation; the launcher generates an invocation ID when the native payload has no request ID so identical attempts are not collapsed. Only exact native-session matches with one live spec lease are attributed. Missing or ambiguous observations remain available at project level. Queries aggregate in SQLite and page metadata records; ordinary observation responses do not rebuild the workspace brief. Source chat content and transcript files are never read by this path. See [provider coverage and limitations](USER-GUIDE.md#agent-models-and-usage-024).
 
 The developer stays in the native agent UI. Codex, Claude Code or IBM Bob owns message processing, models, credentials, history, compaction, editing and native tool permissions. Contextory owns shared project records, independent configured checks, retrieval and navigation. No Contextory turn needs to be opened before a native agent can call MCP.
 
@@ -27,6 +29,10 @@ flowchart LR
 ## Process and deployment choices
 
 The extension host contains UI, provider registration, source navigation and public editor API calls. A separate Node 24+ service uses built-in `node:sqlite`; no compiled SQLite add-on or Cargo build is required. A worker thread loads the TypeScript compiler only for source analysis. The service can outlive an individual client briefly, accepts additional editor clients and stops after its editor heartbeat grace period expires.
+
+Activation prepares the local service before any native session is required. `contextory.startupAgent` selects the workspace's last-used agent (with an editor-wide fallback), a fixed provider, or no automatic selection. Manual connections and observed MCP/hook timestamps update editor mementos; explicit workspace disconnects suppress re-registration until a manual reconnect. The service remains available if automatic provider configuration fails. Native client trust, reload and session startup remain client-owned.
+
+The movable webview uses a geometry breakpoint (at least 760 pixels wide and a 3:2 aspect ratio) for a horizontal Panel layout. Match-media changes trigger rendering only at layout transitions; navigation, drafts and independently scrolling regions retain their state. Narrow views keep inline spec expansion, while horizontal Requests uses one request list and one selected-spec inspector. All surfaces receive the workspace name from the editor before the service responds and use live VS Code theme tokens.
 
 TypeScript remains the engine language. The recorded 100-file/2,200-function fixture is fast enough for this slice, so an additional Rust binary/distribution protocol was not introduced. That measurement is not a large-monorepo qualification. The renderer uses a bounded SVG layout and no graph-layout dependency.
 

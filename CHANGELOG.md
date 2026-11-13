@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.2.5 — 2026-11-13
+
+- Adapt the movable Contextory view to a wide Panel: compact header/navigation, request grid and recent-activity columns, request list beside a spec inspector, bounded history and source-diagram scrolling, and pinned agent controls.
+- Preserve selected specs, detail tabs, expanded milestones, drafts and independent scroll positions while resizing or switching layouts. Keep narrow views in the sidebar layout and follow the active theme.
+- Display the workspace name in every view's header, with the full path on hover and ellipsis for long names.
+- Prepare MCP/hooks at startup using the last agent used in the workspace, falling back to the last agent used elsewhere. Add `contextory.startupAgent` for a fixed provider or no automatic selection; preserve explicit workspace disconnects and start after workspace trust is granted.
+
+## 0.2.4 — 2026-11-12
+
+- Record native agent model metadata and Codex per-request token usage through hooks, with timestamps, session/turn IDs, request status, and optional spec attribution.
+- Add a specification Usage tab, request/spec report summaries, and the read-only `contextory_usage_get` MCP tool.
+- Keep missing counters unavailable, preserve retries and model changes, and leave ambiguous or unmatched sessions unassigned. Cached and reasoning counters remain subsets, and no billing or quota is inferred.
+- Keep capture local and bounded, without reading transcripts, prompts, tool inputs, or tool results. Claude model-switch hooks require Claude Code 2.1.251+; Bob's documented hooks expose neither model nor token counts.
+
 ## 0.2.3 — 2026-11-12
 
 - Rename the extension to **Contextory**, including its commands, settings, MCP tools, hooks, workflow skills, reports, documentation, and package identity.

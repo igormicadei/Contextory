@@ -5,6 +5,12 @@ import { join } from "node:path";
 import { spawn } from "node:child_process";
 import { ServiceClient } from "./service/client";
 import { configureProvider } from "./providers/registration";
+import {
+  latestNativeAgent,
+  startupProvider,
+  type RememberedAgent,
+  type StartupAgent,
+} from "./providers/startup";
 import { editorCallGraph } from "./editor/calls";
 import { webviewDocument } from "./webview/document";
 import type {
@@ -31,6 +37,16 @@ export async function activate(context: vscode.ExtensionContext) {
   let opening: Promise<ServiceClient> | undefined;
   let lastGraph: FlowGraph | undefined;
   let lastSource: FlowInput["root"] | undefined;
+  const agentKey = "contextory.lastAgent";
+  const disabledKey = "contextory.disconnectedAgents";
+  const rememberAgent = async (agent: RememberedAgent) => {
+    const workspace = context.workspaceState.get<RememberedAgent>(agentKey);
+    if (!workspace || agent.at > workspace.at)
+      await context.workspaceState.update(agentKey, agent);
+    const global = context.globalState.get<RememberedAgent>(agentKey);
+    if (!global || agent.at > global.at)
+      await context.globalState.update(agentKey, agent);
+  };
   const rememberEditor = (editor: vscode.TextEditor | undefined) => {
     if (
       editor?.document.uri.scheme === "file" &&
@@ -73,9 +89,12 @@ export async function activate(context: vscode.ExtensionContext) {
   };
   const refresh = async () => {
     const client = await service();
+    const dashboard = await client.call<Dashboard>("dashboard");
+    const observed = latestNativeAgent(dashboard.connections);
+    if (observed) await rememberAgent(observed);
     post({
       type: "restore",
-      dashboard: await client.call<Dashboard>("dashboard"),
+      dashboard,
     });
   };
   const handleEvent = (event: Record<string, unknown>) => {
@@ -126,7 +145,9 @@ export async function activate(context: vscode.ExtensionContext) {
       active = client;
       await client.start();
       await client.call("configure", {
-        recipes: vscode.workspace.getConfiguration("contextory").get("checks", []),
+        recipes: vscode.workspace
+          .getConfiguration("contextory")
+          .get("checks", []),
         pythonExecutable: vscode.workspace
           .getConfiguration("contextory")
           .get("pythonExecutable", "python"),
@@ -152,6 +173,13 @@ export async function activate(context: vscode.ExtensionContext) {
           );
         }
       }
+      try {
+        await prepareStartupAgent(client, configured);
+      } catch (error) {
+        const text = `Startup agent configuration: ${error instanceof Error ? error.message : String(error)}`;
+        output.appendLine(text);
+        post({ type: "notice", text });
+      }
       return client;
     })().catch((error) => {
       opening = undefined;
@@ -171,8 +199,11 @@ export async function activate(context: vscode.ExtensionContext) {
       post({ type: "busy", value: false });
     }
   };
-  const connect = async (provider: Provider, remove = false) => {
-    const client = await service();
+  const registerAgent = async (
+    client: ServiceClient,
+    provider: Provider,
+    remove = false,
+  ) => {
     const result = await configureProvider(
       {
         root: root(),
@@ -186,6 +217,46 @@ export async function activate(context: vscode.ExtensionContext) {
       remove,
     );
     await client.call("provider.configured", { provider, configured: !remove });
+    return result;
+  };
+  const prepareStartupAgent = async (
+    client: ServiceClient,
+    dashboard?: Dashboard,
+  ) => {
+    const current = dashboard ?? (await client.call<Dashboard>("dashboard"));
+    const provider = startupProvider({
+      preference: vscode.workspace
+        .getConfiguration("contextory")
+        .get<StartupAgent>("startupAgent", "last-used"),
+      workspace: context.workspaceState.get<RememberedAgent>(agentKey),
+      global: context.globalState.get<RememberedAgent>(agentKey),
+      connections: current.connections,
+      disabled: context.workspaceState.get<Provider[]>(disabledKey, []),
+    });
+    if (
+      provider &&
+      !current.connections.some(
+        (connection) =>
+          connection.provider === provider && connection.configured,
+      )
+    ) {
+      const result = await registerAgent(client, provider);
+      output.appendLine(`Startup agent ${provider}: ${result.instruction}`);
+    } else if (provider) {
+      output.appendLine(
+        `Startup agent ${provider}: workspace MCP bridge ready for the native client.`,
+      );
+    }
+  };
+  const connect = async (provider: Provider, remove = false) => {
+    const client = await service();
+    const result = await registerAgent(client, provider, remove);
+    const disabled = context.workspaceState
+      .get<Provider[]>(disabledKey, [])
+      .filter((p) => p !== provider);
+    if (remove) disabled.push(provider);
+    await context.workspaceState.update(disabledKey, disabled);
+    if (!remove) await rememberAgent({ provider, at: Date.now() });
     post({ type: "notice", text: result.instruction });
     await refresh();
     return result;
@@ -275,6 +346,9 @@ export async function activate(context: vscode.ExtensionContext) {
       cspSource: webview.cspSource,
       nonce: randomBytes(24).toString("hex"),
       surface,
+      workspaceName:
+        vscode.workspace.name ?? vscode.workspace.workspaceFolders?.[0]?.name,
+      workspacePath: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
     });
   const showRelationships = async (id: string) => {
     const request = ++relationshipRequest;
@@ -597,6 +671,13 @@ export async function activate(context: vscode.ExtensionContext) {
   });
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((event) => {
+      if (event.affectsConfiguration("contextory.startupAgent") && active)
+        void service()
+          .then(async (client) => {
+            await prepareStartupAgent(client);
+            await refresh();
+          })
+          .catch((error) => output.appendLine(error.message));
       if (
         (event.affectsConfiguration("contextory.checks") ||
           event.affectsConfiguration("contextory.pythonExecutable")) &&
@@ -619,16 +700,28 @@ export async function activate(context: vscode.ExtensionContext) {
       if (active) void active.call("analysis.invalidate").catch(() => {});
     }),
   );
-  if (
-    vscode.workspace.isTrusted &&
-    vscode.workspace.workspaceFolders?.length === 1
-  )
-    setTimeout(() => {
-      void service().catch((error) =>
-        post({ type: "notice", text: error.message }),
-      );
-    }, 0);
+  const startWhenReady = async () => {
+    if (
+      vscode.workspace.isTrusted &&
+      vscode.workspace.workspaceFolders?.length === 1 &&
+      vscode.workspace.workspaceFolders[0].uri.scheme === "file"
+    )
+      await refresh();
+  };
+  context.subscriptions.push(
+    vscode.workspace.onDidGrantWorkspaceTrust(() => {
+      void startWhenReady().catch((error) => {
+        output.appendLine(error.message);
+        post({ type: "notice", text: error.message });
+      });
+    }),
+  );
+  const ready = startWhenReady().catch((error) => {
+    output.appendLine(error.message);
+    post({ type: "notice", text: error.message });
+  });
   return {
+    ready,
     health: async () => (await service()).call("health"),
     tool: async (name: string, args: unknown) =>
       (await service()).call("tools/call", { name, arguments: args }),

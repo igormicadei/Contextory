@@ -68,12 +68,13 @@ export function describeActivity(
     PreCompact: "prepared conversation context",
     PostCompact: "restored conversation context",
     Stop: "finished an agent turn",
+    PostModelSwitch: "changed the active model",
   };
   return {
     ...event,
     context,
     title: native
-      ? `${event.entityId === "bob" ? "IBM Bob" : event.entityId === "claude" ? "Claude Code" : "Codex"} ${actions[event.type.slice(7)] ?? "reported session activity"}${event.data.tool ? `: ${event.data.tool}` : ""}`
+      ? `${event.entityId === "bob" ? "IBM Bob" : event.entityId === "claude" ? "Claude Code" : "Codex"} ${actions[event.type.slice(7)] ?? "reported session activity"}${event.data.tool ? `: ${event.data.tool}` : event.data.model ? `: ${event.data.model}` : ""}`
       : `${verbs[event.type] ?? event.type.replaceAll(".", " ")}: ${title}`,
   };
 }

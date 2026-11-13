@@ -151,7 +151,7 @@ description: Track authorized software implementation in the connected Contextor
 ---
 <!-- contextory-managed-workflow -->
 Keep conversation and editing in this native agent. Read contextory_context_get before tracked implementation. Use contextory_search to recover earlier requests, changes and decisions, contextory_impact_get for relationships and contextory_flow_trace for affected Python/TS/JS source calls and branches. These tools are part of implementation, even if the user never opens search or Code map.
-Create/update the authorized request, milestones and specs through Contextory MCP. Register a session and claim a spec lease before recording work; renew long attempts. Preserve user scope and native permissions. Record issues, their impact and fixes with contextory_finding_record; record concise choices, rationale and tradeoffs with contextory_decision_record. Run configured contextory_check_run recipes for independent evidence and poll the returned job with contextory_entity_get. External results remain reported evidence.
+Create/update the authorized request, milestones and specs through Contextory MCP. Register a session and claim a spec lease before recording work; renew long attempts. Pass the exact nativeSessionId from the Contextory hook reminder when attaching the session, if available; never guess it. Native model/usage observations are recorded automatically where supported. Read contextory_usage_get for the record; do not invent token counts, quota or costs. Preserve user scope and native permissions. Record issues, their impact and fixes with contextory_finding_record; record concise choices, rationale and tradeoffs with contextory_decision_record. Run configured contextory_check_run recipes for independent evidence and poll the returned job with contextory_entity_get. External results remain reported evidence.
 When finished, submit contextory_outcome_submit explaining changes, issues, decisions, validation and remaining limits; map every criterion to evidence. THEN call contextory_spec_change with action=complete, id=specId, expectedRevision=the returned revision and a new operationId. Confirm state=completed. Outcome submission alone does not mark a spec done. Completion validates current evidence and resolved issues. If no recipes exist, configure the project's existing test/check command in contextory.checks workspace settings using native editing, then reread context. If blocked, resolve the blocker or explicitly tell the user what is pending. Never silently leave finished work open, claim unperformed verification or grant yourself approval for new scope. Milestones and requests close automatically when all their children complete. Use contextory_report_export with requestId for the complete request report.
 `;
 export async function configureProvider(r: Registration, remove = false) {
@@ -261,6 +261,8 @@ export async function configureProvider(r: Registration, remove = false) {
         "PreCompact",
         "PostCompact",
         "Stop",
+        ...(r.provider === "codex" ? ["PostModelRequest"] : []),
+        ...(r.provider === "claude" ? ["PostModelSwitch"] : []),
       ]) {
         const rows = parsed.hooks?.[event] ?? [];
         if (!Array.isArray(rows))
