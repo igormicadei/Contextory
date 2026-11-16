@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1 — 2026-11-16
+
+- Publish ASCII-safe generated documentation JavaScript and pin the Pages deployment action to its release commit.
+- Derive documentation source-link tags and live release-page verification from the package version.
+- Refresh current installation links, site navigation and release documentation; repackage the extension as 0.3.1 with matching VSIX/checksum assets.
+
 ## 0.3.0 — 2026-11-16
 
 - Add a persistent, rebuildable TS/JS and Python source graph with stable symbols, imports/calls/references/inheritance, test/document/config links, inferred literal message contracts and source provenance. Add validated `contextory.project.json` coverage and entry-point settings.

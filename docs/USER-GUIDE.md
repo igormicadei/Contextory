@@ -17,21 +17,21 @@ Contextory manages development requests and gives native agents a shared record 
 
 ## Install the VSIX
 
-1. Download `contextory-workspace-0.3.0.vsix` and its `.sha256` file from the [v0.3.0 release](https://github.com/igormicadei/Contextory/releases/tag/v0.3.0).
+1. Download `contextory-workspace-0.3.1.vsix` and its `.sha256` file from the [v0.3.1 release](https://github.com/igormicadei/Contextory/releases/tag/v0.3.1).
 2. Optionally compare the checksum using PowerShell:
 
    ```powershell
-   (Get-FileHash -Algorithm SHA256 .\contextory-workspace-0.3.0.vsix).Hash.ToLowerInvariant()
-   Get-Content .\contextory-workspace-0.3.0.sha256
+   (Get-FileHash -Algorithm SHA256 .\contextory-workspace-0.3.1.vsix).Hash.ToLowerInvariant()
+   Get-Content .\contextory-workspace-0.3.1.sha256
    ```
 
-3. In the editor's Extensions view, use **… → Install from VSIX…** and select the package. In VS Code, `code --install-extension .\contextory-workspace-0.3.0.vsix` is an alternative.
+3. In the editor's Extensions view, use **… → Install from VSIX…** and select the package. In VS Code, `code --install-extension .\contextory-workspace-0.3.1.vsix` is an alternative.
 4. Reload if prompted. Open the project as a single folder and trust it before connecting agents or running checks.
 5. Select the Contextory activity-bar icon: a request card connected to context nodes.
 
 The extension is distributed as a GitHub release asset. You do not need to clone the repository or install its development dependencies to use the package.
 
-Version **0.3.0** includes code intelligence and portable execution; automatic discovery and the pause switch were introduced in 0.2.6. The [release notes](releases/v0.3.0.md) describe the complete update. Browse the [full documentation](https://igormicadei.github.io/Contextory/) for searchable guides and references.
+Version **0.3.1** includes code intelligence and portable execution; automatic discovery and the pause switch were introduced in 0.2.6. The [release notes](releases/v0.3.1.md) describe this patch and link to the full 0.3.0 feature update. Browse the [full documentation](https://igormicadei.github.io/Contextory/) for searchable guides and references.
 
 ## Connect a native agent
 

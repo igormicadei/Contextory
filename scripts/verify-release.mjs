@@ -103,7 +103,7 @@ for (const path of [
   "",
   "docs/USER-GUIDE.html",
   "docs/CODEBASE-INTELLIGENCE.html",
-  "docs/releases/v0.3.0.html",
+  `docs/releases/${tag}.html`,
 ]) {
   const page = await fetch(pages.html_url + path, {
     signal: AbortSignal.timeout(30000),

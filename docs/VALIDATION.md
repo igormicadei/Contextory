@@ -1,5 +1,13 @@
 # Validation records
 
+## 0.3.1: patch release packaging
+
+Recorded 2026-11-16 on Windows/Node 24.19.0: `npm run check` passes skill bundle consistency, TypeScript checking, production builds, **58 backend tests** and **28 UI tests**. The complete documentation build checks all **22 pages** and generated page/asset links. Documentation source links and the live release-page check now use the package version.
+
+The extracted 0.3.1 VSIX passes the full packaged scenario in [VS Code 1.145.3](../artifacts/host-release-031-vscode.json) and [IBM Bob, VS Code API 1.126.0](../artifacts/host-release-031-bob.json). The [package inspection](../artifacts/release-0.3.1-package.json) checks the version, release notes, exact runtime bundles and all four canonical skill resources, and excludes development/private files. The final package includes this validation record; its runtime and skill bytes match those exercised in both hosts. Its matching SHA-256 is supplied with the GitHub release.
+
+`npm run release:verify` checks the public tag and downloaded assets, HTTPS Pages configuration, preserved orphan branch history, complete documentation manifest and current release page. Hosted documentation Actions are currently prevented from starting by the GitHub account's billing lock; the generated site can still be deployed through the existing branch-based Pages configuration. No account or billing settings are changed. Existing platform and authenticated-agent qualification limits below remain applicable.
+
 ## 0.3.0: release publication and visual exploration
 
 The publication follow-up updates the installation/upgrade links and release notes and builds the full documentation with VitePress, local search and Mermaid diagrams. All 21 Markdown pages (guides, release notes, skills/references, README and changelog) are staged from canonical sources. The build checks generated page and asset links; GitHub Pages publishes the static output from an orphan `gh-pages` branch. Documentation tooling is excluded from the VSIX.

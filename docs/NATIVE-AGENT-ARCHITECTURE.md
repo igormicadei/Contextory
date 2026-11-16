@@ -6,7 +6,7 @@ Version 0.3.0 adds a separate rebuildable schema 4 source projection (`code_file
 
 `src/agents/instructions.ts` supplies the same retrieval/workflow guidance to both MCP initialization paths and the workspace brief, plus compact reminders for session/prompt/post-compaction hooks. Instructions route tasks through current-source context, relationships and prior decisions, preserve coverage/provenance and explain saved-file freshness and missing-capability fallback. Canonical skills provide progressively loaded input/recovery details. Skill-only workspace synchronization reuses registration's ownership-aware atomic file handling without changing client MCP/hooks. Host-specific differences remain in adapters.
 
-Current version 0.3.0, 2026-11-16. [User guide](USER-GUIDE.md) · [Agent tools](MCP-TOOLS.md) · [Delivery record](CODEBASE-INTELLIGENCE-PLAN.md) · [Validation](VALIDATION.md).
+Current version 0.3.1, 2026-11-16. [User guide](USER-GUIDE.md) · [Agent tools](MCP-TOOLS.md) · [Delivery record](CODEBASE-INTELLIGENCE-PLAN.md) · [Validation](VALIDATION.md).
 
 ## Responsibility boundary
 

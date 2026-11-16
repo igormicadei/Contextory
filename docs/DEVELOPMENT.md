@@ -87,10 +87,10 @@ Run `npm run docs:build` to stage canonical Markdown in `.contextory-local/docs-
 3. Run `npm run package:vsix`. Inspect the ZIP manifest and assets, and run both editor-host checks against the extracted package when qualifying a release.
 4. Calculate the SHA-256 checksum of the **final** package and write `artifacts/contextory-workspace-<version>.sha256` in `<hash>  <filename>` format. Rebuilds can change the ZIP bytes, so refresh the checksum after every final rebuild.
 5. Commit the source/docs/evidence, push the release commit to the intended branch, and create an annotated `v<version>` tag at that commit. Never replace an existing published tag without a deliberate release correction.
-6. Create the GitHub release with the matching VSIX and checksum attached. For example, after committing and pushing version 0.3.0:
+6. Create the GitHub release with the matching VSIX and checksum attached. For example, after committing and pushing version 0.3.1:
 
    ```powershell
-   gh release create v0.3.0 artifacts/contextory-workspace-0.3.0.vsix artifacts/contextory-workspace-0.3.0.sha256 --repo igormicadei/Contextory --verify-tag --title 'Contextory v0.3.0' --notes-file docs/releases/v0.3.0.md
+   gh release create v0.3.1 artifacts/contextory-workspace-0.3.1.vsix artifacts/contextory-workspace-0.3.1.sha256 --repo igormicadei/Contextory --verify-tag --title 'Contextory v0.3.1' --notes-file docs/releases/v0.3.1.md
    ```
 
 7. Run `npm run release:verify` to verify the published tag, downloaded VSIX/checksum bytes, orphan `gh-pages` history, live Pages configuration and complete documentation manifest against this checkout. Keep the local final package available for comparison.

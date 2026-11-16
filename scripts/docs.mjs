@@ -12,6 +12,9 @@ import { fileURLToPath } from "node:url";
 import { build } from "vitepress";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const version = JSON.parse(
+  await readFile(resolve(root, "package.json"), "utf8"),
+).version;
 const content = resolve(root, ".contextory-local/docs-content");
 const output = resolve(root, ".contextory-local/docs-site");
 // Only these generated directories can be replaced, never the workspace or ledger.
@@ -58,7 +61,7 @@ for (const [source, target] of pages) {
     if (/^(media|artifacts)\//.test(local))
       return `/${local}` + (fragment ? `#${fragment}` : "");
     return (
-      `https://github.com/igormicadei/Contextory/blob/v0.3.0/${local}` +
+      `https://github.com/igormicadei/Contextory/blob/v${version}/${local}` +
       (fragment ? `#${fragment}` : "")
     );
   };
@@ -94,8 +97,7 @@ for (const file of await readdir(resolve(root, "artifacts"))) {
 await build(resolve(root, "docs-site"));
 await writeFile(resolve(output, ".nojekyll"), "");
 const manifest = {
-  version: JSON.parse(await readFile(resolve(root, "package.json"), "utf8"))
-    .version,
+  version,
   pages: [...pages.values()].map((p) => p.replace(/\.md$/, ".html")).sort(),
 };
 await writeFile(
