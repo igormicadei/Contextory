@@ -1,5 +1,5 @@
-export const version = "0.2.5";
-export type Provider = "codex" | "claude" | "bob";
+export const version = "0.3.0";
+export type Provider = import("../providers/clients").ClientId;
 export type Kind =
   | "request"
   | "milestone"
@@ -100,6 +100,7 @@ export interface Connection {
   nativeSession?: string;
 }
 export interface Dashboard {
+  codebase?: import("../codebase/model").CodeStatus;
   root: string;
   projectId: string;
   sequence: number;
@@ -108,6 +109,11 @@ export interface Dashboard {
   connections: Connection[];
   recipes: CheckRecipe[];
   semantic: { ready: boolean; model: string; detail: string };
+}
+export interface AgentAutomation {
+  enabled: boolean;
+  detected: Provider[];
+  host: string;
 }
 export interface FlowRoot {
   path: string;

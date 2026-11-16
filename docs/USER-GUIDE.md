@@ -1,5 +1,7 @@
 # Contextory user guide
 
+Local 0.3.0 adds **Architecture**, task-context/source-impact/path tools, optional Graphify import, portable skills, **Export Generic MCP Connection** and headless CLI/MCP. Follow the [codebase intelligence guide](CODEBASE-INTELLIGENCE.md) for configuration, client paths, examples and coverage limits. Existing editor records are preserved by the additive schema 4 migration.
+
 Contextory manages development requests and gives native agents a shared record of what was requested, what changed, and why. The developer continues talking to Codex, Claude Code, or IBM Bob in that agent's normal chat.
 
 ## Requirements
@@ -29,9 +31,13 @@ Contextory manages development requests and gives native agents a shared record 
 
 The extension is distributed as a GitHub release asset. You do not need to clone the repository or install its development dependencies to use the package.
 
+The latest local build is **0.3.0**, available as `artifacts/contextory-workspace-0.3.0.vsix` when supplied or built from this checkout. Install it with the same **Install from VSIX…** command. The published download above remains 0.2.3. Code intelligence and portable execution require 0.3.0; automatic discovery and the pause switch were introduced in 0.2.6.
+
 ## Connect a native agent
 
-Click its name in the sidebar footer, or use the corresponding **Contextory: Connect Native …** command. Connection writes an owned MCP server entry, lifecycle hooks, and a workflow skill into the project. It preserves unrelated configuration and leaves global provider settings and native permission policies alone.
+In 0.2.6, open a trusted local folder and Contextory automatically prepares every detected supported agent. It recognizes the installed Codex (`openai.chatgpt`) and Claude Code (`Anthropic.claude-code`) extensions, and IBM Bob through its editor host or built-in agent extension. Detection does not activate the native extensions or start a conversation. Agents installed later are detected when the editor reports its extensions changed.
+
+To prepare an agent manually, click its name in the sidebar footer or use the corresponding **Contextory: Connect Native …** command. Connection writes an owned MCP server entry, lifecycle hooks, and a workflow skill into the project. It preserves unrelated configuration and leaves global provider settings and native permission policies alone.
 
 Review the changed files, then use the native client's own trust/reload mechanism. Some clients need their MCP configuration reloaded or their agent session restarted. Keep the editor open so the local Contextory service remains available.
 
@@ -44,7 +50,9 @@ Clicking a configured agent disconnects its owned entries. The tooltip and acces
 
 ### Prepare the connection at startup
 
-Contextory starts its local service as soon as the extension is ready in a trusted local folder, even when its view is closed. `contextory.startupAgent` defaults to `last-used`: it remembers manual connections and observed native MCP/hook activity in each workspace. A new workspace falls back to the last agent used in another workspace. On first use with no history, choose an agent once or set a default in Settings.
+Contextory activates early and starts its local service in a trusted local folder, even with its view closed. `contextory.autoConnect` defaults to `true`, and `contextory.startupAgent` defaults to `auto`: all detected supported agents are prepared. In VS Code with both Codex and Claude Code installed, both are configured. In IBM Bob, Bob is configured too. No previous agent selection is required.
+
+Use the footer's **Auto-connect** switch, **Contextory: Toggle Automatic Agent Connections**, or set `contextory.autoConnect` to `false` to pause automatic setup for this workspace. The service, records and existing connections remain available; pausing does not terminate native sessions. Resume with the same switch. To remove an existing bridge, disconnect that provider separately.
 
 To always prepare Codex, for example:
 
@@ -54,9 +62,13 @@ To always prepare Codex, for example:
 }
 ```
 
-Other values are `claude`, `bob`, `last-used`, and `none`. `none` disables automatic agent selection; existing configured bridges and the local service remain available. Manually disconnecting a provider opts it out of startup in that workspace until you connect it again. Configuration errors appear in the Contextory output channel without preventing access to project records.
+Other values are `auto`, `claude`, `bob`, `last-used`, and `none`. `last-used` uses the workspace's latest manual connection or observed native MCP/hook activity, falling back to the last agent used elsewhere. `none` disables automatic selection. Existing configured bridges and the local service remain available. An explicit startup preference from an earlier version stays in effect; choose `auto` to enable detection of all installed agents.
 
-Startup prepares the project's MCP entry, hooks and workflow instructions. The native client still controls starting its agent session, trusting the entry and reloading MCP configuration. Its light turns green when MCP traffic is observed. Contextory also prepares startup connections after you grant workspace trust.
+Manually disconnecting a provider opts it out of startup in that workspace until you connect it again. Configuration errors appear in **Output → Contextory** without preventing access to project records or preparation of other detected agents. Paused automatic setup also skips managed configuration refreshes.
+
+Startup prepares the project's MCP entry, hooks and workflow instructions. Native MCP discovery can list all tools while the service starts; the first call waits up to 15 seconds for readiness. Existing connections reread service descriptors so ordinary service restarts do not require recreating the bridge. Contextory also prepares connections after you grant workspace trust.
+
+The native client still controls starting its agent session, trusting the entry and reloading MCP configuration. Its light turns green when MCP traffic is observed. Codex and Claude Code do not expose a public editor command for Contextory to force MCP reload. First-time configuration in an already-running client can therefore still need native approval and an extension/session restart; automatic preparation cannot guarantee zero reloads. Contextory does not restart the editor or send native chat prompts. See [Codex MCP setup](https://developers.openai.com/codex/mcp/), [Claude MCP trust](https://code.claude.com/docs/en/mcp), and [Bob MCP configuration](https://bob.ibm.com/docs/ide/configuration/mcp/mcp-in-bob).
 
 ## A normal day of work
 
@@ -189,14 +201,16 @@ Provider references: [official OpenAI documentation: Codex model-request hooks](
 
 ## Configuration and storage
 
-| Setting                       | Default  | Purpose                                             |
-| ----------------------------- | -------- | --------------------------------------------------- |
-| `contextory.nodeExecutable`   | `node`   | Node 24+ executable for the workspace service.      |
-| `contextory.pythonExecutable` | `python` | Python 3.10+ executable for Python source analysis. |
-| `contextory.flowDepth`        | `5`      | Default flow call-hop depth, from 0 to 12.          |
-| `contextory.checks`           | `[]`     | Named independent check recipes for this workspace. |
+| Setting                       | Default  | Purpose                                                                |
+| ----------------------------- | -------- | ---------------------------------------------------------------------- |
+| `contextory.autoConnect`      | `true`   | Pause/resume automatic agent setup; existing bridges remain available. |
+| `contextory.startupAgent`     | `auto`   | All detected agents, a fixed provider, `last-used`, or `none`.         |
+| `contextory.nodeExecutable`   | `node`   | Node 24+ executable for the workspace service.                         |
+| `contextory.pythonExecutable` | `python` | Python 3.10+ executable for Python source analysis.                    |
+| `contextory.flowDepth`        | `5`      | Default flow call-hop depth, from 0 to 12.                             |
+| `contextory.checks`           | `[]`     | Named independent check recipes for this workspace.                    |
 
-The Node/Python executable settings have machine scope; flow depth and checks have resource scope. The managed provider files are:
+The Node/Python executable settings have machine scope; automatic connections, startup selection, flow depth and checks have resource scope. The footer switch writes a workspace setting. The managed provider files are:
 
 | Agent       | MCP configuration    | Hooks                         | Workflow skill                                |
 | ----------- | -------------------- | ----------------------------- | --------------------------------------------- |
@@ -219,18 +233,19 @@ For an independent backup, close the editor clients, let the service stop after 
 
 ## Troubleshooting
 
-| Symptom                                     | What to check                                                                                                                                                                               |
-| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Service does not start                      | Check Node 24+ in the editor environment, set `contextory.nodeExecutable` to an absolute path, and inspect **Output → Contextory**.                                                         |
-| Sidebar refuses analysis or connection      | Open one local folder and trust it. Multi-root, virtual, and remote workspaces are not qualified.                                                                                           |
-| Agent light stays grey                      | Hover for status. Review/trust the generated MCP/hook files, reload the native client, and ask it to call `contextory_context_get`. Configuration alone does not count as observed traffic. |
-| Agent cannot see tools                      | Keep the project editor open, verify the project-specific MCP entry, and reload the native session. Native clients control their own MCP trust and discovery.                               |
-| Python trace fails                          | Install Python 3.10+, verify `contextory.pythonExecutable`, and try an absolute path. The workspace module is parsed rather than imported.                                                  |
-| Tracing starts from an unexpected point     | Focus the intended source symbol before entering the sidebar, or use the editor's **Trace Flow from Here** command.                                                                         |
-| Spec remains submitted/open                 | Submit an outcome and then explicitly request completion with its returned revision. Resolve missing recipes, stale/missing evidence, dependencies, or blocking findings.                   |
-| Search misses changed source                | Refresh workspace knowledge. Check whether a size/exclusion limit or stale-content notice applies.                                                                                          |
-| Semantic search is unavailable              | Prepare the optional runtime and re-index. Lexical search remains available.                                                                                                                |
-| Configuration conflict                      | Fix malformed files or resolve an unowned conflicting entry; Contextory preserves it. Linked provider paths must be replaced with regular workspace paths before registration.              |
-| Earlier service still running after upgrade | Close editors for that project for 65 seconds, then reopen as instructed by the error.                                                                                                      |
+| Symptom                                     | What to check                                                                                                                                                                                                                  |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Service does not start                      | Check Node 24+ in the editor environment, set `contextory.nodeExecutable` to an absolute path, and inspect **Output → Contextory**.                                                                                            |
+| Sidebar refuses analysis or connection      | Open one local folder and trust it. Multi-root, virtual, and remote workspaces are not qualified.                                                                                                                              |
+| Agent light stays grey                      | Hover for status. Review/trust the generated MCP/hook files, reload the native client, and ask it to call `contextory_context_get`. Configuration alone does not count as observed traffic.                                    |
+| Agent cannot see tools                      | Keep the project editor open, verify the project-specific MCP entry, and reload the native session. Native clients control their own MCP trust and discovery.                                                                  |
+| Automatic setup does not prepare an agent   | Enable **Auto-connect**, choose `contextory.startupAgent: "auto"`, and check the supported agent extension is enabled. Reconnect any manually disconnected agent. Inspect **Output → Contextory** for configuration conflicts. |
+| Python trace fails                          | Install Python 3.10+, verify `contextory.pythonExecutable`, and try an absolute path. The workspace module is parsed rather than imported.                                                                                     |
+| Tracing starts from an unexpected point     | Focus the intended source symbol before entering the sidebar, or use the editor's **Trace Flow from Here** command.                                                                                                            |
+| Spec remains submitted/open                 | Submit an outcome and then explicitly request completion with its returned revision. Resolve missing recipes, stale/missing evidence, dependencies, or blocking findings.                                                      |
+| Search misses changed source                | Refresh workspace knowledge. Check whether a size/exclusion limit or stale-content notice applies.                                                                                                                             |
+| Semantic search is unavailable              | Prepare the optional runtime and re-index. Lexical search remains available.                                                                                                                                                   |
+| Configuration conflict                      | Fix malformed files or resolve an unowned conflicting entry; Contextory preserves it. Linked provider paths must be replaced with regular workspace paths before registration.                                                 |
+| Earlier service still running after upgrade | Close editors for that project for 65 seconds, then reopen as instructed by the error.                                                                                                                                         |
 
 For a bug report, include the Contextory version, editor/version, Node/Python versions, relevant error text, and reproducible steps in the [issue tracker](https://github.com/igormicadei/Contextory/issues). Omit credentials and private service descriptors. See [validation](VALIDATION.md) for the current qualification boundaries.

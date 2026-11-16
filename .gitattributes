@@ -1,0 +1,7 @@
+# Portable skill resources and their generated bundle use exact LF bytes.
+/skills/** text eol=lf
+/.agents/skills/** text eol=lf
+/.claude/skills/** text eol=lf
+/.bob/skills/** text eol=lf
+/.contextory/skills/** text eol=lf
+/src/providers/skill-content.ts text eol=lf

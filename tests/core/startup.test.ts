@@ -2,7 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   latestNativeAgent,
-  startupProvider,
+  startupProviders,
+  detectedProviders,
 } from "../../src/providers/startup";
 import type { Connection, Provider } from "../../src/contracts/model";
 
@@ -13,30 +14,83 @@ const connections: Connection[] = [
   { provider: "bob", configured: false, mcpSeen: "2026-11-13T13:00:00Z" },
 ];
 const base = {
+  enabled: true,
+  detected: [] as Provider[],
   preference: "last-used" as const,
   connections,
   disabled: [] as Provider[],
 };
 
+test("detect all recognized installed agents without relying on extension activation or a previous selection", () => {
+  assert.deepEqual(
+    detectedProviders("Visual Studio Code", [
+      "OpenAI.chatgpt",
+      "Anthropic.claude-code",
+    ]),
+    ["codex", "claude"],
+  );
+  assert.deepEqual(detectedProviders("IBM Bob", []), ["bob"]);
+  assert.deepEqual(detectedProviders("Code", ["IBM.bob-code"]), ["bob"]);
+  assert.deepEqual(
+    detectedProviders("Code", ["openai.codex-audio", "example.claude-helper"]),
+    [],
+  );
+  assert.deepEqual(
+    detectedProviders("IBM Bob", [
+      "openai.chatgpt",
+      "anthropic.claude-code",
+      "ibm.bob-code",
+    ]),
+    ["codex", "claude", "bob"],
+  );
+});
+
+test("automatic discovery selects all detected providers, respects workspace opt-outs and pauses without switching to a remembered agent", () => {
+  const options = {
+    ...base,
+    preference: "auto" as const,
+    detected: ["codex", "claude"] as Provider[],
+  };
+  assert.deepEqual(startupProviders(options), ["codex", "claude"]);
+  assert.deepEqual(startupProviders({ ...options, disabled: ["codex"] }), [
+    "claude",
+  ]);
+  assert.deepEqual(startupProviders({ ...options, enabled: false }), []);
+  assert.deepEqual(
+    startupProviders({
+      ...options,
+      detected: [],
+      global: { provider: "bob", at },
+    }),
+    [],
+  );
+  assert.deepEqual(
+    startupProviders({ ...base, preference: "bob", enabled: false }),
+    [],
+  );
+});
+
 test("startup recovers actual last native use, ignores disconnected agents and respects a later manual choice", () => {
   assert.deepEqual(latestNativeAgent(connections), { provider: "claude", at });
-  assert.equal(startupProvider(base), "claude");
-  assert.equal(
-    startupProvider({ ...base, workspace: { provider: "codex", at: at - 1 } }),
-    "claude",
+  assert.deepEqual(startupProviders(base), ["claude"]);
+  assert.deepEqual(
+    startupProviders({ ...base, workspace: { provider: "codex", at: at - 1 } }),
+    ["claude"],
   );
-  assert.equal(
-    startupProvider({ ...base, workspace: { provider: "codex", at: at + 1 } }),
-    "codex",
+  assert.deepEqual(
+    startupProviders({ ...base, workspace: { provider: "codex", at: at + 1 } }),
+    ["codex"],
   );
 });
 
 test("a fresh workspace uses the last global agent; local history takes precedence and first use selects none", () => {
   const global = { provider: "bob" as const, at: at + 1000 };
-  assert.equal(startupProvider({ ...base, connections: [], global }), "bob");
-  assert.equal(startupProvider({ ...base, global }), "claude");
-  assert.equal(startupProvider({ ...base, connections: [] }), undefined);
-  assert.equal(
+  assert.deepEqual(startupProviders({ ...base, connections: [], global }), [
+    "bob",
+  ]);
+  assert.deepEqual(startupProviders({ ...base, global }), ["claude"]);
+  assert.deepEqual(startupProviders({ ...base, connections: [] }), []);
+  assert.deepEqual(
     latestNativeAgent([
       { provider: "codex", configured: true, mcpSeen: "invalid" },
     ]),
@@ -46,23 +100,22 @@ test("a fresh workspace uses the last global agent; local history takes preceden
 
 test("explicit startup preference overrides history and none preserves manual control", () => {
   for (const preference of ["codex", "claude", "bob"] as const)
-    assert.equal(startupProvider({ ...base, preference }), preference);
-  assert.equal(startupProvider({ ...base, preference: "none" }), undefined);
+    assert.deepEqual(startupProviders({ ...base, preference }), [preference]);
+  assert.deepEqual(startupProviders({ ...base, preference: "none" }), []);
 });
 
 test("an explicit workspace disconnect is never undone by remembered or configured startup preferences", () => {
   const disabled: Provider[] = ["claude"];
-  assert.equal(startupProvider({ ...base, disabled }), undefined);
-  assert.equal(
-    startupProvider({ ...base, disabled, preference: "claude" }),
-    undefined,
+  assert.deepEqual(startupProviders({ ...base, disabled }), []);
+  assert.deepEqual(
+    startupProviders({ ...base, disabled, preference: "claude" }),
+    [],
   );
-  assert.equal(
-    startupProvider({ ...base, disabled, preference: "bob" }),
+  assert.deepEqual(startupProviders({ ...base, disabled, preference: "bob" }), [
     "bob",
-  );
-  assert.equal(
-    startupProvider({ ...base, disabled: [], preference: "claude" }),
-    "claude",
+  ]);
+  assert.deepEqual(
+    startupProviders({ ...base, disabled: [], preference: "claude" }),
+    ["claude"],
   );
 });

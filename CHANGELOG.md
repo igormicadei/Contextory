@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.3.0 — 2026-11-16 (local)
+
+- Add a persistent, rebuildable TS/JS and Python source graph with stable symbols, imports/calls/references/inheritance, test/document/config links, inferred literal message contracts and source provenance. Add validated `contextory.project.json` coverage and entry-point settings.
+- Keep graph snapshots current through content/config hashes, AST reuse, background filesystem/Git refresh, deletion/rename cleanup and transactional Graphify import with source-hash invalidation.
+- Retrieve ranked task context with project memory and explicit byte budgets. Add source/record impact, bounded relationship paths, architecture summaries and cached workspace orientation.
+- Add the Architecture workbench, cited query results, source/record navigation, freshness/coverage notices and refresh controls.
+- Package canonical Agent Skills and references through capability-based Codex/Claude/Bob/generic adapters. Add generic MCP export and standalone CLI/stdio MCP without editor heartbeat or hook requirements.
+- Synchronize agent guidance for task lookup, relationship navigation, source verification, graph freshness and missing capabilities. Share runtime instructions across native/headless MCP, workspace briefs and hook reminders; add project entry instructions and ownership-safe skill-only workspace sync with drift checks.
+- Restore post-compaction agent reminders by returning the cached brief for that lifecycle event; verify session, prompt and post-compaction outputs across native adapters.
+- Add retrieval/graph/freshness/import/migration/headless/client/UI regression coverage and a repeatable checkout evaluation. Preserve existing project records with additive schema 4. No external publication is included in this local delivery.
+
+## 0.2.6 — 2026-11-13
+
+- Detect installed Codex and Claude Code extensions and recognize the IBM Bob host. Prepare all detected agents at early startup, without opening Contextory, choosing a default, or starting a native session first; rescan when installed extensions change.
+- Add a footer **Auto-connect** switch, command and `contextory.autoConnect` setting to pause automatic setup without removing existing bridges or project records. Default `contextory.startupAgent` to `auto`, retaining fixed/last-used modes and explicit workspace disconnects.
+- Serialize provider configuration and isolate each provider's errors, so one conflicting configuration does not prevent another detected agent from being prepared.
+- Advertise the complete MCP tool catalog before the workspace service is ready. Wait up to 15 seconds for service readiness through a read-only handshake, then execute the requested tool once; retain descriptor rotation support for existing native connections.
+- Preserve native trust and session ownership. Codex and Claude expose no public command for Contextory to force MCP reload, so first-time setup or an already-running native session can still require approval or a native extension/session restart.
+
 ## 0.2.5 — 2026-11-13
 
 - Adapt the movable Contextory view to a wide Panel: compact header/navigation, request grid and recent-activity columns, request list beside a spec inspector, bounded history and source-diagram scrolling, and pinned agent controls.

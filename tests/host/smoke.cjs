@@ -22,11 +22,58 @@ exports.run = async function () {
     result.checks.push("extension activation");
     await api.ready;
     const root = vscode.workspace.workspaceFolders[0].uri.fsPath;
-    assert.ok(fs.existsSync(path.join(root, ".bob/mcp.json")));
-    assert.ok(fs.existsSync(path.join(root, ".bob/settings.json")));
-    assert.ok(fs.existsSync(path.join(await api.storage(), "bob.json")));
+    const config = vscode.workspace.getConfiguration("contextory");
+    assert.equal(config.get("startupAgent"), "auto");
+    if (!config.get("autoConnect")) {
+      for (const file of [".codex/config.toml", ".mcp.json", ".bob/mcp.json"])
+        assert.ok(!fs.existsSync(path.join(root, file)));
+      await vscode.commands.executeCommand("contextory.toggleAutoConnect");
+      result.checks.push(
+        "paused cold startup creates no provider configuration; resume discovers installed agents",
+      );
+    }
+    assert.equal(
+      vscode.workspace.getConfiguration("contextory").get("autoConnect"),
+      true,
+    );
+    assert.ok(fs.existsSync(path.join(root, ".codex/config.toml")));
+    assert.ok(fs.existsSync(path.join(root, ".mcp.json")));
+    if (/\bbob\b/i.test(vscode.env.appName)) {
+      assert.ok(fs.existsSync(path.join(root, ".bob/mcp.json")));
+      assert.ok(fs.existsSync(path.join(root, ".bob/settings.json")));
+    } else assert.ok(!fs.existsSync(path.join(root, ".bob/mcp.json")));
+    assert.equal(
+      vscode.extensions.getExtension("openai.chatgpt").isActive,
+      false,
+    );
+    assert.equal(
+      vscode.extensions.getExtension("Anthropic.claude-code").isActive,
+      false,
+    );
     result.checks.push(
-      "configured startup agent MCP/hooks ready before opening Contextory or starting a native session",
+      "all detected inactive agent extensions and Bob host configured automatically before opening Contextory; no chosen default or native session required",
+    );
+    const beforePause = fs.readFileSync(path.join(root, ".mcp.json"), "utf8");
+    await vscode.commands.executeCommand("contextory.toggleAutoConnect");
+    assert.equal(
+      vscode.workspace.getConfiguration("contextory").get("autoConnect"),
+      false,
+    );
+    assert.equal(
+      fs.readFileSync(path.join(root, ".mcp.json"), "utf8"),
+      beforePause,
+    );
+    await vscode.commands.executeCommand("contextory.toggleAutoConnect");
+    assert.equal(
+      vscode.workspace.getConfiguration("contextory").get("autoConnect"),
+      true,
+    );
+    assert.equal(
+      fs.readFileSync(path.join(root, ".mcp.json"), "utf8"),
+      beforePause,
+    );
+    result.checks.push(
+      "workspace pause/resume persists without removing or rewriting existing agent configuration",
     );
     const commands = await vscode.commands.getCommands(true);
     for (const command of [
@@ -35,11 +82,25 @@ exports.run = async function () {
       "contextory.connectNativeClaude",
       "contextory.connectNativeCodex",
       "contextory.connectNativeBob",
+      "contextory.connectGenericMcp",
+      "contextory.openArchitecture",
     ])
       assert.ok(commands.includes(command), command);
     const health = await api.health();
     assert.ok(Number(health.node.split(".")[0]) >= 24);
     result.checks.push("isolated Node 24 workspace service");
+    await vscode.commands.executeCommand("contextory.openArchitecture");
+    const architecture = await api.tool("contextory_code_architecture_get", {refresh:true});
+    assert.ok(architecture.status.files > 0);
+    const context = await api.tool("contextory_code_context_get", {query:"start",budgetTokens:1500});
+    assert.ok(context.symbols.some(symbol=>symbol.name==="start"));
+    assert.ok(Buffer.byteLength(JSON.stringify(context)) <= context.budgetBytes);
+    const connected = await api.tool("contextory_code_path_get", {from:"start",to:"next",direction:"forward"});
+    assert.ok(connected.found);
+    await vscode.commands.executeCommand("contextory.connectGenericMcp");
+    assert.ok(fs.existsSync(path.join(root,".contextory/mcp.json")));
+    assert.ok(fs.existsSync(path.join(root,".contextory/skills/contextory-codebase/references/retrieval.md")));
+    result.checks.push("architecture workbench, source context/path tools and generic MCP export with portable skills");
     await vscode.commands.executeCommand("contextory.tasks.focus");
     result.checks.push("sidebar view opens");
     const request = await api.tool("contextory_request_change", {

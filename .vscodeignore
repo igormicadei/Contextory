@@ -10,7 +10,10 @@ preview/**
 .codex/**
 .claude/**
 .bob/**
+.contextory/**
 .mcp.json
+AGENTS.md
+CLAUDE.md
 .contextory-local/**
 artifacts/**
 test-results/**

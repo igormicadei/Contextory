@@ -13,6 +13,8 @@ import { dirname, join, relative, isAbsolute } from "node:path";
 import { parse as parseToml, stringify } from "smol-toml";
 import { parse, modify, applyEdits, type ParseError } from "jsonc-parser";
 import { ContextoryError, type Provider } from "../contracts/model";
+import { clients, hookEvents } from "./clients";
+import { skillFiles } from "./skill-content";
 export interface Registration {
   root: string;
   provider: Provider;
@@ -145,32 +147,49 @@ function jsonEdit(text: string, changes: { path: string[]; value: unknown }[]) {
     );
   return next;
 }
-const skill = `---
-name: contextory-workflow
-description: Track authorized software implementation in the connected Contextory companion. Use for requests, milestones, specs, issues, design decisions, evidence and continuing tracked work; ordinary questions need no new request.
----
-<!-- contextory-managed-workflow -->
-Keep conversation and editing in this native agent. Read contextory_context_get before tracked implementation. Use contextory_search to recover earlier requests, changes and decisions, contextory_impact_get for relationships and contextory_flow_trace for affected Python/TS/JS source calls and branches. These tools are part of implementation, even if the user never opens search or Code map.
-Create/update the authorized request, milestones and specs through Contextory MCP. Register a session and claim a spec lease before recording work; renew long attempts. Pass the exact nativeSessionId from the Contextory hook reminder when attaching the session, if available; never guess it. Native model/usage observations are recorded automatically where supported. Read contextory_usage_get for the record; do not invent token counts, quota or costs. Preserve user scope and native permissions. Record issues, their impact and fixes with contextory_finding_record; record concise choices, rationale and tradeoffs with contextory_decision_record. Run configured contextory_check_run recipes for independent evidence and poll the returned job with contextory_entity_get. External results remain reported evidence.
-When finished, submit contextory_outcome_submit explaining changes, issues, decisions, validation and remaining limits; map every criterion to evidence. THEN call contextory_spec_change with action=complete, id=specId, expectedRevision=the returned revision and a new operationId. Confirm state=completed. Outcome submission alone does not mark a spec done. Completion validates current evidence and resolved issues. If no recipes exist, configure the project's existing test/check command in contextory.checks workspace settings using native editing, then reread context. If blocked, resolve the blocker or explicitly tell the user what is pending. Never silently leave finished work open, claim unperformed verification or grant yourself approval for new scope. Milestones and requests close automatically when all their children complete. Use contextory_report_export with requestId for the complete request report.
-`;
+function skillEdits(root: string, provider: Provider, remove = false): Edit[] {
+  return Object.entries(skillFiles)
+    .sort(
+      ([a], [b]) =>
+        Number(b === "contextory-workflow/SKILL.md") -
+          Number(a === "contextory-workflow/SKILL.md") || a.localeCompare(b),
+    )
+    .map(([key, body]) => ({
+      path: join(root, clients[provider].skillsPath, key),
+      transform: (text: string) => {
+        if (text && !text.includes("<!-- contextory-managed-"))
+          throw new ContextoryError(
+            "CONFIG_CONFLICT",
+            `An existing ${key} resource is unowned and was preserved.`,
+          );
+        return remove ? undefined : body;
+      },
+    }));
+}
+// Install only shared resources, leaving MCP, hook and permission configuration alone.
+// Preflight all selected clients together so a conflict cannot leave a partial sync.
+export async function syncProviderSkills(
+  root: string,
+  providers: readonly Provider[],
+) {
+  root = await realpath(root);
+  const edits = providers.flatMap((provider) => skillEdits(root, provider));
+  await applyFiles(root, edits);
+  return edits.map((edit) => edit.path);
+}
 export async function configureProvider(r: Registration, remove = false) {
   r = { ...r, root: await realpath(r.root) };
   const edits: Edit[] = [];
+  const adapter = clients[r.provider];
   const name = registrationName(r.root);
   const config = {
     type: "stdio",
     command: r.node,
     args: [r.proxy, r.descriptor],
   };
-  const command = hookCommand(r);
-  const mcpFile =
-    r.provider === "codex"
-      ? join(r.root, ".codex/config.toml")
-      : r.provider === "claude"
-        ? join(r.root, ".mcp.json")
-        : join(r.root, ".bob/mcp.json");
-  if (r.provider === "codex") {
+  const command = adapter.hooksPath ? hookCommand(r) : "";
+  const mcpFile = join(r.root, adapter.mcpPath);
+  if (adapter.mcpFormat === "toml") {
     edits.push({
       path: mcpFile,
       transform: (text) => {
@@ -235,90 +254,63 @@ export async function configureProvider(r: Registration, remove = false) {
       },
     });
   }
-  const hooksFile = join(
-    r.root,
-    r.provider === "codex"
-      ? ".codex/hooks.json"
-      : r.provider === "claude"
-        ? ".claude/settings.local.json"
-        : ".bob/settings.json",
-  );
-  edits.push({
-    path: hooksFile,
-    transform: (text) => {
-      const parsed = parse(text || "{}") as {
-        hooks?: Record<
-          string,
-          { matcher?: string; hooks?: { command?: string }[] }[]
-        >;
-      };
-      const changes: { path: string[]; value: unknown }[] = [];
-      for (const event of [
-        "SessionStart",
-        "UserPromptSubmit",
-        "PreToolUse",
-        "PostToolUse",
-        "PreCompact",
-        "PostCompact",
-        "Stop",
-        ...(r.provider === "codex" ? ["PostModelRequest"] : []),
-        ...(r.provider === "claude" ? ["PostModelSwitch"] : []),
-      ]) {
-        const rows = parsed.hooks?.[event] ?? [];
-        if (!Array.isArray(rows))
-          throw new ContextoryError(
-            "INVALID_CONFIG",
-            `Existing ${event} hooks must be an array; configuration was preserved.`,
-          );
-        const preserved = rows.flatMap((row) => {
-          if (!row || !Array.isArray(row.hooks)) return [row];
-          const hooks = row.hooks.filter((hook) => hook.command !== command);
-          return hooks.length === row.hooks.length
-            ? [row]
-            : hooks.length
-              ? [{ ...row, hooks }]
-              : [];
-        });
-        if (!remove)
-          preserved.push({
-            ...(event.includes("Tool") ? { matcher: "*" } : {}),
-            hooks: [
-              { type: "command", command, timeout: 2 } as { command: string },
-            ],
+  const hooksFile = adapter.hooksPath ? join(r.root, adapter.hooksPath) : "";
+  if (adapter.hooksPath)
+    edits.push({
+      path: hooksFile,
+      transform: (text) => {
+        const parsed = parse(text || "{}") as {
+          hooks?: Record<
+            string,
+            { matcher?: string; hooks?: { command?: string }[] }[]
+          >;
+        };
+        const changes: { path: string[]; value: unknown }[] = [];
+        for (const event of hookEvents(r.provider)) {
+          const rows = parsed.hooks?.[event] ?? [];
+          if (!Array.isArray(rows))
+            throw new ContextoryError(
+              "INVALID_CONFIG",
+              `Existing ${event} hooks must be an array; configuration was preserved.`,
+            );
+          const preserved = rows.flatMap((row) => {
+            if (!row || !Array.isArray(row.hooks)) return [row];
+            const hooks = row.hooks.filter((hook) => hook.command !== command);
+            return hooks.length === row.hooks.length
+              ? [row]
+              : hooks.length
+                ? [{ ...row, hooks }]
+                : [];
           });
-        changes.push({
-          path: ["hooks", event],
-          value: preserved.length ? preserved : undefined,
-        });
-      }
-      return jsonEdit(text, changes);
-    },
-  });
-  const skillFile = join(
-    r.root,
-    r.provider === "codex"
-      ? ".agents/skills/contextory-workflow/SKILL.md"
-      : r.provider === "claude"
-        ? ".claude/skills/contextory-workflow/SKILL.md"
-        : ".bob/skills/contextory-workflow/SKILL.md",
-  );
-  edits.push({
-    path: skillFile,
-    transform: (text) => {
-      if (text && !text.includes("<!-- contextory-managed-workflow -->"))
-        throw new ContextoryError(
-          "CONFIG_CONFLICT",
-          "An existing contextory-workflow skill is unowned and was preserved.",
-        );
-      return remove ? undefined : skill;
-    },
-  });
+          if (!remove)
+            preserved.push({
+              ...(event.includes("Tool") ? { matcher: "*" } : {}),
+              hooks: [
+                { type: "command", command, timeout: 2 } as { command: string },
+              ],
+            });
+          changes.push({
+            path: ["hooks", event],
+            value: preserved.length ? preserved : undefined,
+          });
+        }
+        return jsonEdit(text, changes);
+      },
+    });
+  const resources = skillEdits(r.root, r.provider, remove);
+  edits.push(...resources);
   await applyFiles(r.root, edits);
   return {
     name,
-    files: [mcpFile, hooksFile, skillFile],
+    files: [
+      mcpFile,
+      ...(hooksFile ? [hooksFile] : []),
+      ...resources.map((edit) => edit.path),
+    ],
     instruction: remove
       ? "Owned Contextory entries removed. Reload native MCP configuration."
-      : "Reload native MCP configuration and review/trust the Contextory hooks in the native client. Keep chatting there; Contextory will display project records. Hook visibility becomes confirmed after an observed event.",
+      : r.provider === "generic"
+        ? "Generic MCP configuration is in .contextory/mcp.json. Import its server entry into your client. Portable skills are in .contextory/skills; install them in your client's skill discovery directory."
+        : "Reload native MCP configuration and review/trust the Contextory hooks in the native client. Keep chatting there; Contextory will display project records. Hook visibility becomes confirmed after an observed event.",
   };
 }

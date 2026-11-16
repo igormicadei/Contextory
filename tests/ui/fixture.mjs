@@ -265,6 +265,19 @@ const relationshipGraph = {
   ],
 };
 window.contextoryMessages = [];
+const automation = {
+  enabled: true,
+  detected: ["codex", "claude"],
+  host: "Visual Studio Code",
+};
+const architecture = {
+  status:{state:"ready",snapshotId:"fixture",indexedAt:time,files:12,symbols:38,edges:82,partial:true,gaps:["Dynamic call targets remain unresolved."],changedFiles:0},
+  conventions:["Keep payment retries idempotent."],
+  subsystems:[{name:"src/payments",files:4,symbols:16,paths:["src/payments.ts"]},{name:"src/service",files:3,symbols:12,paths:["src/service.ts"]}],
+  dependencies:[{from:"src/service",to:"src/payments",count:3}],
+  entryPoints:[{path:"src/main.ts",line:0}],
+  hubs:[{name:"charge",path:"src/payments.ts",line:14,references:5}],
+};
 window.acquireVsCodeApi = () => ({
   getState() {},
   setState() {},
@@ -272,7 +285,11 @@ window.acquireVsCodeApi = () => ({
     window.contextoryMessages.push(message);
     queueMicrotask(() => {
       if (message.type === "ready" || message.type === "refresh")
-        send({ type: "restore", dashboard });
+        send({ type: "restore", dashboard, automation });
+      if (message.type === "autoConnect") {
+        automation.enabled = message.enabled;
+        send({ type: "automation", automation });
+      }
       if (message.type === "ready" && message.surface === "flow")
         send({ type: "flow", graph });
       if (message.type === "ready" && message.surface === "relationships")
@@ -289,6 +306,9 @@ window.acquireVsCodeApi = () => ({
         );
       if (message.type === "trace" || message.type === "expand")
         send({ type: "flow", graph });
+      if(message.type === "architecturePanel") window.open("/architecture.html","_blank");
+      if(message.type === "tool" && message.name === "contextory_code_architecture_get") send({type:"toolResult",requestId:message.requestId,result:architecture});
+      if(message.type === "tool" && message.name === "contextory_code_context_get") send({type:"toolResult",requestId:message.requestId,result:{snapshotId:"fixture",symbols:message.arguments.query==="missing"?[]:[{id:"code:charge",kind:"function",name:"charge",path:"src/payments.ts",line:14,signature:"export function charge(order: Order)",reason:"query"}],records:message.arguments.query==="missing"?[]:[{id:"DEC-demo",title:"Preserve payment identity",description:"Retries use one idempotency key.",reason:"references_source"}],relationships:[],truncated:false}});
       if (message.type === "tool" && message.name === "contextory_search")
         send({
           type: "toolResult",

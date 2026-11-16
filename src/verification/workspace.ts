@@ -54,6 +54,17 @@ export async function workspaceFiles(
         "SOURCE_LIMIT",
         `Source manifest exceeds ${limit} files; narrow the workspace.`,
       );
+    if (!files.length) {
+      const top = await exec(
+        "git",
+        ["-C", root, "rev-parse", "--show-toplevel"],
+        { windowsHide: true, timeout: 3000 },
+      );
+      if ((await realpath(top.stdout.trim())) !== (await realpath(root)))
+        throw new Error(
+          "Workspace has no files in its enclosing repository; enumerate the explicitly opened folder.",
+        );
+    }
     return files;
   } catch (error) {
     if (error instanceof ContextoryError) throw error;

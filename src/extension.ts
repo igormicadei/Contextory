@@ -5,9 +5,11 @@ import { join } from "node:path";
 import { spawn } from "node:child_process";
 import { ServiceClient } from "./service/client";
 import { configureProvider } from "./providers/registration";
+import { isClient } from "./providers/clients";
 import {
   latestNativeAgent,
-  startupProvider,
+  detectedProviders,
+  startupProviders,
   type RememberedAgent,
   type StartupAgent,
 } from "./providers/startup";
@@ -15,6 +17,7 @@ import { editorCallGraph } from "./editor/calls";
 import { webviewDocument } from "./webview/document";
 import type {
   Dashboard,
+  AgentAutomation,
   FlowGraph,
   FlowInput,
   Provider,
@@ -31,6 +34,7 @@ export async function activate(context: vscode.ExtensionContext) {
   let view: vscode.WebviewView | undefined;
   let panel: vscode.WebviewPanel | undefined;
   let relationshipPanel: vscode.WebviewPanel | undefined;
+  let architecturePanel: vscode.WebviewPanel | undefined;
   let lastRelationships: RelationshipGraph | undefined;
   let relationshipRequest = 0;
   let pendingRecord: string | undefined;
@@ -39,6 +43,25 @@ export async function activate(context: vscode.ExtensionContext) {
   let lastSource: FlowInput["root"] | undefined;
   const agentKey = "contextory.lastAgent";
   const disabledKey = "contextory.disconnectedAgents";
+  const automation = (): AgentAutomation => ({
+    enabled: vscode.workspace
+      .getConfiguration("contextory")
+      .get("autoConnect", true),
+    detected: detectedProviders(
+      vscode.env.appName,
+      vscode.extensions.all.map((extension) => extension.id),
+    ),
+    host: vscode.env.appName,
+  });
+  let connectionsPending = Promise.resolve();
+  const queueConnections = <T>(work: () => Promise<T>): Promise<T> => {
+    const next = connectionsPending.then(work);
+    connectionsPending = next.then(
+      () => {},
+      () => {},
+    );
+    return next;
+  };
   const rememberAgent = async (agent: RememberedAgent) => {
     const workspace = context.workspaceState.get<RememberedAgent>(agentKey);
     if (!workspace || agent.at > workspace.at)
@@ -72,6 +95,7 @@ export async function activate(context: vscode.ExtensionContext) {
     void view?.webview.postMessage(message);
     void panel?.webview.postMessage(message);
     void relationshipPanel?.webview.postMessage(message);
+    void architecturePanel?.webview.postMessage(message);
   };
   const root = () => {
     const folders = vscode.workspace.workspaceFolders;
@@ -95,6 +119,7 @@ export async function activate(context: vscode.ExtensionContext) {
     post({
       type: "restore",
       dashboard,
+      automation: automation(),
     });
   };
   const handleEvent = (event: Record<string, unknown>) => {
@@ -152,29 +177,8 @@ export async function activate(context: vscode.ExtensionContext) {
           .getConfiguration("contextory")
           .get("pythonExecutable", "python"),
       });
-      // Refresh Contextory-owned instructions on upgrades for already connected agents.
-      const configured = await client.call<Dashboard>("dashboard");
-      for (const connection of configured.connections.filter(
-        (c) => c.configured,
-      )) {
-        try {
-          await configureProvider({
-            root: path,
-            provider: connection.provider,
-            node: client.node,
-            proxy: join(storage, "runtime/mcp-proxy.mjs"),
-            hook: join(storage, "runtime/contextory-hook.mjs"),
-            descriptor: join(storage, `${connection.provider}.json`),
-            hookDescriptor: join(storage, `${connection.provider}-hook.json`),
-          });
-        } catch (error) {
-          output.appendLine(
-            `Managed agent configuration refresh: ${error instanceof Error ? error.message : String(error)}`,
-          );
-        }
-      }
       try {
-        await prepareStartupAgent(client, configured);
+        await prepareStartupAgents(client, true);
       } catch (error) {
         const text = `Startup agent configuration: ${error instanceof Error ? error.message : String(error)}`;
         output.appendLine(text);
@@ -219,47 +223,86 @@ export async function activate(context: vscode.ExtensionContext) {
     await client.call("provider.configured", { provider, configured: !remove });
     return result;
   };
-  const prepareStartupAgent = async (
+  const prepareStartupAgents = (
     client: ServiceClient,
-    dashboard?: Dashboard,
-  ) => {
-    const current = dashboard ?? (await client.call<Dashboard>("dashboard"));
-    const provider = startupProvider({
-      preference: vscode.workspace
+    refreshExisting = false,
+  ) =>
+    queueConnections(async () => {
+      const state = automation();
+      if (!state.enabled) return;
+      const current = await client.call<Dashboard>("dashboard");
+      const preference = vscode.workspace
         .getConfiguration("contextory")
-        .get<StartupAgent>("startupAgent", "last-used"),
-      workspace: context.workspaceState.get<RememberedAgent>(agentKey),
-      global: context.globalState.get<RememberedAgent>(agentKey),
-      connections: current.connections,
-      disabled: context.workspaceState.get<Provider[]>(disabledKey, []),
+        .get<StartupAgent>("startupAgent", "auto");
+      const disabled = context.workspaceState.get<Provider[]>(disabledKey, []);
+      const providers = startupProviders({
+        preference,
+        enabled: state.enabled,
+        detected: state.detected,
+        workspace: context.workspaceState.get<RememberedAgent>(agentKey),
+        global: context.globalState.get<RememberedAgent>(agentKey),
+        connections: current.connections,
+        disabled,
+      });
+      const configured = current.connections
+        .filter((connection) => connection.configured)
+        .map((connection) => connection.provider);
+      const targets = [
+        ...new Set([
+          ...providers,
+          ...(refreshExisting && preference !== "none"
+            ? configured.filter((provider) => !disabled.includes(provider))
+            : []),
+        ]),
+      ];
+      for (const provider of targets) {
+        if (!automation().enabled) break;
+        if (!refreshExisting && configured.includes(provider)) continue;
+        try {
+          await registerAgent(client, provider);
+          output.appendLine(
+            `Automatic connection ${provider}: workspace MCP/hooks ready for the native client.`,
+          );
+        } catch (error) {
+          const text = `${provider}: ${error instanceof Error ? error.message : String(error)}`;
+          output.appendLine(`Automatic connection failed: ${text}`);
+          post({
+            type: "notice",
+            text: `Automatic connection needs attention: ${text}`,
+          });
+        }
+      }
     });
-    if (
-      provider &&
-      !current.connections.some(
-        (connection) =>
-          connection.provider === provider && connection.configured,
-      )
-    ) {
-      const result = await registerAgent(client, provider);
-      output.appendLine(`Startup agent ${provider}: ${result.instruction}`);
-    } else if (provider) {
-      output.appendLine(
-        `Startup agent ${provider}: workspace MCP bridge ready for the native client.`,
-      );
-    }
-  };
   const connect = async (provider: Provider, remove = false) => {
     const client = await service();
-    const result = await registerAgent(client, provider, remove);
-    const disabled = context.workspaceState
-      .get<Provider[]>(disabledKey, [])
-      .filter((p) => p !== provider);
-    if (remove) disabled.push(provider);
-    await context.workspaceState.update(disabledKey, disabled);
-    if (!remove) await rememberAgent({ provider, at: Date.now() });
+    const result = await queueConnections(async () => {
+      const result = await registerAgent(client, provider, remove);
+      const disabled = context.workspaceState
+        .get<Provider[]>(disabledKey, [])
+        .filter((p) => p !== provider);
+      if (remove) disabled.push(provider);
+      await context.workspaceState.update(disabledKey, disabled);
+      if (!remove) await rememberAgent({ provider, at: Date.now() });
+      return result;
+    });
     post({ type: "notice", text: result.instruction });
     await refresh();
     return result;
+  };
+  const setAutoConnect = async (enabled: boolean) => {
+    await vscode.workspace
+      .getConfiguration("contextory")
+      .update("autoConnect", enabled, vscode.ConfigurationTarget.Workspace);
+    post({ type: "automation", automation: automation() });
+    if (
+      !vscode.workspace.isTrusted ||
+      vscode.workspace.workspaceFolders?.length !== 1 ||
+      vscode.workspace.workspaceFolders[0].uri.scheme !== "file"
+    )
+      return;
+    const client = await service();
+    await prepareStartupAgents(client);
+    await refresh();
   };
   const showMap = () => {
     if (!panel) {
@@ -330,7 +373,7 @@ export async function activate(context: vscode.ExtensionContext) {
   };
   const document = (
     webview: vscode.Webview,
-    surface: "sidebar" | "flow" | "relationships" = "sidebar",
+    surface: "sidebar" | "flow" | "relationships" | "architecture" = "sidebar",
   ) =>
     webviewDocument({
       script: webview
@@ -386,6 +429,16 @@ export async function activate(context: vscode.ExtensionContext) {
       graph,
     });
     return graph;
+  };
+  const showArchitecture = () => {
+    if (!architecturePanel) {
+      const created = vscode.window.createWebviewPanel("contextory.architecture", "Contextory: Architecture", vscode.ViewColumn.Beside, {enableScripts:true,localResourceRoots:[context.extensionUri]});
+      architecturePanel = created;
+      created.webview.html = document(created.webview,"architecture");
+      created.webview.onDidReceiveMessage(message => {void receive(message,created.webview);},undefined,context.subscriptions);
+      created.onDidDispose(()=>{architecturePanel=undefined;});
+    }
+    architecturePanel.reveal(vscode.ViewColumn.Beside);
   };
   const openSource = async (source: {
     path: string;
@@ -472,12 +525,19 @@ export async function activate(context: vscode.ExtensionContext) {
         case "refresh":
           await refresh();
           break;
+        case "architecturePanel":
+          showArchitecture();
+          break;
+        case "autoConnect":
+          if (typeof message.enabled === "boolean")
+            await setAutoConnect(message.enabled);
+          break;
         case "connect":
-          if (["codex", "claude", "bob"].includes(String(message.provider)))
+          if (isClient(String(message.provider)))
             await connect(message.provider as Provider);
           break;
         case "disconnect":
-          if (["codex", "claude", "bob"].includes(String(message.provider)))
+          if (isClient(String(message.provider)))
             await connect(message.provider as Provider, true);
           break;
         case "tool": {
@@ -602,9 +662,13 @@ export async function activate(context: vscode.ExtensionContext) {
   command("contextory.connectNativeCodex", () => connect("codex"));
   command("contextory.connectNativeClaude", () => connect("claude"));
   command("contextory.connectNativeBob", () => connect("bob"));
+  command("contextory.connectGenericMcp", () => connect("generic"));
+  command("contextory.toggleAutoConnect", () =>
+    setAutoConnect(!automation().enabled),
+  );
   command("contextory.disconnectProvider", async () => {
     const provider = await vscode.window.showQuickPick(
-      ["codex", "claude", "bob"],
+      ["codex", "claude", "bob", "generic"],
       { placeHolder: "Disconnect Contextory from this native agent" },
     );
     if (provider) await connect(provider as Provider, true);
@@ -628,6 +692,7 @@ export async function activate(context: vscode.ExtensionContext) {
       await client.call("index.vectors", {}, 600000);
     return result;
   });
+  command("contextory.openArchitecture", async () => showArchitecture());
   command("contextory.prepareSemantic", async () => {
     const client = await service();
     await mkdir(client.embeddings, { recursive: true });
@@ -671,10 +736,14 @@ export async function activate(context: vscode.ExtensionContext) {
   });
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((event) => {
-      if (event.affectsConfiguration("contextory.startupAgent") && active)
+      if (
+        (event.affectsConfiguration("contextory.startupAgent") ||
+          event.affectsConfiguration("contextory.autoConnect")) &&
+        active
+      )
         void service()
           .then(async (client) => {
-            await prepareStartupAgent(client);
+            await prepareStartupAgents(client);
             await refresh();
           })
           .catch((error) => output.appendLine(error.message));
@@ -720,6 +789,22 @@ export async function activate(context: vscode.ExtensionContext) {
     output.appendLine(error.message);
     post({ type: "notice", text: error.message });
   });
+  context.subscriptions.push(
+    vscode.extensions.onDidChange(() => {
+      if (
+        !vscode.workspace.isTrusted ||
+        vscode.workspace.workspaceFolders?.length !== 1 ||
+        vscode.workspace.workspaceFolders[0].uri.scheme !== "file"
+      )
+        return;
+      void service()
+        .then(async (client) => {
+          await prepareStartupAgents(client);
+          await refresh();
+        })
+        .catch((error) => output.appendLine(error.message));
+    }),
+  );
   return {
     ready,
     health: async () => (await service()).call("health"),

@@ -10,6 +10,68 @@ import { startService } from "../../src/service/server";
 import { rpc } from "../../src/service/rpc";
 import { fixture, operationId, claimed, waitJob } from "../helpers";
 import type { Entity } from "../../src/contracts/model";
+import { toolDefinitions } from "../../src/contracts/tools";
+import {
+  agentInstructions,
+  completionNote,
+  retrievalGuidance,
+  retrievalReminder,
+  workflowGuidance,
+} from "../../src/agents/instructions";
+
+test("native MCP discovery survives the editor service starting later without restarting the native connection", async (t) => {
+  const f = await fixture(t);
+  const transport = new StdioClientTransport({
+    command: process.execPath,
+    args: [resolve("dist/mcp-proxy.mjs"), join(f.storage, "codex.json")],
+    stderr: "pipe",
+  });
+  const client = new Client({ name: "early-native-client", version: "1.0.0" });
+  f.cleanups.push(() => client.close());
+  await client.connect(transport);
+  assert.equal(client.getInstructions(), agentInstructions);
+  const tools = await client.listTools();
+  assert.deepEqual(tools.tools, toolDefinitions());
+  assert.equal(tools.tools.length, toolDefinitions().length);
+  assert.ok(tools.tools.some((tool) => tool.name === "contextory_spec_change"));
+  // The native client already cached the tool list before any descriptor exists.
+  const pending = client.callTool({
+    name: "contextory_request_change",
+    arguments: {
+      operationId: operationId(),
+      action: "create",
+      title: "Early native request",
+      description: "Service readiness must not require a native restart",
+    },
+  });
+  const service = await startService(f);
+  f.cleanups.push(() => service.close());
+  const result = await pending;
+  assert.ok(!result.isError);
+  const entity = JSON.parse(
+    (result.content as { text: string }[])[0].text,
+  ) as Entity;
+  assert.equal(entity.title, "Early native request");
+  assert.equal(service.app.ledger.all("request").length, 1);
+  const context = await client.callTool({
+    name: "contextory_context_get",
+    arguments: {},
+  });
+  assert.ok(!context.isError, JSON.stringify(context));
+  const brief = JSON.parse((context.content as { text: string }[])[0].text);
+  assert.deepEqual(brief.retrieval, retrievalGuidance);
+  assert.deepEqual(brief.workflow, workflowGuidance);
+  assert.ok(
+    service.app
+      .dashboard()
+      .connections.find((connection) => connection.provider === "codex")
+      ?.mcpSeen,
+  );
+  assert.equal(
+    (await client.listTools()).tools.length,
+    toolDefinitions().length,
+  );
+});
 
 test("real stdio MCP proxy, role isolation, advisory hooks and descriptor rotation", async (t) => {
   const f = await fixture(t);
@@ -32,7 +94,7 @@ test("real stdio MCP proxy, role isolation, advisory hooks and descriptor rotati
   assert.ok(
     list.tools.some((tool) => tool.name === "contextory_outcome_submit"),
   );
-  assert.equal(list.tools.length, 19);
+  assert.deepEqual(list.tools, toolDefinitions());
   for (const name of [
     "contextory_request_change",
     "contextory_spec_change",
@@ -41,6 +103,10 @@ test("real stdio MCP proxy, role isolation, advisory hooks and descriptor rotati
     "contextory_search",
     "contextory_flow_trace",
     "contextory_usage_get",
+    "contextory_code_context_get",
+    "contextory_code_architecture_get",
+    "contextory_code_path_get",
+    "contextory_code_index_refresh",
   ])
     assert.ok(list.tools.some((t) => t.name === name));
   const created = await client.callTool({
@@ -63,42 +129,58 @@ test("real stdio MCP proxy, role isolation, advisory hooks and descriptor rotati
   await assert.rejects(rpc(join(f.storage, "bob-hook.json"), "tools/list"), {
     code: "FORBIDDEN",
   });
-  for (const provider of ["codex", "claude", "bob"]) {
-    const hook = spawn(
-      process.execPath,
-      [
-        resolve("dist/contextory-hook.mjs"),
-        join(f.storage, `${provider}-hook.json`),
-        provider,
-      ],
-      { stdio: ["pipe", "pipe", "pipe"], windowsHide: true },
-    );
-    let output = "";
-    hook.stdout.on("data", (chunk) => {
-      output += chunk;
-    });
-    hook.stdin.end(
-      JSON.stringify({
-        hook_event_name: "SessionStart",
-        session_id: `${provider}-session`,
-        cwd: f.root,
-        prompt: "DO_NOT_STORE_THIS_PROMPT",
-        transcript_path: "DO_NOT_READ",
-      }),
-    );
-    await new Promise<void>((resolve, reject) => {
-      hook.on("error", reject);
-      hook.on("close", (code) =>
-        code === 0 ? resolve() : reject(new Error(`hook ${code}`)),
+  for (const provider of ["codex", "claude", "bob"])
+    for (const event of ["SessionStart", "UserPromptSubmit", "PostCompact"]) {
+      const hook = spawn(
+        process.execPath,
+        [
+          resolve("dist/contextory-hook.mjs"),
+          join(f.storage, `${provider}-hook.json`),
+          provider,
+        ],
+        { stdio: ["pipe", "pipe", "pipe"], windowsHide: true },
       );
-    });
-    assert.match(output, /Contextory companion/);
-    if (provider !== "bob")
-      assert.equal(
-        JSON.parse(output).hookSpecificOutput.hookEventName,
-        "SessionStart",
+      let output = "",
+        diagnostics = "";
+      hook.stdout.on("data", (chunk) => {
+        output += chunk;
+      });
+      hook.stderr.on("data", (chunk) => {
+        diagnostics += chunk;
+      });
+      hook.stdin.end(
+        JSON.stringify({
+          hook_event_name: event,
+          session_id: `${provider}-session`,
+          cwd: f.root,
+          prompt: "DO_NOT_STORE_THIS_PROMPT",
+          transcript_path: "DO_NOT_READ",
+        }),
       );
-  }
+      await new Promise<void>((resolve, reject) => {
+        hook.on("error", reject);
+        hook.on("close", (code) =>
+          code === 0 ? resolve() : reject(new Error(`hook ${code}`)),
+        );
+      });
+      assert.match(
+        output,
+        /Contextory companion/,
+        `${provider} ${event}: ${diagnostics}`,
+      );
+      const reminder =
+        provider === "bob"
+          ? output
+          : JSON.parse(output).hookSpecificOutput.additionalContext;
+      assert.ok(reminder.includes(retrievalReminder));
+      assert.ok(reminder.includes(completionNote));
+      assert.ok(reminder.includes(`nativeSessionId="${provider}-session"`));
+      if (provider !== "bob")
+        assert.equal(
+          JSON.parse(output).hookSpecificOutput.hookEventName,
+          event,
+        );
+    }
   assert.equal(
     service.app.dashboard().connections.filter((c) => c.hookSeen).length,
     3,

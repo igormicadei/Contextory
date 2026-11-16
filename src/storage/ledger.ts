@@ -25,7 +25,7 @@ export class Ledger {
     const schema = Number(
       this.db.prepare("PRAGMA user_version").get()!.user_version,
     );
-    if (schema > 3) {
+    if (schema > 4) {
       this.db.close();
       throw new ContextoryError(
         "SCHEMA_TOO_NEW",
@@ -51,7 +51,15 @@ export class Ledger {
       CREATE INDEX IF NOT EXISTS agent_usage_session ON agent_usage(provider,native_session,agent_id);
       CREATE INDEX IF NOT EXISTS agent_usage_time ON agent_usage(time);
       CREATE TABLE IF NOT EXISTS jobs(id TEXT PRIMARY KEY,state TEXT NOT NULL,data TEXT NOT NULL);
-      PRAGMA user_version=3;`);
+      CREATE TABLE IF NOT EXISTS code_files(path TEXT PRIMARY KEY,hash TEXT NOT NULL,language TEXT NOT NULL);
+      CREATE TABLE IF NOT EXISTS code_nodes(id TEXT PRIMARY KEY,path TEXT NOT NULL,label TEXT NOT NULL,qualified_name TEXT NOT NULL,kind TEXT NOT NULL,data TEXT NOT NULL);
+      CREATE INDEX IF NOT EXISTS code_node_path ON code_nodes(path);
+      CREATE INDEX IF NOT EXISTS code_node_label ON code_nodes(label COLLATE NOCASE);
+      CREATE TABLE IF NOT EXISTS code_edges(id TEXT PRIMARY KEY,source TEXT NOT NULL,target TEXT NOT NULL,kind TEXT NOT NULL,data TEXT NOT NULL);
+      CREATE INDEX IF NOT EXISTS code_edge_source ON code_edges(source,kind);
+      CREATE INDEX IF NOT EXISTS code_edge_target ON code_edges(target,kind);
+      CREATE TABLE IF NOT EXISTS code_imports(id TEXT PRIMARY KEY,data TEXT NOT NULL);
+      PRAGMA user_version=4;`);
     if (schema === 1)
       for (const entity of this.list(undefined, 100000)) {
         this.remember(entity);

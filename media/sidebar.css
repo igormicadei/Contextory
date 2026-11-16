@@ -49,7 +49,8 @@ body.vscode-high-contrast {
   color-scheme: dark;
 }
 body[data-surface="flow"],
-body[data-surface="relationships"] {
+body[data-surface="relationships"],
+body[data-surface="architecture"] {
   --background: var(--vscode-editor-background, Canvas);
   --foreground: var(
     --vscode-editor-foreground,
@@ -771,9 +772,47 @@ footer {
   min-width: 0;
 }
 .workspace-status > span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.automation-toggle {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 4px;
+  white-space: nowrap;
+  background: transparent;
+  color: var(--foreground);
+  font-size: 0.8rem;
+}
+.toggle-track {
+  width: 26px;
+  height: 14px;
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--vscode-input-background, var(--surface));
+}
+.toggle-track::after {
+  content: "";
+  display: block;
+  width: 8px;
+  height: 8px;
+  margin: 2px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+.automation-toggle[aria-checked="true"] .toggle-track {
+  border-color: var(--accent);
+  background: var(--vscode-inputOption-activeBackground, var(--hover));
+}
+.automation-toggle[aria-checked="true"] .toggle-track::after {
+  transform: translateX(12px);
+  background: var(--accent);
 }
 .footer-label {
   margin-left: auto;
@@ -1427,6 +1466,23 @@ body[data-layout="horizontal"] main > .empty {
     animation: none;
   }
 }
+.architecture-view { display: grid; gap: 20px; min-width: 0; }
+.architecture-view h1, .architecture-view h2 { margin: 0 0 10px; }
+.architecture-state { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.architecture-state > .muted { flex-basis: 100%; }
+.architecture-columns { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 24px; }
+.subsystem-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(230px,100%), 1fr)); gap: 10px; }
+.architecture-view .record { margin: 0; min-width: 0; }
+.architecture-view .record h3:first-child { margin-top: 0; }
+.architecture-view section { margin-bottom: 0; }
+.architecture-view .section-heading > div:last-child { display: flex; flex-wrap: wrap; gap: 6px; }
+.architecture-view .source-link { display: block; max-width: 100%; overflow-wrap: anywhere; white-space: normal; text-align: left; }
+.architecture-context { display: grid; gap: 10px; }
+.architecture-view pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+.architecture-table { overflow: auto; }
+.architecture-table table { width: 100%; border-collapse: collapse; text-align: left; }
+.architecture-table th, .architecture-table td { padding: 8px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+@media (max-width: 620px) { .architecture-columns { grid-template-columns: minmax(0, 1fr); } }
 body.vscode-high-contrast button,
 body.vscode-high-contrast-light button {
   border-color: var(--vscode-contrastBorder, var(--line));

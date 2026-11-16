@@ -22,12 +22,12 @@ const limits = z
 export const tools = {
   contextory_context_get: {
     description:
-      "Read the current workspace brief, active specs, failures and configured checks. Start implementation by reading this. Conversation stays in your native chat; ordinary questions need no request.",
+      "Read workspace contracts, active specs, failures, configured checks and shared agent guidance before authorized implementation. Includes cached codebase orientation; use code_context_get for current task-specific source. Read-only questions need no request.",
     schema: z.object({ specId: id.optional() }),
   },
   contextory_entity_get: {
     description:
-      "Read a record or an immutable historical revision. Use offset/limit for children, job results or 400-character artifact pages; no active Contextory chat turn is needed.",
+      "Read a full record, current state or cited immutable revision after search. Use offset/limit for children, job results or 400-character artifact pages; follow returned paging metadata. Historical text may be superseded. No tracked request is required for reads.",
     schema: z.object({
       id,
       revision: z.number().int().positive().optional(),
@@ -195,12 +195,42 @@ export const tools = {
   },
   contextory_search: {
     description:
-      "Search current project records and indexed source using exact, lexical or optional local semantic/hybrid retrieval. Results cite revisions; semantic unavailability is explicit. Never infer exhaustive impact from search.",
+      "Recover earlier decisions, findings, changes and indexed source with lexical or optional local semantic/hybrid retrieval. Inspect cited revisions and current record state with entity_get; page history for chronology. Prefer code_context_get for structural code questions. Semantic unavailability is explicit; bounded search is not exhaustive impact.",
     schema: z.object({
       query: z.string().min(1).max(4000),
       mode: z.enum(["lexical", "semantic", "hybrid"]).default("hybrid"),
       limit: z.number().int().min(1).max(20).default(5),
     }),
+  },
+  contextory_code_context_get: {
+    description:
+      "Start code questions and related edits with a task in query, known paths and optional specId. Verifies saved source and returns ranked definitions, bounded relationships, tests/docs and project memory. Inspect cited current files and re-query after saves. No tracked request required. budgetTokens uses a hard UTF-8 byte budget of three bytes per token; retain coverage/truncation limits.",
+    schema: z.object({
+      query: z.string().min(1).max(4000),
+      paths: z.array(z.string().max(2000)).max(20).default([]),
+      specId: id.optional(),
+      budgetTokens: z.number().int().min(512).max(6000).default(3000),
+    }),
+  },
+  contextory_code_architecture_get: {
+    description:
+      "Orient across subsystems, dependencies, entry points, shared symbols, conventions and indexing coverage. Default refresh=true verifies saved source without executing it; refresh=false uses cached projection. Follow with scoped code_context_get for a task. Generated patterns are not approved requirements.",
+    schema: z.object({ refresh: z.boolean().default(true) }),
+  },
+  contextory_code_path_get: {
+    description:
+      "Explain a bounded shortest connection between source symbols/files or project records after verifying saved source. Qualify ambiguous symbols as source:path#qualifiedName. Inspect edge direction, category and provenance; absence of a path is limited by depth and coverage, not proof of independence.",
+    schema: z.object({
+      from: z.string().min(1).max(2500),
+      to: z.string().min(1).max(2500),
+      direction: z.enum(["forward", "both"]).default("both"),
+      maxDepth: z.number().int().min(1).max(10).default(6),
+    }),
+  },
+  contextory_code_index_refresh: {
+    description:
+      "Recover an empty/stale/failed source graph or import regenerated Graphify JSON from a workspace-relative graphifyPath. Returns snapshot/coverage without executing source. Saved edits already refresh automatically; partial dynamic/external gaps need source inspection. Changed imported sources require Graphify regeneration/re-import, not just refresh.",
+    schema: z.object({ graphifyPath: z.string().min(1).max(2000).optional() }),
   },
   contextory_relationship_change: {
     description:
@@ -216,9 +246,9 @@ export const tools = {
   },
   contextory_impact_get: {
     description:
-      "Traverse project relationships in either direction with explicit depth/node limits, cycle handling and partial-result reasons.",
+      "Find affected source and project records after verifying saved source. Accepts a record/code ID, path, unique symbol or source:path#qualifiedName. Reverse finds dependents/callers, forward dependencies, both surrounding connections; depth/limit bound traversal. Inspect provenance/coverage. Test references do not prove test execution.",
     schema: z.object({
-      id,
+      id: z.string().min(1).max(2500),
       direction: z.enum(["forward", "reverse", "both"]).default("reverse"),
       depth: z.number().int().min(1).max(10).default(5),
       limit: z.number().int().min(1).max(200).default(50),
@@ -279,6 +309,9 @@ export function toolDefinitions() {
         "contextory_history_get",
         "contextory_usage_get",
         "contextory_search",
+        "contextory_code_context_get",
+        "contextory_code_architecture_get",
+        "contextory_code_path_get",
         "contextory_impact_get",
         "contextory_flow_trace",
         "contextory_flow_expand",

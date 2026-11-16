@@ -14,6 +14,12 @@ import { Application } from "./application";
 import { Ledger } from "../storage/ledger";
 import { workspacePath } from "../verification/workspace";
 import { toolDefinitions } from "../contracts/tools";
+import { watchCodebase } from "../codebase/watch";
+import {
+  clientIds,
+  clients as clientAdapters,
+  isClient,
+} from "../providers/clients";
 import {
   ContextoryError,
   version,
@@ -28,6 +34,7 @@ export interface ServiceOptions {
   storage: string;
   workerPath: string;
   embeddingDirectory: string;
+  headless?: boolean;
 }
 export async function writePrivate(path: string, value: unknown) {
   const temporary = `${path}.${randomUUID()}.tmp`;
@@ -75,12 +82,10 @@ export async function startService(options: ServiceOptions) {
     cleanup = () => app.close();
     const roles = [
       "ui",
-      "codex",
-      "claude",
-      "bob",
-      "codex-hook",
-      "claude-hook",
-      "bob-hook",
+      ...clientIds,
+      ...clientIds
+        .filter((id) => clientAdapters[id].hooksPath)
+        .map((id) => `${id}-hook`),
     ];
     const tokens = new Map(
       roles.map((role) => [role, randomBytes(32).toString("hex")]),
@@ -97,6 +102,7 @@ export async function startService(options: ServiceOptions) {
       }
     >();
     let changed = false;
+    const stopCodeWatch = watchCodebase(app.codebase);
     let changeTimer: NodeJS.Timeout | undefined;
     const notify = (value: unknown) => {
       for (const stream of streams)
@@ -181,9 +187,7 @@ export async function startService(options: ServiceOptions) {
       const actor: Actor = {
         id: role,
         human: role === "ui",
-        provider: ["codex", "claude", "bob"].includes(role)
-          ? (role as Provider)
-          : undefined,
+        provider: isClient(role) ? (role as Provider) : undefined,
       };
       if (role.endsWith("-hook")) {
         if (method !== "hook")
@@ -262,11 +266,13 @@ export async function startService(options: ServiceOptions) {
           if (
             typeof params.pythonExecutable === "string" &&
             params.pythonExecutable.trim()
-          )
+          ) {
             app.analysis.python.executable = params.pythonExecutable;
+            app.codebase.pythonExecutable = params.pythonExecutable;
+          }
           return { configured: true };
         case "provider.configured":
-          if (!["codex", "claude", "bob"].includes(String(params.provider)))
+          if (!isClient(String(params.provider)))
             throw new ContextoryError(
               "INVALID_PROVIDER",
               "Choose a supported provider.",
@@ -389,6 +395,7 @@ export async function startService(options: ServiceOptions) {
       }
     });
     cleanup = async () => {
+      stopCodeWatch();
       clearTimeout(changeTimer);
       for (const stream of streams) stream.end();
       http.closeAllConnections();
@@ -419,6 +426,7 @@ export async function startService(options: ServiceOptions) {
     const close = async () => {
       if (closed) return;
       closed = true;
+      stopCodeWatch();
       clearInterval(lifetime);
       clearTimeout(changeTimer);
       ledger.onChange = () => {};
@@ -450,7 +458,8 @@ export async function startService(options: ServiceOptions) {
     const lifetime = setInterval(() => {
       for (const [id, seen] of clients)
         if (Date.now() - seen > 60000) clients.delete(id);
-      if (!clients.size && Date.now() - began > 60000) void close();
+      if (!options.headless && !clients.size && Date.now() - began > 60000)
+        void close();
     }, 10000);
     lifetime.unref();
     return { app, descriptors, close, port: address.port };

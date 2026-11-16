@@ -7,3 +7,12 @@ test-results/
 playwright-report/
 .contextory-local/
 *.log
+
+# Machine-local agent connections; portable skills remain versioned.
+/.codex/config.toml
+/.codex/hooks.json
+/.mcp.json
+/.claude/settings.local.json
+/.bob/mcp.json
+/.bob/settings.json
+/.contextory/mcp.json

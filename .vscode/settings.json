@@ -1,5 +1,99 @@
 {
   "files.exclude": { ".contextory-local": true },
   "files.watcherExclude": { "**/.contextory-local/**": true },
-  "search.exclude": { "**/.contextory-local/**": true }
+  "search.exclude": { "**/.contextory-local/**": true },
+  "contextory.checks": [
+    {
+      "id": "codebase",
+      "name": "Codebase graph and freshness integration",
+      "executable": "node",
+      "args": [
+        "--import",
+        "tsx",
+        "--test",
+        "tests/integration/codebase.test.ts"
+      ],
+      "timeoutMs": 180000
+    },
+    {
+      "id": "retrieval",
+      "name": "Source and project-memory retrieval",
+      "executable": "node",
+      "args": [
+        "--import",
+        "tsx",
+        "--test",
+        "tests/integration/codebase.test.ts",
+        "tests/integration/knowledge.test.ts"
+      ],
+      "timeoutMs": 180000
+    },
+    {
+      "id": "portability",
+      "name": "Native and headless client contracts",
+      "executable": "node",
+      "args": [
+        "--import",
+        "tsx",
+        "--test",
+        "tests/integration/headless.test.ts",
+        "tests/integration/registration.test.ts",
+        "tests/integration/service.test.ts"
+      ],
+      "timeoutMs": 180000
+    },
+    {
+      "id": "architecture-ui",
+      "name": "Architecture UI and state regression",
+      "executable": "node",
+      "args": [
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "tests/ui/architecture.spec.ts"
+      ],
+      "timeoutMs": 120000
+    },
+    {
+      "id": "codebase-evaluation",
+      "name": "Deterministic retrieval and graph evaluation",
+      "executable": "node",
+      "args": ["--import", "tsx", "scripts/evaluate-codebase.ts", "--stdout"],
+      "timeoutMs": 120000
+    },
+    {
+      "id": "portable-skills",
+      "name": "Canonical skill drift",
+      "executable": "node",
+      "args": ["scripts/package-skills.mjs", "--check"],
+      "timeoutMs": 30000
+    },
+    {
+      "id": "workspace-skills",
+      "name": "Installed client skill drift",
+      "executable": "node",
+      "args": ["--import", "tsx", "scripts/sync-workspace-skills.ts", "--check"],
+      "timeoutMs": 30000
+    },
+    {
+      "id": "typecheck",
+      "name": "TypeScript typecheck",
+      "executable": "node",
+      "args": ["node_modules/typescript/bin/tsc", "--noEmit"],
+      "timeoutMs": 120000
+    },
+    {
+      "id": "tests",
+      "name": "Core, integration and analysis tests",
+      "executable": "node",
+      "args": [
+        "--import",
+        "tsx",
+        "--test",
+        "tests/core/*.test.ts",
+        "tests/integration/*.test.ts",
+        "tests/analysis/*.test.ts"
+      ],
+      "timeoutMs": 300000
+    }
+  ]
 }

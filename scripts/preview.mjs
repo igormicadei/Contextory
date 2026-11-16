@@ -23,12 +23,13 @@ createServer(async (request, response) => {
       path === "/" ||
       path === "/sidebar.html" ||
       path === "/flow.html" ||
-      path === "/relationships.html"
+      path === "/relationships.html" ||
+      path === "/architecture.html"
     ) {
       const nonce = randomBytes(24).toString("hex");
       response.setHeader("content-type", "text/html; charset=utf-8");
       response.end(
-        `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'nonce-${nonce}'; connect-src 'none'; base-uri 'none'; form-action 'none'"><title>Contextory companion preview</title><link rel="stylesheet" href="/sidebar.css"></head><body data-surface="${path === "/flow.html" ? "flow" : path === "/relationships.html" ? "relationships" : "sidebar"}"><div id="app"></div><script nonce="${nonce}" src="/theme.js"></script><script nonce="${nonce}" src="/fixture.js"></script><script nonce="${nonce}" src="/webview.js"></script></body></html>`,
+        `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'nonce-${nonce}'; connect-src 'none'; base-uri 'none'; form-action 'none'"><title>Contextory companion preview</title><link rel="stylesheet" href="/sidebar.css"></head><body data-surface="${path === "/flow.html" ? "flow" : path === "/relationships.html" ? "relationships" : path === "/architecture.html" ? "architecture" : "sidebar"}"><div id="app"></div><script nonce="${nonce}" src="/theme.js"></script><script nonce="${nonce}" src="/fixture.js"></script><script nonce="${nonce}" src="/webview.js"></script></body></html>`,
       );
       return;
     }

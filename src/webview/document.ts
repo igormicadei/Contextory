@@ -3,7 +3,7 @@ export function webviewDocument(options: {
   stylesheet: string;
   cspSource: string;
   nonce: string;
-  surface?: "sidebar" | "flow" | "relationships";
+  surface?: "sidebar" | "flow" | "relationships" | "architecture";
   workspaceName?: string;
   workspacePath?: string;
 }): string {

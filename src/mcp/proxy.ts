@@ -6,24 +6,67 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { rpc } from "../service/rpc";
 import { version } from "../contracts/model";
+import { agentInstructions } from "../agents/instructions";
+import definitions from "contextory:tool-definitions";
+import { setTimeout as delay } from "node:timers/promises";
 const descriptor = process.argv[2];
-if (!descriptor) throw new Error("Contextory needs its workspace descriptor path.");
+if (!descriptor)
+  throw new Error("Contextory needs its workspace descriptor path.");
+const shutdown = new AbortController();
+process.stdin.once("end", () => shutdown.abort());
+let readiness: Promise<void> | undefined;
+function waitForWorkspace(): Promise<void> {
+  return (readiness ??= (async () => {
+    const deadline = Date.now() + 15000;
+    let pause = 100;
+    while (!shutdown.signal.aborted) {
+      try {
+        await rpc(
+          descriptor,
+          "tools/list",
+          {},
+          Math.min(1000, Math.max(1, deadline - Date.now())),
+        );
+        return;
+      } catch (error) {
+        if (Date.now() >= deadline) throw error;
+        await delay(Math.min(pause, deadline - Date.now()), undefined, {
+          signal: shutdown.signal,
+        });
+        pause = Math.min(1000, pause * 2);
+      }
+    }
+    throw new Error("Native MCP connection closed.");
+  })().catch((error) => {
+    readiness = undefined;
+    throw error;
+  }));
+}
 const server = new Server(
   { name: "contextory-companion", version },
   {
     capabilities: { tools: {} },
-    instructions:
-      "Keep conversation in your native chat. Contextory stores requests, milestones, specs, issues, fixes, decisions and evidence. Read contextory_context_get before tracked implementation. Ordinary questions do not create work. Use contextory_search for earlier changes/decisions and contextory_flow_trace for affected Python/TS/JS calls and branches. Claim a spec lease, record explanations, run independent checks and submit an outcome. Then call contextory_spec_change action=complete with the returned revision and a new operationId; confirm state=completed. Submission alone leaves the spec open. Resolve or explicitly report completion blockers, including missing configured checks. Parent milestones/requests close automatically. Export reports with contextory_report_export and requestId. Contextory owns no native chat history or agent dispatch. Native permissions and user scope always apply.",
+    instructions: agentInstructions,
   },
 );
-server.setRequestHandler(ListToolsRequestSchema, () =>
-  rpc(descriptor, "tools/list"),
-);
+server.setRequestHandler(ListToolsRequestSchema, () => {
+  // Native clients may start before the editor's service. Keep discovery usable
+  // during that race; only the read-only handshake retries, never a mutation.
+  void waitForWorkspace().catch(() => {
+    if (!shutdown.signal.aborted)
+      process.stderr.write(
+        "Contextory workspace service is still starting. Tools remain registered; retry after workspace startup.\n",
+      );
+  });
+  return { tools: definitions };
+});
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
+    await waitForWorkspace();
     const result = await rpc(descriptor, "tools/call", request.params, 120000);
     return { content: [{ type: "text", text: JSON.stringify(result) }] };
   } catch (error) {
+    readiness = undefined;
     return {
       isError: true,
       content: [

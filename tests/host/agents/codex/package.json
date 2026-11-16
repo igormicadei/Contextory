@@ -1,0 +1,11 @@
+{
+  "name": "chatgpt",
+  "publisher": "openai",
+  "version": "0.0.1",
+  "displayName": "Contextory test: inactive Codex detection fixture",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "main": "./index.cjs",
+  "activationEvents": []
+}

@@ -2,7 +2,7 @@
   "name": "contextory-workspace",
   "displayName": "Contextory - Requests & Agent Context",
   "description": "Manage requests, milestones and specs. Give native agents shared context through decisions, evidence, workspace search and code flow.",
-  "version": "0.2.5",
+  "version": "0.3.0",
   "publisher": "contextory-local",
   "icon": "media/contextory-icon.png",
   "private": true,
@@ -28,7 +28,7 @@
   "main": "./dist/extension.js",
   "activationEvents": [
     "onView:contextory.tasks",
-    "onStartupFinished"
+    "*"
   ],
   "capabilities": {
     "untrustedWorkspaces": {
@@ -58,6 +58,18 @@
       ]
     },
     "commands": [
+      {
+        "command": "contextory.connectGenericMcp",
+        "title": "Contextory: Export Generic MCP Connection"
+      },
+      {
+        "command": "contextory.openArchitecture",
+        "title": "Contextory: Explore Architecture"
+      },
+      {
+        "command": "contextory.toggleAutoConnect",
+        "title": "Contextory: Toggle Automatic Agent Connections"
+      },
       {
         "command": "contextory.openPlan",
         "title": "Contextory: Open Rebuild Plan"
@@ -102,9 +114,16 @@
     "configuration": {
       "title": "Contextory Companion",
       "properties": {
+        "contextory.autoConnect": {
+          "type": "boolean",
+          "default": true,
+          "scope": "resource",
+          "description": "Prepare native agent connections automatically in trusted local workspaces. Turn off to pause automatic setup; existing connections and project records remain available."
+        },
         "contextory.startupAgent": {
           "type": "string",
           "enum": [
+            "auto",
             "last-used",
             "codex",
             "claude",
@@ -112,15 +131,16 @@
             "none"
           ],
           "enumDescriptions": [
+            "Connect every detected native agent: installed Codex/Claude Code extensions and IBM Bob in the Bob editor.",
             "Prepare the last agent used in this workspace, falling back to the last agent used in another workspace.",
             "Prepare the native Codex bridge at startup.",
             "Prepare the native Claude Code bridge at startup.",
             "Prepare the native IBM Bob bridge at startup.",
             "Do not select an agent automatically. Existing connections remain configured."
           ],
-          "default": "last-used",
+          "default": "auto",
           "scope": "resource",
-          "description": "Agent MCP/hook bridge to prepare when Contextory starts in a trusted local workspace. Native agents own session startup and MCP trust/reload. A manually disconnected agent stays disabled in this workspace until reconnected."
+          "description": "Native agent bridges to prepare in a trusted local workspace. Auto detects every installed supported agent and the Bob editor. Native agents own session startup and MCP trust/reload. A manually disconnected agent stays disabled in this workspace until reconnected."
         },
         "contextory.nodeExecutable": {
           "type": "string",
@@ -194,6 +214,10 @@
     }
   },
   "scripts": {
+    "skills:package": "node scripts/package-skills.mjs",
+    "skills:check": "node scripts/package-skills.mjs --check",
+    "skills:sync": "npm run skills:package && node --import tsx scripts/sync-workspace-skills.ts",
+    "skills:workspace-check": "npm run skills:check && node --import tsx scripts/sync-workspace-skills.ts --check",
     "build": "node scripts/build.mjs",
     "icons:render": "node scripts/render-icons.mjs",
     "prepare:debug": "npm run build && node scripts/prepare-debug.mjs",
@@ -204,9 +228,10 @@
     "test:ui": "playwright test",
     "test:host": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/host-smoke.ps1",
     "benchmark": "node --import tsx scripts/benchmark.ts",
+    "evaluate:codebase": "node --import tsx scripts/evaluate-codebase.ts",
     "prepare:semantic": "node scripts/prepare-embeddings.mjs",
-    "check": "npm run typecheck && npm run build && npm test && npm run test:ui",
-    "package:vsix": "npm run build && node scripts/licenses.mjs && vsce package --no-dependencies --skip-license -o artifacts/contextory-workspace-0.2.5.vsix",
+    "check": "npm run skills:check && npm run typecheck && npm run build && npm test && npm run test:ui",
+    "package:vsix": "npm run build && node scripts/licenses.mjs && vsce package --no-dependencies --skip-license -o artifacts/contextory-workspace-0.3.0.vsix",
     "format": "prettier --write src tests scripts docs README.md package.json tsconfig.json playwright.config.ts"
   },
   "devDependencies": {

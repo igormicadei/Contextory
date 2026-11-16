@@ -1,0 +1,24 @@
+{
+  "recordedAt": "2026-11-13T16:38:08.661Z",
+  "host": "Visual Studio Code",
+  "vscode": "1.145.3",
+  "checks": [
+    "extension activation",
+    "all detected inactive agent extensions and Bob host configured automatically before opening Contextory; no chosen default or native session required",
+    "workspace pause/resume persists without removing or rewriting existing agent configuration",
+    "isolated Node 24 workspace service",
+    "sidebar view opens",
+    "host to service workflow mutation",
+    "native model/usage query with explicit unavailable counters",
+    "all three native provider configurations generated in disposable workspace",
+    "worker source flow with branches and call targets",
+    "unsaved buffer overlay survives UI to service boundary",
+    "Python AST flow from remembered editor cursor; sidebar tracing creates no extra editor tab",
+    "Python agent-tool flow without an editor language provider",
+    "dedicated relationship workbench tab with request titles, descriptions and source files",
+    "request-scoped report opens from service artifact",
+    "persistent SQLite ledger"
+  ],
+  "passed": true,
+  "extensionPath": "C:\\Projetos\\Contextory"
+}

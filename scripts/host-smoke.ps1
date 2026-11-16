@@ -1,4 +1,4 @@
-param([string]$Executable, [string]$HostName = 'vscode', [string]$ExtensionPath)
+param([string]$Executable, [string]$HostName = 'vscode', [string]$ExtensionPath, [switch]$StartPaused)
 $ErrorActionPreference = 'Stop'
 $taskRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
 if (-not $ExtensionPath) { $ExtensionPath = $taskRoot }
@@ -14,12 +14,16 @@ New-Item -ItemType Directory -Path (Join-Path $taskWorkspace '.vscode') -Force |
 New-Item -ItemType Directory -Path (Join-Path $taskDirectory 'user\User') -Force | Out-Null
 $taskNode = (Get-Command node).Source
 @{ 'security.workspace.trust.enabled' = $false; 'extensions.autoUpdate' = $false; 'update.mode' = 'none'; 'workbench.startupEditor' = 'none' } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $taskDirectory 'user\User\settings.json') -Encoding UTF8
-@{ 'contextory.nodeExecutable' = $taskNode; 'contextory.startupAgent' = 'bob'; 'files.autoSave' = 'off' } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $taskWorkspace '.vscode\settings.json') -Encoding UTF8
+@{ 'contextory.nodeExecutable' = $taskNode; 'files.autoSave' = 'off' } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $taskWorkspace '.vscode\settings.json') -Encoding UTF8
+if ($StartPaused) {
+  @{ 'contextory.nodeExecutable' = $taskNode; 'contextory.autoConnect' = $false; 'files.autoSave' = 'off' } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $taskWorkspace '.vscode\settings.json') -Encoding UTF8
+}
 'function start(ok:boolean){if(ok){next()}else{fallback()}} function next(){} function fallback(){}' | Set-Content -LiteralPath (Join-Path $taskWorkspace 'main.ts') -Encoding UTF8
 $taskReport = Join-Path $taskRoot ('artifacts\host-' + $HostName + '.json')
 $taskArguments = @('--new-window', '--skip-welcome', '--skip-release-notes', '--disable-extensions', '--disable-updates', '--disable-gpu', '--no-sandbox',
   '--user-data-dir', ('"' + (Join-Path $taskDirectory 'user') + '"'), '--extensions-dir', ('"' + (Join-Path $taskDirectory 'extensions') + '"'),
   ('--extensionDevelopmentPath="' + $ExtensionPath + '"'), ('--extensionTestsPath="' + (Join-Path $taskRoot 'tests\host\smoke.cjs') + '"'), ('"' + $taskWorkspace + '"'))
+$taskArguments += @('--extensionDevelopmentPath="' + (Join-Path $taskRoot 'tests\host\agents\codex') + '"', '--extensionDevelopmentPath="' + (Join-Path $taskRoot 'tests\host\agents\claude') + '"')
 $taskEnvironment = @{}
 try {
   foreach ($taskVariable in (Get-ChildItem Env: | Where-Object { $_.Name -like 'VSCODE_*' -or $_.Name -eq 'ELECTRON_RUN_AS_NODE' -or $_.Name -eq 'CONTEXTORY_SMOKE_REPORT' })) { $taskEnvironment[$taskVariable.Name] = $taskVariable.Value; [Environment]::SetEnvironmentVariable($taskVariable.Name, $null, 'Process') }

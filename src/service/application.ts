@@ -20,6 +20,16 @@ import { hookObservation } from "../contracts/usage";
 import { AnalysisManager } from "../analysis/manager";
 import { Knowledge, Embeddings } from "../knowledge/search";
 import { CheckRunner } from "../verification/checks";
+import { CodebaseIndex } from "../codebase/index";
+import { CodeQueries } from "../codebase/queries";
+import { importGraphify } from "../codebase/import";
+import { clients, clientIds } from "../providers/clients";
+import {
+  completionNote,
+  retrievalGuidance,
+  retrievalReminder,
+  workflowGuidance,
+} from "../agents/instructions";
 import {
   sourceSnapshot,
   workspaceFiles,
@@ -30,6 +40,8 @@ export class Application {
   readonly knowledge: Knowledge;
   readonly analysis: AnalysisManager;
   readonly checks: CheckRunner;
+  readonly codebase: CodebaseIndex;
+  readonly codeQueries: CodeQueries;
   editorTrace?: (input: FlowInput) => Promise<FlowGraph>;
   constructor(
     readonly ledger: Ledger,
@@ -40,6 +52,8 @@ export class Application {
     this.workflow = new Workflow(ledger);
     this.knowledge = new Knowledge(ledger, new Embeddings(embeddingDirectory));
     this.analysis = new AnalysisManager(ledger.root, workerPath);
+    this.codebase = new CodebaseIndex(ledger, workerPath);
+    this.codeQueries = new CodeQueries(this.codebase, this.knowledge);
     this.checks = new CheckRunner(
       this.workflow,
       join(storage, "artifacts"),
@@ -54,16 +68,22 @@ export class Application {
       entities: this.ledger.all(),
       events: historyPage(this.ledger, 3).events,
       recipes: this.checks.recipes,
-      connections: (["codex", "claude", "bob"] as Provider[]).map(
-        (provider) => ({
+      connections: clientIds
+        .filter(
+          (id) =>
+            id !== "generic" ||
+            this.ledger.meta("configured:generic") === "true" ||
+            this.ledger.meta("mcp:generic"),
+        )
+        .map((provider) => ({
           provider,
           configured: this.ledger.meta(`configured:${provider}`) === "true",
           mcpSeen: this.ledger.meta(`mcp:${provider}`),
           hookSeen: this.ledger.meta(`hook:${provider}`),
           lastEvent: this.ledger.meta(`event:${provider}`),
-        }),
-      ),
+        })),
       semantic: this.knowledge.embeddings.status(),
+      codebase: this.codebase.status(),
     };
   }
   brief(specId?: string) {
@@ -80,17 +100,29 @@ export class Application {
       sequence: this.ledger.sequence(),
       specs: specs.slice(0, 20),
       recipes: this.checks.recipes,
+      codebase: this.codebase.status(),
       requests: this.ledger
         .all("request")
         .filter((r) => !["completed", "cancelled"].includes(r.state)),
-      workflow: [
-        "Search earlier requests, changes and decisions with contextory_search; inspect relevant source with contextory_flow_trace/contextory_impact_get.",
-        "Create the authorized request, milestones and specs; attach a session and claim a spec lease.",
-        "Record findings/fixes and decisions; run configured contextory_check_run checks and read the job until finished.",
-        "Submit contextory_outcome_submit with evidence for every criterion. Then call contextory_spec_change action=complete, id=specId, expectedRevision=the returned revision. Read the spec to confirm state=completed.",
-        "If completion is blocked, fix or report the explicit blocker; do not silently leave finished work open. With no configured checks, use native editing to add the project's existing test/check command to contextory.checks in workspace settings, then reread context for recipes. If no meaningful check is available, explicitly report that verification is pending. Parent milestones and requests close automatically when all their work is complete.",
-      ],
-      note: "Keep chatting in the native agent. Search past decisions and trace affected source before changes. Submit an outcome, then explicitly mark the spec done with contextory_spec_change action=complete and the latest revision. Submission or stopping chat does not complete it. Completion requires current independently passing evidence and resolved blocking issues.",
+      retrieval: retrievalGuidance,
+      workflow: workflowGuidance,
+      note: `${retrievalReminder} ${completionNote}`,
+      clients: clientIds.map((id) => ({
+        id,
+        label: clients[id].label,
+        hooks: Boolean(clients[id].hooksPath),
+        contextFormat: clients[id].contextFormat,
+      })),
+      architecture: this.codebase.status().snapshotId
+        ? {
+            ...JSON.parse(this.ledger.meta("code.orientation") ?? "{}"),
+            contextTool: "contextory_code_context_get",
+          }
+        : {
+            contextTool: "contextory_code_context_get",
+            detail:
+              "The local code graph is prepared in the background or on the first code query.",
+          },
     };
   }
   async call(name: string, raw: unknown, actor: Actor): Promise<unknown> {
@@ -202,7 +234,31 @@ export class Application {
       }
       case "contextory_search": {
         const p = a as Input<typeof key>;
-        return this.knowledge.search(p.query, p.mode, p.limit);
+        return this.codeQueries.search(p.query, p.mode, p.limit);
+      }
+      case "contextory_code_context_get": {
+        const p = a as Input<typeof key>;
+        return this.codeQueries.context(
+          p.query,
+          p.paths,
+          p.specId,
+          p.budgetTokens,
+        );
+      }
+      case "contextory_code_architecture_get": {
+        const p = a as Input<typeof key>;
+        if (p.refresh) await this.codebase.fresh();
+        return this.codeQueries.architecture();
+      }
+      case "contextory_code_path_get": {
+        const p = a as Input<typeof key>;
+        return this.codeQueries.path(p.from, p.to, p.direction, p.maxDepth);
+      }
+      case "contextory_code_index_refresh": {
+        const p = a as Input<typeof key>;
+        return p.graphifyPath
+          ? importGraphify(this.codebase, p.graphifyPath)
+          : this.codebase.refresh();
       }
       case "contextory_relationship_change": {
         const p = a as Input<typeof key>;
@@ -228,7 +284,7 @@ export class Application {
       }
       case "contextory_impact_get": {
         const p = a as Input<typeof key>;
-        return this.knowledge.impact(p.id, p.direction, p.depth, p.limit);
+        return this.codeQueries.impact(p.id, p.direction, p.depth, p.limit);
       }
       case "contextory_flow_trace": {
         const input: FlowInput = a as Input<typeof key>;
@@ -345,7 +401,7 @@ export class Application {
   async hook(provider: Provider, raw: unknown) {
     const event = hookObservation.parse(raw);
     const response = () =>
-      ["SessionStart", "UserPromptSubmit"].includes(event.event)
+      ["SessionStart", "UserPromptSubmit", "PostCompact"].includes(event.event)
         ? this.brief()
         : { observed: true };
     if (!isAbsolute(event.cwd))
@@ -408,6 +464,7 @@ export class Application {
       .run(key, value);
   }
   async indexSources() {
+    const codebase = await this.codebase.refresh();
     const files = (await workspaceFiles(this.ledger.root, 100000)).filter(
       (path) =>
         /\.(?:[cm]?[jt]sx?|py|rs|go|java|cs|md|json|ya?ml)$/.test(path) &&
@@ -449,9 +506,10 @@ export class Application {
         this.ledger.db
           .prepare("DELETE FROM search WHERE id=?")
           .run(String(row.id));
-    return { files: files.length, chunks, partial: chunks >= 10000 };
+    return { files: files.length, chunks, partial: chunks >= 10000, codebase };
   }
   async close() {
+    await this.codebase.close();
     await this.checks.close();
     await this.analysis.close();
     await this.knowledge.embeddings.close();

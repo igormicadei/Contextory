@@ -1,4 +1,39 @@
 import { test, expect } from "@playwright/test";
+
+test("auto-connect can pause and resume from the footer across tabs and panel/sidebar layouts without disconnecting agents", async ({
+  page,
+}) => {
+  await page.goto("/sidebar.html");
+  const toggle = page.getByRole("switch", { name: "Auto-connect" });
+  await expect(toggle).toHaveAttribute("aria-checked", "true");
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-checked", "false");
+  await expect(
+    page.getByRole("button", { name: "Disconnect Codex", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Requests", exact: true }).click();
+  await expect(toggle).toHaveAttribute("aria-checked", "false");
+  await page.setViewportSize({ width: 1280, height: 420 });
+  await expect(toggle).toBeInViewport();
+  await toggle.press("Space");
+  await expect(toggle).toHaveAttribute("aria-checked", "true");
+  await page.getByRole("button", { name: "Refresh workspace" }).click();
+  await expect(toggle).toHaveAttribute("aria-checked", "true");
+  expect(
+    await page.evaluate(() =>
+      (
+        window as unknown as { contextoryMessages: { type: string }[] }
+      ).contextoryMessages.filter((message) => message.type === "disconnect"),
+    ),
+  ).toEqual([]);
+  await page.setViewportSize({ width: 320, height: 800 });
+  await expect(toggle).toBeInViewport();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+});
 test("native companion has no chat composer and creates a request", async ({
   page,
 }) => {

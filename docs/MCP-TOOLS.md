@@ -6,6 +6,19 @@ Connect through the extension's provider command rather than assembling private 
 
 ## Available tools
 
+Local 0.3.0 advertises 23 tools. Source-aware additions use the same schemas in native proxies and headless stdio MCP:
+
+| Tool | Purpose |
+| --- | --- |
+| `contextory_code_context_get` | Current definitions, dependencies/callers/tests/documents and project memory for `query`, optional `paths`/`specId`, and `budgetTokens` (512–6000, default 3000). Hard JSON byte cap is three times the requested estimate. |
+| `contextory_code_architecture_get` | Subsystems, dependency counts, entry points, shared symbols and coverage. Default `refresh: true` checks current files; explicit `refresh: false` reads the cached snapshot. |
+| `contextory_code_path_get` | Shortest indexed path from `from` to `to`, direction `forward`/`both`, bounded by `maxDepth` (1–10). Preserves edge categories and locations. |
+| `contextory_code_index_refresh` | Refresh the rebuildable projection, or validate/import optional workspace-relative `graphifyPath`. Does not mutate approved work records. |
+
+`contextory_search` now ranks exact definitions first. `contextory_impact_get` also accepts a code ID, file, unique symbol or `source:path#qualifiedName`. Read-only codebase questions do not require tracked work. [Examples and limits](CODEBASE-INTELLIGENCE.md).
+
+Both native and headless MCP initialize with shared retrieval/workflow instructions. The workspace brief returns those guidance arrays alongside cached orientation. Start source tasks with scoped code context and inspect current citations; use search for earlier decisions and state, impact/path for connections and flow for calls/branches. Saved changes refresh automatically; re-query relevant context after edits. See the portable [retrieval reference](../skills/contextory-codebase/references/retrieval.md) for bounded results, paging, Graphify recovery and unavailable capabilities. Existing clients may cache an older tool catalog until their native MCP connection reloads.
+
 Version 0.2.4 adds `contextory_usage_get` to the native tool list. It reads recorded models and observed token usage, with optional `entityId` (request/milestone/spec), `provider`, `nativeSessionId`, `offset` and `limit` filters. Responses include model groups, nulls for unavailable token fields, coverage counts, and paged metadata records. Request-level totals include descendant specs; project-level results also include unassigned observations. This is a read-only record, without billing estimates or transcript access. See [usage capture and provider limits](USER-GUIDE.md#agent-models-and-usage-024).
 
 | Tool                             | Purpose                                                                                                                                                 |

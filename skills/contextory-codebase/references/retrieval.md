@@ -1,0 +1,36 @@
+<!-- contextory-managed-resource -->
+
+# Retrieval and coverage
+
+## Choose the lookup
+
+| Need                                                | Tool and useful inputs                                                                                                                                                                                                                                                 |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Workspace contracts, active work, configured checks | `contextory_context_get`, optionally `specId`. This brief is cached orientation, not a fresh source investigation.                                                                                                                                                     |
+| Locate code for a task                              | `contextory_code_context_get` with `query`, known `paths`, optional `specId` and `budgetTokens` (512–6000, default 3000). Exact definitions rank before mentions; neighborhoods and linked project records are bounded.                                                |
+| Understand subsystems and entry points              | `contextory_code_architecture_get`. Default `refresh:true` verifies saved source; use `refresh:false` only when a cached overview is sufficient.                                                                                                                       |
+| Find callers, dependencies, tests or linked work    | `contextory_impact_get` with `id`, `direction` (`reverse` for dependents, `forward` for dependencies, `both` for surrounding relationships), `depth` and `limit`.                                                                                                      |
+| Explain how two things connect                      | `contextory_code_path_get` with `from`, `to`, optional `direction` (`forward` or `both`) and `maxDepth`. Returned edges retain their original direction.                                                                                                               |
+| Inspect calls or branches                           | `contextory_flow_trace` with `root:{path,symbol}` or a zero-based position, `view: calls/flow`, `direction: outgoing/incoming`, and optional limits. Supported engines cover TS/JS and Python.                                                                         |
+| Recover earlier intent and rationale                | `contextory_search` with a focused `query`, `mode` and `limit`; inspect full records with `contextory_entity_get`, including a cited `revision` when checking history. Verify current state before relying on an old decision.                                         |
+| Continue a bounded result                           | `contextory_entity_get` uses `offset`/`limit` for children, job results and 400-character artifact pages. `contextory_history_get` uses the returned `nextBefore` as `before`. Flow pages/expansion use `contextory_flow_expand` with the original graph/snapshot IDs. |
+
+For example, a task lookup can use `{"query":"How do provider connections install skills?","paths":["src/providers"],"budgetTokens":2000}`. Follow it with impact on the cited definition and inspect its current file and relevant callers. Avoid assuming this example's paths exist in another project.
+
+Source tools accept file paths, unique names or `source:path#qualifiedName` where their schemas permit. Choose a path-qualified candidate when a name is ambiguous. A failed search or absent bounded path does not prove two components are independent. Inspect category, evidence locations and provenance for each material edge. Semantic unavailability has an explicit lexical fallback in hybrid search; semantic-only search may fail. Narrow query/path scope or page results when truncated instead of presenting a bounded slice as exhaustive.
+
+## Freshness and coverage
+
+Saved file create/edit/delete/rename, Git changes and configuration changes trigger debounced refresh, backed by polling. Task context, impact and path queries also verify disk content before answering. Re-query after relevant saves; do not request a full manual reindex after every edit. Source context describes saved files. Only trusted editor flow requests can carry unsaved overlays; their snapshots are separate and expire when documents change.
+
+For an empty/stale/failed index, inspect status/errors and use `contextory_code_index_refresh` when a retry can help. For partial coverage, inspect the actual gaps: file/byte bounds may call for narrower reviewed configuration, while dynamic dispatch, callbacks and external code require native inspection. Repeated refresh does not create missing language support or execution evidence.
+
+Native extraction covers TS/JS through its compiler and Python through isolated AST parsing. Markdown links and recognized configuration paths add explicit connections. Graphify JSON adds other language facts with supplied provenance. Changed cited source invalidates imported facts: regenerate the export and re-import using `contextory_code_index_refresh` with a workspace-relative `graphifyPath`; refresh alone cannot regenerate external analysis. Static calls, inferred message links and test references do not prove execution or coverage.
+
+`contextory.project.json` holds reviewed configuration: schemaVersion 1, optional name, include/exclude patterns, entryPoints, conventions, maxFiles and maxBytes. Generated topology lives in rebuildable local storage; it does not approve requirements or overwrite authoritative work records. Consult user instructions and current decisions before treating a discovered convention as a constraint.
+
+## Clients without a capability
+
+Use only the tools advertised in the current session. After an extension upgrade, an existing connection may still expose older tools until the client reloads its MCP connection. Continue useful work with available search/flow tools, the packaged CLI, or native `rg`/file reads; state the missing graph coverage when it affects conclusions. Hooks are advisory and optional.
+
+Run `node <installation>/dist/contextory.mjs help` for current CLI inputs. `context`, `impact`, `path`, `architecture` and `index` return JSON; `mcp` starts a hook-free stdio server. Supply the intended `--root` and either the existing service `--descriptor` or deliberately chosen `--storage` so the client reads the intended workspace and ledger. CLI code lookups do not replace MCP workflow mutations. Preserve the user's task and the host's permissions.

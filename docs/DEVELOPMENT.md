@@ -1,5 +1,17 @@
 # Develop and release Contextory
 
+For 0.3.0 code intelligence, see the [implementation plan](CODEBASE-INTELLIGENCE-PLAN.md) and [runtime/configuration guide](CODEBASE-INTELLIGENCE.md). Build also emits `dist/codebase-worker.mjs`, `dist/python-index.py` and `dist/contextory.mjs`. Canonical portable resources live in `skills/`; `npm run skills:package` generates their TypeScript bundle and `npm run skills:check` rejects drift. `npm run check` includes that drift check. `npm run evaluate:codebase` produces a repeatable retrieval/relationship/freshness report in `artifacts/codebase-evaluation.json`. Preview now also serves `/architecture.html`.
+
+Headless CLI/MCP uses `.contextory-local/service` by default or an explicit storage path; it can attach to the editor's generic descriptor to share its ledger. This is an intentional addition to the development-cache-only use of `.contextory-local` in older builds. Back up the standalone service directory when it contains authoritative work records.
+
+## Maintain agent instructions
+
+Edit portable behavior in `skills/` and shared runtime guidance in `src/agents/instructions.ts`. Native/headless MCP initialization and workspace briefs use the same full instructions; lifecycle hooks use shared compact retrieval/completion reminders. Per-tool descriptions in `src/contracts/tools.ts` explain selection and input/coverage semantics. Host discovery, paths and output formats belong in `src/providers/clients.ts`.
+
+Run `npm run skills:sync` after editing canonical skills. It regenerates the runtime bundle and updates both skills plus their references in `.agents/skills`, `.claude/skills`, `.bob/skills` and `.contextory/skills`, leaving MCP/hook configuration untouched. All resources are preflighted together; unowned files and linked ancestors are preserved by refusing the sync. `npm run skills:workspace-check` detects missing or changed local copies. These copies are workspace-local; a fresh clone needs sync before this optional workspace check, whereas `npm run check` only requires canonical bundle consistency.
+
+The repository's `AGENTS.md` links to canonical skills; `CLAUDE.md` imports it. These developer entry files are excluded from the distributable. Installed extensions provide the portable resources and shared MCP instructions for the target project. Do not impose this repository's development commands or source paths on other projects. Generic clients install the exported folders into their own supported discovery location; hooks are optional.
+
 ## Set up
 
 Use Node.js 24+ and npm. Python 3.10+ is needed for the Python analysis tests. Windows is the currently qualified host.
@@ -48,7 +60,9 @@ $taskBob = Join-Path $env:LOCALAPPDATA 'Programs\IBM Bob\IBM Bob.exe'
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/host-smoke.ps1 -HostName bob -Executable $taskBob
 ```
 
-The host test uses a unique disposable workspace and user/extensions directories. It validates activation, commands, the external service, provider configuration, Python/TS flow, overlays, relationship panels, request reports, and persistent records. It writes `artifacts/host-vscode.json` or `artifacts/host-bob.json`. To test a package, extract the VSIX ZIP into a fresh `.contextory-local` directory and pass the extracted `extension` directory through `-ExtensionPath`.
+The host test uses a unique disposable workspace and user/extensions directories. It validates activation, commands, the external service, provider configuration, Python/TS flow, overlays, relationship panels, request reports, and persistent records. Inactive fixtures with the exact Codex and Claude extension IDs verify automatic discovery before opening Contextory, without activating a native agent. The Bob host must additionally prepare its own bridge. Pause/resume must persist without changing existing MCP bytes. Add `-StartPaused` to verify a fresh workspace creates no provider configuration until resumed.
+
+It writes `artifacts/host-vscode.json` or `artifacts/host-bob.json`, or a filename matching a custom `-HostName`. To test a package, extract the VSIX ZIP into a fresh `.contextory-local` directory and pass the extracted `extension` directory through `-ExtensionPath`.
 
 Host tests and protocol fixtures do not drive an authenticated model conversation. Qualify the actual native agent trust/reload and end-to-end chat workflow separately before claiming it in release notes. See the [validation record](VALIDATION.md).
 

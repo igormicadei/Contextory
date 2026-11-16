@@ -3,12 +3,15 @@ import type {
   Audit,
   HistoryPage,
   Dashboard,
+  AgentAutomation,
   Entity,
   FlowGraph,
   SourceRef,
 } from "../contracts/model";
 import { escape, button, badge, sourceButton } from "./html";
 import { relationshipView } from "./relationships";
+import { architectureView, type Architecture, type CodeContext } from "./architecture";
+import { clients, clientIds } from "../providers/clients";
 import contextoryIcon from "../../media/contextory.svg";
 import type { UsageSummary } from "../contracts/usage";
 declare function acquireVsCodeApi(): {
@@ -19,6 +22,7 @@ declare function acquireVsCodeApi(): {
 const host = acquireVsCodeApi();
 const app = document.querySelector<HTMLDivElement>("#app")!;
 let dashboard: Dashboard | undefined;
+let automation: AgentAutomation | undefined;
 let entitiesById = new Map<string, Entity>();
 let childrenById = new Map<string, Entity[]>();
 let searchableRequests = new Map<string, string>();
@@ -47,12 +51,15 @@ let graph: FlowGraph | undefined;
 const surface = document.body.dataset.surface ?? "sidebar";
 const flowOnly = surface === "flow";
 const relationshipsOnly = surface === "relationships";
+const architectureOnly = surface === "architecture";
+let architecture: Architecture | undefined;
+let codeContext: CodeContext | undefined;
 const panelShape = window.matchMedia(
   "(min-width: 760px) and (min-aspect-ratio: 3/2)",
 );
 const horizontalLayout = () => surface === "sidebar" && panelShape.matches;
 let relationships: RelationshipGraph | undefined;
-let screen = relationshipsOnly
+let screen = architectureOnly ? "architecture" : relationshipsOnly
   ? "relationships"
   : flowOnly
     ? "map"
@@ -115,20 +122,19 @@ const requestState = (r: Entity) => {
 };
 function connections() {
   return `<div class="connections" role="group" aria-label="Native agents">${(
-    ["codex", "claude", "bob"] as const
+    clientIds.filter(id=>id!=="generic" || dashboard?.connections.some(c=>c.provider==="generic"))
   )
     .map((provider) => {
       const c = dashboard?.connections.find((c) => c.provider === provider);
-      const name =
-        provider === "codex"
-          ? "Codex"
-          : provider === "claude"
-            ? "Claude Code"
-            : "IBM Bob";
+      const name = clients[provider].label;
       const online = c?.configured && c.mcpSeen;
       return `<button class="connection" data-action="${c?.configured ? "disconnect" : "connect"}" data-provider="${provider}" aria-label="${c?.configured ? "Disconnect" : "Connect"} ${name}" title="${name}: ${online ? "MCP observed" : c?.configured ? "Waiting for native connection" : "Disconnected"}"><strong>${name}</strong><span class="status-dot ${online ? "online" : ""}" role="img" aria-label="${online ? "Connected" : "Not connected"}"></span></button>`;
     })
     .join("")}</div>`;
+}
+function autoConnectSwitch() {
+  const enabled = automation?.enabled ?? true;
+  return `<button class="automation-toggle" role="switch" aria-checked="${enabled}" aria-label="Auto-connect" data-action="autoConnect" ${automation ? "" : "disabled"} title="${enabled ? "Pause automatic agent connections" : "Resume automatic agent connections"}. Existing connections stay available."><span>Auto-connect</span><span class="toggle-track" aria-hidden="true"></span></button>`;
 }
 function requestProgress(request: Entity) {
   const specs = requestSpecs(request.id);
@@ -384,6 +390,7 @@ function render() {
     ["requests", "Requests"],
     ["history", "History"],
     ["map", "Code map"],
+    ["architecture", "Architecture"],
   ]
     .map(
       ([id, label]) =>
@@ -391,7 +398,7 @@ function render() {
     )
     .join(
       "",
-    )}</nav>${notice ? `<div class="notice" role="status"><span>${escape(notice)}</span>${button("dismiss", "×", 'aria-label="Dismiss notification"', "icon-button")}</div>` : ""}${busy ? '<div class="loading-line" role="progressbar" aria-label="Contextory is working"></div>' : ""}<main>${!dashboard && screen !== "map" && screen !== "relationships" ? empty("Open your workspace", "Contextory connects your native agents to shared project records. Open a trusted folder, then refresh.", button("refresh", "Refresh", "", "primary")) : screen === "relationships" ? relationshipView(relationships) : screen === "requests" ? requestTree() : screen === "history" ? historyView() : screen === "map" ? map() : overview()}</main><footer>${surface === "sidebar" ? connections() : ""}<div class="workspace-status"><span class="status-dot ${dashboard ? "online" : ""}"></span><span>${dashboard ? escape(dashboard.root.split(/[\\/]/).pop()) : "Open a workspace"}</span><span class="footer-label">Native conversation &middot; durable context</span></div></footer>`;
+    )}</nav>${notice ? `<div class="notice" role="status"><span>${escape(notice)}</span>${button("dismiss", "×", 'aria-label="Dismiss notification"', "icon-button")}</div>` : ""}${busy ? '<div class="loading-line" role="progressbar" aria-label="Contextory is working"></div>' : ""}<main>${!dashboard && screen !== "map" && screen !== "relationships" ? empty("Open your workspace", "Contextory connects your native agents to shared project records. Open a trusted folder, then refresh.", button("refresh", "Refresh", "", "primary")) : screen === "architecture" ? architectureView(architecture, codeContext, drafts.codeQuery ?? "", architectureOnly) : screen === "relationships" ? relationshipView(relationships) : screen === "requests" ? requestTree() : screen === "history" ? historyView() : screen === "map" ? map() : overview()}</main><footer>${surface === "sidebar" ? connections() : ""}<div class="workspace-status"><span class="status-dot ${dashboard ? "online" : ""}"></span><span>${dashboard ? escape(dashboard.root.split(/[\\/]/).pop()) : "Open a workspace"}</span>${surface === "sidebar" ? autoConnectSwitch() : '<span class="footer-label">Native conversation &middot; durable context</span>'}</div></footer>`;
   document.querySelector<HTMLElement>("main")!.dataset.screen = screen;
   for (const scroll of scrollAreas) {
     const replacement = document.querySelector<HTMLElement>(
@@ -424,6 +431,9 @@ function render() {
   renderedView = viewKey;
 }
 const send = (message: unknown) => host.postMessage(message);
+function loadArchitecture() {
+  send({ type: "tool", requestId: "architecture", name: "contextory_code_architecture_get", arguments: {refresh:true} });
+}
 function preparePanelSelection(requestId?: string) {
   if (
     !horizontalLayout() ||
@@ -496,6 +506,10 @@ function selectRecord(id: string) {
 function action(element: Element) {
   const data = (element as HTMLElement).dataset;
   switch (data.action) {
+    case "autoConnect":
+      if (automation)
+        send({ type: "autoConnect", enabled: !automation.enabled });
+      break;
     case "exportGraphJson":
       send({ type: "graphExport", format: "json" });
       break;
@@ -528,9 +542,20 @@ function action(element: Element) {
     case "navigate":
       screen = data.screen!;
       if (screen === "history") loadHistory();
+      if (screen === "architecture") loadArchitecture();
       if (screen === "requests") preparePanelSelection();
       render();
       if (screen === "requests" && horizontalLayout()) revealSelection();
+      break;
+    case "architectureRefresh":
+      loadArchitecture();
+      break;
+    case "architecturePanel":
+      send({type:"architecturePanel"});
+      break;
+    case "architectureScope":
+      drafts.codeQuery = data.path!;
+      send({type:"tool",requestId:`code-context:${drafts.codeQuery}`,name:"contextory_code_context_get",arguments:{query:drafts.codeQuery,paths:[data.path],budgetTokens:3000}});
       break;
     case "select":
       selectRecord(data.id!);
@@ -704,6 +729,8 @@ app.addEventListener("change", (event) => {
 app.addEventListener("submit", (event) => {
   event.preventDefault();
   const form = event.target as HTMLFormElement;
+  if (form.id === "code-context-form" && drafts.codeQuery?.trim())
+    send({type:"tool",requestId:`code-context:${drafts.codeQuery}`,name:"contextory_code_context_get",arguments:{query:drafts.codeQuery,budgetTokens:3000}});
   if (form.id === "request-form") {
     send({
       type: "tool",
@@ -742,15 +769,18 @@ function loadUsage() {
 }
 window.addEventListener("message", (event) => {
   const message = event.data;
+  if (message.automation) automation = message.automation;
   if (message.type === "restore") indexDashboard(message.dashboard);
   if (message.type === "notice") notice = message.text;
   if (message.type === "busy") busy = message.value;
+  if(message.type === "toolResult" && message.requestId === "architecture") architecture = message.result;
+  if(message.type === "toolResult" && message.requestId === `code-context:${drafts.codeQuery}`) codeContext = message.result;
   if (
     message.type === "toolResult" &&
     String(message.requestId).startsWith("usage:")
   )
     usageBySpec.set(String(message.requestId).slice(6), message.result);
-  if (message.type === "flow" && !relationshipsOnly) {
+  if (message.type === "flow" && !relationshipsOnly && !architectureOnly) {
     graph = message.graph;
     screen = "map";
     nodeId = "";
@@ -814,3 +844,4 @@ panelShape.addEventListener("change", () => {
 });
 render();
 send({ type: "ready", surface });
+if (architectureOnly) loadArchitecture();

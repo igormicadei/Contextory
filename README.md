@@ -1,5 +1,7 @@
 # Contextory
 
+Local **0.3.0** adds a persistent code graph and an **Architecture** workbench: agents can retrieve definitions, callers, dependencies, tests and related project decisions together. Canonical portable skills and a standalone CLI/MCP server support clients without hooks or an editor. See the [complete plan](docs/CODEBASE-INTELLIGENCE-PLAN.md) and [codebase intelligence guide](docs/CODEBASE-INTELLIGENCE.md). This local build has not been published.
+
 **Manage requests. Give agents the full picture.**
 
 <img src="media/contextory-icon.png" alt="Contextory: a request connected to context nodes" width="96" align="right">
@@ -10,21 +12,22 @@ Your agent keeps its own conversation, model, authentication, and editing tools.
 
 [Download v0.2.3](https://github.com/igormicadei/Contextory/releases/tag/v0.2.3) · [User guide](docs/USER-GUIDE.md) · [Agent tools](docs/MCP-TOOLS.md) · [Development](docs/DEVELOPMENT.md)
 
-The local development package is **0.2.5**; the latest published GitHub release remains **0.2.3**. The Panel layout and startup-agent settings described below are included in [0.2.5](docs/releases/v0.2.5.md).
+The local development package is **0.3.0**; the latest published GitHub release remains **0.2.3**. The new package includes code intelligence and portable execution alongside [0.2.6 automatic agent discovery](docs/releases/v0.2.6.md), Panel layouts and native usage records.
 
 ## What it offers
 
-| Capability           | What you get                                                                                                                                |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Request management   | Requests broken into milestones and specs, with acceptance criteria, dependencies, progress, immutable revisions, and original user intent. |
-| Durable explanations | Issues and fixes, design choices and tradeoffs, evidence, and implementation outcomes attached to each spec.                                |
-| Shared agent context | MCP tools and managed workflow instructions let native agents retrieve and update the same project records.                                 |
-| Search               | Local lexical search over project records and indexed source; optional local vector and hybrid retrieval.                                   |
-| Relationships        | Explore how requests, specs, decisions, and source files connect, with titles, summaries, directions, and link rationale.                   |
-| Code flow            | Bounded Python and TypeScript/JavaScript call and branch diagrams, source navigation, expansion, and SVG/JSON export.                       |
-| Verified completion  | Configured checks run independently, with criterion evidence and source fingerprints checked before completion.                             |
-| Request reports      | Export a request's contracts, changes, decisions, findings, evidence, tests, and outcomes, or a completed-work changelog.                   |
-| Daily workspace UI   | Adaptive sidebar/Panel layouts, workspace identity, request progress, recent activity, full history, pinned agent controls and live themes. |
+| Capability            | What you get                                                                                                                                        |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Request management    | Requests broken into milestones and specs, with acceptance criteria, dependencies, progress, immutable revisions, and original user intent.         |
+| Durable explanations  | Issues and fixes, design choices and tradeoffs, evidence, and implementation outcomes attached to each spec.                                        |
+| Shared agent context  | MCP tools and managed workflow instructions let native agents retrieve and update the same project records.                                         |
+| Automatic connections | Detect installed Codex and Claude Code extensions and the IBM Bob editor, prepare every detected bridge at startup, or pause setup from the footer. |
+| Search                | Local lexical search over project records and indexed source; optional local vector and hybrid retrieval.                                           |
+| Relationships         | Explore how requests, specs, decisions, and source files connect, with titles, summaries, directions, and link rationale.                           |
+| Code flow             | Bounded Python and TypeScript/JavaScript call and branch diagrams, source navigation, expansion, and SVG/JSON export.                               |
+| Verified completion   | Configured checks run independently, with criterion evidence and source fingerprints checked before completion.                                     |
+| Request reports       | Export a request's contracts, changes, decisions, findings, evidence, tests, and outcomes, or a completed-work changelog.                           |
+| Daily workspace UI    | Adaptive sidebar/Panel layouts, workspace identity, request progress, recent activity, full history, pinned agent controls and live themes.         |
 
 Search, relationships, source tracing, and request/spec management are available to the **agent through MCP**, as well as to the user through the interface. Contextory does not require a separate chat turn to expose them.
 
@@ -50,18 +53,18 @@ The release includes a SHA-256 checksum. Installation details, upgrades, and tro
 
 ## Connect an agent and start work
 
-1. Click the agent's name in the sidebar footer, or run **Contextory: Connect Native Codex**, **Contextory: Connect Native Claude Code**, or **Contextory: Connect Native IBM Bob** from the Command Palette.
+1. In local version **0.2.6**, open a trusted project folder: Contextory detects installed Codex and Claude Code extensions and recognizes IBM Bob, then prepares every detected agent's MCP/hooks before its view or an agent session needs to open. For earlier versions or manual setup, click the agent's footer control or run **Contextory: Connect Native …**.
 2. Review the generated project MCP/hook configuration. Approve it through the native client's own trust flow, then reload its MCP configuration or restart its session as needed.
 3. Configure your project's check recipes in workspace settings so the agent can verify tracked specs. The [user guide](docs/USER-GUIDE.md#configure-checks) has examples.
 4. Continue in your native agent's chat. For example:
 
    > Use Contextory to track this request: add retry handling to checkout. Look up earlier payment decisions, split the request into milestones and specs, inspect the affected call flow, and record the changes, decisions, and test evidence. Complete each spec after verification.
 
-The managed `contextory-workflow` skill and MCP instructions describe the workflow. The agent reads context, registers its session, claims a spec, records explanations, runs checks, submits an outcome, and explicitly requests verified completion. Completing every spec rolls up the milestone and request status.
+The managed `contextory-workflow` skill and MCP instructions describe the workflow. The agent reads context, registers its session, claims a spec, records explanations, runs checks, submits an outcome, and explicitly requests verified completion. Completing every spec rolls up the milestone and request status. Local 0.3.0 also installs `contextory-codebase`: it explains scoped source retrieval, relationship tracing, earlier decisions, freshness and capability fallback. Both skills share the same content across supported agents, with generic MCP export for other clients; hooks are optional.
 
 A green agent light means configured MCP traffic has been observed. Grey means unconfigured or awaiting traffic; hover for detail. Clicking a configured agent disconnects its owned configuration. The light is not a model sign-in indicator.
 
-Starting with 0.2.5, Contextory prepares the last-used agent's MCP/hooks as soon as the extension is ready in a trusted folder, even with its view closed. Set `contextory.startupAgent` to `codex`, `claude`, or `bob` for a fixed default, or `none` to disable automatic selection. Native clients still own session startup and trust/reload. A manual disconnect stays disabled in that workspace until reconnected. See [startup settings](docs/USER-GUIDE.md#prepare-the-connection-at-startup).
+Starting with **0.2.6**, `contextory.startupAgent` defaults to `auto`, preparing all detected supported agents. Pause automatic setup with the footer's **Auto-connect** switch or `contextory.autoConnect`; existing connections and records stay available. Fixed providers, `last-used`, and `none` remain optional startup modes. A manual disconnect stays disabled in that workspace until reconnected. Native clients own trust and MCP reload, so first-time setup in an already-running session can still need native approval or an extension/session restart. See [startup settings](docs/USER-GUIDE.md#prepare-the-connection-at-startup).
 
 ## How it works
 

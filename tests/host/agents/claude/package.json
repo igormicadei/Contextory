@@ -1,0 +1,11 @@
+{
+  "name": "claude-code",
+  "publisher": "Anthropic",
+  "version": "0.0.1",
+  "displayName": "Contextory test: inactive Claude detection fixture",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "main": "./index.cjs",
+  "activationEvents": []
+}
