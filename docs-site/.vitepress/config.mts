@@ -16,6 +16,7 @@ export default withMermaid(
     cacheDir: "../.contextory-local/docs-cache",
     cleanUrls: false,
     lastUpdated: false,
+    vite: { esbuild: { charset: "ascii" } },
     head: [
       ["link", { rel: "icon", href: "/Contextory/media/contextory-icon.png" }],
     ],
