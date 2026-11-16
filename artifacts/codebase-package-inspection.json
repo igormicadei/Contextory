@@ -1,0 +1,11 @@
+﻿{
+    "developmentResourcesExcluded":  true,
+    "recordedAt":  "2026-11-16T13:22:50.9818965Z",
+    "packagedCliContextPassed":  true,
+    "version":  "0.3.0",
+    "sha256":  "676d1bdb6da154d7773a6b864f2e5e18b89643ecd84323678f3276f52e8edc3a",
+    "bytes":  3947662,
+    "requiredWorkersParsersSkillsPresent":  true,
+    "runtimeFilesIdenticalToHostTestedPackage":  18,
+    "extensionRoot":  "C:\\Projetos\\Contextory\\.contextory-local\\codebase-final-bbe5dabcd994488c9b8a245bab8fed33\\extension"
+}

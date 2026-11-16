@@ -1,0 +1,16 @@
+{
+  "recordedAt": "2026-11-11T14:29:47.468Z",
+  "vscode": "1.145.3",
+  "checks": [
+    "extension activation",
+    "command registration",
+    "webview view opens",
+    "preview reset command",
+    "bundled plan preview command",
+    "F5 preview development host stays running without inspector attachment"
+  ],
+  "passed": true,
+  "debugOutput": [
+    "js-debug/launch"
+  ]
+}

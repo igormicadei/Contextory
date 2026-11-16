@@ -1,0 +1,26 @@
+{
+  "version": "0.3.0",
+  "pages": [
+    "changelog.html",
+    "docs/CODEBASE-INTELLIGENCE-PLAN.html",
+    "docs/CODEBASE-INTELLIGENCE.html",
+    "docs/DEVELOPMENT.html",
+    "docs/MCP-TOOLS.html",
+    "docs/NATIVE-AGENT-ARCHITECTURE.html",
+    "docs/NATIVE-AGENT-PLAN.html",
+    "docs/SPEC-OUTCOME-TEMPLATE.html",
+    "docs/USER-GUIDE.html",
+    "docs/VALIDATION.html",
+    "docs/releases/v0.2.3.html",
+    "docs/releases/v0.2.4.html",
+    "docs/releases/v0.2.5.html",
+    "docs/releases/v0.2.6.html",
+    "docs/releases/v0.3.0.html",
+    "index.html",
+    "overview.html",
+    "skills/contextory-codebase/SKILL.html",
+    "skills/contextory-codebase/references/retrieval.html",
+    "skills/contextory-workflow/SKILL.html",
+    "skills/contextory-workflow/references/completion.html"
+  ]
+}

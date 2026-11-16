@@ -1,0 +1,3016 @@
+{
+  "recordedAt": "2026-11-12T15:33:32.769Z",
+  "hardware": {
+    "cpu": "Intel(R) Core(TM) Ultra 9 285H",
+    "logicalCpus": 16,
+    "totalMemoryGiB": 31.4
+  },
+  "node": "24.19.0",
+  "fixture": {
+    "sourceFiles": 200,
+    "functionsPerLanguage": 2200,
+    "records": 2000,
+    "callDepth": 5
+  },
+  "summary": {
+    "serviceStart": {
+      "samples": 1,
+      "minMs": 41.34,
+      "medianMs": 41.34,
+      "p95Ms": 41.34
+    },
+    "seed2000Records": {
+      "samples": 1,
+      "minMs": 508.04,
+      "medianMs": 508.04,
+      "p95Ms": 508.04
+    },
+    "healthRpc": {
+      "samples": 30,
+      "minMs": 3.34,
+      "medianMs": 15.94,
+      "p95Ms": 19.17
+    },
+    "lexicalSearch": {
+      "samples": 20,
+      "minMs": 6.85,
+      "medianMs": 15.95,
+      "p95Ms": 20.01
+    },
+    "flowColdWorker": {
+      "samples": 1,
+      "minMs": 472.46,
+      "medianMs": 472.46,
+      "p95Ms": 472.46
+    },
+    "flowWarm": {
+      "samples": 10,
+      "minMs": 61.14,
+      "medianMs": 66.28,
+      "p95Ms": 72.16
+    },
+    "healthDuringAnalysis": {
+      "samples": 20,
+      "minMs": 21.26,
+      "medianMs": 21.98,
+      "p95Ms": 25.09
+    },
+    "pythonFlowCold": {
+      "samples": 1,
+      "minMs": 250.56,
+      "medianMs": 250.56,
+      "p95Ms": 250.56
+    },
+    "pythonFlowRepeat": {
+      "samples": 10,
+      "minMs": 206.46,
+      "medianMs": 230.46,
+      "p95Ms": 260.55
+    },
+    "healthDuringPythonAnalysis": {
+      "samples": 20,
+      "minMs": 12.43,
+      "medianMs": 19.48,
+      "p95Ms": 21.32
+    },
+    "dashboard2000Records": {
+      "samples": 10,
+      "minMs": 14.5,
+      "medianMs": 17.25,
+      "p95Ms": 18.6
+    },
+    "hookProcess": {
+      "samples": 8,
+      "minMs": 104.66,
+      "medianMs": 128.81,
+      "p95Ms": 152.07
+    },
+    "sourceIndex200Files": {
+      "samples": 1,
+      "minMs": 1019.9,
+      "medianMs": 1019.9,
+      "p95Ms": 1019.9
+    }
+  },
+  "sourceIndex": {
+    "files": 200,
+    "chunks": 400,
+    "partial": false
+  },
+  "flow": {
+    "id": "99ebbd37-3895-498c-bc87-e08c96eb4812",
+    "snapshotId": "f490317ea7036be564c0c5e13511bc3db2446a3d95f4221832acb24772ac5128",
+    "root": {
+      "path": "file0.ts",
+      "symbol": "start"
+    },
+    "view": "flow",
+    "engine": "typescript-5.9.3",
+    "nodes": [
+      {
+        "id": "n1",
+        "kind": "function",
+        "label": "start",
+        "source": {
+          "path": "file0.ts",
+          "line": 0,
+          "character": 39
+        },
+        "depth": 0
+      },
+      {
+        "id": "n2",
+        "kind": "exit",
+        "label": "function exit",
+        "source": {
+          "path": "file0.ts",
+          "line": 0,
+          "character": 39
+        },
+        "depth": 0
+      },
+      {
+        "id": "n3",
+        "kind": "throw",
+        "label": "uncaught exception",
+        "source": {
+          "path": "file0.ts",
+          "line": 0,
+          "character": 39
+        },
+        "depth": 0
+      },
+      {
+        "id": "n4",
+        "kind": "branch",
+        "label": "ok",
+        "source": {
+          "path": "file0.ts",
+          "line": 0,
+          "character": 73
+        },
+        "depth": 0
+      },
+      {
+        "id": "n5",
+        "kind": "statement",
+        "label": "next()",
+        "source": {
+          "path": "file0.ts",
+          "line": 0,
+          "character": 77
+        },
+        "depth": 0
+      },
+      {
+        "id": "n6",
+        "kind": "call",
+        "label": "next()",
+        "source": {
+          "path": "file0.ts",
+          "line": 0,
+          "character": 77
+        },
+        "depth": 0
+      },
+      {
+        "id": "n7",
+        "kind": "function",
+        "label": "start",
+        "source": {
+          "path": "file1.ts",
+          "line": 0,
+          "character": 39
+        },
+        "depth": 1
+      },
+      {
+        "id": "n8",
+        "kind": "statement",
+        "label": "leaf0()",
+        "source": {
+          "path": "file0.ts",
+          "line": 0,
+          "character": 89
+        },
+        "depth": 0
+      },
+      {
+        "id": "n9",
+        "kind": "call",
+        "label": "leaf0()",
+        "source": {
+          "path": "file0.ts",
+          "line": 0,
+          "character": 89
+        },
+        "depth": 0
+      },
+      {
+        "id": "n10",
+        "kind": "function",
+        "label": "leaf0",
+        "source": {
+          "path": "file0.ts",
+          "line": 0,
+          "character": 99
+        },
+        "depth": 1
+      },
+      {
+        "id": "n11",
+        "kind": "exit",
+        "label": "function exit",
+        "source": {
+          "path": "file1.ts",
+          "line": 0,
+          "character": 39
+        },
+        "depth": 1
+      },
+      {
+        "id": "n12",
+        "kind": "throw",
+        "label": "uncaught exception",
+        "source": {
+          "path": "file1.ts",
+          "line": 0,
+          "character": 39
+        },
+        "depth": 1
+      },
+      {
+        "id": "n13",
+        "kind": "branch",
+        "label": "ok",
+        "source": {
+          "path": "file1.ts",
+          "line": 0,
+          "character": 73
+        },
+        "depth": 1
+      },
+      {
+        "id": "n14",
+        "kind": "statement",
+        "label": "next()",
+        "source": {
+          "path": "file1.ts",
+          "line": 0,
+          "character": 77
+        },
+        "depth": 1
+      },
+      {
+        "id": "n15",
+        "kind": "call",
+        "label": "next()",
+        "source": {
+          "path": "file1.ts",
+          "line": 0,
+          "character": 77
+        },
+        "depth": 1
+      },
+      {
+        "id": "n16",
+        "kind": "function",
+        "label": "start",
+        "source": {
+          "path": "file2.ts",
+          "line": 0,
+          "character": 39
+        },
+        "depth": 2
+      },
+      {
+        "id": "n17",
+        "kind": "statement",
+        "label": "leaf0()",
+        "source": {
+          "path": "file1.ts",
+          "line": 0,
+          "character": 89
+        },
+        "depth": 1
+      },
+      {
+        "id": "n18",
+        "kind": "call",
+        "label": "leaf0()",
+        "source": {
+          "path": "file1.ts",
+          "line": 0,
+          "character": 89
+        },
+        "depth": 1
+      },
+      {
+        "id": "n19",
+        "kind": "function",
+        "label": "leaf0",
+        "source": {
+          "path": "file1.ts",
+          "line": 0,
+          "character": 99
+        },
+        "depth": 2
+      },
+      {
+        "id": "n20",
+        "kind": "exit",
+        "label": "function exit",
+        "source": {
+          "path": "file0.ts",
+          "line": 0,
+          "character": 99
+        },
+        "depth": 1
+      },
+      {
+        "id": "n21",
+        "kind": "throw",
+        "label": "uncaught exception",
+        "source": {
+          "path": "file0.ts",
+          "line": 0,
+          "character": 99
+        },
+        "depth": 1
+      },
+      {
+        "id": "n22",
+        "kind": "return",
+        "label": "return 0",
+        "source": {
+          "path": "file0.ts",
+          "line": 0,
+          "character": 116
+        },
+        "depth": 1
+      },
+      {
+        "id": "n23",
+        "kind": "exit",
+        "label": "function exit",
+        "source": {
+          "path": "file2.ts",
+          "line": 0,
+          "character": 39
+        },
+        "depth": 2
+      },
+      {
+        "id": "n24",
+        "kind": "throw",
+        "label": "uncaught exception",
+        "source": {
+          "path": "file2.ts",
+          "line": 0,
+          "character": 39
+        },
+        "depth": 2
+      },
+      {
+        "id": "n25",
+        "kind": "branch",
+        "label": "ok",
+        "source": {
+          "path": "file2.ts",
+          "line": 0,
+          "character": 73
+        },
+        "depth": 2
+      },
+      {
+        "id": "n26",
+        "kind": "statement",
+        "label": "next()",
+        "source": {
+          "path": "file2.ts",
+          "line": 0,
+          "character": 77
+        },
+        "depth": 2
+      },
+      {
+        "id": "n27",
+        "kind": "call",
+        "label": "next()",
+        "source": {
+          "path": "file2.ts",
+          "line": 0,
+          "character": 77
+        },
+        "depth": 2
+      },
+      {
+        "id": "n28",
+        "kind": "function",
+        "label": "start",
+        "source": {
+          "path": "file3.ts",
+          "line": 0,
+          "character": 39
+        },
+        "depth": 3
+      },
+      {
+        "id": "n29",
+        "kind": "statement",
+        "label": "leaf0()",
+        "source": {
+          "path": "file2.ts",
+          "line": 0,
+          "character": 89
+        },
+        "depth": 2
+      },
+      {
+        "id": "n30",
+        "kind": "call",
+        "label": "leaf0()",
+        "source": {
+          "path": "file2.ts",
+          "line": 0,
+          "character": 89
+        },
+        "depth": 2
+      },
+      {
+        "id": "n31",
+        "kind": "function",
+        "label": "leaf0",
+        "source": {
+          "path": "file2.ts",
+          "line": 0,
+          "character": 99
+        },
+        "depth": 3
+      },
+      {
+        "id": "n32",
+        "kind": "exit",
+        "label": "function exit",
+        "source": {
+          "path": "file1.ts",
+          "line": 0,
+          "character": 99
+        },
+        "depth": 2
+      },
+      {
+        "id": "n33",
+        "kind": "throw",
+        "label": "uncaught exception",
+        "source": {
+          "path": "file1.ts",
+          "line": 0,
+          "character": 99
+        },
+        "depth": 2
+      },
+      {
+        "id": "n34",
+        "kind": "return",
+        "label": "return 0",
+        "source": {
+          "path": "file1.ts",
+          "line": 0,
+          "character": 116
+        },
+        "depth": 2
+      },
+      {
+        "id": "n35",
+        "kind": "exit",
+        "label": "function exit",
+        "source": {
+          "path": "file3.ts",
+          "line": 0,
+          "character": 39
+        },
+        "depth": 3
+      },
+      {
+        "id": "n36",
+        "kind": "throw",
+        "label": "uncaught exception",
+        "source": {
+          "path": "file3.ts",
+          "line": 0,
+          "character": 39
+        },
+        "depth": 3
+      },
+      {
+        "id": "n37",
+        "kind": "branch",
+        "label": "ok",
+        "source": {
+          "path": "file3.ts",
+          "line": 0,
+          "character": 73
+        },
+        "depth": 3
+      },
+      {
+        "id": "n38",
+        "kind": "statement",
+        "label": "next()",
+        "source": {
+          "path": "file3.ts",
+          "line": 0,
+          "character": 77
+        },
+        "depth": 3
+      },
+      {
+        "id": "n39",
+        "kind": "call",
+        "label": "next()",
+        "source": {
+          "path": "file3.ts",
+          "line": 0,
+          "character": 77
+        },
+        "depth": 3
+      },
+      {
+        "id": "n40",
+        "kind": "function",
+        "label": "start",
+        "source": {
+          "path": "file4.ts",
+          "line": 0,
+          "character": 39
+        },
+        "depth": 4
+      },
+      {
+        "id": "n41",
+        "kind": "statement",
+        "label": "leaf0()",
+        "source": {
+          "path": "file3.ts",
+          "line": 0,
+          "character": 89
+        },
+        "depth": 3
+      },
+      {
+        "id": "n42",
+        "kind": "call",
+        "label": "leaf0()",
+        "source": {
+          "path": "file3.ts",
+          "line": 0,
+          "character": 89
+        },
+        "depth": 3
+      },
+      {
+        "id": "n43",
+        "kind": "function",
+        "label": "leaf0",
+        "source": {
+          "path": "file3.ts",
+          "line": 0,
+          "character": 99
+        },
+        "depth": 4
+      },
+      {
+        "id": "n44",
+        "kind": "exit",
+        "label": "function exit",
+        "source": {
+          "path": "file2.ts",
+          "line": 0,
+          "character": 99
+        },
+        "depth": 3
+      },
+      {
+        "id": "n45",
+        "kind": "throw",
+        "label": "uncaught exception",
+        "source": {
+          "path": "file2.ts",
+          "line": 0,
+          "character": 99
+        },
+        "depth": 3
+      },
+      {
+        "id": "n46",
+        "kind": "return",
+        "label": "return 0",
+        "source": {
+          "path": "file2.ts",
+          "line": 0,
+          "character": 116
+        },
+        "depth": 3
+      },
+      {
+        "id": "n47",
+        "kind": "exit",
+        "label": "function exit",
+        "source": {
+          "path": "file4.ts",
+          "line": 0,
+          "character": 39
+        },
+        "depth": 4
+      },
+      {
+        "id": "n48",
+        "kind": "throw",
+        "label": "uncaught exception",
+        "source": {
+          "path": "file4.ts",
+          "line": 0,
+          "character": 39
+        },
+        "depth": 4
+      },
+      {
+        "id": "n49",
+        "kind": "branch",
+        "label": "ok",
+        "source": {
+          "path": "file4.ts",
+          "line": 0,
+          "character": 73
+        },
+        "depth": 4
+      },
+      {
+        "id": "n50",
+        "kind": "statement",
+        "label": "next()",
+        "source": {
+          "path": "file4.ts",
+          "line": 0,
+          "character": 77
+        },
+        "depth": 4
+      },
+      {
+        "id": "n51",
+        "kind": "call",
+        "label": "next()",
+        "source": {
+          "path": "file4.ts",
+          "line": 0,
+          "character": 77
+        },
+        "depth": 4
+      },
+      {
+        "id": "n52",
+        "kind": "function",
+        "label": "start",
+        "source": {
+          "path": "file5.ts",
+          "line": 0,
+          "character": 39
+        },
+        "depth": 5
+      },
+      {
+        "id": "n53",
+        "kind": "statement",
+        "label": "leaf0()",
+        "source": {
+          "path": "file4.ts",
+          "line": 0,
+          "character": 89
+        },
+        "depth": 4
+      },
+      {
+        "id": "n54",
+        "kind": "call",
+        "label": "leaf0()",
+        "source": {
+          "path": "file4.ts",
+          "line": 0,
+          "character": 89
+        },
+        "depth": 4
+      },
+      {
+        "id": "n55",
+        "kind": "function",
+        "label": "leaf0",
+        "source": {
+          "path": "file4.ts",
+          "line": 0,
+          "character": 99
+        },
+        "depth": 5
+      },
+      {
+        "id": "n56",
+        "kind": "exit",
+        "label": "function exit",
+        "source": {
+          "path": "file3.ts",
+          "line": 0,
+          "character": 99
+        },
+        "depth": 4
+      },
+      {
+        "id": "n57",
+        "kind": "throw",
+        "label": "uncaught exception",
+        "source": {
+          "path": "file3.ts",
+          "line": 0,
+          "character": 99
+        },
+        "depth": 4
+      },
+      {
+        "id": "n58",
+        "kind": "return",
+        "label": "return 0",
+        "source": {
+          "path": "file3.ts",
+          "line": 0,
+          "character": 116
+        },
+        "depth": 4
+      },
+      {
+        "id": "n59",
+        "kind": "exit",
+        "label": "function exit",
+        "source": {
+          "path": "file5.ts",
+          "line": 0,
+          "character": 39
+        },
+        "depth": 5
+      },
+      {
+        "id": "n60",
+        "kind": "throw",
+        "label": "uncaught exception",
+        "source": {
+          "path": "file5.ts",
+          "line": 0,
+          "character": 39
+        },
+        "depth": 5
+      },
+      {
+        "id": "n61",
+        "kind": "branch",
+        "label": "ok",
+        "source": {
+          "path": "file5.ts",
+          "line": 0,
+          "character": 73
+        },
+        "depth": 5
+      },
+      {
+        "id": "n62",
+        "kind": "statement",
+        "label": "next()",
+        "source": {
+          "path": "file5.ts",
+          "line": 0,
+          "character": 77
+        },
+        "depth": 5
+      },
+      {
+        "id": "n63",
+        "kind": "call",
+        "label": "next()",
+        "source": {
+          "path": "file5.ts",
+          "line": 0,
+          "character": 77
+        },
+        "depth": 5
+      },
+      {
+        "id": "n64",
+        "kind": "statement",
+        "label": "leaf0()",
+        "source": {
+          "path": "file5.ts",
+          "line": 0,
+          "character": 89
+        },
+        "depth": 5
+      },
+      {
+        "id": "n65",
+        "kind": "call",
+        "label": "leaf0()",
+        "source": {
+          "path": "file5.ts",
+          "line": 0,
+          "character": 89
+        },
+        "depth": 5
+      },
+      {
+        "id": "n66",
+        "kind": "exit",
+        "label": "function exit",
+        "source": {
+          "path": "file4.ts",
+          "line": 0,
+          "character": 99
+        },
+        "depth": 5
+      },
+      {
+        "id": "n67",
+        "kind": "throw",
+        "label": "uncaught exception",
+        "source": {
+          "path": "file4.ts",
+          "line": 0,
+          "character": 99
+        },
+        "depth": 5
+      },
+      {
+        "id": "n68",
+        "kind": "return",
+        "label": "return 0",
+        "source": {
+          "path": "file4.ts",
+          "line": 0,
+          "character": 116
+        },
+        "depth": 5
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "from": "n5",
+        "to": "n2",
+        "kind": "next"
+      },
+      {
+        "id": "e2",
+        "from": "n6",
+        "to": "n7",
+        "kind": "calls",
+        "label": "call",
+        "source": {
+          "path": "file0.ts",
+          "line": 0,
+          "character": 77
+        }
+      },
+      {
+        "id": "e3",
+        "from": "n6",
+        "to": "n5",
+        "kind": "continuation",
+        "label": "on return"
+      },
+      {
+        "id": "e4",
+        "from": "n4",
+        "to": "n6",
+        "kind": "branch",
+        "label": "true"
+      },
+      {
+        "id": "e5",
+        "from": "n8",
+        "to": "n2",
+        "kind": "next"
+      },
+      {
+        "id": "e6",
+        "from": "n9",
+        "to": "n10",
+        "kind": "calls",
+        "label": "call",
+        "source": {
+          "path": "file0.ts",
+          "line": 0,
+          "character": 89
+        }
+      },
+      {
+        "id": "e7",
+        "from": "n9",
+        "to": "n8",
+        "kind": "continuation",
+        "label": "on return"
+      },
+      {
+        "id": "e8",
+        "from": "n4",
+        "to": "n9",
+        "kind": "branch",
+        "label": "false"
+      },
+      {
+        "id": "e9",
+        "from": "n1",
+        "to": "n4",
+        "kind": "entry"
+      },
+      {
+        "id": "e10",
+        "from": "n14",
+        "to": "n11",
+        "kind": "next"
+      },
+      {
+        "id": "e11",
+        "from": "n15",
+        "to": "n16",
+        "kind": "calls",
+        "label": "call",
+        "source": {
+          "path": "file1.ts",
+          "line": 0,
+          "character": 77
+        }
+      },
+      {
+        "id": "e12",
+        "from": "n15",
+        "to": "n14",
+        "kind": "continuation",
+        "label": "on return"
+      },
+      {
+        "id": "e13",
+        "from": "n13",
+        "to": "n15",
+        "kind": "branch",
+        "label": "true"
+      },
+      {
+        "id": "e14",
+        "from": "n17",
+        "to": "n11",
+        "kind": "next"
+      },
+      {
+        "id": "e15",
+        "from": "n18",
+        "to": "n19",
+        "kind": "calls",
+        "label": "call",
+        "source": {
+          "path": "file1.ts",
+          "line": 0,
+          "character": 89
+        }
+      },
+      {
+        "id": "e16",
+        "from": "n18",
+        "to": "n17",
+        "kind": "continuation",
+        "label": "on return"
+      },
+      {
+        "id": "e17",
+        "from": "n13",
+        "to": "n18",
+        "kind": "branch",
+        "label": "false"
+      },
+      {
+        "id": "e18",
+        "from": "n7",
+        "to": "n13",
+        "kind": "entry"
+      },
+      {
+        "id": "e19",
+        "from": "n22",
+        "to": "n20",
+        "kind": "return"
+      },
+      {
+        "id": "e20",
+        "from": "n10",
+        "to": "n22",
+        "kind": "entry"
+      },
+      {
+        "id": "e21",
+        "from": "n26",
+        "to": "n23",
+        "kind": "next"
+      },
+      {
+        "id": "e22",
+        "from": "n27",
+        "to": "n28",
+        "kind": "calls",
+        "label": "call",
+        "source": {
+          "path": "file2.ts",
+          "line": 0,
+          "character": 77
+        }
+      },
+      {
+        "id": "e23",
+        "from": "n27",
+        "to": "n26",
+        "kind": "continuation",
+        "label": "on return"
+      },
+      {
+        "id": "e24",
+        "from": "n25",
+        "to": "n27",
+        "kind": "branch",
+        "label": "true"
+      },
+      {
+        "id": "e25",
+        "from": "n29",
+        "to": "n23",
+        "kind": "next"
+      },
+      {
+        "id": "e26",
+        "from": "n30",
+        "to": "n31",
+        "kind": "calls",
+        "label": "call",
+        "source": {
+          "path": "file2.ts",
+          "line": 0,
+          "character": 89
+        }
+      },
+      {
+        "id": "e27",
+        "from": "n30",
+        "to": "n29",
+        "kind": "continuation",
+        "label": "on return"
+      },
+      {
+        "id": "e28",
+        "from": "n25",
+        "to": "n30",
+        "kind": "branch",
+        "label": "false"
+      },
+      {
+        "id": "e29",
+        "from": "n16",
+        "to": "n25",
+        "kind": "entry"
+      },
+      {
+        "id": "e30",
+        "from": "n34",
+        "to": "n32",
+        "kind": "return"
+      },
+      {
+        "id": "e31",
+        "from": "n19",
+        "to": "n34",
+        "kind": "entry"
+      },
+      {
+        "id": "e32",
+        "from": "n38",
+        "to": "n35",
+        "kind": "next"
+      },
+      {
+        "id": "e33",
+        "from": "n39",
+        "to": "n40",
+        "kind": "calls",
+        "label": "call",
+        "source": {
+          "path": "file3.ts",
+          "line": 0,
+          "character": 77
+        }
+      },
+      {
+        "id": "e34",
+        "from": "n39",
+        "to": "n38",
+        "kind": "continuation",
+        "label": "on return"
+      },
+      {
+        "id": "e35",
+        "from": "n37",
+        "to": "n39",
+        "kind": "branch",
+        "label": "true"
+      },
+      {
+        "id": "e36",
+        "from": "n41",
+        "to": "n35",
+        "kind": "next"
+      },
+      {
+        "id": "e37",
+        "from": "n42",
+        "to": "n43",
+        "kind": "calls",
+        "label": "call",
+        "source": {
+          "path": "file3.ts",
+          "line": 0,
+          "character": 89
+        }
+      },
+      {
+        "id": "e38",
+        "from": "n42",
+        "to": "n41",
+        "kind": "continuation",
+        "label": "on return"
+      },
+      {
+        "id": "e39",
+        "from": "n37",
+        "to": "n42",
+        "kind": "branch",
+        "label": "false"
+      },
+      {
+        "id": "e40",
+        "from": "n28",
+        "to": "n37",
+        "kind": "entry"
+      },
+      {
+        "id": "e41",
+        "from": "n46",
+        "to": "n44",
+        "kind": "return"
+      },
+      {
+        "id": "e42",
+        "from": "n31",
+        "to": "n46",
+        "kind": "entry"
+      },
+      {
+        "id": "e43",
+        "from": "n50",
+        "to": "n47",
+        "kind": "next"
+      },
+      {
+        "id": "e44",
+        "from": "n51",
+        "to": "n52",
+        "kind": "calls",
+        "label": "call",
+        "source": {
+          "path": "file4.ts",
+          "line": 0,
+          "character": 77
+        }
+      },
+      {
+        "id": "e45",
+        "from": "n51",
+        "to": "n50",
+        "kind": "continuation",
+        "label": "on return"
+      },
+      {
+        "id": "e46",
+        "from": "n49",
+        "to": "n51",
+        "kind": "branch",
+        "label": "true"
+      },
+      {
+        "id": "e47",
+        "from": "n53",
+        "to": "n47",
+        "kind": "next"
+      },
+      {
+        "id": "e48",
+        "from": "n54",
+        "to": "n55",
+        "kind": "calls",
+        "label": "call",
+        "source": {
+          "path": "file4.ts",
+          "line": 0,
+          "character": 89
+        }
+      },
+      {
+        "id": "e49",
+        "from": "n54",
+        "to": "n53",
+        "kind": "continuation",
+        "label": "on return"
+      },
+      {
+        "id": "e50",
+        "from": "n49",
+        "to": "n54",
+        "kind": "branch",
+        "label": "false"
+      },
+      {
+        "id": "e51",
+        "from": "n40",
+        "to": "n49",
+        "kind": "entry"
+      },
+      {
+        "id": "e52",
+        "from": "n58",
+        "to": "n56",
+        "kind": "return"
+      },
+      {
+        "id": "e53",
+        "from": "n43",
+        "to": "n58",
+        "kind": "entry"
+      },
+      {
+        "id": "e54",
+        "from": "n62",
+        "to": "n59",
+        "kind": "next"
+      },
+      {
+        "id": "e55",
+        "from": "n63",
+        "to": "n62",
+        "kind": "continuation",
+        "label": "on return"
+      },
+      {
+        "id": "e56",
+        "from": "n61",
+        "to": "n63",
+        "kind": "branch",
+        "label": "true"
+      },
+      {
+        "id": "e57",
+        "from": "n64",
+        "to": "n59",
+        "kind": "next"
+      },
+      {
+        "id": "e58",
+        "from": "n65",
+        "to": "n64",
+        "kind": "continuation",
+        "label": "on return"
+      },
+      {
+        "id": "e59",
+        "from": "n61",
+        "to": "n65",
+        "kind": "branch",
+        "label": "false"
+      },
+      {
+        "id": "e60",
+        "from": "n52",
+        "to": "n61",
+        "kind": "entry"
+      },
+      {
+        "id": "e61",
+        "from": "n68",
+        "to": "n66",
+        "kind": "return"
+      },
+      {
+        "id": "e62",
+        "from": "n55",
+        "to": "n68",
+        "kind": "entry"
+      }
+    ],
+    "frontier": [
+      {
+        "nodeId": "n63",
+        "reason": "depth",
+        "handle": "n63"
+      },
+      {
+        "nodeId": "n65",
+        "reason": "depth",
+        "handle": "n65"
+      }
+    ],
+    "gaps": [
+      "Static possible paths only. Reflection, implicit framework dispatch, getters, generators and callback scheduling may be unresolved."
+    ],
+    "limits": {
+      "callDepth": 5,
+      "nodes": 150,
+      "edges": 300,
+      "targetsPerCall": 10,
+      "timeoutMs": 2000
+    },
+    "partial": false,
+    "unsaved": false,
+    "durationMs": 131
+  },
+  "pythonFlow": {
+    "id": "531bc507-3cdf-4ddf-8db9-c1df6a740328",
+    "snapshotId": "0e099dba41ed26b30ecafe5437d7604802be576e869da4eed46479c0a01e8e3f",
+    "root": {
+      "path": "file0.py",
+      "symbol": "start"
+    },
+    "view": "flow",
+    "engine": "python-ast-3.14.6",
+    "nodes": [
+      {
+        "id": "py-0",
+        "kind": "function",
+        "label": "start",
+        "source": {
+          "path": "file0.py",
+          "line": 1,
+          "character": 0,
+          "symbol": "start"
+        },
+        "depth": 0
+      },
+      {
+        "id": "py-1",
+        "kind": "exit",
+        "label": "return / function exit",
+        "source": {
+          "path": "file0.py",
+          "line": 1,
+          "character": 0,
+          "symbol": "start"
+        },
+        "depth": 0
+      },
+      {
+        "id": "py-2",
+        "kind": "exit",
+        "label": "uncaught exception",
+        "source": {
+          "path": "file0.py",
+          "line": 1,
+          "character": 0,
+          "symbol": "start"
+        },
+        "depth": 0
+      },
+      {
+        "id": "py-3",
+        "kind": "branch",
+        "label": "if ok",
+        "source": {
+          "path": "file0.py",
+          "line": 2,
+          "character": 4,
+          "symbol": "start"
+        },
+        "depth": 0
+      },
+      {
+        "id": "py-4",
+        "kind": "statement",
+        "label": "after if",
+        "source": {
+          "path": "file0.py",
+          "line": 2,
+          "character": 4,
+          "symbol": "start"
+        },
+        "depth": 0
+      },
+      {
+        "id": "py-5",
+        "kind": "statement",
+        "label": "true",
+        "source": {
+          "path": "file0.py",
+          "line": 2,
+          "character": 4,
+          "symbol": "start"
+        },
+        "depth": 0
+      },
+      {
+        "id": "py-6",
+        "kind": "call",
+        "label": "next()",
+        "source": {
+          "path": "file0.py",
+          "line": 3,
+          "character": 8,
+          "symbol": "start"
+        },
+        "depth": 0
+      },
+      {
+        "id": "py-7",
+        "kind": "function",
+        "label": "start",
+        "source": {
+          "path": "file1.py",
+          "line": 1,
+          "character": 0,
+          "symbol": "start"
+        },
+        "depth": 1
+      },
+      {
+        "id": "py-8",
+        "kind": "statement",
+        "label": "next()",
+        "source": {
+          "path": "file0.py",
+          "line": 3,
+          "character": 8,
+          "symbol": "start"
+        },
+        "depth": 0
+      },
+      {
+        "id": "py-9",
+        "kind": "statement",
+        "label": "false",
+        "source": {
+          "path": "file0.py",
+          "line": 2,
+          "character": 4,
+          "symbol": "start"
+        },
+        "depth": 0
+      },
+      {
+        "id": "py-10",
+        "kind": "call",
+        "label": "leaf0()",
+        "source": {
+          "path": "file0.py",
+          "line": 5,
+          "character": 8,
+          "symbol": "start"
+        },
+        "depth": 0
+      },
+      {
+        "id": "py-11",
+        "kind": "function",
+        "label": "leaf0",
+        "source": {
+          "path": "file0.py",
+          "line": 6,
+          "character": 0,
+          "symbol": "leaf0"
+        },
+        "depth": 1
+      },
+      {
+        "id": "py-12",
+        "kind": "statement",
+        "label": "leaf0()",
+        "source": {
+          "path": "file0.py",
+          "line": 5,
+          "character": 8,
+          "symbol": "start"
+        },
+        "depth": 0
+      },
+      {
+        "id": "py-13",
+        "kind": "exit",
+        "label": "return / function exit",
+        "source": {
+          "path": "file1.py",
+          "line": 1,
+          "character": 0,
+          "symbol": "start"
+        },
+        "depth": 1
+      },
+      {
+        "id": "py-14",
+        "kind": "exit",
+        "label": "uncaught exception",
+        "source": {
+          "path": "file1.py",
+          "line": 1,
+          "character": 0,
+          "symbol": "start"
+        },
+        "depth": 1
+      },
+      {
+        "id": "py-15",
+        "kind": "branch",
+        "label": "if ok",
+        "source": {
+          "path": "file1.py",
+          "line": 2,
+          "character": 4,
+          "symbol": "start"
+        },
+        "depth": 1
+      },
+      {
+        "id": "py-16",
+        "kind": "statement",
+        "label": "after if",
+        "source": {
+          "path": "file1.py",
+          "line": 2,
+          "character": 4,
+          "symbol": "start"
+        },
+        "depth": 1
+      },
+      {
+        "id": "py-17",
+        "kind": "statement",
+        "label": "true",
+        "source": {
+          "path": "file1.py",
+          "line": 2,
+          "character": 4,
+          "symbol": "start"
+        },
+        "depth": 1
+      },
+      {
+        "id": "py-18",
+        "kind": "call",
+        "label": "next()",
+        "source": {
+          "path": "file1.py",
+          "line": 3,
+          "character": 8,
+          "symbol": "start"
+        },
+        "depth": 1
+      },
+      {
+        "id": "py-19",
+        "kind": "function",
+        "label": "start",
+        "source": {
+          "path": "file2.py",
+          "line": 1,
+          "character": 0,
+          "symbol": "start"
+        },
+        "depth": 2
+      },
+      {
+        "id": "py-20",
+        "kind": "statement",
+        "label": "next()",
+        "source": {
+          "path": "file1.py",
+          "line": 3,
+          "character": 8,
+          "symbol": "start"
+        },
+        "depth": 1
+      },
+      {
+        "id": "py-21",
+        "kind": "statement",
+        "label": "false",
+        "source": {
+          "path": "file1.py",
+          "line": 2,
+          "character": 4,
+          "symbol": "start"
+        },
+        "depth": 1
+      },
+      {
+        "id": "py-22",
+        "kind": "call",
+        "label": "leaf0()",
+        "source": {
+          "path": "file1.py",
+          "line": 5,
+          "character": 8,
+          "symbol": "start"
+        },
+        "depth": 1
+      },
+      {
+        "id": "py-23",
+        "kind": "function",
+        "label": "leaf0",
+        "source": {
+          "path": "file1.py",
+          "line": 6,
+          "character": 0,
+          "symbol": "leaf0"
+        },
+        "depth": 2
+      },
+      {
+        "id": "py-24",
+        "kind": "statement",
+        "label": "leaf0()",
+        "source": {
+          "path": "file1.py",
+          "line": 5,
+          "character": 8,
+          "symbol": "start"
+        },
+        "depth": 1
+      },
+      {
+        "id": "py-25",
+        "kind": "exit",
+        "label": "return / function exit",
+        "source": {
+          "path": "file0.py",
+          "line": 6,
+          "character": 0,
+          "symbol": "leaf0"
+        },
+        "depth": 1
+      },
+      {
+        "id": "py-26",
+        "kind": "exit",
+        "label": "uncaught exception",
+        "source": {
+          "path": "file0.py",
+          "line": 6,
+          "character": 0,
+          "symbol": "leaf0"
+        },
+        "depth": 1
+      },
+      {
+        "id": "py-27",
+        "kind": "return",
+        "label": "return 0",
+        "source": {
+          "path": "file0.py",
+          "line": 7,
+          "character": 4,
+          "symbol": "leaf0"
+        },
+        "depth": 1
+      },
+      {
+        "id": "py-28",
+        "kind": "exit",
+        "label": "return / function exit",
+        "source": {
+          "path": "file2.py",
+          "line": 1,
+          "character": 0,
+          "symbol": "start"
+        },
+        "depth": 2
+      },
+      {
+        "id": "py-29",
+        "kind": "exit",
+        "label": "uncaught exception",
+        "source": {
+          "path": "file2.py",
+          "line": 1,
+          "character": 0,
+          "symbol": "start"
+        },
+        "depth": 2
+      },
+      {
+        "id": "py-30",
+        "kind": "branch",
+        "label": "if ok",
+        "source": {
+          "path": "file2.py",
+          "line": 2,
+          "character": 4,
+          "symbol": "start"
+        },
+        "depth": 2
+      },
+      {
+        "id": "py-31",
+        "kind": "statement",
+        "label": "after if",
+        "source": {
+          "path": "file2.py",
+          "line": 2,
+          "character": 4,
+          "symbol": "start"
+        },
+        "depth": 2
+      },
+      {
+        "id": "py-32",
+        "kind": "statement",
+        "label": "true",
+        "source": {
+          "path": "file2.py",
+          "line": 2,
+          "character": 4,
+          "symbol": "start"
+        },
+        "depth": 2
+      },
+      {
+        "id": "py-33",
+        "kind": "call",
+        "label": "next()",
+        "source": {
+          "path": "file2.py",
+          "line": 3,
+          "character": 8,
+          "symbol": "start"
+        },
+        "depth": 2
+      },
+      {
+        "id": "py-34",
+        "kind": "function",
+        "label": "start",
+        "source": {
+          "path": "file3.py",
+          "line": 1,
+          "character": 0,
+          "symbol": "start"
+        },
+        "depth": 3
+      },
+      {
+        "id": "py-35",
+        "kind": "statement",
+        "label": "next()",
+        "source": {
+          "path": "file2.py",
+          "line": 3,
+          "character": 8,
+          "symbol": "start"
+        },
+        "depth": 2
+      },
+      {
+        "id": "py-36",
+        "kind": "statement",
+        "label": "false",
+        "source": {
+          "path": "file2.py",
+          "line": 2,
+          "character": 4,
+          "symbol": "start"
+        },
+        "depth": 2
+      },
+      {
+        "id": "py-37",
+        "kind": "call",
+        "label": "leaf0()",
+        "source": {
+          "path": "file2.py",
+          "line": 5,
+          "character": 8,
+          "symbol": "start"
+        },
+        "depth": 2
+      },
+      {
+        "id": "py-38",
+        "kind": "function",
+        "label": "leaf0",
+        "source": {
+          "path": "file2.py",
+          "line": 6,
+          "character": 0,
+          "symbol": "leaf0"
+        },
+        "depth": 3
+      },
+      {
+        "id": "py-39",
+        "kind": "statement",
+        "label": "leaf0()",
+        "source": {
+          "path": "file2.py",
+          "line": 5,
+          "character": 8,
+          "symbol": "start"
+        },
+        "depth": 2
+      },
+      {
+        "id": "py-40",
+        "kind": "exit",
+        "label": "return / function exit",
+        "source": {
+          "path": "file1.py",
+          "line": 6,
+          "character": 0,
+          "symbol": "leaf0"
+        },
+        "depth": 2
+      },
+      {
+        "id": "py-41",
+        "kind": "exit",
+        "label": "uncaught exception",
+        "source": {
+          "path": "file1.py",
+          "line": 6,
+          "character": 0,
+          "symbol": "leaf0"
+        },
+        "depth": 2
+      },
+      {
+        "id": "py-42",
+        "kind": "return",
+        "label": "return 0",
+        "source": {
+          "path": "file1.py",
+          "line": 7,
+          "character": 4,
+          "symbol": "leaf0"
+        },
+        "depth": 2
+      },
+      {
+        "id": "py-43",
+        "kind": "exit",
+        "label": "return / function exit",
+        "source": {
+          "path": "file3.py",
+          "line": 1,
+          "character": 0,
+          "symbol": "start"
+        },
+        "depth": 3
+      },
+      {
+        "id": "py-44",
+        "kind": "exit",
+        "label": "uncaught exception",
+        "source": {
+          "path": "file3.py",
+          "line": 1,
+          "character": 0,
+          "symbol": "start"
+        },
+        "depth": 3
+      },
+      {
+        "id": "py-45",
+        "kind": "branch",
+        "label": "if ok",
+        "source": {
+          "path": "file3.py",
+          "line": 2,
+          "character": 4,
+          "symbol": "start"
+        },
+        "depth": 3
+      },
+      {
+        "id": "py-46",
+        "kind": "statement",
+        "label": "after if",
+        "source": {
+          "path": "file3.py",
+          "line": 2,
+          "character": 4,
+          "symbol": "start"
+        },
+        "depth": 3
+      },
+      {
+        "id": "py-47",
+        "kind": "statement",
+        "label": "true",
+        "source": {
+          "path": "file3.py",
+          "line": 2,
+          "character": 4,
+          "symbol": "start"
+        },
+        "depth": 3
+      },
+      {
+        "id": "py-48",
+        "kind": "call",
+        "label": "next()",
+        "source": {
+          "path": "file3.py",
+          "line": 3,
+          "character": 8,
+          "symbol": "start"
+        },
+        "depth": 3
+      },
+      {
+        "id": "py-49",
+        "kind": "function",
+        "label": "start",
+        "source": {
+          "path": "file4.py",
+          "line": 1,
+          "character": 0,
+          "symbol": "start"
+        },
+        "depth": 4
+      },
+      {
+        "id": "py-50",
+        "kind": "statement",
+        "label": "next()",
+        "source": {
+          "path": "file3.py",
+          "line": 3,
+          "character": 8,
+          "symbol": "start"
+        },
+        "depth": 3
+      },
+      {
+        "id": "py-51",
+        "kind": "statement",
+        "label": "false",
+        "source": {
+          "path": "file3.py",
+          "line": 2,
+          "character": 4,
+          "symbol": "start"
+        },
+        "depth": 3
+      },
+      {
+        "id": "py-52",
+        "kind": "call",
+        "label": "leaf0()",
+        "source": {
+          "path": "file3.py",
+          "line": 5,
+          "character": 8,
+          "symbol": "start"
+        },
+        "depth": 3
+      },
+      {
+        "id": "py-53",
+        "kind": "function",
+        "label": "leaf0",
+        "source": {
+          "path": "file3.py",
+          "line": 6,
+          "character": 0,
+          "symbol": "leaf0"
+        },
+        "depth": 4
+      },
+      {
+        "id": "py-54",
+        "kind": "statement",
+        "label": "leaf0()",
+        "source": {
+          "path": "file3.py",
+          "line": 5,
+          "character": 8,
+          "symbol": "start"
+        },
+        "depth": 3
+      },
+      {
+        "id": "py-55",
+        "kind": "exit",
+        "label": "return / function exit",
+        "source": {
+          "path": "file2.py",
+          "line": 6,
+          "character": 0,
+          "symbol": "leaf0"
+        },
+        "depth": 3
+      },
+      {
+        "id": "py-56",
+        "kind": "exit",
+        "label": "uncaught exception",
+        "source": {
+          "path": "file2.py",
+          "line": 6,
+          "character": 0,
+          "symbol": "leaf0"
+        },
+        "depth": 3
+      },
+      {
+        "id": "py-57",
+        "kind": "return",
+        "label": "return 0",
+        "source": {
+          "path": "file2.py",
+          "line": 7,
+          "character": 4,
+          "symbol": "leaf0"
+        },
+        "depth": 3
+      },
+      {
+        "id": "py-58",
+        "kind": "exit",
+        "label": "return / function exit",
+        "source": {
+          "path": "file4.py",
+          "line": 1,
+          "character": 0,
+          "symbol": "start"
+        },
+        "depth": 4
+      },
+      {
+        "id": "py-59",
+        "kind": "exit",
+        "label": "uncaught exception",
+        "source": {
+          "path": "file4.py",
+          "line": 1,
+          "character": 0,
+          "symbol": "start"
+        },
+        "depth": 4
+      },
+      {
+        "id": "py-60",
+        "kind": "branch",
+        "label": "if ok",
+        "source": {
+          "path": "file4.py",
+          "line": 2,
+          "character": 4,
+          "symbol": "start"
+        },
+        "depth": 4
+      },
+      {
+        "id": "py-61",
+        "kind": "statement",
+        "label": "after if",
+        "source": {
+          "path": "file4.py",
+          "line": 2,
+          "character": 4,
+          "symbol": "start"
+        },
+        "depth": 4
+      },
+      {
+        "id": "py-62",
+        "kind": "statement",
+        "label": "true",
+        "source": {
+          "path": "file4.py",
+          "line": 2,
+          "character": 4,
+          "symbol": "start"
+        },
+        "depth": 4
+      },
+      {
+        "id": "py-63",
+        "kind": "call",
+        "label": "next()",
+        "source": {
+          "path": "file4.py",
+          "line": 3,
+          "character": 8,
+          "symbol": "start"
+        },
+        "depth": 4
+      },
+      {
+        "id": "py-64",
+        "kind": "function",
+        "label": "start",
+        "source": {
+          "path": "file5.py",
+          "line": 1,
+          "character": 0,
+          "symbol": "start"
+        },
+        "depth": 5
+      },
+      {
+        "id": "py-65",
+        "kind": "statement",
+        "label": "next()",
+        "source": {
+          "path": "file4.py",
+          "line": 3,
+          "character": 8,
+          "symbol": "start"
+        },
+        "depth": 4
+      },
+      {
+        "id": "py-66",
+        "kind": "statement",
+        "label": "false",
+        "source": {
+          "path": "file4.py",
+          "line": 2,
+          "character": 4,
+          "symbol": "start"
+        },
+        "depth": 4
+      },
+      {
+        "id": "py-67",
+        "kind": "call",
+        "label": "leaf0()",
+        "source": {
+          "path": "file4.py",
+          "line": 5,
+          "character": 8,
+          "symbol": "start"
+        },
+        "depth": 4
+      },
+      {
+        "id": "py-68",
+        "kind": "function",
+        "label": "leaf0",
+        "source": {
+          "path": "file4.py",
+          "line": 6,
+          "character": 0,
+          "symbol": "leaf0"
+        },
+        "depth": 5
+      },
+      {
+        "id": "py-69",
+        "kind": "statement",
+        "label": "leaf0()",
+        "source": {
+          "path": "file4.py",
+          "line": 5,
+          "character": 8,
+          "symbol": "start"
+        },
+        "depth": 4
+      },
+      {
+        "id": "py-70",
+        "kind": "exit",
+        "label": "return / function exit",
+        "source": {
+          "path": "file3.py",
+          "line": 6,
+          "character": 0,
+          "symbol": "leaf0"
+        },
+        "depth": 4
+      },
+      {
+        "id": "py-71",
+        "kind": "exit",
+        "label": "uncaught exception",
+        "source": {
+          "path": "file3.py",
+          "line": 6,
+          "character": 0,
+          "symbol": "leaf0"
+        },
+        "depth": 4
+      },
+      {
+        "id": "py-72",
+        "kind": "return",
+        "label": "return 0",
+        "source": {
+          "path": "file3.py",
+          "line": 7,
+          "character": 4,
+          "symbol": "leaf0"
+        },
+        "depth": 4
+      },
+      {
+        "id": "py-73",
+        "kind": "exit",
+        "label": "return / function exit",
+        "source": {
+          "path": "file5.py",
+          "line": 1,
+          "character": 0,
+          "symbol": "start"
+        },
+        "depth": 5
+      },
+      {
+        "id": "py-74",
+        "kind": "exit",
+        "label": "uncaught exception",
+        "source": {
+          "path": "file5.py",
+          "line": 1,
+          "character": 0,
+          "symbol": "start"
+        },
+        "depth": 5
+      },
+      {
+        "id": "py-75",
+        "kind": "branch",
+        "label": "if ok",
+        "source": {
+          "path": "file5.py",
+          "line": 2,
+          "character": 4,
+          "symbol": "start"
+        },
+        "depth": 5
+      },
+      {
+        "id": "py-76",
+        "kind": "statement",
+        "label": "after if",
+        "source": {
+          "path": "file5.py",
+          "line": 2,
+          "character": 4,
+          "symbol": "start"
+        },
+        "depth": 5
+      },
+      {
+        "id": "py-77",
+        "kind": "statement",
+        "label": "true",
+        "source": {
+          "path": "file5.py",
+          "line": 2,
+          "character": 4,
+          "symbol": "start"
+        },
+        "depth": 5
+      },
+      {
+        "id": "py-78",
+        "kind": "call",
+        "label": "next()",
+        "source": {
+          "path": "file5.py",
+          "line": 3,
+          "character": 8,
+          "symbol": "start"
+        },
+        "depth": 5
+      },
+      {
+        "id": "py-79",
+        "kind": "statement",
+        "label": "next()",
+        "source": {
+          "path": "file5.py",
+          "line": 3,
+          "character": 8,
+          "symbol": "start"
+        },
+        "depth": 5
+      },
+      {
+        "id": "py-80",
+        "kind": "statement",
+        "label": "false",
+        "source": {
+          "path": "file5.py",
+          "line": 2,
+          "character": 4,
+          "symbol": "start"
+        },
+        "depth": 5
+      },
+      {
+        "id": "py-81",
+        "kind": "call",
+        "label": "leaf0()",
+        "source": {
+          "path": "file5.py",
+          "line": 5,
+          "character": 8,
+          "symbol": "start"
+        },
+        "depth": 5
+      },
+      {
+        "id": "py-82",
+        "kind": "statement",
+        "label": "leaf0()",
+        "source": {
+          "path": "file5.py",
+          "line": 5,
+          "character": 8,
+          "symbol": "start"
+        },
+        "depth": 5
+      },
+      {
+        "id": "py-83",
+        "kind": "exit",
+        "label": "return / function exit",
+        "source": {
+          "path": "file4.py",
+          "line": 6,
+          "character": 0,
+          "symbol": "leaf0"
+        },
+        "depth": 5
+      },
+      {
+        "id": "py-84",
+        "kind": "exit",
+        "label": "uncaught exception",
+        "source": {
+          "path": "file4.py",
+          "line": 6,
+          "character": 0,
+          "symbol": "leaf0"
+        },
+        "depth": 5
+      },
+      {
+        "id": "py-85",
+        "kind": "return",
+        "label": "return 0",
+        "source": {
+          "path": "file4.py",
+          "line": 7,
+          "character": 4,
+          "symbol": "leaf0"
+        },
+        "depth": 5
+      }
+    ],
+    "edges": [
+      {
+        "id": "pe-0",
+        "from": "py-0",
+        "to": "py-3",
+        "kind": "next"
+      },
+      {
+        "id": "pe-1",
+        "from": "py-3",
+        "to": "py-5",
+        "kind": "branch",
+        "label": "true"
+      },
+      {
+        "id": "pe-2",
+        "from": "py-5",
+        "to": "py-6",
+        "kind": "next"
+      },
+      {
+        "id": "pe-3",
+        "from": "py-6",
+        "to": "py-2",
+        "kind": "exception",
+        "label": "may raise"
+      },
+      {
+        "id": "pe-4",
+        "from": "py-6",
+        "to": "py-7",
+        "kind": "calls",
+        "label": "calls"
+      },
+      {
+        "id": "pe-5",
+        "from": "py-6",
+        "to": "py-8",
+        "kind": "next"
+      },
+      {
+        "id": "pe-6",
+        "from": "py-8",
+        "to": "py-4",
+        "kind": "next"
+      },
+      {
+        "id": "pe-7",
+        "from": "py-3",
+        "to": "py-9",
+        "kind": "branch",
+        "label": "false"
+      },
+      {
+        "id": "pe-8",
+        "from": "py-9",
+        "to": "py-10",
+        "kind": "next"
+      },
+      {
+        "id": "pe-9",
+        "from": "py-10",
+        "to": "py-2",
+        "kind": "exception",
+        "label": "may raise"
+      },
+      {
+        "id": "pe-10",
+        "from": "py-10",
+        "to": "py-11",
+        "kind": "calls",
+        "label": "calls"
+      },
+      {
+        "id": "pe-11",
+        "from": "py-10",
+        "to": "py-12",
+        "kind": "next"
+      },
+      {
+        "id": "pe-12",
+        "from": "py-12",
+        "to": "py-4",
+        "kind": "next"
+      },
+      {
+        "id": "pe-13",
+        "from": "py-4",
+        "to": "py-1",
+        "kind": "return",
+        "label": "fallthrough"
+      },
+      {
+        "id": "pe-14",
+        "from": "py-7",
+        "to": "py-15",
+        "kind": "next"
+      },
+      {
+        "id": "pe-15",
+        "from": "py-15",
+        "to": "py-17",
+        "kind": "branch",
+        "label": "true"
+      },
+      {
+        "id": "pe-16",
+        "from": "py-17",
+        "to": "py-18",
+        "kind": "next"
+      },
+      {
+        "id": "pe-17",
+        "from": "py-18",
+        "to": "py-14",
+        "kind": "exception",
+        "label": "may raise"
+      },
+      {
+        "id": "pe-18",
+        "from": "py-18",
+        "to": "py-19",
+        "kind": "calls",
+        "label": "calls"
+      },
+      {
+        "id": "pe-19",
+        "from": "py-18",
+        "to": "py-20",
+        "kind": "next"
+      },
+      {
+        "id": "pe-20",
+        "from": "py-20",
+        "to": "py-16",
+        "kind": "next"
+      },
+      {
+        "id": "pe-21",
+        "from": "py-15",
+        "to": "py-21",
+        "kind": "branch",
+        "label": "false"
+      },
+      {
+        "id": "pe-22",
+        "from": "py-21",
+        "to": "py-22",
+        "kind": "next"
+      },
+      {
+        "id": "pe-23",
+        "from": "py-22",
+        "to": "py-14",
+        "kind": "exception",
+        "label": "may raise"
+      },
+      {
+        "id": "pe-24",
+        "from": "py-22",
+        "to": "py-23",
+        "kind": "calls",
+        "label": "calls"
+      },
+      {
+        "id": "pe-25",
+        "from": "py-22",
+        "to": "py-24",
+        "kind": "next"
+      },
+      {
+        "id": "pe-26",
+        "from": "py-24",
+        "to": "py-16",
+        "kind": "next"
+      },
+      {
+        "id": "pe-27",
+        "from": "py-16",
+        "to": "py-13",
+        "kind": "return",
+        "label": "fallthrough"
+      },
+      {
+        "id": "pe-28",
+        "from": "py-11",
+        "to": "py-27",
+        "kind": "next"
+      },
+      {
+        "id": "pe-29",
+        "from": "py-27",
+        "to": "py-25",
+        "kind": "return"
+      },
+      {
+        "id": "pe-30",
+        "from": "py-19",
+        "to": "py-30",
+        "kind": "next"
+      },
+      {
+        "id": "pe-31",
+        "from": "py-30",
+        "to": "py-32",
+        "kind": "branch",
+        "label": "true"
+      },
+      {
+        "id": "pe-32",
+        "from": "py-32",
+        "to": "py-33",
+        "kind": "next"
+      },
+      {
+        "id": "pe-33",
+        "from": "py-33",
+        "to": "py-29",
+        "kind": "exception",
+        "label": "may raise"
+      },
+      {
+        "id": "pe-34",
+        "from": "py-33",
+        "to": "py-34",
+        "kind": "calls",
+        "label": "calls"
+      },
+      {
+        "id": "pe-35",
+        "from": "py-33",
+        "to": "py-35",
+        "kind": "next"
+      },
+      {
+        "id": "pe-36",
+        "from": "py-35",
+        "to": "py-31",
+        "kind": "next"
+      },
+      {
+        "id": "pe-37",
+        "from": "py-30",
+        "to": "py-36",
+        "kind": "branch",
+        "label": "false"
+      },
+      {
+        "id": "pe-38",
+        "from": "py-36",
+        "to": "py-37",
+        "kind": "next"
+      },
+      {
+        "id": "pe-39",
+        "from": "py-37",
+        "to": "py-29",
+        "kind": "exception",
+        "label": "may raise"
+      },
+      {
+        "id": "pe-40",
+        "from": "py-37",
+        "to": "py-38",
+        "kind": "calls",
+        "label": "calls"
+      },
+      {
+        "id": "pe-41",
+        "from": "py-37",
+        "to": "py-39",
+        "kind": "next"
+      },
+      {
+        "id": "pe-42",
+        "from": "py-39",
+        "to": "py-31",
+        "kind": "next"
+      },
+      {
+        "id": "pe-43",
+        "from": "py-31",
+        "to": "py-28",
+        "kind": "return",
+        "label": "fallthrough"
+      },
+      {
+        "id": "pe-44",
+        "from": "py-23",
+        "to": "py-42",
+        "kind": "next"
+      },
+      {
+        "id": "pe-45",
+        "from": "py-42",
+        "to": "py-40",
+        "kind": "return"
+      },
+      {
+        "id": "pe-46",
+        "from": "py-34",
+        "to": "py-45",
+        "kind": "next"
+      },
+      {
+        "id": "pe-47",
+        "from": "py-45",
+        "to": "py-47",
+        "kind": "branch",
+        "label": "true"
+      },
+      {
+        "id": "pe-48",
+        "from": "py-47",
+        "to": "py-48",
+        "kind": "next"
+      },
+      {
+        "id": "pe-49",
+        "from": "py-48",
+        "to": "py-44",
+        "kind": "exception",
+        "label": "may raise"
+      },
+      {
+        "id": "pe-50",
+        "from": "py-48",
+        "to": "py-49",
+        "kind": "calls",
+        "label": "calls"
+      },
+      {
+        "id": "pe-51",
+        "from": "py-48",
+        "to": "py-50",
+        "kind": "next"
+      },
+      {
+        "id": "pe-52",
+        "from": "py-50",
+        "to": "py-46",
+        "kind": "next"
+      },
+      {
+        "id": "pe-53",
+        "from": "py-45",
+        "to": "py-51",
+        "kind": "branch",
+        "label": "false"
+      },
+      {
+        "id": "pe-54",
+        "from": "py-51",
+        "to": "py-52",
+        "kind": "next"
+      },
+      {
+        "id": "pe-55",
+        "from": "py-52",
+        "to": "py-44",
+        "kind": "exception",
+        "label": "may raise"
+      },
+      {
+        "id": "pe-56",
+        "from": "py-52",
+        "to": "py-53",
+        "kind": "calls",
+        "label": "calls"
+      },
+      {
+        "id": "pe-57",
+        "from": "py-52",
+        "to": "py-54",
+        "kind": "next"
+      },
+      {
+        "id": "pe-58",
+        "from": "py-54",
+        "to": "py-46",
+        "kind": "next"
+      },
+      {
+        "id": "pe-59",
+        "from": "py-46",
+        "to": "py-43",
+        "kind": "return",
+        "label": "fallthrough"
+      },
+      {
+        "id": "pe-60",
+        "from": "py-38",
+        "to": "py-57",
+        "kind": "next"
+      },
+      {
+        "id": "pe-61",
+        "from": "py-57",
+        "to": "py-55",
+        "kind": "return"
+      },
+      {
+        "id": "pe-62",
+        "from": "py-49",
+        "to": "py-60",
+        "kind": "next"
+      },
+      {
+        "id": "pe-63",
+        "from": "py-60",
+        "to": "py-62",
+        "kind": "branch",
+        "label": "true"
+      },
+      {
+        "id": "pe-64",
+        "from": "py-62",
+        "to": "py-63",
+        "kind": "next"
+      },
+      {
+        "id": "pe-65",
+        "from": "py-63",
+        "to": "py-59",
+        "kind": "exception",
+        "label": "may raise"
+      },
+      {
+        "id": "pe-66",
+        "from": "py-63",
+        "to": "py-64",
+        "kind": "calls",
+        "label": "calls"
+      },
+      {
+        "id": "pe-67",
+        "from": "py-63",
+        "to": "py-65",
+        "kind": "next"
+      },
+      {
+        "id": "pe-68",
+        "from": "py-65",
+        "to": "py-61",
+        "kind": "next"
+      },
+      {
+        "id": "pe-69",
+        "from": "py-60",
+        "to": "py-66",
+        "kind": "branch",
+        "label": "false"
+      },
+      {
+        "id": "pe-70",
+        "from": "py-66",
+        "to": "py-67",
+        "kind": "next"
+      },
+      {
+        "id": "pe-71",
+        "from": "py-67",
+        "to": "py-59",
+        "kind": "exception",
+        "label": "may raise"
+      },
+      {
+        "id": "pe-72",
+        "from": "py-67",
+        "to": "py-68",
+        "kind": "calls",
+        "label": "calls"
+      },
+      {
+        "id": "pe-73",
+        "from": "py-67",
+        "to": "py-69",
+        "kind": "next"
+      },
+      {
+        "id": "pe-74",
+        "from": "py-69",
+        "to": "py-61",
+        "kind": "next"
+      },
+      {
+        "id": "pe-75",
+        "from": "py-61",
+        "to": "py-58",
+        "kind": "return",
+        "label": "fallthrough"
+      },
+      {
+        "id": "pe-76",
+        "from": "py-53",
+        "to": "py-72",
+        "kind": "next"
+      },
+      {
+        "id": "pe-77",
+        "from": "py-72",
+        "to": "py-70",
+        "kind": "return"
+      },
+      {
+        "id": "pe-78",
+        "from": "py-64",
+        "to": "py-75",
+        "kind": "next"
+      },
+      {
+        "id": "pe-79",
+        "from": "py-75",
+        "to": "py-77",
+        "kind": "branch",
+        "label": "true"
+      },
+      {
+        "id": "pe-80",
+        "from": "py-77",
+        "to": "py-78",
+        "kind": "next"
+      },
+      {
+        "id": "pe-81",
+        "from": "py-78",
+        "to": "py-74",
+        "kind": "exception",
+        "label": "may raise"
+      },
+      {
+        "id": "pe-82",
+        "from": "py-78",
+        "to": "py-79",
+        "kind": "next"
+      },
+      {
+        "id": "pe-83",
+        "from": "py-79",
+        "to": "py-76",
+        "kind": "next"
+      },
+      {
+        "id": "pe-84",
+        "from": "py-75",
+        "to": "py-80",
+        "kind": "branch",
+        "label": "false"
+      },
+      {
+        "id": "pe-85",
+        "from": "py-80",
+        "to": "py-81",
+        "kind": "next"
+      },
+      {
+        "id": "pe-86",
+        "from": "py-81",
+        "to": "py-74",
+        "kind": "exception",
+        "label": "may raise"
+      },
+      {
+        "id": "pe-87",
+        "from": "py-81",
+        "to": "py-82",
+        "kind": "next"
+      },
+      {
+        "id": "pe-88",
+        "from": "py-82",
+        "to": "py-76",
+        "kind": "next"
+      },
+      {
+        "id": "pe-89",
+        "from": "py-76",
+        "to": "py-73",
+        "kind": "return",
+        "label": "fallthrough"
+      },
+      {
+        "id": "pe-90",
+        "from": "py-68",
+        "to": "py-85",
+        "kind": "next"
+      },
+      {
+        "id": "pe-91",
+        "from": "py-85",
+        "to": "py-83",
+        "kind": "return"
+      }
+    ],
+    "frontier": [
+      {
+        "nodeId": "py-78",
+        "reason": "Call depth limit; trace from this call to continue.",
+        "handle": "py-78",
+        "target": {
+          "path": "file6.py",
+          "symbol": "start",
+          "start": "function"
+        }
+      },
+      {
+        "nodeId": "py-81",
+        "reason": "Call depth limit; trace from this call to continue.",
+        "handle": "py-81",
+        "target": {
+          "path": "file5.py",
+          "symbol": "leaf0",
+          "start": "function"
+        }
+      }
+    ],
+    "gaps": [],
+    "limits": {
+      "callDepth": 5,
+      "nodes": 150,
+      "edges": 300,
+      "targetsPerCall": 10,
+      "timeoutMs": 2000
+    },
+    "partial": true,
+    "unsaved": false,
+    "durationMs": 236
+  },
+  "serviceRssMiB": 253.5,
+  "note": "Same-process loopback service startup excludes external process startup. Analysis runs in a separate worker. RSS includes benchmark harness, service, and analysis worker. Hook timing includes a fresh Node process. Semantic cold loading is measured by the integration test, not these timings."
+}

@@ -1,0 +1,21 @@
+{
+  "recordedAt": "2026-11-12T18:51:42.292Z",
+  "host": "Visual Studio Code",
+  "vscode": "1.145.3",
+  "checks": [
+    "extension activation",
+    "isolated Node 24 workspace service",
+    "sidebar view opens",
+    "host to service workflow mutation",
+    "all three native provider configurations generated in disposable workspace",
+    "worker source flow with branches and call targets",
+    "unsaved buffer overlay survives UI to service boundary",
+    "Python AST flow from remembered editor cursor; sidebar tracing creates no extra editor tab",
+    "Python agent-tool flow without an editor language provider",
+    "dedicated relationship workbench tab with request titles, descriptions and source files",
+    "request-scoped report opens from service artifact",
+    "persistent SQLite ledger"
+  ],
+  "passed": true,
+  "extensionPath": "C:\\Projetos\\DevExtension\\.contextory-local\\package-release-0.2.3\\extension"
+}
