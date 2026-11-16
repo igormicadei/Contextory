@@ -10,7 +10,20 @@ import type {
 } from "../contracts/model";
 import { escape, button, badge, sourceButton } from "./html";
 import { relationshipView } from "./relationships";
-import { architectureView, type Architecture, type CodeContext } from "./architecture";
+import {
+  architectureView,
+  initialArchitectureState,
+  type Architecture,
+  type CodeContext,
+  type ArchitectureState,
+} from "./architecture";
+import { flowView } from "./flow";
+import {
+  bindMapInteraction,
+  zoomMap,
+  saveMapViewports,
+  restoreMapViewports,
+} from "./explorer";
 import { clients, clientIds } from "../providers/clients";
 import contextoryIcon from "../../media/contextory.svg";
 import type { UsageSummary } from "../contracts/usage";
@@ -54,16 +67,27 @@ const relationshipsOnly = surface === "relationships";
 const architectureOnly = surface === "architecture";
 let architecture: Architecture | undefined;
 let codeContext: CodeContext | undefined;
+let architectureState = initialArchitectureState();
+let codeRequestId = "";
+let codeRequestQuery = "";
+let codeRequestSequence = 0;
+const architectureHistory: {
+  state: ArchitectureState;
+  context: CodeContext | undefined;
+  query: string;
+}[] = [];
 const panelShape = window.matchMedia(
   "(min-width: 760px) and (min-aspect-ratio: 3/2)",
 );
 const horizontalLayout = () => surface === "sidebar" && panelShape.matches;
 let relationships: RelationshipGraph | undefined;
-let screen = architectureOnly ? "architecture" : relationshipsOnly
-  ? "relationships"
-  : flowOnly
-    ? "map"
-    : "overview";
+let screen = architectureOnly
+  ? "architecture"
+  : relationshipsOnly
+    ? "relationships"
+    : flowOnly
+      ? "map"
+      : "overview";
 let renderedView = "";
 let history: HistoryPage = { events: [], nextBefore: null };
 let historyScope = "";
@@ -121,9 +145,12 @@ const requestState = (r: Entity) => {
       : "open";
 };
 function connections() {
-  return `<div class="connections" role="group" aria-label="Native agents">${(
-    clientIds.filter(id=>id!=="generic" || dashboard?.connections.some(c=>c.provider==="generic"))
-  )
+  return `<div class="connections" role="group" aria-label="Native agents">${clientIds
+    .filter(
+      (id) =>
+        id !== "generic" ||
+        dashboard?.connections.some((c) => c.provider === "generic"),
+    )
     .map((provider) => {
       const c = dashboard?.connections.find((c) => c.provider === provider);
       const name = clients[provider].label;
@@ -307,53 +334,11 @@ function specDetails(s: Entity) {
   }
   return `<section id="detail-${s.id}" class="spec-detail" aria-label="${escape(s.title)} details"><div class="section-heading"><span class="record-id">${s.id} &middot; revision ${s.revision}</span>${badge(s.state)}</div><div class="detail-tabs" role="tablist" aria-label="Specification details">${["contract", "issues", "decisions", "evidence", "outcome", "usage", "history"].map((tab) => `<button id="tab-${tab}" role="tab" aria-selected="${detailTab === tab}" data-action="detailTab" data-tab="${tab}">${tab[0].toUpperCase() + tab.slice(1)}</button>`).join("")}</div><div role="tabpanel" aria-labelledby="tab-${detailTab}">${body}</div><div class="detail-actions">${button("impact", "Explore relationships", `data-id="${s.id}"`)}${s.state === "submitted" ? button("complete", "Check completion", `data-id="${s.id}" data-revision="${s.revision}"`, "primary") : ""}</div></section>`;
 }
-function flowSvg(g: FlowGraph) {
-  const levels = new Map<string, number>();
-  if (g.nodes[0]) levels.set(g.nodes[0].id, 0);
-  const queue = g.nodes[0] ? [g.nodes[0].id] : [];
-  while (queue.length) {
-    const id = queue.shift()!;
-    for (const edge of g.edges.filter((e) => e.from === id))
-      if (!levels.has(edge.to)) {
-        levels.set(edge.to, Math.min(16, (levels.get(id) ?? 0) + 1));
-        queue.push(edge.to);
-      }
-  }
-  const slots = new Map<number, number>();
-  const positions = new Map(
-    g.nodes.map((node) => {
-      const level = levels.get(node.id) ?? node.depth;
-      const row = slots.get(level) ?? 0;
-      slots.set(level, row + 1);
-      return [node.id, { x: 30 + level * 250, y: 32 + row * 102 }];
-    }),
-  );
-  const width = Math.max(700, ...[...positions.values()].map((p) => p.x + 240));
-  const height = Math.max(300, ...[...positions.values()].map((p) => p.y + 95));
-  return `<svg class="flow-diagram" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="Possible source flow"><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z"></path></marker></defs>${g.edges
-    .map((edge) => {
-      const a = positions.get(edge.from);
-      const b = positions.get(edge.to);
-      if (!a || !b) return "";
-      const x1 = a.x + 205;
-      const y1 = a.y + 31;
-      const x2 = b.x;
-      const y2 = b.y + 31;
-      const bend = Math.max(35, Math.abs(x2 - x1) / 2);
-      return `<g class="graph-edge ${escape(edge.kind)}"><path d="M${x1},${y1} C${x1 + bend},${y1} ${x2 - bend},${y2} ${x2},${y2}" marker-end="url(#arrow)"></path><text x="${(x1 + x2) / 2}" y="${(y1 + y2) / 2 - 6}">${escape(edge.label ?? edge.kind)}</text></g>`;
-    })
-    .join("")}${g.nodes
-    .map((node) => {
-      const p = positions.get(node.id)!;
-      return `<g class="graph-node ${node.kind} ${nodeId === node.id ? "selected" : ""}" transform="translate(${p.x},${p.y})" role="button" tabindex="0" aria-label="${escape(node.label)}" data-action="node" data-id="${node.id}"><title>${escape(node.label)}${node.source ? ` — ${escape(node.source.path)}:${(node.source.line ?? 0) + 1}` : ""}</title><rect width="205" height="66" rx="8"></rect><text x="12" y="19" class="node-kind">${escape(node.kind)}</text><text x="12" y="41">${escape(node.label.slice(0, 28))}${node.label.length > 28 ? "…" : ""}</text><text x="12" y="57" class="node-location">${escape(node.source?.path.split("/").pop() ?? "")}</text></g>`;
-    })
-    .join("")}</svg>`;
-}
 function map() {
-  const node = graph?.nodes.find((n) => n.id === nodeId);
-  return `<div class="section-heading"><h1>Source flow</h1>${button("trace", "Trace current symbol", "", "primary")}</div><p class="muted">Explore possible calls and branches from your cursor. No agent or application execution required.</p><div class="flow-controls"><label>View<select id="flowView" name="flowView"><option value="flow" ${(drafts.flowView ?? graph?.view ?? "flow") === "flow" ? "selected" : ""}>Calls + branches</option><option value="calls" ${(drafts.flowView ?? graph?.view ?? "flow") === "calls" ? "selected" : ""}>Calls</option></select></label><label>Call depth<input id="flowDepth" name="flowDepth" type="number" min="0" max="12" value="${escape(drafts.flowDepth ?? graph?.limits.callDepth ?? 5)}"></label>${graph ? button("retrace", "Refresh") : ""}${button("cancelAnalysis", "Cancel", "", "text-button")}${graph ? button("exportGraphJson", "Export JSON", "", "small") + button("exportGraphSvg", "Export SVG", "", "small") : ""}</div>${graph ? `<div class="graph-summary"><strong>${escape(graph.root.path)}</strong><span>${graph.nodes.length} nodes · ${graph.edges.length} edges · ${graph.durationMs} ms</span>${badge(graph.partial ? "partial" : "bounded")}${graph.unsaved ? badge("unsaved snapshot") : ""}</div><div class="diagram-scroll" tabindex="0" aria-label="Scroll source flow diagram">${flowSvg(graph)}</div>${node ? `<div class="node-detail"><strong>${escape(node.label)}</strong>${node.source ? sourceButton(node.source) : ""}${button("expand", "Trace from this node", `data-id="${node.id}"`, "small")}</div>` : ""}<details class="analysis-limits"><summary>Analysis boundaries (${graph.frontier.length})</summary><ul>${graph.frontier.map((f) => `<li>${escape(graph?.nodes.find((n) => n.id === f.nodeId)?.label)}: ${escape(f.reason)}</li>`).join("")}${graph.gaps.map((gap) => `<li>${escape(gap)}</li>`).join("")}</ul></details>` : empty("Choose a starting point", "Place the cursor inside a function, then choose “Trace Flow from Here” in the editor. The default explores five call hops with visible boundaries.")}`;
+  return flowView(graph, nodeId, drafts);
 }
 function render() {
+  saveMapViewports();
   const viewKey = `${screen}:${screen === "history" ? historyScope : screen === "requests" ? (drafts.query ?? "") : ""}`;
   const scrollAreas =
     renderedView === viewKey
@@ -372,6 +357,9 @@ function render() {
       : 0;
   const focused = document.activeElement as HTMLInputElement | null;
   const focusId = focused?.id;
+  const focusAction = focused?.getAttribute("data-action");
+  const focusNode = focused?.getAttribute("data-id");
+  const focusName = focused?.getAttribute("name");
   const selection =
     focused && "selectionStart" in focused ? focused.selectionStart : undefined;
   const diagram = document.querySelector(".diagram-scroll");
@@ -398,7 +386,7 @@ function render() {
     )
     .join(
       "",
-    )}</nav>${notice ? `<div class="notice" role="status"><span>${escape(notice)}</span>${button("dismiss", "×", 'aria-label="Dismiss notification"', "icon-button")}</div>` : ""}${busy ? '<div class="loading-line" role="progressbar" aria-label="Contextory is working"></div>' : ""}<main>${!dashboard && screen !== "map" && screen !== "relationships" ? empty("Open your workspace", "Contextory connects your native agents to shared project records. Open a trusted folder, then refresh.", button("refresh", "Refresh", "", "primary")) : screen === "architecture" ? architectureView(architecture, codeContext, drafts.codeQuery ?? "", architectureOnly) : screen === "relationships" ? relationshipView(relationships) : screen === "requests" ? requestTree() : screen === "history" ? historyView() : screen === "map" ? map() : overview()}</main><footer>${surface === "sidebar" ? connections() : ""}<div class="workspace-status"><span class="status-dot ${dashboard ? "online" : ""}"></span><span>${dashboard ? escape(dashboard.root.split(/[\\/]/).pop()) : "Open a workspace"}</span>${surface === "sidebar" ? autoConnectSwitch() : '<span class="footer-label">Native conversation &middot; durable context</span>'}</div></footer>`;
+    )}</nav>${notice ? `<div class="notice" role="status"><span>${escape(notice)}</span>${button("dismiss", "×", 'aria-label="Dismiss notification"', "icon-button")}</div>` : ""}${busy ? '<div class="loading-line" role="progressbar" aria-label="Contextory is working"></div>' : ""}<main>${!dashboard && screen !== "map" && screen !== "relationships" ? empty("Open your workspace", "Contextory connects your native agents to shared project records. Open a trusted folder, then refresh.", button("refresh", "Refresh", "", "primary")) : screen === "architecture" ? architectureView(architecture, codeContext, drafts.codeQuery ?? "", architectureOnly, architectureState) : screen === "relationships" ? relationshipView(relationships) : screen === "requests" ? requestTree() : screen === "history" ? historyView() : screen === "map" ? map() : overview()}</main><footer>${surface === "sidebar" ? connections() : ""}<div class="workspace-status"><span class="status-dot ${dashboard ? "online" : ""}"></span><span>${dashboard ? escape(dashboard.root.split(/[\\/]/).pop()) : "Open a workspace"}</span>${surface === "sidebar" ? autoConnectSwitch() : '<span class="footer-label">Native conversation &middot; durable context</span>'}</div></footer>`;
   document.querySelector<HTMLElement>("main")!.dataset.screen = screen;
   for (const scroll of scrollAreas) {
     const replacement = document.querySelector<HTMLElement>(
@@ -428,11 +416,57 @@ function render() {
   }
   const content = document.querySelector("main");
   if (content) content.scrollTop = contentScroll;
+  if (!focusId && (focusAction || focusName)) {
+    const selector = focusAction
+      ? `[data-action="${CSS.escape(focusAction)}"]${focusNode ? `[data-id="${CSS.escape(focusNode)}"]` : ""}`
+      : `[name="${CSS.escape(focusName!)}"]`;
+    app.querySelector<HTMLElement>(selector)?.focus({ preventScroll: true });
+  }
+  restoreMapViewports();
   renderedView = viewKey;
 }
 const send = (message: unknown) => host.postMessage(message);
+function rememberArchitecture() {
+  architectureHistory.push({
+    state: { ...architectureState },
+    context: codeContext,
+    query: codeContext
+      ? architectureState.contextQuery
+      : (drafts.codeQuery ?? ""),
+  });
+  if (architectureHistory.length > 30) architectureHistory.shift();
+}
+function requestCode(query: string, paths?: string[]) {
+  drafts.codeQuery = query;
+  codeRequestQuery = query;
+  architectureState.loading = true;
+  architectureState.error = "";
+  codeRequestId = `code-context:${++codeRequestSequence}`;
+  send({
+    type: "tool",
+    requestId: codeRequestId,
+    name: "contextory_code_context_get",
+    arguments: {
+      query,
+      paths:
+        paths ??
+        (architectureState.file
+          ? [architectureState.file]
+          : architectureState.scope && architectureState.scope !== "."
+            ? [architectureState.scope]
+            : []),
+      budgetTokens: 5000,
+    },
+  });
+  render();
+}
 function loadArchitecture() {
-  send({ type: "tool", requestId: "architecture", name: "contextory_code_architecture_get", arguments: {refresh:true} });
+  send({
+    type: "tool",
+    requestId: "architecture",
+    name: "contextory_code_architecture_get",
+    arguments: { refresh: true },
+  });
 }
 function preparePanelSelection(requestId?: string) {
   if (
@@ -551,11 +585,69 @@ function action(element: Element) {
       loadArchitecture();
       break;
     case "architecturePanel":
-      send({type:"architecturePanel"});
+      send({ type: "architecturePanel" });
       break;
+    case "mapZoom":
+      zoomMap(data.map!, Number(data.factor));
+      break;
+    case "mapFit":
+      zoomMap(data.map!, undefined, true);
+      break;
+    case "mapReset":
+      zoomMap(data.map!);
+      break;
+    case "flowFocus":
+      drafts.flowFocus = drafts.flowFocus === "true" ? "false" : "true";
+      render();
+      break;
+    case "architectureMapScope":
+      data.path = data.id;
+    // Both the map and explorer enter the same scoped context.
     case "architectureScope":
-      drafts.codeQuery = data.path!;
-      send({type:"tool",requestId:`code-context:${drafts.codeQuery}`,name:"contextory_code_context_get",arguments:{query:drafts.codeQuery,paths:[data.path],budgetTokens:3000}});
+      rememberArchitecture();
+      architectureState = { ...initialArchitectureState(), scope: data.path! };
+      requestCode(data.path!, data.path === "." ? [] : [data.path!]);
+      break;
+    case "architectureHome":
+      rememberArchitecture();
+      architectureState = initialArchitectureState();
+      codeContext = undefined;
+      drafts.codeQuery = "";
+      codeRequestId = "";
+      render();
+      break;
+    case "architectureBack": {
+      const previous = architectureHistory.pop();
+      architectureState = previous?.state ?? initialArchitectureState();
+      architectureState.loading = false;
+      codeContext = previous?.context;
+      drafts.codeQuery = previous?.query ?? "";
+      codeRequestId = "";
+      render();
+      break;
+    }
+    case "architectureFile":
+      rememberArchitecture();
+      architectureState.file = data.path!;
+      architectureState.mode = "map";
+      requestCode(data.path!, [data.path!]);
+      break;
+    case "architectureSelect":
+      rememberArchitecture();
+      architectureState.selected = data.id!;
+      render();
+      break;
+    case "architectureExplore": {
+      const symbol = codeContext?.symbols.find((s) => s.id === data.id);
+      if (symbol) {
+        rememberArchitecture();
+        requestCode(`source:${symbol.path}#${symbol.name}`, []);
+      }
+      break;
+    }
+    case "architectureMode":
+      architectureState.mode = data.mode === "matrix" ? "matrix" : "map";
+      render();
       break;
     case "select":
       selectRecord(data.id!);
@@ -677,6 +769,7 @@ function action(element: Element) {
       send({ type: data.action });
   }
 }
+bindMapInteraction(app);
 app.addEventListener("click", (event) => {
   const element = (event.target as Element).closest("[data-action]");
   if (element) action(element);
@@ -718,6 +811,15 @@ app.addEventListener("input", (event) => {
 app.addEventListener("change", (event) => {
   const input = event.target as HTMLInputElement;
   if (input.name) drafts[input.name] = input.value;
+  if (input.name === "architectureRelation") {
+    architectureState.relation = input.value;
+    render();
+  }
+  if (input.name === "architectureDirection") {
+    architectureState.direction = input.value;
+    render();
+  }
+  if (input.name === "flowEdge") render();
   if (input.name === "historyFilter") {
     historyScope = input.value;
     historyLoaded = false;
@@ -729,8 +831,10 @@ app.addEventListener("change", (event) => {
 app.addEventListener("submit", (event) => {
   event.preventDefault();
   const form = event.target as HTMLFormElement;
-  if (form.id === "code-context-form" && drafts.codeQuery?.trim())
-    send({type:"tool",requestId:`code-context:${drafts.codeQuery}`,name:"contextory_code_context_get",arguments:{query:drafts.codeQuery,budgetTokens:3000}});
+  if (form.id === "code-context-form" && drafts.codeQuery?.trim()) {
+    rememberArchitecture();
+    requestCode(drafts.codeQuery);
+  }
   if (form.id === "request-form") {
     send({
       type: "tool",
@@ -771,10 +875,27 @@ window.addEventListener("message", (event) => {
   const message = event.data;
   if (message.automation) automation = message.automation;
   if (message.type === "restore") indexDashboard(message.dashboard);
-  if (message.type === "notice") notice = message.text;
+  if (message.type === "notice") {
+    notice = message.text;
+    if (architectureState.loading) {
+      architectureState.loading = false;
+      architectureState.error = message.text;
+    }
+  }
   if (message.type === "busy") busy = message.value;
-  if(message.type === "toolResult" && message.requestId === "architecture") architecture = message.result;
-  if(message.type === "toolResult" && message.requestId === `code-context:${drafts.codeQuery}`) codeContext = message.result;
+  if (message.type === "toolResult" && message.requestId === "architecture")
+    architecture = message.result;
+  if (message.type === "toolResult" && message.requestId === codeRequestId) {
+    codeContext = message.result;
+    architectureState.contextQuery = codeRequestQuery;
+    architectureState.loading = false;
+    architectureState.selected =
+      codeContext?.symbols.find((s) => s.reason === "query")?.id ??
+      codeContext?.symbols[0]?.id ??
+      "";
+    architectureState.relation = "all";
+    architectureState.direction = "both";
+  }
   if (
     message.type === "toolResult" &&
     String(message.requestId).startsWith("usage:")
@@ -783,7 +904,9 @@ window.addEventListener("message", (event) => {
   if (message.type === "flow" && !relationshipsOnly && !architectureOnly) {
     graph = message.graph;
     screen = "map";
-    nodeId = "";
+    nodeId = graph?.nodes.some((n) => n.id === nodeId)
+      ? nodeId
+      : (graph?.nodes[0]?.id ?? "");
   }
   if (
     message.type === "toolResult" &&

@@ -1,12 +1,12 @@
 # Native-agent companion architecture
 
-Local 0.3.0 adds a separate rebuildable schema 4 source projection (`code_files`, `code_nodes`, `code_edges`, `code_imports`) to the same SQLite database. A bounded isolated worker resolves TS/JS using the compiler and invokes Python in isolated AST-only mode. Content/configuration/import hashes drive serialized publication and stale-edge removal; debounced filesystem/Git events and a poll schedule refresh. Imported Graphify facts retain provenance and are withheld after cited sources change. Authoritative work records and evidence remain independent of generated topology.
+Version 0.3.0 adds a separate rebuildable schema 4 source projection (`code_files`, `code_nodes`, `code_edges`, `code_imports`) to the same SQLite database. A bounded isolated worker resolves TS/JS using the compiler and invokes Python in isolated AST-only mode. Content/configuration/import hashes drive serialized publication and stale-edge removal; debounced filesystem/Git events and a poll schedule refresh. Imported Graphify facts retain provenance and are withheld after cited sources change. Authoritative work records and evidence remain independent of generated topology.
 
 `CodeQueries` combines definitions, bounded source neighborhoods and explicitly linked records for task context, source impact, paths and architecture. The brief reads cached orientation metadata. Canonical skill resources are generated into a shared runtime bundle; a capability registry owns client discovery/configuration/hook differences, including a hook-free generic adapter. `dist/contextory.mjs` uses the same service and MCP contracts with an EOF/signal-owned headless lifecycle. See [coverage, storage and transport details](CODEBASE-INTELLIGENCE.md).
 
 `src/agents/instructions.ts` supplies the same retrieval/workflow guidance to both MCP initialization paths and the workspace brief, plus compact reminders for session/prompt/post-compaction hooks. Instructions route tasks through current-source context, relationships and prior decisions, preserve coverage/provenance and explain saved-file freshness and missing-capability fallback. Canonical skills provide progressively loaded input/recovery details. Skill-only workspace synchronization reuses registration's ownership-aware atomic file handling without changing client MCP/hooks. Host-specific differences remain in adapters.
 
-Current local version 0.3.0, 2026-11-16. [User guide](USER-GUIDE.md) · [Agent tools](MCP-TOOLS.md) · [Delivery record](CODEBASE-INTELLIGENCE-PLAN.md) · [Validation](VALIDATION.md).
+Current version 0.3.0, 2026-11-16. [User guide](USER-GUIDE.md) · [Agent tools](MCP-TOOLS.md) · [Delivery record](CODEBASE-INTELLIGENCE-PLAN.md) · [Validation](VALIDATION.md).
 
 ## Responsibility boundary
 

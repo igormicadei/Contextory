@@ -4,7 +4,7 @@ Authorized 2026-11-16. Tracking request: REQ-cd9f8775.
 
 ## Delivery status — 2026-11-16
 
-All six stages are implemented in local version 0.3.0. The complete check passes 56 backend tests and 23 UI tests. The extracted VSIX passes the VS Code and IBM Bob host scenarios. Both portable skills validate, and the repeatable checkout evaluation passes definition ranking, expected-file recall, call/contract correctness, decision linkage, freshness and response budgets. See the [validation record](VALIDATION.md), [usage and qualification limits](CODEBASE-INTELLIGENCE.md), and local `artifacts/contextory-workspace-0.3.0.vsix` with its SHA-256 file. Nothing was published externally.
+All six stages are implemented in version 0.3.0. The complete check passes 56 backend tests and 23 UI tests. The extracted VSIX passes the VS Code and IBM Bob host scenarios. Both portable skills validate, and the repeatable checkout evaluation passes definition ranking, expected-file recall, call/contract correctness, decision linkage, freshness and response budgets. See the [validation record](VALIDATION.md), [usage and qualification limits](CODEBASE-INTELLIGENCE.md), and local `artifacts/contextory-workspace-0.3.0.vsix` with its SHA-256 file. The original implementation delivery was local. Publication is tracked separately under REQ-c51fae9d; see the [0.3.0 release notes](releases/v0.3.0.md).
 
 | Stage | Tracked specification | Delivered implementation                                                                                                             |
 | ----- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |

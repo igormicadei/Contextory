@@ -41,7 +41,7 @@ npm run check
 | `npm run icons:render`     | Render the committed vector artwork into the 256-pixel package icon and size preview.                   |
 | `npm run package:vsix`     | Build, regenerate dependency notices, and package the VSIX into `artifacts/`.                           |
 
-Preview surfaces are `/sidebar.html`, `/flow.html`, and `/relationships.html`. Add `?theme=light`, `?theme=custom`, `?theme=high-contrast`, or `?theme=high-contrast-light`. The sample palettes and records are test fixtures, excluded from the VSIX; actual webviews receive live theme tokens from the editor.
+Preview surfaces are `/sidebar.html`, `/flow.html`, `/relationships.html`, and `/architecture.html`. Add `?theme=light`, `?theme=custom`, `?theme=high-contrast`, or `?theme=high-contrast-light`. The sample palettes and records are test fixtures, excluded from the VSIX; actual webviews receive live theme tokens from the editor.
 
 The shared monochrome icon source is `media/contextory.svg`. Color extension artwork is `media/contextory-icon.svg`, and its generated `media/contextory-icon.png` is committed so package builds do not need a browser.
 
@@ -70,7 +70,15 @@ Host tests and protocol fixtures do not drive an authenticated model conversatio
 
 The VSIX includes runtime bundles, the Python parser, icons, styles, dependency notices, and documentation. It excludes tests, source maps, screenshots, models, development caches, and node_modules. Runtime dependencies are bundled by esbuild. End users need external Node 24+, and Python only for Python analysis.
 
-Project records are stored in editor-managed global storage. `.contextory-local` contains development caches and fixtures only; it is ignored by Git and excluded from packages. VSIX binaries are GitHub release assets, not committed repository files. Checksums and validation evidence are kept under `artifacts/`.
+Project records are stored in editor-managed global storage. Standalone CLI/MCP records live in `.contextory-local/service` by default; back up that directory if it contains authoritative records. Other `.contextory-local` directories contain development caches and fixtures. The directory is ignored by Git and excluded from packages. VSIX binaries are GitHub release assets, not committed repository files. Checksums and validation evidence are kept under `artifacts/`.
+
+## Build and publish the documentation
+
+The complete searchable documentation is published at [igormicadei.github.io/Contextory](https://igormicadei.github.io/Contextory/). The site includes every Markdown guide and release note in `docs/`, both canonical skills and their references, the README and changelog. VitePress supplies local full-text search, responsive navigation, dark mode and code highlighting; Mermaid renders the architecture diagrams.
+
+Run `npm run docs:build` to stage canonical Markdown in `.contextory-local/docs-content`, build into `.contextory-local/docs-site` and check generated page/asset links. Run `npm run docs:preview` to inspect the built site locally; use the printed URL with the `/Contextory/` base path. The landing page and site navigation live in `docs-site/`; edit guides in their original locations, not the generated staging directory. Repository source links point to the matching release tag. The generated `documentation.json` lists all included pages.
+
+`.github/workflows/documentation.yml` builds on relevant pushes to `main` or manual dispatch and publishes static files to `gh-pages`. The branch starts with an independent root commit and contains only the generated site; subsequent deployments preserve that branch's history. GitHub Pages is configured to deploy from the branch root. A `.nojekyll` file keeps generated assets intact. The GitHub Actions deployment token has repository contents write access only in the publication job. This workflow is excluded from the VSIX.
 
 ## Release process
 
@@ -79,12 +87,12 @@ Project records are stored in editor-managed global storage. `.contextory-local`
 3. Run `npm run package:vsix`. Inspect the ZIP manifest and assets, and run both editor-host checks against the extracted package when qualifying a release.
 4. Calculate the SHA-256 checksum of the **final** package and write `artifacts/contextory-workspace-<version>.sha256` in `<hash>  <filename>` format. Rebuilds can change the ZIP bytes, so refresh the checksum after every final rebuild.
 5. Commit the source/docs/evidence, push the release commit to the intended branch, and create an annotated `v<version>` tag at that commit. Never replace an existing published tag without a deliberate release correction.
-6. Create the GitHub release with the matching VSIX and checksum attached. For example, after committing and pushing version 0.2.3:
+6. Create the GitHub release with the matching VSIX and checksum attached. For example, after committing and pushing version 0.3.0:
 
    ```powershell
-   gh release create v0.2.3 artifacts/contextory-workspace-0.2.3.vsix artifacts/contextory-workspace-0.2.3.sha256 --repo igormicadei/Contextory --verify-tag --title 'Contextory v0.2.3' --notes-file docs/releases/v0.2.3.md
+   gh release create v0.3.0 artifacts/contextory-workspace-0.3.0.vsix artifacts/contextory-workspace-0.3.0.sha256 --repo igormicadei/Contextory --verify-tag --title 'Contextory v0.3.0' --notes-file docs/releases/v0.3.0.md
    ```
 
-7. Verify the release's tag, source commit, asset names/sizes, and a downloaded asset's SHA-256 against the local final package.
+7. Run `npm run release:verify` to verify the published tag, downloaded VSIX/checksum bytes, orphan `gh-pages` history, live Pages configuration and complete documentation manifest against this checkout. Keep the local final package available for comparison.
 
 Use a notes file so Markdown/newlines survive shell quoting. Release notes should explain user-facing behavior, installation, qualification, and material upgrade limitations. Packaging does not publish to the VS Code Marketplace; that is a separate distribution process. The existing `UNLICENSED` designation is preserved until the owner chooses a license.

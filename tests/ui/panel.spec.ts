@@ -191,12 +191,16 @@ test("history and source flow use bounded panel scrolling and retain their posit
   await page
     .locator(".diagram-scroll")
     .evaluate((element) => (element.scrollTop = 35));
+  const retainedScroll = await page
+    .locator(".diagram-scroll")
+    .evaluate((element) => element.scrollTop);
+  expect(retainedScroll).toBeGreaterThan(0);
   await page.getByRole("button", { name: "Refresh workspace" }).click();
   await expect
     .poll(() =>
       page.locator(".diagram-scroll").evaluate((element) => element.scrollTop),
     )
-    .toBe(35);
+    .toBe(retainedScroll);
   await shellFits(page, 420);
 });
 

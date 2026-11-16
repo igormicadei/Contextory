@@ -1,6 +1,6 @@
 # Contextory user guide
 
-Local 0.3.0 adds **Architecture**, task-context/source-impact/path tools, optional Graphify import, portable skills, **Export Generic MCP Connection** and headless CLI/MCP. Follow the [codebase intelligence guide](CODEBASE-INTELLIGENCE.md) for configuration, client paths, examples and coverage limits. Existing editor records are preserved by the additive schema 4 migration.
+Version 0.3.0 adds **Architecture**, task-context/source-impact/path tools, optional Graphify import, portable skills, **Export Generic MCP Connection** and headless CLI/MCP. Follow the [codebase intelligence guide](CODEBASE-INTELLIGENCE.md) for configuration, client paths, examples and coverage limits. Existing editor records are preserved by the additive schema 4 migration.
 
 Contextory manages development requests and gives native agents a shared record of what was requested, what changed, and why. The developer continues talking to Codex, Claude Code, or IBM Bob in that agent's normal chat.
 
@@ -17,27 +17,27 @@ Contextory manages development requests and gives native agents a shared record 
 
 ## Install the VSIX
 
-1. Download `contextory-workspace-0.2.3.vsix` and its `.sha256` file from the [v0.2.3 release](https://github.com/igormicadei/Contextory/releases/tag/v0.2.3).
+1. Download `contextory-workspace-0.3.0.vsix` and its `.sha256` file from the [v0.3.0 release](https://github.com/igormicadei/Contextory/releases/tag/v0.3.0).
 2. Optionally compare the checksum using PowerShell:
 
    ```powershell
-   (Get-FileHash -Algorithm SHA256 .\contextory-workspace-0.2.3.vsix).Hash.ToLowerInvariant()
-   Get-Content .\contextory-workspace-0.2.3.sha256
+   (Get-FileHash -Algorithm SHA256 .\contextory-workspace-0.3.0.vsix).Hash.ToLowerInvariant()
+   Get-Content .\contextory-workspace-0.3.0.sha256
    ```
 
-3. In the editor's Extensions view, use **… → Install from VSIX…** and select the package. In VS Code, `code --install-extension .\contextory-workspace-0.2.3.vsix` is an alternative.
+3. In the editor's Extensions view, use **… → Install from VSIX…** and select the package. In VS Code, `code --install-extension .\contextory-workspace-0.3.0.vsix` is an alternative.
 4. Reload if prompted. Open the project as a single folder and trust it before connecting agents or running checks.
 5. Select the Contextory activity-bar icon: a request card connected to context nodes.
 
 The extension is distributed as a GitHub release asset. You do not need to clone the repository or install its development dependencies to use the package.
 
-The latest local build is **0.3.0**, available as `artifacts/contextory-workspace-0.3.0.vsix` when supplied or built from this checkout. Install it with the same **Install from VSIX…** command. The published download above remains 0.2.3. Code intelligence and portable execution require 0.3.0; automatic discovery and the pause switch were introduced in 0.2.6.
+Version **0.3.0** includes code intelligence and portable execution; automatic discovery and the pause switch were introduced in 0.2.6. The [release notes](releases/v0.3.0.md) describe the complete update. Browse the [full documentation](https://igormicadei.github.io/Contextory/) for searchable guides and references.
 
 ## Connect a native agent
 
-In 0.2.6, open a trusted local folder and Contextory automatically prepares every detected supported agent. It recognizes the installed Codex (`openai.chatgpt`) and Claude Code (`Anthropic.claude-code`) extensions, and IBM Bob through its editor host or built-in agent extension. Detection does not activate the native extensions or start a conversation. Agents installed later are detected when the editor reports its extensions changed.
+Open a trusted local folder and Contextory automatically prepares every detected supported agent. It recognizes the installed Codex (`openai.chatgpt`) and Claude Code (`Anthropic.claude-code`) extensions, and IBM Bob through its editor host or built-in agent extension. Detection does not activate the native extensions or start a conversation. Agents installed later are detected when the editor reports its extensions changed.
 
-To prepare an agent manually, click its name in the sidebar footer or use the corresponding **Contextory: Connect Native …** command. Connection writes an owned MCP server entry, lifecycle hooks, and a workflow skill into the project. It preserves unrelated configuration and leaves global provider settings and native permission policies alone.
+To prepare an agent manually, click its name in the sidebar footer or use the corresponding **Contextory: Connect Native …** command. Connection writes an owned MCP server entry, lifecycle hooks, and both codebase/workflow skills into the project. It preserves unrelated configuration and leaves global provider settings and native permission policies alone.
 
 Review the changed files, then use the native client's own trust/reload mechanism. Some clients need their MCP configuration reloaded or their agent session restarted. Keep the editor open so the local Contextory service remains available.
 
@@ -108,11 +108,17 @@ Each request has one card. Expand a milestone and click a spec to show its detai
 
 History pages all audit events rather than the Overview's three-event excerpt. Request/milestone/spec filters include descendant activity. Linked breadcrumbs return to the corresponding records.
 
+### Architecture
+
+Open **Architecture** or run **Contextory: Explore Architecture** to start with a subsystem map and a repository explorer. Select a component in either place, choose a file shortcut, and inspect a symbol’s direct connections in the coordinated source inspector. Use the breadcrumbs, **Project** and **Back** to retain your bearings. File shortcuts and context results are bounded; scoped search and **Explore connections** retrieve more detail. Filter by relationship and incoming/outgoing direction; open exact source locations from the inspector. The **Matrix** view compares subsystem dependencies: rows depend on columns, intensity represents indexed link counts, and ↔ marks a reciprocal direct dependency. Select a cell to explore its source subsystem. Both maps support zoom, background drag, fit and keyboard selection. Entry points, shared symbols and conventions are available in the expandable reference section. Search for a symbol or describe a task, follow source citations and linked decisions, and refresh the code index when recovering from an indexing error. Saved changes refresh automatically. Read-only code questions need no tracked request. The [codebase intelligence guide](CODEBASE-INTELLIGENCE.md) covers configuration, Graphify imports and static-analysis limits.
+
 ### Code map
 
 Place the cursor in a workspace source file, then trace through Code map. Sidebar tracing stays in the sidebar. The editor context menu **Contextory: Trace Flow from Here** opens a dedicated workbench panel. The last source cursor is remembered when you focus the sidebar.
 
 Calls mode shows function relationships; flow mode also represents supported branches and continuations. Python and TypeScript/JavaScript have static analyzers. Other languages need an installed editor call-hierarchy provider and do not gain language-specific branch extraction automatically.
+
+The step list, map and inspector share selection. Select a step to highlight its direct incoming/outgoing paths and see the source, then follow a connection or choose **Trace from this node**. Filter connection types or use **Focus selected step** to reduce clutter. Use **+**, **−**, **Fit** and **100%**, drag the canvas background to pan, or use Ctrl + wheel to zoom. Keyboard users can tab to map nodes and activate them with Enter/Space; the focused canvas also scrolls with arrow keys. Short Panels prioritize the diagram; expand the Panel or use the dedicated source-flow workbench for all exploration controls.
 
 The default is five call hops from hop zero, with 150 nodes, 300 edges, and a two-second interactive budget. Cycles, size/depth boundaries, unresolved targets, and analysis gaps remain visible. Expand a frontier or trace from another node to continue. Source references navigate to files, and SVG/JSON exports retain the bounded graph.
 
@@ -218,9 +224,13 @@ The Node/Python executable settings have machine scope; automatic connections, s
 | Claude Code | `.mcp.json`          | `.claude/settings.local.json` | `.claude/skills/contextory-workflow/SKILL.md` |
 | IBM Bob     | `.bob/mcp.json`      | `.bob/settings.json`          | `.bob/skills/contextory-workflow/SKILL.md`    |
 
+Each provider also receives `contextory-codebase/SKILL.md` and both skills’ reference files in the same skills directory. Generic clients can use **Contextory: Export Generic MCP Connection** and copy the exported `.contextory/skills` folders into their own supported discovery location; hooks are optional. See [portable clients and standalone execution](CODEBASE-INTELLIGENCE.md#agent-portability).
+
 The server name starts with `contextory_companion_` and has a project-specific suffix. Hook/proxy commands point to managed local runtimes and private service descriptors. Review machine-specific paths before sharing configuration with another machine. Registration rejects malformed configuration, linked directories/files, and unowned conflicts rather than overwriting them.
 
 The SQLite ledger, audit events, check artifacts, and credentials are stored under the editor's global storage for `contextory-local.contextory-workspace`, in a canonical-project-path namespace. Optional model files have a separate managed directory. Exact storage locations depend on the editor/profile. Moving the project to a different canonical path creates a different project namespace in this preview.
+
+Standalone CLI/MCP uses `<root>/.contextory-local/service` by default, or an explicit `--storage` directory. This is a separate authoritative ledger unless attached to a running editor service through `--descriptor`; records are not silently merged. Back up that service directory as well when using headless mode.
 
 For an independent backup, close the editor clients, let the service stop after its roughly 65-second grace period, and copy the extension's managed storage, including its project directories. Do not delete native provider credentials or edit the ledger directly. Contextory records do not include a native conversation mirror: hooks retain normalized event/session/cwd/tool metadata, not raw prompts, transcript paths, or tool output. Check output and indexed project content are retained locally as part of their respective features.
 

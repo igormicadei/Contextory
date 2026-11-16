@@ -1466,23 +1466,83 @@ body[data-layout="horizontal"] main > .empty {
     animation: none;
   }
 }
-.architecture-view { display: grid; gap: 20px; min-width: 0; }
-.architecture-view h1, .architecture-view h2 { margin: 0 0 10px; }
-.architecture-state { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.architecture-state > .muted { flex-basis: 100%; }
-.architecture-columns { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 24px; }
-.subsystem-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(230px,100%), 1fr)); gap: 10px; }
-.architecture-view .record { margin: 0; min-width: 0; }
-.architecture-view .record h3:first-child { margin-top: 0; }
-.architecture-view section { margin-bottom: 0; }
-.architecture-view .section-heading > div:last-child { display: flex; flex-wrap: wrap; gap: 6px; }
-.architecture-view .source-link { display: block; max-width: 100%; overflow-wrap: anywhere; white-space: normal; text-align: left; }
-.architecture-context { display: grid; gap: 10px; }
-.architecture-view pre { white-space: pre-wrap; overflow-wrap: anywhere; }
-.architecture-table { overflow: auto; }
-.architecture-table table { width: 100%; border-collapse: collapse; text-align: left; }
-.architecture-table th, .architecture-table td { padding: 8px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
-@media (max-width: 620px) { .architecture-columns { grid-template-columns: minmax(0, 1fr); } }
+.architecture-view {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+.architecture-view h1,
+.architecture-view h2 {
+  margin: 0 0 10px;
+}
+.architecture-state {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.architecture-state > .muted {
+  flex-basis: 100%;
+}
+.architecture-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 24px;
+}
+.subsystem-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr));
+  gap: 10px;
+}
+.architecture-view .record {
+  margin: 0;
+  min-width: 0;
+}
+.architecture-view .record h3:first-child {
+  margin-top: 0;
+}
+.architecture-view section {
+  margin-bottom: 0;
+}
+.architecture-view .section-heading > div:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.architecture-view .source-link {
+  display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  text-align: left;
+}
+.architecture-context {
+  display: grid;
+  gap: 10px;
+}
+.architecture-view pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.architecture-table {
+  overflow: auto;
+}
+.architecture-table table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.architecture-table th,
+.architecture-table td {
+  padding: 8px;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+@media (max-width: 620px) {
+  .architecture-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 body.vscode-high-contrast button,
 body.vscode-high-contrast-light button {
   border-color: var(--vscode-contrastBorder, var(--line));
@@ -1496,3 +1556,354 @@ body.vscode-high-contrast .graph-edge path,
 body.vscode-high-contrast-light .graph-edge path {
   opacity: 1;
 }
+
+/* Source exploration: stable maps, coordinated navigation and progressive detail. */
+.eyebrow {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  margin: 0 0 8px;
+}
+.exploration-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  min-width: 0;
+  background: var(--surface);
+}
+.explorer-tree,
+.explorer-inspector,
+.explorer-main {
+  min-width: 0;
+  padding: 16px;
+}
+.explorer-tree {
+  background: color-mix(in srgb, var(--foreground) 3%, var(--surface));
+  max-height: 260px;
+  overflow: auto;
+  border-bottom: 1px solid var(--line);
+}
+.explorer-inspector {
+  border-top: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+.explorer-inspector h2 {
+  font-size: 17px;
+}
+.explorer-inspector ol {
+  padding-left: 18px;
+  line-height: 1.9;
+}
+.explorer-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  margin: 4px 0;
+  background: transparent;
+  color: var(--foreground);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 9px;
+}
+.explorer-item:hover {
+  background: var(--hover);
+}
+.explorer-item.active,
+.view-switch [aria-pressed="true"] {
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  border-color: var(--accent);
+  color: var(--foreground);
+}
+.explorer-item small {
+  color: var(--muted);
+  flex-shrink: 0;
+  font-size: 10px;
+}
+.explorer-breadcrumbs,
+.explorer-filters,
+.map-tools,
+.map-tools > div,
+.map-legend,
+.view-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.explorer-breadcrumbs {
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.explorer-filters {
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.explorer-filters label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  max-width: 100%;
+}
+.explorer-filters select {
+  max-width: 100%;
+}
+.map-tools {
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 10px;
+}
+.map-tools > span {
+  flex: 1 1 120px;
+}
+.map-tools > div {
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+.map-canvas {
+  overflow: auto;
+  height: 370px;
+  max-height: 65vh;
+  min-height: 160px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background-color: var(--surface);
+  background-image: radial-gradient(var(--line) 0.7px, transparent 0.7px);
+  background-size: 20px 20px;
+  cursor: grab;
+  touch-action: none;
+}
+.map-canvas:active {
+  cursor: grabbing;
+}
+.explorer-diagram {
+  display: block;
+  max-width: none;
+}
+.explorer-diagram marker path {
+  fill: var(--muted);
+}
+.explorer-diagram .node-name {
+  font-weight: 600;
+}
+.graph-edge.imports path,
+.graph-edge.re_exports path {
+  stroke-dasharray: 6 4;
+}
+.graph-edge.extends path,
+.graph-edge.implements path {
+  stroke: var(--warning);
+  stroke-dasharray: 9 3 2 3;
+}
+.graph-edge.tests path {
+  stroke: var(--green);
+  stroke-dasharray: 2 3;
+}
+.graph-edge.related path {
+  stroke-width: 2;
+  opacity: 1;
+}
+.graph-node.dimmed,
+.graph-edge.dimmed {
+  opacity: 0.3;
+}
+.graph-node.subsystem rect {
+  stroke: var(--accent);
+}
+.graph-node:focus-visible rect {
+  stroke: var(--focus);
+  stroke-width: 3;
+}
+.map-legend {
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 10px 0;
+  gap: 6px 16px;
+}
+.connection-detail {
+  display: grid;
+  gap: 3px;
+  border-top: 1px solid var(--line);
+  padding: 10px 0;
+}
+.connection-detail > span {
+  font-size: 10px;
+  color: var(--muted);
+}
+.dependency-matrix {
+  overflow: auto;
+  max-height: 500px;
+}
+.dependency-matrix table {
+  border-collapse: separate;
+  border-spacing: 3px;
+  font-size: 11px;
+  width: 100%;
+}
+.dependency-matrix caption {
+  text-align: left;
+  color: var(--muted);
+  line-height: 1.6;
+  padding: 8px 0 16px;
+}
+.dependency-matrix th {
+  font-weight: 500;
+  text-align: left;
+  min-width: 75px;
+  overflow-wrap: anywhere;
+  padding: 8px;
+}
+.dependency-matrix td {
+  text-align: center;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  min-width: 64px;
+  height: 42px;
+}
+.matrix-cell {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  color: var(--foreground);
+  font-weight: 600;
+}
+.heat-1 {
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+.heat-2 {
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+}
+.heat-3 {
+  background: color-mix(in srgb, var(--accent) 35%, var(--surface));
+}
+.heat-4 {
+  background: color-mix(in srgb, var(--accent) 48%, var(--surface));
+}
+.architecture-context {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+}
+.architecture-context > h2,
+.architecture-context > p {
+  grid-column: 1 / -1;
+}
+.architecture-reference {
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+.architecture-reference summary {
+  cursor: pointer;
+  margin-bottom: 16px;
+}
+.flow-explorer {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.flow-explorer > .section-heading,
+.flow-explorer > p,
+.flow-explorer .flow-controls {
+  margin: 0;
+}
+.flow-explorer .node-detail {
+  display: block;
+  padding: 16px;
+}
+.flow-explorer .node-detail .source-link {
+  display: block;
+  text-align: left;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  margin: 10px 0;
+}
+body[data-layout="horizontal"] main[data-screen="map"] {
+  display: block;
+  overflow: auto;
+}
+@media (min-width: 900px) {
+  .exploration-workspace {
+    grid-template-columns: 185px minmax(0, 1fr);
+  }
+  .explorer-tree {
+    border-bottom: 0;
+    border-right: 1px solid var(--line);
+    max-height: 650px;
+  }
+  .explorer-inspector {
+    grid-column: 1 / -1;
+  }
+}
+@media (min-width: 1250px) {
+  .exploration-workspace {
+    grid-template-columns: 190px minmax(0, 1fr) 245px;
+  }
+  .explorer-inspector {
+    grid-column: auto;
+    border-top: 0;
+    border-left: 1px solid var(--line);
+    max-height: 750px;
+    overflow-y: auto;
+  }
+}
+@media (max-width: 620px) {
+  .explorer-main,
+  .explorer-tree,
+  .explorer-inspector {
+    padding: 12px;
+  }
+  .map-tools > span {
+    display: none;
+  }
+}
+@media (max-height: 500px) and (min-width: 760px) {
+  body[data-layout="horizontal"] .flow-explorer {
+    gap: 4px;
+  }
+  body[data-layout="horizontal"]
+    .flow-explorer:has(.graph-summary)
+    > .section-heading,
+  body[data-layout="horizontal"] .flow-explorer > p,
+  body[data-layout="horizontal"] .flow-explorer > .graph-summary,
+  body[data-layout="horizontal"] .flow-workspace > .explorer-tree {
+    display: none;
+  }
+  body[data-layout="horizontal"] .flow-explorer .flow-controls {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  body[data-layout="horizontal"] .flow-workspace {
+    display: block;
+    border: 0;
+    overflow: visible;
+  }
+  body[data-layout="horizontal"] .flow-workspace .explorer-main {
+    padding: 0;
+  }
+  body[data-layout="horizontal"] .flow-workspace .explorer-filters,
+  body[data-layout="horizontal"] .flow-workspace .map-tools,
+  body[data-layout="horizontal"] .flow-workspace .map-legend,
+  body[data-layout="horizontal"] .flow-workspace .explorer-main > p {
+    display: none;
+  }
+  body[data-layout="horizontal"] .flow-workspace .map-canvas {
+    height: max(160px, calc(100vh - 180px));
+    min-height: 160px;
+    max-height: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .map-canvas {
+    scroll-behavior: auto;
+  }
+}
+.graph-edge.inferred path { stroke-dasharray: 5 4; }

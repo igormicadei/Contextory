@@ -97,9 +97,10 @@ test("progress, flow and relationships follow custom and contrast theme tokens",
   ]) {
     const active = await changeTheme(page, name);
     await expect(node).toHaveCSS("fill", rgb(active.input));
-    await expect(
-      page.locator(".graph-node text:not([class])").first(),
-    ).toHaveCSS("fill", rgb(active.foreground));
+    await expect(page.locator(".graph-node .node-name").first()).toHaveCSS(
+      "fill",
+      rgb(active.foreground),
+    );
     await expect(page.locator(".graph-node .node-kind").first()).toHaveCSS(
       "fill",
       rgb(active.link),

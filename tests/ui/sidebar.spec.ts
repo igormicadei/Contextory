@@ -178,7 +178,7 @@ test("search and bounded source diagram support navigation and expansion", async
   await page.getByRole("button", { name: "Code map", exact: true }).click();
   await page.getByRole("button", { name: "Trace current symbol" }).click();
   await expect(
-    page.getByRole("img", { name: "Possible source flow" }),
+    page.getByRole("group", { name: "Possible source flow" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Export JSON", exact: true }).click();
   await page.getByRole("button", { name: "Export SVG", exact: true }).click();
@@ -245,7 +245,7 @@ test("standalone diagram surface renders flow without a duplicate overview", asy
     page.getByRole("heading", { name: "Source flow" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("img", { name: "Possible source flow" }),
+    page.getByRole("group", { name: "Possible source flow" }),
   ).toBeVisible();
   await expect(
     page.getByRole("navigation", { name: "Contextory views" }),

@@ -271,12 +271,25 @@ const automation = {
   host: "Visual Studio Code",
 };
 const architecture = {
-  status:{state:"ready",snapshotId:"fixture",indexedAt:time,files:12,symbols:38,edges:82,partial:true,gaps:["Dynamic call targets remain unresolved."],changedFiles:0},
-  conventions:["Keep payment retries idempotent."],
-  subsystems:[{name:"src/payments",files:4,symbols:16,paths:["src/payments.ts"]},{name:"src/service",files:3,symbols:12,paths:["src/service.ts"]}],
-  dependencies:[{from:"src/service",to:"src/payments",count:3}],
-  entryPoints:[{path:"src/main.ts",line:0}],
-  hubs:[{name:"charge",path:"src/payments.ts",line:14,references:5}],
+  status: {
+    state: "ready",
+    snapshotId: "fixture",
+    indexedAt: time,
+    files: 12,
+    symbols: 38,
+    edges: 82,
+    partial: true,
+    gaps: ["Dynamic call targets remain unresolved."],
+    changedFiles: 0,
+  },
+  conventions: ["Keep payment retries idempotent."],
+  subsystems: [
+    { name: "src/payments", files: 4, symbols: 16, paths: ["src/payments.ts"] },
+    { name: "src/service", files: 3, symbols: 12, paths: ["src/service.ts"] },
+  ],
+  dependencies: [{ from: "src/service", to: "src/payments", count: 3 }],
+  entryPoints: [{ path: "src/main.ts", line: 0 }],
+  hubs: [{ name: "charge", path: "src/payments.ts", line: 14, references: 5 }],
 };
 window.acquireVsCodeApi = () => ({
   getState() {},
@@ -306,9 +319,115 @@ window.acquireVsCodeApi = () => ({
         );
       if (message.type === "trace" || message.type === "expand")
         send({ type: "flow", graph });
-      if(message.type === "architecturePanel") window.open("/architecture.html","_blank");
-      if(message.type === "tool" && message.name === "contextory_code_architecture_get") send({type:"toolResult",requestId:message.requestId,result:architecture});
-      if(message.type === "tool" && message.name === "contextory_code_context_get") send({type:"toolResult",requestId:message.requestId,result:{snapshotId:"fixture",symbols:message.arguments.query==="missing"?[]:[{id:"code:charge",kind:"function",name:"charge",path:"src/payments.ts",line:14,signature:"export function charge(order: Order)",reason:"query"}],records:message.arguments.query==="missing"?[]:[{id:"DEC-demo",title:"Preserve payment identity",description:"Retries use one idempotency key.",reason:"references_source"}],relationships:[],truncated:false}});
+      if (message.type === "architecturePanel")
+        window.open("/architecture.html", "_blank");
+      if (
+        message.type === "tool" &&
+        message.name === "contextory_code_architecture_get"
+      )
+        send({
+          type: "toolResult",
+          requestId: message.requestId,
+          result: architecture,
+        });
+      if (
+        message.type === "tool" &&
+        message.name === "contextory_code_context_get"
+      ) {
+        if (message.arguments.query === "fail") {
+          send({
+            type: "notice",
+            text: "Source index unavailable; retry the query.",
+          });
+          return;
+        }
+        const empty = message.arguments.query === "missing";
+        const symbols = [
+          {
+            id: "code:charge",
+            kind: "function",
+            name: "charge",
+            path: "src/payments.ts",
+            line: 14,
+            signature: "export function charge(order: Order)",
+            reason: "query",
+            origin: "native",
+            language: "typescript",
+          },
+          {
+            id: "code:checkout",
+            kind: "function",
+            name: "checkout",
+            path: "src/service.ts",
+            line: 4,
+            signature: "export function checkout()",
+            reason: "calls",
+            origin: "native",
+            language: "typescript",
+          },
+          {
+            id: "code:save",
+            kind: "function",
+            name: "saveOrder",
+            path: "src/payments.ts",
+            line: 24,
+            signature: "function saveOrder()",
+            reason: "calls",
+            origin: "native",
+            language: "typescript",
+          },
+        ];
+        send({
+          type: "toolResult",
+          requestId: message.requestId,
+          result: {
+            snapshotId: "fixture",
+            symbols: empty ? [] : symbols,
+            records: empty
+              ? []
+              : [
+                  {
+                    id: "DEC-demo",
+                    title: "Preserve payment identity",
+                    description: "Retries use one idempotency key.",
+                    reason: "references_source",
+                  },
+                ],
+            relationships: empty
+              ? []
+              : [
+                  {
+                    source: "code:checkout",
+                    target: "code:charge",
+                    kind: "calls",
+                    category: "resolved",
+                    extractor: "fixture",
+                    path: "src/service.ts",
+                    line: 4,
+                  },
+                  {
+                    source: "code:charge",
+                    target: "code:save",
+                    kind: "calls",
+                    category: "resolved",
+                    extractor: "fixture",
+                    path: "src/payments.ts",
+                    line: 16,
+                  },
+                  {
+                    source: "code:checkout",
+                    target: "code:save",
+                    kind: "imports",
+                    category: "resolved",
+                    extractor: "fixture",
+                    path: "src/service.ts",
+                    line: 0,
+                  },
+                ],
+            truncated: false,
+          },
+        });
+      }
       if (message.type === "tool" && message.name === "contextory_search")
         send({
           type: "toolResult",

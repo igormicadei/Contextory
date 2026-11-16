@@ -1,15 +1,18 @@
 # Changelog
 
-## 0.3.0 — 2026-11-16 (local)
+## 0.3.0 — 2026-11-16
 
 - Add a persistent, rebuildable TS/JS and Python source graph with stable symbols, imports/calls/references/inheritance, test/document/config links, inferred literal message contracts and source provenance. Add validated `contextory.project.json` coverage and entry-point settings.
 - Keep graph snapshots current through content/config hashes, AST reuse, background filesystem/Git refresh, deletion/rename cleanup and transactional Graphify import with source-hash invalidation.
 - Retrieve ranked task context with project memory and explicit byte budgets. Add source/record impact, bounded relationship paths, architecture summaries and cached workspace orientation.
-- Add the Architecture workbench, cited query results, source/record navigation, freshness/coverage notices and refresh controls.
+- Add a visual Architecture workbench with subsystem maps, scoped file/symbol navigation, breadcrumbs and Back, typed/directional neighborhoods, a coordinated inspector and a dependency matrix. Preserve cited source/record navigation and freshness/coverage notices.
+- Improve Code map with a stable layered canvas, synchronized step list and inspector, direct connection highlighting, relationship filters, focused neighborhoods, zoom/pan/fit and keyboard navigation.
 - Package canonical Agent Skills and references through capability-based Codex/Claude/Bob/generic adapters. Add generic MCP export and standalone CLI/stdio MCP without editor heartbeat or hook requirements.
 - Synchronize agent guidance for task lookup, relationship navigation, source verification, graph freshness and missing capabilities. Share runtime instructions across native/headless MCP, workspace briefs and hook reminders; add project entry instructions and ownership-safe skill-only workspace sync with drift checks.
 - Restore post-compaction agent reminders by returning the cached brief for that lifecycle event; verify session, prompt and post-compaction outputs across native adapters.
-- Add retrieval/graph/freshness/import/migration/headless/client/UI regression coverage and a repeatable checkout evaluation. Preserve existing project records with additive schema 4. No external publication is included in this local delivery.
+- Add retrieval/graph/freshness/import/migration/headless/client/UI regression coverage and a repeatable checkout evaluation. Preserve existing project records with additive schema 4.
+
+- Publish the 0.3.0 VSIX and SHA-256 release assets. Update installation and upgrade guidance and provide the full searchable documentation on GitHub Pages from an orphan `gh-pages` branch, with reproducible builds and automatic deployment.
 
 ## 0.2.6 — 2026-11-13
 

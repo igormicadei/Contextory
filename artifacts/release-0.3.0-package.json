@@ -1,0 +1,26 @@
+{
+  "package": "contextory-workspace-0.3.0.vsix",
+  "version": "0.3.0",
+  "bytes": 3971842,
+  "sha256": "a4f68cb4e58ef03c86f9380d88e27bf82be87332a902c61a507d70cda3502090",
+  "exactRuntimeFiles": [
+    "extension/dist/analysis-worker.mjs",
+    "extension/dist/codebase-worker.mjs",
+    "extension/dist/contextory-hook.mjs",
+    "extension/dist/contextory.mjs",
+    "extension/dist/extension.js",
+    "extension/dist/mcp-proxy.mjs",
+    "extension/dist/python-flow.py",
+    "extension/dist/python-index.py",
+    "extension/dist/service.mjs",
+    "extension/dist/webview.js"
+  ],
+  "exactCanonicalSkills": [
+    "extension/skills/contextory-codebase/SKILL.md",
+    "extension/skills/contextory-workflow/SKILL.md",
+    "extension/skills/contextory-codebase/references/retrieval.md",
+    "extension/skills/contextory-workflow/references/completion.md"
+  ],
+  "documentationFiles": 14,
+  "developmentAndPrivateFilesExcluded": true
+}

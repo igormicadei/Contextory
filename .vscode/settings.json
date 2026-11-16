@@ -1,7 +1,13 @@
 {
-  "files.exclude": { ".contextory-local": true },
-  "files.watcherExclude": { "**/.contextory-local/**": true },
-  "search.exclude": { "**/.contextory-local/**": true },
+  "files.exclude": {
+    ".contextory-local": true
+  },
+  "files.watcherExclude": {
+    "**/.contextory-local/**": true
+  },
+  "search.exclude": {
+    "**/.contextory-local/**": true
+  },
   "contextory.checks": [
     {
       "id": "codebase",
@@ -71,7 +77,12 @@
       "id": "workspace-skills",
       "name": "Installed client skill drift",
       "executable": "node",
-      "args": ["--import", "tsx", "scripts/sync-workspace-skills.ts", "--check"],
+      "args": [
+        "--import",
+        "tsx",
+        "scripts/sync-workspace-skills.ts",
+        "--check"
+      ],
       "timeoutMs": 30000
     },
     {
@@ -94,6 +105,27 @@
         "tests/analysis/*.test.ts"
       ],
       "timeoutMs": 300000
+    },
+    {
+      "id": "documentation",
+      "name": "Complete documentation build and link validation",
+      "executable": "node",
+      "args": ["scripts/docs.mjs"],
+      "timeoutMs": 180000
+    },
+    {
+      "id": "visual-exploration",
+      "name": "Visual exploration navigation and UI regression",
+      "executable": "node",
+      "args": ["node_modules/@playwright/test/cli.js", "test"],
+      "timeoutMs": 180000
+    },
+    {
+      "id": "release-publication",
+      "name": "Published release assets, orphan branch and full Pages documentation",
+      "executable": "node",
+      "args": ["scripts/verify-release.mjs"],
+      "timeoutMs": 180000
     }
   ]
 }

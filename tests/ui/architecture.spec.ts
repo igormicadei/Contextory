@@ -17,7 +17,9 @@ test("architecture query, provenance notices, source navigation and refresh work
   await page.getByRole("searchbox").fill("charge");
   await page.getByRole("button", { name: "Find context" }).click();
   await expect(
-    page.getByRole("heading", { name: "charge", exact: true }),
+    page
+      .locator(".architecture-context")
+      .getByRole("heading", { name: "charge", exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Preserve payment identity" }),
@@ -26,6 +28,7 @@ test("architecture query, provenance notices, source navigation and refresh work
   await page
     .locator(".architecture-context")
     .getByRole("button", { name: /src\/payments.ts/ })
+    .first()
     .click();
   await page.getByRole("button", { name: "Refresh code index" }).click();
   const messages = await page.evaluate(

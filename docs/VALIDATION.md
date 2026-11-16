@@ -1,6 +1,18 @@
 # Validation records
 
-## 0.3.0: code intelligence and portable execution
+## 0.3.0: release publication and visual exploration
+
+The publication follow-up updates the installation/upgrade links and release notes and builds the full documentation with VitePress, local search and Mermaid diagrams. All 21 Markdown pages (guides, release notes, skills/references, README and changelog) are staged from canonical sources. The build checks generated page and asset links; GitHub Pages publishes the static output from an orphan `gh-pages` branch. Documentation tooling is excluded from the VSIX.
+
+Architecture now combines a subsystem map, bounded file shortcuts and symbol neighborhoods with coordinated selection, breadcrumbs/Back, relationship/direction filters, source inspection and a directional matrix. Code map adds a step explorer/inspector, direct-neighbor focus, filters, zoom/pan/fit and retained keyboard/viewport state. New browser regressions exercise those workflows alongside existing empty/error, narrow, live-theme, Panel and source/export checks. [Architecture preview](../artifacts/architecture-explorer.png) · [Code map preview](../artifacts/code-map-explorer.png).
+
+Recorded 2026-11-16 on Windows/Node 24.19.0: the full check passes **58 backend tests** (including real local embeddings) and **28 UI tests**, skill bundle consistency, TypeScript checking and production bundles. Browser inspection of the generated documentation verifies navigation, local full-text search, Mermaid rendering and a 390-pixel mobile viewport. The generated page/asset link check covers all **21 pages**.
+
+The extracted release package passes the full host scenario in [VS Code 1.145.3](../artifacts/host-release-030-vscode.json) and [IBM Bob, VS Code API 1.126.0](../artifacts/host-release-030-bob.json). The [final package inspection](../artifacts/release-0.3.0-package.json) verifies byte-identical validated runtime bundles and all four canonical skill resources, the version and release notes, and exclusion of source/tests, private client configuration, source maps, documentation tooling and CI files. The package is rebuilt to include the final documentation; its runtime and skill bytes match those exercised by the host scenarios. The matching SHA-256 accompanies the release asset.
+
+`npm run release:verify` independently checks the published tag, downloaded VSIX/checksum bytes, GitHub Pages branch/root/HTTPS settings, orphan branch history, the complete live page manifest and key live guides. Earlier implementation measurements below remain historical evidence. Authenticated native-model conversations and the remote/platform/scale limits below remain unqualified.
+
+## 0.3.0: code intelligence and portable execution (implementation history)
 
 The agent-guidance follow-up synchronizes both canonical skills and their references across all four workspace adapters (16 resources), adds repository entry instructions and shares native/headless MCP guidance, brief arrays and lifecycle reminders. **58 backend tests** and **23 UI tests** pass; both skills pass the skill-creator validator and workspace/bundle drift checks pass. The 15 portability checks exercise real MCP initialization with exact shared instructions, brief consistency, all three reminder events for Codex/Claude/Bob, generic operation, byte-preserving skill-only sync, cross-client ownership-conflict preflight and CLI drift detection. This exposed and fixed a dropped PostCompact reminder. The refreshed local package is checked against the validated runtime bundles and canonical skills in [package inspection](../artifacts/agent-guidance-package-inspection.json); its SHA-256 is refreshed. The editor-host reports below cover the earlier 0.3.0 package, before this guidance follow-up; authenticated model behavior remains unqualified.
 

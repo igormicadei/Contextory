@@ -6,7 +6,7 @@ Connect through the extension's provider command rather than assembling private 
 
 ## Available tools
 
-Local 0.3.0 advertises 23 tools. Source-aware additions use the same schemas in native proxies and headless stdio MCP:
+Version 0.3.0 advertises 23 tools. Source-aware additions use the same schemas in native proxies and headless stdio MCP:
 
 | Tool | Purpose |
 | --- | --- |

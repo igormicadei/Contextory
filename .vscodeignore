@@ -2,6 +2,8 @@ node_modules/**
 dist/*.map
 src/**
 tests/**
+docs-site/**
+.github/**
 scripts/**
 !scripts/prepare-embeddings.mjs
 preview/**

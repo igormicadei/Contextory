@@ -232,7 +232,10 @@
     "prepare:semantic": "node scripts/prepare-embeddings.mjs",
     "check": "npm run skills:check && npm run typecheck && npm run build && npm test && npm run test:ui",
     "package:vsix": "npm run build && node scripts/licenses.mjs && vsce package --no-dependencies --skip-license -o artifacts/contextory-workspace-0.3.0.vsix",
-    "format": "prettier --write src tests scripts docs README.md package.json tsconfig.json playwright.config.ts"
+    "format": "prettier --write src tests scripts docs README.md package.json tsconfig.json playwright.config.ts",
+    "docs:build": "node scripts/docs.mjs",
+    "docs:preview": "vitepress preview docs-site --host 127.0.0.1",
+    "release:verify": "node scripts/verify-release.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.1",
@@ -241,12 +244,18 @@
     "@vscode/test-electron": "^3.1.0",
     "@vscode/vsce": "^4.1.0",
     "esbuild": "^0.25.12",
+    "mermaid": "11.17.2",
     "prettier": "3.6.2",
-    "tsx": "^4.20.6"
+    "tsx": "^4.20.6",
+    "vitepress": "1.6.4",
+    "vitepress-plugin-mermaid": "2.0.17"
   },
   "overrides": {
     "@vscode/vsce": {
       "minimatch": "^11.0.1"
+    },
+    "vitepress": {
+      "vite": "^6.4.4"
     }
   },
   "dependencies": {
