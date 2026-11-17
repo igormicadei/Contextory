@@ -6,7 +6,9 @@ Version 0.3.0 adds a separate rebuildable schema 4 source projection (`code_file
 
 `src/agents/instructions.ts` supplies the same retrieval/workflow guidance to both MCP initialization paths and the workspace brief, plus compact reminders for session/prompt/post-compaction hooks. Instructions route tasks through current-source context, relationships and prior decisions, preserve coverage/provenance and explain saved-file freshness and missing-capability fallback. Canonical skills provide progressively loaded input/recovery details. Skill-only workspace synchronization reuses registration's ownership-aware atomic file handling without changing client MCP/hooks. Host-specific differences remain in adapters.
 
-Current version 0.3.1, 2026-11-16. [User guide](USER-GUIDE.md) · [Agent tools](MCP-TOOLS.md) · [Delivery record](CODEBASE-INTELLIGENCE-PLAN.md) · [Validation](VALIDATION.md).
+Current version 0.4.0, 2026-11-17. [User guide](USER-GUIDE.md) · [Agent tools](MCP-TOOLS.md) · [Delivery record](CODEBASE-INTELLIGENCE-PLAN.md) · [Validation](VALIDATION.md).
+
+Reference codebases use a workspace-owned `code.references` registry and separate SQLite projections/workers under service storage. `codebaseId` is explicit on each source query; references never access the active ledger's records, check runner, client registrations or editor overlays. Architecture views select independently. Registration/detachment touches only registry metadata, and source queries verify reference disk content on demand. See [reference behavior](CODEBASE-INTELLIGENCE.md#analyze-reference-codebases).
 
 ## Responsibility boundary
 

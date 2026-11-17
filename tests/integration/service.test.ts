@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { execFile, spawn } from "node:child_process";
 import { promisify } from "node:util";
@@ -18,6 +18,48 @@ import {
   retrievalReminder,
   workflowGuidance,
 } from "../../src/agents/instructions";
+
+test("service scopes reference source resolution and rejects reference mutations through hook credentials", async (t) => {
+  const f = await fixture(t),
+    service = await startService({ ...f, headless: true });
+  f.cleanups.push(() => service.close());
+  const root = join(f.directory, "reference");
+  await mkdir(root);
+  await writeFile(join(root, "main.ts"), "export function referenceOnly(){}");
+  const args = {
+    name: "contextory_codebase_change",
+    arguments: { action: "add", root, operationId: operationId() },
+  };
+  await assert.rejects(
+    rpc(join(f.storage, "codex-hook.json"), "tools/call", args),
+    { code: "FORBIDDEN" },
+  );
+  const ref = (await rpc(
+    join(f.storage, "generic.json"),
+    "tools/call",
+    args,
+  )) as { id: string };
+  const ui = join(f.storage, "ui.json");
+  assert.equal(
+    await rpc(ui, "source.resolve", { path: "main.ts", codebaseId: ref.id }),
+    join(root, "main.ts"),
+  );
+  assert.equal(
+    await rpc(ui, "source.resolve", { path: "main.ts" }),
+    join(f.root, "main.ts"),
+  );
+  await assert.rejects(
+    rpc(ui, "source.resolve", {
+      path: "../project/main.ts",
+      codebaseId: ref.id,
+    }),
+    { code: "INVALID_PATH" },
+  );
+  await assert.rejects(
+    rpc(ui, "source.resolve", { path: "main.ts", codebaseId: "missing" }),
+    { code: "NOT_FOUND" },
+  );
+});
 
 test("native MCP discovery survives the editor service starting later without restarting the native connection", async (t) => {
   const f = await fixture(t);

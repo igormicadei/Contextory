@@ -90,17 +90,37 @@ exports.run = async function () {
     assert.ok(Number(health.node.split(".")[0]) >= 24);
     result.checks.push("isolated Node 24 workspace service");
     await vscode.commands.executeCommand("contextory.openArchitecture");
-    const architecture = await api.tool("contextory_code_architecture_get", {refresh:true});
+    const architecture = await api.tool("contextory_code_architecture_get", {
+      refresh: true,
+    });
     assert.ok(architecture.status.files > 0);
-    const context = await api.tool("contextory_code_context_get", {query:"start",budgetTokens:1500});
-    assert.ok(context.symbols.some(symbol=>symbol.name==="start"));
-    assert.ok(Buffer.byteLength(JSON.stringify(context)) <= context.budgetBytes);
-    const connected = await api.tool("contextory_code_path_get", {from:"start",to:"next",direction:"forward"});
+    const context = await api.tool("contextory_code_context_get", {
+      query: "start",
+      budgetTokens: 1500,
+    });
+    assert.ok(context.symbols.some((symbol) => symbol.name === "start"));
+    assert.ok(
+      Buffer.byteLength(JSON.stringify(context)) <= context.budgetBytes,
+    );
+    const connected = await api.tool("contextory_code_path_get", {
+      from: "start",
+      to: "next",
+      direction: "forward",
+    });
     assert.ok(connected.found);
     await vscode.commands.executeCommand("contextory.connectGenericMcp");
-    assert.ok(fs.existsSync(path.join(root,".contextory/mcp.json")));
-    assert.ok(fs.existsSync(path.join(root,".contextory/skills/contextory-codebase/references/retrieval.md")));
-    result.checks.push("architecture workbench, source context/path tools and generic MCP export with portable skills");
+    assert.ok(fs.existsSync(path.join(root, ".contextory/mcp.json")));
+    assert.ok(
+      fs.existsSync(
+        path.join(
+          root,
+          ".contextory/skills/contextory-codebase/references/retrieval.md",
+        ),
+      ),
+    );
+    result.checks.push(
+      "architecture workbench, source context/path tools and generic MCP export with portable skills",
+    );
     await vscode.commands.executeCommand("contextory.tasks.focus");
     result.checks.push("sidebar view opens");
     const request = await api.tool("contextory_request_change", {
@@ -165,6 +185,56 @@ exports.run = async function () {
     assert.ok(unsaved.nodes.some((n) => n.label === "unsaved"));
     result.checks.push(
       "unsaved buffer overlay survives UI to service boundary",
+    );
+    const referenceRoot = path.join(path.dirname(root), "reference");
+    fs.mkdirSync(referenceRoot);
+    const referenceSource =
+      "function start(){referenceNext()} function referenceNext(){}";
+    fs.writeFileSync(path.join(referenceRoot, "main.ts"), referenceSource);
+    const reference = await api.tool("contextory_codebase_change", {
+      action: "add",
+      root: referenceRoot,
+      name: "Legacy source",
+      operationId: crypto.randomUUID(),
+    });
+    const referenceArchitecture = await api.tool(
+      "contextory_code_architecture_get",
+      { codebaseId: reference.id },
+    );
+    assert.equal(
+      referenceArchitecture.codebase.root.toLowerCase(),
+      referenceRoot.toLowerCase(),
+    );
+    assert.equal(referenceArchitecture.status.files, 1);
+    const referenceFlow = await api.trace(
+      {
+        codebaseId: reference.id,
+        root: { path: "main.ts", symbol: "start" },
+        view: "flow",
+      },
+      undefined,
+      false,
+    );
+    assert.equal(referenceFlow.codebase.id, reference.id);
+    assert.equal(referenceFlow.unsaved, false);
+    assert.ok(referenceFlow.nodes.some((n) => n.label === "referenceNext"));
+    assert.ok(!referenceFlow.nodes.some((n) => n.label === "unsaved"));
+    await api.tool("contextory_codebase_change", {
+      action: "remove",
+      codebaseId: reference.id,
+      operationId: crypto.randomUUID(),
+    });
+    assert.equal(
+      (await api.tool("contextory_codebase_list", {})).references.length,
+      0,
+    );
+    assert.equal(
+      fs.readFileSync(path.join(referenceRoot, "main.ts"), "utf8"),
+      referenceSource,
+    );
+    assert.deepEqual(fs.readdirSync(referenceRoot), ["main.ts"]);
+    result.checks.push(
+      "isolated reference architecture and source flow ignore current editor overlays; detach preserves source",
     );
     assert.ok(
       fs.existsSync(path.join(extension.extensionPath, "dist/python-flow.py")),

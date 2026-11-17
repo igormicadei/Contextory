@@ -12,7 +12,6 @@ import {
 import { join, isAbsolute } from "node:path";
 import { Application } from "./application";
 import { Ledger } from "../storage/ledger";
-import { workspacePath } from "../verification/workspace";
 import { toolDefinitions } from "../contracts/tools";
 import { watchCodebase } from "../codebase/watch";
 import {
@@ -237,6 +236,7 @@ export async function startService(options: ServiceOptions) {
           detail:
             "Result exceeds the native context budget. Read this artifact with contextory_entity_get using offset/limit, or page graph nodes with contextory_flow_expand.",
           graphId: graph.id,
+          codebase: graph.codebase,
           snapshotId: graph.snapshotId,
           nodes: graph.nodes?.length,
           edges: graph.edges?.length,
@@ -257,7 +257,12 @@ export async function startService(options: ServiceOptions) {
         case "dashboard":
           return app.dashboard();
         case "source.resolve":
-          return workspacePath(root, String(params.path));
+          return app.resolveSource(
+            String(params.path),
+            typeof params.codebaseId === "string"
+              ? params.codebaseId
+              : undefined,
+          );
         case "analysis.invalidate":
           app.analysis.graphs.clear();
           return { invalidated: true };
@@ -293,6 +298,11 @@ export async function startService(options: ServiceOptions) {
           app.checks.cancel(String(params.id));
           return { cancelled: true };
         case "analysis.cancel":
+          if (
+            typeof params.codebaseId === "string" &&
+            params.codebaseId !== "current"
+          )
+            return app.cancelReferenceAnalysis(params.codebaseId);
           for (const pending of pendingEditor.values()) {
             clearTimeout(pending.timer);
             pending.reject(

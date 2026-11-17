@@ -2,7 +2,7 @@
 name: contextory-codebase
 description: Understand a connected workspace, locate definitions and related code, assess source impact, and recover relevant project decisions through Contextory. Use for codebase questions and before changes spanning related components.
 metadata:
-  version: "2"
+  version: "3"
 ---
 
 <!-- contextory-managed-codebase -->
@@ -14,6 +14,8 @@ Start a code question or related edit with `contextory_code_context_get`: put th
 Use `contextory_code_architecture_get` for orientation, `contextory_impact_get` for affected callers/dependencies/tests/records, `contextory_code_path_get` to explain a connection, and `contextory_flow_trace` for detailed branches/calls. Use `contextory_search` for earlier decisions, findings and changes, then inspect record state, revision and provenance. Resolve ambiguous symbols with `source:path#qualifiedName` where supported.
 
 Keep source citations, graph snapshot, coverage and truncation attached to conclusions. Narrow or page bounded results. Static calls, test references and inferred contracts are possible relationships, not proof of execution or test coverage. Generated facts do not become approved requirements.
+
+For another local repository, use advertised `contextory_codebase_list` and `contextory_codebase_change` to register an authorized reference directory. Pass its `codebaseId` explicitly to source queries and flow expansion; omission/current always selects the active project. Reference graphs and project memory stay separate. Keep the returned codebase identity/root with relative citations. Analyzing a reference does not authorize applying its design, changing current requirements or editing either project. See the reference guide below for scope and freshness details.
 
 Saved edits refresh the source graph automatically; re-query relevant context after saving changes. Task/impact/path queries also verify disk content. Use `contextory_code_index_refresh` to recover an empty/stale/failed index or import regenerated Graphify data; repeated refresh cannot resolve every dynamic/external gap. Unsaved editor flow overlays are separate from the saved-file graph. If a capability is missing, use the packaged CLI or native source tools and state the gap; do not invent tool calls. Preserve the user's scope and native permissions.
 

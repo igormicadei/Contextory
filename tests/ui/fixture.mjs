@@ -11,6 +11,7 @@ const entity = (id, kind, title, data, parentId, state = "active") => ({
   updatedAt: time,
 });
 const dashboard = {
+  references: [],
   root: "C:/Projects/Checkout",
   projectId: "demo",
   sequence: 7,
@@ -291,6 +292,12 @@ const architecture = {
   entryPoints: [{ path: "src/main.ts", line: 0 }],
   hubs: [{ name: "charge", path: "src/payments.ts", line: 14, references: 5 }],
 };
+const referenceCodebase = {
+  id: "ref-legacy",
+  name: "Legacy checkout",
+  root: "C:/Projects/LegacyCheckout",
+  role: "reference",
+};
 window.acquireVsCodeApi = () => ({
   getState() {},
   setState() {},
@@ -321,6 +328,26 @@ window.acquireVsCodeApi = () => ({
         send({ type: "flow", graph });
       if (message.type === "architecturePanel")
         window.open("/architecture.html", "_blank");
+      if (message.type === "referenceAdd") {
+        dashboard.references = [referenceCodebase];
+        send({
+          type: "referenceAdded",
+          codebaseId: referenceCodebase.id,
+          references: dashboard.references,
+        });
+      }
+      if (
+        message.type === "tool" &&
+        message.name === "contextory_codebase_change"
+      ) {
+        dashboard.references = [];
+        send({
+          type: "toolResult",
+          requestId: message.requestId,
+          result: { removed: message.arguments.codebaseId },
+        });
+        send({ type: "restore", dashboard, automation });
+      }
       if (
         message.type === "tool" &&
         message.name === "contextory_code_architecture_get"
@@ -328,7 +355,21 @@ window.acquireVsCodeApi = () => ({
         send({
           type: "toolResult",
           requestId: message.requestId,
-          result: architecture,
+          result:
+            message.arguments.codebaseId === referenceCodebase.id
+              ? {
+                  ...architecture,
+                  codebase: referenceCodebase,
+                  subsystems: [
+                    {
+                      name: "src/legacy",
+                      files: 4,
+                      symbols: 16,
+                      paths: ["src/payments.ts"],
+                    },
+                  ],
+                }
+              : architecture,
         });
       if (
         message.type === "tool" &&
@@ -381,18 +422,22 @@ window.acquireVsCodeApi = () => ({
           type: "toolResult",
           requestId: message.requestId,
           result: {
+            ...(message.arguments.codebaseId === referenceCodebase.id
+              ? { codebase: referenceCodebase }
+              : {}),
             snapshotId: "fixture",
             symbols: empty ? [] : symbols,
-            records: empty
-              ? []
-              : [
-                  {
-                    id: "DEC-demo",
-                    title: "Preserve payment identity",
-                    description: "Retries use one idempotency key.",
-                    reason: "references_source",
-                  },
-                ],
+            records:
+              empty || message.arguments.codebaseId === referenceCodebase.id
+                ? []
+                : [
+                    {
+                      id: "DEC-demo",
+                      title: "Preserve payment identity",
+                      description: "Retries use one idempotency key.",
+                      reason: "references_source",
+                    },
+                  ],
             relationships: empty
               ? []
               : [

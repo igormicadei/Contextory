@@ -29,7 +29,9 @@ export class CodebaseIndex {
   constructor(
     readonly ledger: Ledger,
     private workerPath: string,
-  ) {}
+  ) {
+    this.config = JSON.parse(ledger.meta("code.config") ?? "null") ?? undefined;
+  }
   status(): CodeStatus {
     const saved = JSON.parse(
       this.ledger.meta("code.status") ?? "null",
@@ -292,6 +294,11 @@ export class CodebaseIndex {
           "INSERT INTO meta VALUES ('code.status',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
         )
         .run(JSON.stringify(status));
+      this.ledger.db
+        .prepare(
+          "INSERT INTO meta VALUES ('code.config',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+        )
+        .run(JSON.stringify(config));
       const groups = new Map<string, number>();
       for (const f of files) {
         const parts = f.path.split("/"),

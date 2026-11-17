@@ -10,6 +10,26 @@ Agents should start related work with `contextory_code_context_get`. Exact defin
 
 `contextory_impact_get` accepts a source or record root and direction/depth/node bounds. `contextory_code_path_get` explains a bounded shortest connection, with each edge's source, extractor and evidence category. `contextory_code_architecture_get` provides orientation. `contextory_context_get` includes cached, bounded orientation so lifecycle hooks do not synchronously index or walk the graph.
 
+## Analyze reference codebases
+
+Version 0.4.0 supports up to eight named local reference repositories alongside the current project. Use **Architecture > Add reference** to choose a folder, then choose it in **Codebase**. Its subsystem map, entry points, symbols, context search and source links use that repository. **Trace symbol** opens a separately scoped source-flow guide. Use the sidebar and Architecture workbench to explore the current project and a reference side by side; each view keeps its own selection. **Detach reference** removes the registration and closes its analysis workers; source files are untouched.
+
+For example, ask an agent: "Map `C:\Sources\LegacyBilling` as a reference and explain its payment architecture. Keep its analysis separate from this application." The agent registers that directory with `contextory_codebase_change` (`action:"add"`, absolute `root`, optional `name`, new `operationId`), lists references with `contextory_codebase_list`, then passes the returned `codebaseId` to architecture, context, search, impact, path, index/import and flow trace/expand tools. Omitting the ID, or using `current`, always targets the current workspace. Calls for different roots can run concurrently; no global project switch is involved.
+
+```powershell
+node dist/contextory.mjs reference-add C:\Sources\LegacyBilling --name "Legacy billing" --root C:\Projects\NewBilling
+node dist/contextory.mjs references --root C:\Projects\NewBilling
+node dist/contextory.mjs architecture --codebase ref-ID --root C:\Projects\NewBilling
+node dist/contextory.mjs context "How are payments retried?" --codebase ref-ID --root C:\Projects\NewBilling
+node dist/contextory.mjs reference-remove ref-ID --root C:\Projects\NewBilling
+```
+
+Replace `ref-ID` with the returned ID. Keep the same service storage or editor descriptor when using the CLI. Registrations persist in the owning workspace service; separate per-reference projections live under its storage `references/<id>/projection.sqlite3`. No configuration, skills, source, requirements or checks are written into the reference. Duplicate directory aliases share a registration. The active workspace and its parents/children, and service storage, cannot be registered as references. Detaching retains rebuildable cached projections. A missing/moved root fails explicitly and does not redirect to the current project.
+
+Each reference response carries its codebase ID, name and canonical root. Keep that identity with relative source citations and snapshot/coverage notices: `main.ts#run` can mean different source in each repository. Active project decisions, specifications and approved relationships are not injected into reference queries, and references cannot accept current-project specs or workflow mutations. Cross-project comparisons are explanations over separate results; they do not create graph edges, migration requirements or application changes. Applying a learned pattern requires the user's implementation request.
+
+Reference graphs refresh on source queries, without background watchers. Use default architecture refresh for current disk content; `refresh:false` reads the saved map. Each root's existing project configuration and native/Graphify coverage limits apply. Regenerate and re-import stale Graphify data within its selected root. Reference source search is lexical graph matching; hybrid reports lexical fallback and semantic-only mode is unavailable. Reference flows use saved files and isolated native parsers, without current-editor overlays or language-service callbacks. Remote URLs/cloning and automatic cross-repository migration are outside this feature.
+
 ## Configure coverage
 
 Create an optional `contextory.project.json` at the workspace root:

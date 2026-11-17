@@ -2,6 +2,7 @@ import { realpath, readFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse } from "jsonc-parser";
+import { randomUUID } from "node:crypto";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -22,9 +23,15 @@ Usage: node dist/contextory.mjs <command> [arguments] [options]
   path <from> <to>          Find a relationship path
   architecture             Summarize subsystems and entry points
   import <workspace.json>  Import a Graphify graph
+  references               List isolated reference codebases
+  reference-add <folder>   Register a local reference (optional --name)
+  reference-remove <id>    Detach a reference, leaving its source untouched
   mcp                      Serve the same tools over stdio until EOF
 Options: --root <workspace> --storage <directory> --descriptor <generic.json>
          --budget <512..6000> --depth <1..10> --python <executable>
+         --codebase <reference-id> --name <reference-name>
+Source commands default to the current project. --codebase selects a reference;
+paths and citations are relative to its root. Registration never changes source.
 Default storage: <root>/.contextory-local/service. Use --descriptor to attach
 to an editor service and share its records. No editor or hooks are required.
 Workspace checks from .vscode/settings.json run only when explicitly requested
@@ -39,6 +46,8 @@ const allowed = new Set([
   "budget",
   "depth",
   "python",
+  "codebase",
+  "name",
 ]);
 for (let i = 2; i < process.argv.length; i++) {
   const arg = process.argv[i];
@@ -132,7 +141,23 @@ async function connect(): Promise<string> {
 }
 async function call(name: string, arguments_: unknown) {
   const descriptor = await connect();
-  return rpc(descriptor, "tools/call", { name, arguments: arguments_ }, 180000);
+  const scoped =
+    name !== "contextory_codebase_change" &&
+    name !== "contextory_codebase_list";
+  return rpc(
+    descriptor,
+    "tools/call",
+    {
+      name,
+      arguments: {
+        ...(arguments_ as object),
+        ...(scoped && options.has("codebase")
+          ? { codebaseId: options.get("codebase") }
+          : {}),
+      },
+    },
+    180000,
+  );
 }
 const required = (i: number) => {
   if (!args[i]) throw new Error(`Missing argument for ${command}. Use --help.`);
@@ -200,6 +225,24 @@ async function main() {
   let result: unknown;
   try {
     switch (command) {
+      case "references":
+        result = await call("contextory_codebase_list", {});
+        break;
+      case "reference-add":
+        result = await call("contextory_codebase_change", {
+          action: "add",
+          root: resolve(required(0)),
+          name: options.get("name"),
+          operationId: randomUUID(),
+        });
+        break;
+      case "reference-remove":
+        result = await call("contextory_codebase_change", {
+          action: "remove",
+          codebaseId: required(0),
+          operationId: randomUUID(),
+        });
+        break;
       case "index":
         result = await call("contextory_code_index_refresh", {});
         break;

@@ -8,7 +8,7 @@ export default withMermaid(
   defineConfig({
     title: "Contextory",
     description:
-      "Manage requests. Give agents the full picture. Complete documentation for Contextory 0.3.1.",
+      "Manage requests. Give agents the full picture. Complete documentation for Contextory 0.4.0.",
     lang: "en-US",
     base: "/Contextory/",
     srcDir: "../.contextory-local/docs-content",
@@ -27,7 +27,7 @@ export default withMermaid(
         { text: "Guide", link: "/docs/USER-GUIDE" },
         { text: "Code intelligence", link: "/docs/CODEBASE-INTELLIGENCE" },
         { text: "MCP tools", link: "/docs/MCP-TOOLS" },
-        { text: "v0.3.1", link: "/docs/releases/v0.3.1" },
+        { text: "v0.4.0", link: "/docs/releases/v0.4.0" },
       ],
       search: { provider: "local" },
       socialLinks: [
@@ -45,7 +45,7 @@ export default withMermaid(
           items: [
             { text: "Overview & installation", link: "/overview" },
             { text: "User guide", link: "/docs/USER-GUIDE" },
-            { text: "What’s new in 0.3.1", link: "/docs/releases/v0.3.1" },
+            { text: "What’s new in 0.4.0", link: "/docs/releases/v0.4.0" },
           ],
         },
         {
@@ -118,7 +118,7 @@ export default withMermaid(
       footer: {
         message:
           "Local project context for native agents. Currently UNLICENSED.",
-        copyright: "Contextory · Documentation for version 0.3.1",
+        copyright: "Contextory · Documentation for version 0.4.0",
       },
     },
     mermaid: { securityLevel: "strict" },

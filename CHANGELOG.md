@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0 — 2026-11-17
+
+- Add persistent named local reference codebases with isolated source indexes and concurrent architecture/context/impact/path/search/flow analysis. Keep current-project defaults, work records and source files separate.
+- Add Architecture reference selection, folder registration, detachment and scoped source/flow navigation; ignore responses from previous repository selections.
+- Expose reference registration/listing and explicit source-tool selection through native/headless MCP and the CLI; update portable agent skills and user/developer guidance.
+
 ## 0.3.1 — 2026-11-16
 
 - Publish ASCII-safe generated documentation JavaScript and pin the Pages deployment action to its release commit.

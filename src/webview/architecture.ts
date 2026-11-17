@@ -1,4 +1,5 @@
 import type { CodeQueries } from "../codebase/queries";
+import type { CodebaseInfo } from "../contracts/model";
 import { escape, button, badge, sourceButton } from "./html";
 import { explorerSvg, mapToolbar } from "./explorer";
 export type Architecture = ReturnType<CodeQueries["architecture"]>;
@@ -61,7 +62,10 @@ export function architectureView(
   query: string,
   only: boolean,
   state: ArchitectureState,
+  references: CodebaseInfo[] = [],
+  codebaseId = "current",
 ) {
+  const reference = references.find((r) => r.id === codebaseId);
   const status = value?.status,
     scope = value?.subsystems.find((s) => s.name === state.scope);
   const selected = context?.symbols.find((s) => s.id === state.selected);
@@ -112,6 +116,8 @@ export function architectureView(
         label: `${d.count} links`,
       })) ?? []);
   return `<section class="architecture-view"><div class="section-heading"><div><p class="eyebrow">Understand your codebase</p><h1>Architecture</h1><p class="muted">Start with a subsystem. Follow its files, symbols and connections.</p></div><div>${only ? "" : button("architecturePanel", "Open workbench", "", "small")}${button("architectureRefresh", "Refresh code index", "", "small")}</div></div>
+  <div class="reference-codebases"><label>Codebase<select name="architectureCodebase"><option value="current" ${codebaseId === "current" ? "selected" : ""}>Current project</option>${references.map((r) => `<option value="${escape(r.id)}" ${r.id === codebaseId ? "selected" : ""}>${escape(r.name)} &middot; reference</option>`).join("")}</select></label>${button("referenceAdd", "Add reference", "", "small")}${reference ? button("referenceRemove", "Detach reference", "", "small") : ""}</div>
+  ${reference ? `<p class="reference-identity"><strong>Reference: ${escape(reference.name)}</strong><br>${escape(reference.root)}<br>Read-only analysis. Source and project records stay separate. Use this knowledge in the current project only when requested.</p>` : ""}
   <div class="architecture-state" role="status">${badge(status?.state ?? "empty")} ${status ? `${status.files} files · ${status.symbols} symbols · ${status.edges} relationships` : "Preparing the local code graph…"}${status?.indexedAt ? `<span class="muted">Updated ${escape(new Date(status.indexedAt).toLocaleString())}</span>` : ""}</div>
   ${status?.partial ? `<details class="analysis-limits"><summary>Coverage is partial · ${status.gaps.length} notices</summary><ul>${status.gaps.map((g) => `<li>${escape(g)}</li>`).join("")}</ul></details>` : ""}
   <form id="code-context-form" class="search-box"><label class="sr-only" for="codeQuery">Find a symbol or describe a task</label><input id="codeQuery" name="codeQuery" type="search" placeholder="Find a symbol or describe a task…" value="${escape(query)}" required><button type="submit">Find context</button></form>
@@ -139,7 +145,7 @@ export function architectureView(
   }</section>
   <aside class="explorer-inspector" aria-label="Source inspector"><p class="eyebrow">${selected ? "Selected symbol" : scope ? "Selected subsystem" : "Start exploring"}</p>${
     selected
-      ? `<h2>${escape(selected.name)}</h2>${badge(selected.kind)}${sourceButton({ path: selected.path, line: selected.line })}<pre>${escape(selected.signature)}</pre><p class="muted">${escape(selected.origin || "indexed")} · ${escape(selected.language || "source")}<br>${relations.filter((e) => e.target === selected.id).length} incoming · ${relations.filter((e) => e.source === selected.id).length} outgoing in this context</p>${button("architectureExplore", "Explore connections", `data-id="${escape(selected.id)}"`, "small")}<h3>Direct connections</h3>${
+      ? `<h2>${escape(selected.name)}</h2>${badge(selected.kind)}${sourceButton({ path: selected.path, line: selected.line })}<pre>${escape(selected.signature)}</pre><p class="muted">${escape(selected.origin || "indexed")} · ${escape(selected.language || "source")}<br>${relations.filter((e) => e.target === selected.id).length} incoming · ${relations.filter((e) => e.source === selected.id).length} outgoing in this context</p>${reference ? button("architectureTrace", "Trace symbol", "", "small") : ""}${button("architectureExplore", "Explore connections", `data-id="${escape(selected.id)}"`, "small")}<h3>Direct connections</h3>${
           relations
             .slice(0, 20)
             .map((e) => {

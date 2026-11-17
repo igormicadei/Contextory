@@ -3,6 +3,7 @@ import {
   type RelationshipGraph,
   type RelationshipRecord,
   type SourceRef,
+  type CodebaseInfo,
 } from "../contracts/model";
 import type { Knowledge, SearchHit } from "../knowledge/search";
 import { codeEdge, type CodeEdge, type CodeNode } from "./model";
@@ -41,6 +42,7 @@ export class CodeQueries {
   constructor(
     readonly index: CodebaseIndex,
     private knowledge: Knowledge,
+    private codebase?: CodebaseInfo,
   ) {}
   ranked(query: string, paths: string[] = []) {
     const q = query.trim().toLowerCase(),
@@ -90,9 +92,18 @@ export class CodeQueries {
   }
   async search(query: string, mode: string, limit: number) {
     await this.index.fresh();
-    const old = await this.knowledge.search(query, mode, limit);
+    if (this.codebase && mode === "semantic")
+      throw new ContextoryError(
+        "SEMANTIC_UNAVAILABLE",
+        "Reference source search uses lexical graph matching; use lexical or hybrid mode.",
+      );
+    const old = await this.knowledge.search(
+      query,
+      this.codebase ? "lexical" : mode,
+      limit,
+    );
     const definitions: SearchHit[] = this.ranked(query)
-      .filter((r) => r.exact && r.node.kind !== "file")
+      .filter((r) => (this.codebase || r.exact) && r.node.kind !== "file")
       .slice(0, limit)
       .map(({ node, score }) => ({
         id: node.id,
@@ -110,6 +121,7 @@ export class CodeQueries {
       }));
     return {
       ...old,
+      degraded: this.codebase ? mode !== "lexical" : old.degraded,
       hits: [
         ...definitions,
         ...old.hits.filter(
@@ -498,7 +510,11 @@ export class CodeQueries {
     const candidates = [
       ...seeds.map((n) => ({ id: n.id, reason: "query", depth: 0 })),
     ];
-    const memory = await this.knowledge.search(query, "hybrid", 5);
+    const memory = await this.knowledge.search(
+      query,
+      this.codebase ? "lexical" : "hybrid",
+      5,
+    );
     for (const hit of memory.hits)
       if (nodes.has(hit.id) && !visited.has(hit.id)) {
         visited.add(hit.id);
@@ -551,6 +567,7 @@ export class CodeQueries {
     }
     const status = this.index.status();
     const output = {
+      ...(this.codebase ? { codebase: this.codebase } : {}),
       snapshotId: status.snapshotId,
       indexState: status.state,
       partial: status.partial,
@@ -589,6 +606,11 @@ export class CodeQueries {
       semanticFallback: memory.degraded,
     };
     const size = () => Buffer.byteLength(JSON.stringify(output));
+    if (size() > output.budgetBytes - 100)
+      throw new ContextoryError(
+        "CONTEXT_BUDGET",
+        "Increase budgetTokens to include this reference's source identity and coverage.",
+      );
     const contentLimit =
       output.budgetBytes -
       Math.min(1000, Math.floor(output.budgetBytes * 0.2)) -

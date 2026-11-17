@@ -1,5 +1,13 @@
 # Validation records
 
+## 0.4.0: isolated reference codebases
+
+Recorded 2026-11-17 on Windows/Node 24: reference tests cover concurrent same-path/same-symbol repositories, separation from current project memory and records, restart persistence, saved-file freshness, scoped context budgets, impact/path/search/flow, invalid roots and aliases, safe detachment, and Windows storage paths over 260 characters. Native and standalone MCP, CLI registration/selection and editor source-resolution checks exercise the advertised contracts. UI checks cover reference selection, source/trace scope, stale response rejection and narrow layouts. Portable skill validation, workspace/bundle drift, typecheck, **63 backend tests**, **29 UI tests** and the complete **23-page** documentation build pass.
+
+The extracted 0.4.0 VSIX passes the full scenario in [VS Code 1.145.3](../artifacts/host-reference-package-vscode.json) and [IBM Bob, VS Code API 1.126.0](../artifacts/host-reference-package-bob.json). The new host step verifies reference architecture and source flow while a same-path current-project buffer is unsaved, then detaches and confirms the reference's bytes and directory contents are unchanged. This exposed and fixed SQLite's Windows path limit in long editor storage directories. MCP transport tests also exposed and fixed a non-object root input schema during implementation.
+
+The release includes matching VSIX/checksum assets and a full documentation build. Package runtime and portable skill bytes match those exercised in both hosts. Live editor installations are unchanged. These checks do not qualify authenticated model conversations, remote/multi-root workspaces, other operating systems or large-repository performance. Reference search remains lexical and reference freshness is checked on demand.
+
 ## 0.3.1: patch release packaging
 
 Recorded 2026-11-16 on Windows/Node 24.19.0: `npm run check` passes skill bundle consistency, TypeScript checking, production builds, **58 backend tests** and **28 UI tests**. The complete documentation build checks all **22 pages** and generated page/asset links. Documentation source links and the live release-page check now use the package version.

@@ -2,7 +2,12 @@ import { randomUUID } from "node:crypto";
 import { readFile, mkdir, writeFile, realpath } from "node:fs/promises";
 import { join, relative, isAbsolute } from "node:path";
 import { z } from "zod";
-import { tools, type Input, type ToolName } from "../contracts/tools";
+import {
+  tools,
+  scopedCodeTools,
+  type Input,
+  type ToolName,
+} from "../contracts/tools";
 import {
   ContextoryError,
   type Actor,
@@ -23,6 +28,7 @@ import { CheckRunner } from "../verification/checks";
 import { CodebaseIndex } from "../codebase/index";
 import { CodeQueries } from "../codebase/queries";
 import { importGraphify } from "../codebase/import";
+import { ReferenceCodebases } from "../codebase/references";
 import { clients, clientIds } from "../providers/clients";
 import {
   completionNote,
@@ -42,6 +48,7 @@ export class Application {
   readonly checks: CheckRunner;
   readonly codebase: CodebaseIndex;
   readonly codeQueries: CodeQueries;
+  readonly references: ReferenceCodebases;
   editorTrace?: (input: FlowInput) => Promise<FlowGraph>;
   constructor(
     readonly ledger: Ledger,
@@ -54,6 +61,12 @@ export class Application {
     this.analysis = new AnalysisManager(ledger.root, workerPath);
     this.codebase = new CodebaseIndex(ledger, workerPath);
     this.codeQueries = new CodeQueries(this.codebase, this.knowledge);
+    this.references = new ReferenceCodebases(
+      ledger,
+      storage,
+      workerPath,
+      this.knowledge.embeddings,
+    );
     this.checks = new CheckRunner(
       this.workflow,
       join(storage, "artifacts"),
@@ -84,6 +97,7 @@ export class Application {
         })),
       semantic: this.knowledge.embeddings.status(),
       codebase: this.codebase.status(),
+      references: this.references.list(),
     };
   }
   brief(specId?: string) {
@@ -101,6 +115,7 @@ export class Application {
       specs: specs.slice(0, 20),
       recipes: this.checks.recipes,
       codebase: this.codebase.status(),
+      references: this.references.list(),
       requests: this.ledger
         .all("request")
         .filter((r) => !["completed", "cancelled"].includes(r.state)),
@@ -139,7 +154,123 @@ export class Application {
           .slice(0, 2000),
       );
     const a = parsed.data;
+    if (
+      raw &&
+      typeof raw === "object" &&
+      "codebaseId" in raw &&
+      !scopedCodeTools.includes(key) &&
+      key !== "contextory_codebase_change"
+    )
+      throw new ContextoryError(
+        "INVALID_ARGUMENT",
+        "codebaseId scopes source analysis only; workflow records always belong to the current project.",
+      );
+    const codebaseId = (a as { codebaseId?: string }).codebaseId;
+    if (
+      codebaseId &&
+      codebaseId !== "current" &&
+      scopedCodeTools.includes(key)
+    ) {
+      return this.references.use(
+        codebaseId,
+        this.codebase.pythonExecutable,
+        async (runtime, info) => {
+          let result: object;
+          switch (key) {
+            case "contextory_search": {
+              const p = a as Input<typeof key>;
+              result = await runtime.queries.search(p.query, p.mode, p.limit);
+              break;
+            }
+            case "contextory_code_context_get": {
+              const p = a as Input<typeof key>;
+              if (p.specId)
+                throw new ContextoryError(
+                  "INVALID_ARGUMENT",
+                  "Reference analysis cannot use current-project specifications.",
+                );
+              return runtime.queries.context(
+                p.query,
+                p.paths,
+                undefined,
+                p.budgetTokens,
+              );
+            }
+            case "contextory_code_architecture_get": {
+              if ((a as Input<typeof key>).refresh) await runtime.index.fresh();
+              result = runtime.queries.architecture();
+              break;
+            }
+            case "contextory_code_path_get": {
+              const p = a as Input<typeof key>;
+              result = await runtime.queries.path(
+                p.from,
+                p.to,
+                p.direction,
+                p.maxDepth,
+              );
+              break;
+            }
+            case "contextory_code_index_refresh": {
+              const p = a as Input<typeof key>;
+              result = p.graphifyPath
+                ? await importGraphify(runtime.index, p.graphifyPath)
+                : await runtime.index.refresh();
+              break;
+            }
+            case "contextory_impact_get": {
+              const p = a as Input<typeof key>;
+              result = await runtime.queries.impact(
+                p.id,
+                p.direction,
+                p.depth,
+                p.limit,
+              );
+              break;
+            }
+            case "contextory_flow_trace": {
+              const input = a as Input<typeof key>;
+              await workspacePath(info.root, input.root.path);
+              result = await runtime.analysis.trace(input);
+              break;
+            }
+            case "contextory_flow_expand":
+              result = await this.expand(
+                a as Input<typeof key>,
+                runtime.analysis,
+                async (input) => {
+                  await workspacePath(info.root, input.root.path);
+                  return runtime.analysis.trace(input);
+                },
+              );
+              break;
+            default:
+              throw new ContextoryError(
+                "UNKNOWN_TOOL",
+                "Unsupported reference analysis.",
+              );
+          }
+          return { ...result, codebase: info };
+        },
+      );
+    }
     switch (key) {
+      case "contextory_codebase_list":
+        return {
+          current: {
+            id: "current",
+            name: this.ledger.root.split(/[\\/]/).pop(),
+            root: this.ledger.root,
+            role: "current",
+          },
+          references: this.references.list(),
+        };
+      case "contextory_codebase_change": {
+        const p = a as Input<typeof key>;
+        return p.action === "add"
+          ? this.references.add({ ...p, root: p.root! }, actor)
+          : this.references.remove({ ...p, codebaseId: p.codebaseId! }, actor);
+      }
       case "contextory_context_get":
         return this.brief((a as Input<typeof key>).specId);
       case "contextory_history_get": {
@@ -296,44 +427,7 @@ export class Application {
       }
       case "contextory_flow_expand": {
         const p = a as Input<typeof key>;
-        const stored = this.analysis.graphs.get(p.graphId);
-        if (!stored || stored.graph.snapshotId !== p.snapshotId)
-          throw new ContextoryError(
-            "STALE_GRAPH",
-            "Graph was evicted or its snapshot differs. Trace from the current source again.",
-          );
-        if (!p.nodeId)
-          return {
-            ...stored.graph,
-            nodes: stored.graph.nodes.slice(p.offset, p.offset + p.limit),
-            offset: p.offset,
-            totalNodes: stored.graph.nodes.length,
-          };
-        const node = stored.graph.nodes.find((n) => n.id === p.nodeId);
-        if (!node?.source)
-          throw new ContextoryError(
-            "INVALID_FRONTIER",
-            "Choose a graph node with a source location.",
-          );
-        const current = await this.trace(stored.input);
-        if (current.snapshotId !== p.snapshotId)
-          throw new ContextoryError(
-            "STALE_GRAPH",
-            "Source changed. Refresh before expanding.",
-          );
-        return this.trace({
-          ...stored.input,
-          root: stored.graph.frontier.find((f) => f.nodeId === p.nodeId)
-            ?.target ?? {
-            path: node.source.path,
-            position: {
-              line: node.source.line ?? 0,
-              character: node.source.character ?? 0,
-            },
-            start: "function",
-          },
-          limits: p.limits ?? stored.input.limits,
-        });
+        return this.expand(p, this.analysis, (input) => this.trace(input));
       }
       case "contextory_report_export": {
         const p = a as Input<typeof key>;
@@ -364,6 +458,50 @@ export class Application {
         };
       }
     }
+  }
+  private async expand(
+    p: Input<"contextory_flow_expand">,
+    analysis: AnalysisManager,
+    trace: (input: FlowInput) => Promise<FlowGraph>,
+  ) {
+    const stored = analysis.graphs.get(p.graphId);
+    if (!stored || stored.graph.snapshotId !== p.snapshotId)
+      throw new ContextoryError(
+        "STALE_GRAPH",
+        "Graph was evicted or its snapshot differs. Trace from the current source again.",
+      );
+    if (!p.nodeId)
+      return {
+        ...stored.graph,
+        nodes: stored.graph.nodes.slice(p.offset, p.offset + p.limit),
+        offset: p.offset,
+        totalNodes: stored.graph.nodes.length,
+      };
+    const node = stored.graph.nodes.find((n) => n.id === p.nodeId);
+    if (!node?.source)
+      throw new ContextoryError(
+        "INVALID_FRONTIER",
+        "Choose a graph node with a source location.",
+      );
+    const current = await trace(stored.input);
+    if (current.snapshotId !== p.snapshotId)
+      throw new ContextoryError(
+        "STALE_GRAPH",
+        "Source changed. Refresh before expanding.",
+      );
+    return trace({
+      ...stored.input,
+      root: stored.graph.frontier.find((f) => f.nodeId === p.nodeId)
+        ?.target ?? {
+        path: node.source.path,
+        position: {
+          line: node.source.line ?? 0,
+          character: node.source.character ?? 0,
+        },
+        start: "function",
+      },
+      limits: p.limits ?? stored.input.limits,
+    });
   }
   async trace(input: FlowInput) {
     const generation = this.analysis.generation;
@@ -397,6 +535,25 @@ export class Application {
       }
     }
     return this.analysis.trace(input);
+  }
+  async resolveSource(path: string, codebaseId?: string) {
+    if (!codebaseId || codebaseId === "current")
+      return workspacePath(this.ledger.root, path);
+    return this.references.use(
+      codebaseId,
+      this.codebase.pythonExecutable,
+      async (_runtime, info) => workspacePath(info.root, path),
+    );
+  }
+  async cancelReferenceAnalysis(codebaseId: string) {
+    return this.references.use(
+      codebaseId,
+      this.codebase.pythonExecutable,
+      async (runtime) => {
+        await runtime.analysis.close();
+        return { cancelled: true };
+      },
+    );
   }
   async hook(provider: Provider, raw: unknown) {
     const event = hookObservation.parse(raw);
@@ -509,6 +666,7 @@ export class Application {
     return { files: files.length, chunks, partial: chunks >= 10000, codebase };
   }
   async close() {
+    await this.references.close();
     await this.codebase.close();
     await this.checks.close();
     await this.analysis.close();

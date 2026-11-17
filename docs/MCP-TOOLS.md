@@ -6,16 +6,20 @@ Connect through the extension's provider command rather than assembling private 
 
 ## Available tools
 
-Version 0.3.1 advertises 23 tools. Source-aware additions use the same schemas in native proxies and headless stdio MCP:
+Version 0.4.0 advertises 25 tools, including two reference-codebase tools. Source-aware tools use the same schemas in native proxies and headless stdio MCP:
 
 | Tool | Purpose |
 | --- | --- |
+| `contextory_codebase_list` | List the current project and its isolated local reference registrations. |
+| `contextory_codebase_change` | Register an authorized absolute local directory (`action:add`, `root`, optional `name`) or detach a reference (`action:remove`, `codebaseId`), with an `operationId`. Source files are untouched. |
 | `contextory_code_context_get` | Current definitions, dependencies/callers/tests/documents and project memory for `query`, optional `paths`/`specId`, and `budgetTokens` (512–6000, default 3000). Hard JSON byte cap is three times the requested estimate. |
 | `contextory_code_architecture_get` | Subsystems, dependency counts, entry points, shared symbols and coverage. Default `refresh: true` checks current files; explicit `refresh: false` reads the cached snapshot. |
 | `contextory_code_path_get` | Shortest indexed path from `from` to `to`, direction `forward`/`both`, bounded by `maxDepth` (1–10). Preserves edge categories and locations. |
 | `contextory_code_index_refresh` | Refresh the rebuildable projection, or validate/import optional workspace-relative `graphifyPath`. Does not mutate approved work records. |
 
 `contextory_search` now ranks exact definitions first. `contextory_impact_get` also accepts a code ID, file, unique symbol or `source:path#qualifiedName`. Read-only codebase questions do not require tracked work. [Examples and limits](CODEBASE-INTELLIGENCE.md).
+
+Source tools accept optional `codebaseId` for isolated references; omitted or `current` targets the active project. This covers architecture, context, search, impact, path, index/import and flow trace/expand. Paths and source IDs are local to the selected root. Preserve returned codebase identity with citations. Workflow mutations remain current-project operations. See [reference examples and limits](CODEBASE-INTELLIGENCE.md#analyze-reference-codebases).
 
 Both native and headless MCP initialize with shared retrieval/workflow instructions. The workspace brief returns those guidance arrays alongside cached orientation. Start source tasks with scoped code context and inspect current citations; use search for earlier decisions and state, impact/path for connections and flow for calls/branches. Saved changes refresh automatically; re-query relevant context after edits. See the portable [retrieval reference](../skills/contextory-codebase/references/retrieval.md) for bounded results, paging, Graphify recovery and unavailable capabilities. Existing clients may cache an older tool catalog until their native MCP connection reloads.
 

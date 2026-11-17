@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { access } from "node:fs/promises";
+import { access, mkdir, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
@@ -41,6 +41,24 @@ test("headless CLI persists source knowledge and exposes impact, paths and archi
   const architecture = await run("architecture");
   assert.equal(architecture.entryPoints[0].path, "main.ts");
   assert.equal(architecture.status.snapshotId, first.snapshotId);
+  const referenceRoot = join(f.directory, "legacy-cli");
+  await mkdir(referenceRoot);
+  await writeFile(
+    join(referenceRoot, "main.ts"),
+    "export function legacyEntry(){}",
+  );
+  const ref = await run("reference-add", referenceRoot, "--name", "CLI legacy");
+  assert.equal((await run("references")).references[0].id, ref.id);
+  assert.equal(
+    (await run("context", "legacyEntry", "--codebase", ref.id)).codebase.root,
+    referenceRoot,
+  );
+  assert.equal(
+    (await run("architecture", "--codebase", ref.id)).entryPoints[0].path,
+    "main.ts",
+  );
+  await run("reference-remove", ref.id);
+  assert.equal((await run("references")).references.length, 0);
   await assert.rejects(access(join(f.storage, "service.lock")));
 });
 
@@ -71,6 +89,33 @@ test("standalone stdio MCP runs without editor clients and releases its service 
   assert.ok(!result.isError, JSON.stringify(result));
   const context = JSON.parse((result.content as { text: string }[])[0].text);
   assert.equal(context.symbols[0].name, "hello");
+  const referenceRoot = join(f.directory, "reference");
+  await mkdir(referenceRoot);
+  await writeFile(
+    join(referenceRoot, "main.ts"),
+    "export function legacyEntry(){return 1}",
+  );
+  const added = await client.callTool({
+    name: "contextory_codebase_change",
+    arguments: {
+      action: "add",
+      root: referenceRoot,
+      name: "Legacy",
+      operationId: "headless-reference-add",
+    },
+  });
+  assert.ok(!added.isError, JSON.stringify(added));
+  const reference = JSON.parse((added.content as { text: string }[])[0].text);
+  const scoped = await client.callTool({
+    name: "contextory_code_context_get",
+    arguments: { query: "legacyEntry", codebaseId: reference.id },
+  });
+  assert.ok(!scoped.isError, JSON.stringify(scoped));
+  const referenceContext = JSON.parse(
+    (scoped.content as { text: string }[])[0].text,
+  );
+  assert.equal(referenceContext.codebase.root, referenceRoot);
+  assert.equal(referenceContext.symbols[0].name, "legacyEntry");
   await client.close();
   const deadline = Date.now() + 5000;
   while (Date.now() < deadline) {

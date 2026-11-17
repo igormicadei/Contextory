@@ -1,4 +1,4 @@
-export const version = "0.3.1";
+export const version = "0.4.0";
 export type Provider = import("../providers/clients").ClientId;
 export type Kind =
   | "request"
@@ -46,7 +46,14 @@ export interface CheckRecipe {
   args: string[];
   timeoutMs?: number;
 }
+export interface CodebaseInfo {
+  id: string;
+  name: string;
+  root: string;
+  role: "current" | "reference";
+}
 export interface SourceRef {
+  codebaseId?: string;
   path: string;
   line?: number;
   character?: number;
@@ -100,6 +107,7 @@ export interface Connection {
   nativeSession?: string;
 }
 export interface Dashboard {
+  references?: CodebaseInfo[];
   codebase?: import("../codebase/model").CodeStatus;
   root: string;
   projectId: string;
@@ -129,6 +137,7 @@ export interface FlowLimits {
   timeoutMs: number;
 }
 export interface FlowInput {
+  codebaseId?: string;
   root: FlowRoot;
   view?: "calls" | "flow";
   direction?: "outgoing" | "incoming";
@@ -167,6 +176,7 @@ export interface Frontier {
   target?: FlowRoot;
 }
 export interface FlowGraph {
+  codebase?: CodebaseInfo;
   id: string;
   snapshotId: string;
   root: FlowRoot;

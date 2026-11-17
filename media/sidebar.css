@@ -1907,3 +1907,7 @@ body[data-layout="horizontal"] main[data-screen="map"] {
   }
 }
 .graph-edge.inferred path { stroke-dasharray: 5 4; }
+.reference-codebases { display: flex; align-items: end; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.reference-codebases label { flex: 1 1 180px; min-width: 0; }
+.reference-codebases select { display: block; width: 100%; min-width: 0; }
+.reference-identity { overflow-wrap: anywhere; padding: 10px; border-left: 3px solid var(--vscode-focusBorder); }

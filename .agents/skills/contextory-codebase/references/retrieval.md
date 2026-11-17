@@ -29,6 +29,16 @@ Native extraction covers TS/JS through its compiler and Python through isolated 
 
 `contextory.project.json` holds reviewed configuration: schemaVersion 1, optional name, include/exclude patterns, entryPoints, conventions, maxFiles and maxBytes. Generated topology lives in rebuildable local storage; it does not approve requirements or overwrite authoritative work records. Consult user instructions and current decisions before treating a discovered convention as a constraint.
 
+## Reference codebases
+
+When advertised, `contextory_codebase_list` returns the active workspace (`current`) and up to eight named local references. Register only a directory within the user's requested scope using `contextory_codebase_change` with `action:"add"`, an absolute `root`, optional `name`, and a new `operationId`. Registration resolves aliases and persists in the current service storage; it does not modify the reference. Detach using `action:"remove"`, its `codebaseId` and a new operation ID. Cached projections remain rebuildable service data.
+
+Pass that ID as `codebaseId` on architecture, code context, search, impact, path, index/import and flow trace/expand calls. Paths, Graphify input and source IDs resolve inside that reference. References cannot use current-project `specId` or workflow mutations. Omission or `current` always means the active workspace, even after another reference query. Separate requests can analyze different references concurrently; there is no global project switch or inferred cross-repository relationship. Preserve each response's `codebase`, snapshot, coverage and citations when combining an explanation. A same-path/same-name symbol in two repositories is not the same source.
+
+Reference context/impact/path/search and default architecture queries verify saved files on demand. References are not watched in the background. `refresh:false` explicitly uses cached architecture; use the default refresh after edits, and regenerate/re-import stale Graphify facts within the selected reference. Source files are parsed without executing them. Existing include/exclude/configuration and language coverage rules apply separately to each root. Reference search uses lexical graph matching (hybrid reports fallback); semantic-only reference search is unavailable. No active-project decisions, requirements, checks or unsaved editor overlays are imported into reference analysis.
+
+CLI equivalents are `references`, `reference-add <folder> [--name <label>]`, `reference-remove <id>`, and source commands with `--codebase <id>`. Always keep `--root`/storage/descriptor on the current project whose reference registry you intend to use. Architecture in the editor offers **Add reference**, a **Codebase** selector and **Detach reference**; source navigation stays inside the selected root. Applying any learned behavior to the current application remains a separate user-authorized implementation task.
+
 ## Clients without a capability
 
 Use only the tools advertised in the current session. After an extension upgrade, an existing connection may still expose older tools until the client reloads its MCP connection. Continue useful work with available search/flow tools, the packaged CLI, or native `rg`/file reads; state the missing graph coverage when it affects conclusions. Hooks are advisory and optional.

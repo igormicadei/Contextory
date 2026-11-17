@@ -197,6 +197,7 @@ export const tools = {
     description:
       "Recover earlier decisions, findings, changes and indexed source with lexical or optional local semantic/hybrid retrieval. Inspect cited revisions and current record state with entity_get; page history for chronology. Prefer code_context_get for structural code questions. Semantic unavailability is explicit; bounded search is not exhaustive impact.",
     schema: z.object({
+      codebaseId: id.optional(),
       query: z.string().min(1).max(4000),
       mode: z.enum(["lexical", "semantic", "hybrid"]).default("hybrid"),
       limit: z.number().int().min(1).max(20).default(5),
@@ -206,6 +207,7 @@ export const tools = {
     description:
       "Start code questions and related edits with a task in query, known paths and optional specId. Verifies saved source and returns ranked definitions, bounded relationships, tests/docs and project memory. Inspect cited current files and re-query after saves. No tracked request required. budgetTokens uses a hard UTF-8 byte budget of three bytes per token; retain coverage/truncation limits.",
     schema: z.object({
+      codebaseId: id.optional(),
       query: z.string().min(1).max(4000),
       paths: z.array(z.string().max(2000)).max(20).default([]),
       specId: id.optional(),
@@ -215,12 +217,16 @@ export const tools = {
   contextory_code_architecture_get: {
     description:
       "Orient across subsystems, dependencies, entry points, shared symbols, conventions and indexing coverage. Default refresh=true verifies saved source without executing it; refresh=false uses cached projection. Follow with scoped code_context_get for a task. Generated patterns are not approved requirements.",
-    schema: z.object({ refresh: z.boolean().default(true) }),
+    schema: z.object({
+      codebaseId: id.optional(),
+      refresh: z.boolean().default(true),
+    }),
   },
   contextory_code_path_get: {
     description:
       "Explain a bounded shortest connection between source symbols/files or project records after verifying saved source. Qualify ambiguous symbols as source:path#qualifiedName. Inspect edge direction, category and provenance; absence of a path is limited by depth and coverage, not proof of independence.",
     schema: z.object({
+      codebaseId: id.optional(),
       from: z.string().min(1).max(2500),
       to: z.string().min(1).max(2500),
       direction: z.enum(["forward", "both"]).default("both"),
@@ -230,7 +236,31 @@ export const tools = {
   contextory_code_index_refresh: {
     description:
       "Recover an empty/stale/failed source graph or import regenerated Graphify JSON from a workspace-relative graphifyPath. Returns snapshot/coverage without executing source. Saved edits already refresh automatically; partial dynamic/external gaps need source inspection. Changed imported sources require Graphify regeneration/re-import, not just refresh.",
-    schema: z.object({ graphifyPath: z.string().min(1).max(2000).optional() }),
+    schema: z.object({
+      codebaseId: id.optional(),
+      graphifyPath: z.string().min(1).max(2000).optional(),
+    }),
+  },
+  contextory_codebase_list: {
+    description:
+      "List the current workspace and named local reference codebases. Reference analysis has isolated source projections and no active project memory. Pass a reference id as codebaseId to source tools; omission always selects the current workspace.",
+    schema: z.object({}),
+  },
+  contextory_codebase_change: {
+    description:
+      "Add an explicitly authorized absolute local reference directory for isolated read-only source analysis, or detach it by codebaseId. No source, client configuration, requirements or checks are written in the reference. Adding does not switch the active workspace or index it until queried. Up to eight references; detach retains rebuildable cache in service storage. Use only for directories within the user's authorized scope.",
+    schema: z
+      .object({
+        operationId,
+        action: z.enum(["add", "remove"]),
+        root: z.string().min(1).max(2000).optional(),
+        name: z.string().trim().min(1).max(100).optional(),
+        codebaseId: id.optional(),
+      })
+      .refine(
+        (p) => (p.action === "add" ? Boolean(p.root) : Boolean(p.codebaseId)),
+        "Add requires root; remove requires codebaseId.",
+      ),
   },
   contextory_relationship_change: {
     description:
@@ -248,6 +278,7 @@ export const tools = {
     description:
       "Find affected source and project records after verifying saved source. Accepts a record/code ID, path, unique symbol or source:path#qualifiedName. Reverse finds dependents/callers, forward dependencies, both surrounding connections; depth/limit bound traversal. Inspect provenance/coverage. Test references do not prove test execution.",
     schema: z.object({
+      codebaseId: id.optional(),
       id: z.string().min(1).max(2500),
       direction: z.enum(["forward", "reverse", "both"]).default("reverse"),
       depth: z.number().int().min(1).max(10).default(5),
@@ -258,6 +289,7 @@ export const tools = {
     description:
       "Trace possible source calls/control flow for Python and TS/JS from a symbol or zero-based position, without executing source. Use before changing related code to understand branches and callers. Default five call hops with cycle, node, edge, fanout and time bounds. Dynamic targets are explicit gaps. Large graphs return a handle for paged reads.",
     schema: z.object({
+      codebaseId: id.optional(),
       root: z.object({
         path: z.string().min(1).max(2000),
         position: z
@@ -278,6 +310,7 @@ export const tools = {
     description:
       "Expand a frontier or read a page of a stored graph. Snapshot IDs prevent combining obsolete source. Expansion produces a new bounded graph and preserves prior results.",
     schema: z.object({
+      codebaseId: id.optional(),
       graphId: id,
       snapshotId: id,
       nodeId: id.optional(),
@@ -297,10 +330,24 @@ export const tools = {
 } as const;
 export type ToolName = keyof typeof tools;
 export type Input<N extends ToolName> = z.infer<(typeof tools)[N]["schema"]>;
+export const scopedCodeTools: readonly string[] = [
+  "contextory_search",
+  "contextory_code_context_get",
+  "contextory_code_architecture_get",
+  "contextory_code_path_get",
+  "contextory_code_index_refresh",
+  "contextory_impact_get",
+  "contextory_flow_trace",
+  "contextory_flow_expand",
+];
 export function toolDefinitions() {
   return Object.entries(tools).map(([name, tool]) => ({
     name,
-    description: tool.description,
+    description:
+      tool.description +
+      (scopedCodeTools.includes(name)
+        ? " Optional codebaseId selects an isolated reference from contextory_codebase_list; omission/current selects the active workspace. Paths and IDs belong to that codebase. Keep returned codebase identity with citations; reference knowledge does not authorize current-project changes."
+        : ""),
     inputSchema: z.toJSONSchema(tool.schema, { target: "draft-7" }),
     annotations: {
       readOnlyHint: [
@@ -309,6 +356,7 @@ export function toolDefinitions() {
         "contextory_history_get",
         "contextory_usage_get",
         "contextory_search",
+        "contextory_codebase_list",
         "contextory_code_context_get",
         "contextory_code_architecture_get",
         "contextory_code_path_get",

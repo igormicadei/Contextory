@@ -347,19 +347,23 @@ export async function activate(context: vscode.ExtensionContext) {
         },
       };
     }
-    input.overlays = Object.fromEntries(
-      vscode.workspace.textDocuments
-        .filter(
-          (doc) =>
-            doc.isDirty &&
-            doc.uri.scheme === "file" &&
-            vscode.workspace.getWorkspaceFolder(doc.uri)?.uri.fsPath === root(),
-        )
-        .map((doc) => [
-          vscode.workspace.asRelativePath(doc.uri, false),
-          doc.getText(),
-        ]),
-    );
+    input.overlays =
+      input.codebaseId && input.codebaseId !== "current"
+        ? undefined
+        : Object.fromEntries(
+            vscode.workspace.textDocuments
+              .filter(
+                (doc) =>
+                  doc.isDirty &&
+                  doc.uri.scheme === "file" &&
+                  vscode.workspace.getWorkspaceFolder(doc.uri)?.uri.fsPath ===
+                    root(),
+              )
+              .map((doc) => [
+                vscode.workspace.asRelativePath(doc.uri, false),
+                doc.getText(),
+              ]),
+          );
     if (options) input = { ...input, ...options };
     const graph = await client.call<FlowGraph>(
       "tools/call",
@@ -432,15 +436,29 @@ export async function activate(context: vscode.ExtensionContext) {
   };
   const showArchitecture = () => {
     if (!architecturePanel) {
-      const created = vscode.window.createWebviewPanel("contextory.architecture", "Contextory: Architecture", vscode.ViewColumn.Beside, {enableScripts:true,localResourceRoots:[context.extensionUri]});
+      const created = vscode.window.createWebviewPanel(
+        "contextory.architecture",
+        "Contextory: Architecture",
+        vscode.ViewColumn.Beside,
+        { enableScripts: true, localResourceRoots: [context.extensionUri] },
+      );
       architecturePanel = created;
-      created.webview.html = document(created.webview,"architecture");
-      created.webview.onDidReceiveMessage(message => {void receive(message,created.webview);},undefined,context.subscriptions);
-      created.onDidDispose(()=>{architecturePanel=undefined;});
+      created.webview.html = document(created.webview, "architecture");
+      created.webview.onDidReceiveMessage(
+        (message) => {
+          void receive(message, created.webview);
+        },
+        undefined,
+        context.subscriptions,
+      );
+      created.onDidDispose(() => {
+        architecturePanel = undefined;
+      });
     }
     architecturePanel.reveal(vscode.ViewColumn.Beside);
   };
   const openSource = async (source: {
+    codebaseId?: string;
     path: string;
     line?: number;
     character?: number;
@@ -453,7 +471,10 @@ export async function activate(context: vscode.ExtensionContext) {
       throw new Error("Source link must stay in this workspace.");
     const path = await (
       await service()
-    ).call<string>("source.resolve", { path: source.path });
+    ).call<string>("source.resolve", {
+      path: source.path,
+      codebaseId: source.codebaseId,
+    });
     const uri = vscode.Uri.file(path);
     const document = await vscode.workspace.openTextDocument(uri);
     const position = document.validatePosition(
@@ -528,6 +549,40 @@ export async function activate(context: vscode.ExtensionContext) {
         case "architecturePanel":
           showArchitecture();
           break;
+        case "referenceAdd": {
+          const folders = await vscode.window.showOpenDialog({
+            canSelectFiles: false,
+            canSelectFolders: true,
+            canSelectMany: false,
+            openLabel: "Analyze as reference",
+            title: "Choose a reference codebase",
+          });
+          const folder = folders?.[0];
+          if (!folder || folder.scheme !== "file") break;
+          const client = await service();
+          const reference = await client.call<{ id: string }>("tools/call", {
+            name: "contextory_codebase_change",
+            arguments: {
+              action: "add",
+              root: folder.fsPath,
+              operationId: randomUUID(),
+            },
+          });
+          const listed = await client.call<{ references: unknown[] }>(
+            "tools/call",
+            { name: "contextory_codebase_list", arguments: {} },
+          );
+          await sender?.postMessage({
+            type: "referenceAdded",
+            codebaseId: reference.id,
+            references: listed.references,
+          });
+          await refresh();
+          break;
+        }
+        case "traceReference":
+          await trace(message.input as FlowInput, undefined, true);
+          break;
         case "autoConnect":
           if (typeof message.enabled === "boolean")
             await setAutoConnect(message.enabled);
@@ -546,7 +601,11 @@ export async function activate(context: vscode.ExtensionContext) {
             name: message.name,
             arguments: message.arguments,
           });
-          post({ type: "toolResult", requestId: message.requestId, result });
+          await sender?.postMessage({
+            type: "toolResult",
+            requestId: message.requestId,
+            result,
+          });
           await refresh();
           break;
         }
@@ -630,7 +689,9 @@ export async function activate(context: vscode.ExtensionContext) {
           await vscode.commands.executeCommand("contextory.prepareSemantic");
           break;
         case "cancelAnalysis":
-          await (await service()).call("analysis.cancel");
+          await (
+            await service()
+          ).call("analysis.cancel", { codebaseId: message.codebaseId });
           break;
       }
     });

@@ -66,6 +66,9 @@ const flowOnly = surface === "flow";
 const relationshipsOnly = surface === "relationships";
 const architectureOnly = surface === "architecture";
 let architecture: Architecture | undefined;
+let architectureCodebase = "current";
+let architectureRequestId = "";
+let architectureSequence = 0;
 let codeContext: CodeContext | undefined;
 let architectureState = initialArchitectureState();
 let codeRequestId = "";
@@ -386,7 +389,7 @@ function render() {
     )
     .join(
       "",
-    )}</nav>${notice ? `<div class="notice" role="status"><span>${escape(notice)}</span>${button("dismiss", "×", 'aria-label="Dismiss notification"', "icon-button")}</div>` : ""}${busy ? '<div class="loading-line" role="progressbar" aria-label="Contextory is working"></div>' : ""}<main>${!dashboard && screen !== "map" && screen !== "relationships" ? empty("Open your workspace", "Contextory connects your native agents to shared project records. Open a trusted folder, then refresh.", button("refresh", "Refresh", "", "primary")) : screen === "architecture" ? architectureView(architecture, codeContext, drafts.codeQuery ?? "", architectureOnly, architectureState) : screen === "relationships" ? relationshipView(relationships) : screen === "requests" ? requestTree() : screen === "history" ? historyView() : screen === "map" ? map() : overview()}</main><footer>${surface === "sidebar" ? connections() : ""}<div class="workspace-status"><span class="status-dot ${dashboard ? "online" : ""}"></span><span>${dashboard ? escape(dashboard.root.split(/[\\/]/).pop()) : "Open a workspace"}</span>${surface === "sidebar" ? autoConnectSwitch() : '<span class="footer-label">Native conversation &middot; durable context</span>'}</div></footer>`;
+    )}</nav>${notice ? `<div class="notice" role="status"><span>${escape(notice)}</span>${button("dismiss", "×", 'aria-label="Dismiss notification"', "icon-button")}</div>` : ""}${busy ? '<div class="loading-line" role="progressbar" aria-label="Contextory is working"></div>' : ""}<main>${!dashboard && screen !== "map" && screen !== "relationships" ? empty("Open your workspace", "Contextory connects your native agents to shared project records. Open a trusted folder, then refresh.", button("refresh", "Refresh", "", "primary")) : screen === "architecture" ? architectureView(architecture, codeContext, drafts.codeQuery ?? "", architectureOnly, architectureState, dashboard?.references ?? [], architectureCodebase) : screen === "relationships" ? relationshipView(relationships) : screen === "requests" ? requestTree() : screen === "history" ? historyView() : screen === "map" ? map() : overview()}</main><footer>${surface === "sidebar" ? connections() : ""}<div class="workspace-status"><span class="status-dot ${dashboard ? "online" : ""}"></span><span>${dashboard ? escape(dashboard.root.split(/[\\/]/).pop()) : "Open a workspace"}</span>${surface === "sidebar" ? autoConnectSwitch() : '<span class="footer-label">Native conversation &middot; durable context</span>'}</div></footer>`;
   document.querySelector<HTMLElement>("main")!.dataset.screen = screen;
   for (const scroll of scrollAreas) {
     const replacement = document.querySelector<HTMLElement>(
@@ -447,6 +450,7 @@ function requestCode(query: string, paths?: string[]) {
     requestId: codeRequestId,
     name: "contextory_code_context_get",
     arguments: {
+      codebaseId: architectureCodebase,
       query,
       paths:
         paths ??
@@ -461,12 +465,24 @@ function requestCode(query: string, paths?: string[]) {
   render();
 }
 function loadArchitecture() {
+  architectureRequestId = `architecture:${++architectureSequence}`;
   send({
     type: "tool",
-    requestId: "architecture",
+    requestId: architectureRequestId,
     name: "contextory_code_architecture_get",
-    arguments: { refresh: true },
+    arguments: { refresh: true, codebaseId: architectureCodebase },
   });
+}
+function selectCodebase(id: string) {
+  architectureCodebase = id;
+  architecture = undefined;
+  codeContext = undefined;
+  codeRequestId = "";
+  architectureState = initialArchitectureState();
+  architectureHistory.length = 0;
+  drafts.codeQuery = "";
+  loadArchitecture();
+  render();
 }
 function preparePanelSelection(requestId?: string) {
   if (
@@ -587,6 +603,36 @@ function action(element: Element) {
     case "architecturePanel":
       send({ type: "architecturePanel" });
       break;
+    case "referenceAdd":
+      send({ type: "referenceAdd" });
+      break;
+    case "referenceRemove":
+      send({
+        type: "tool",
+        name: "contextory_codebase_change",
+        requestId: `reference-remove:${architectureCodebase}`,
+        arguments: {
+          action: "remove",
+          codebaseId: architectureCodebase,
+          operationId: crypto.randomUUID(),
+        },
+      });
+      break;
+    case "architectureTrace": {
+      const symbol = codeContext?.symbols.find(
+        (s) => s.id === architectureState.selected,
+      );
+      if (symbol)
+        send({
+          type: "traceReference",
+          input: {
+            codebaseId: architectureCodebase,
+            root: { path: symbol.path, symbol: symbol.name },
+            view: "flow",
+          },
+        });
+      break;
+    }
     case "mapZoom":
       zoomMap(data.map!, Number(data.factor));
       break;
@@ -710,7 +756,18 @@ function action(element: Element) {
       send({ type: data.action, provider: data.provider });
       break;
     case "source":
-      send({ type: "source", source: JSON.parse(data.source!) });
+      send({
+        type: "source",
+        source: {
+          ...JSON.parse(data.source!),
+          codebaseId:
+            screen === "architecture"
+              ? architectureCodebase
+              : screen === "map"
+                ? graph?.codebase?.id
+                : undefined,
+        },
+      });
       break;
     case "node":
       nodeId = data.id!;
@@ -725,10 +782,14 @@ function action(element: Element) {
         },
       });
       break;
+    case "cancelAnalysis":
+      send({ type: "cancelAnalysis", codebaseId: graph?.codebase?.id });
+      break;
     case "retrace":
       send({
         type: "trace",
         input: {
+          codebaseId: graph?.codebase?.id,
           root: graph!.root,
           view: (document.getElementById("flowView") as HTMLSelectElement)
             .value,
@@ -744,6 +805,7 @@ function action(element: Element) {
       send({
         type: "expand",
         arguments: {
+          codebaseId: graph?.codebase?.id,
           graphId: graph!.id,
           snapshotId: graph!.snapshotId,
           nodeId: data.id,
@@ -811,6 +873,7 @@ app.addEventListener("input", (event) => {
 app.addEventListener("change", (event) => {
   const input = event.target as HTMLInputElement;
   if (input.name) drafts[input.name] = input.value;
+  if (input.name === "architectureCodebase") selectCodebase(input.value);
   if (input.name === "architectureRelation") {
     architectureState.relation = input.value;
     render();
@@ -883,8 +946,27 @@ window.addEventListener("message", (event) => {
     }
   }
   if (message.type === "busy") busy = message.value;
-  if (message.type === "toolResult" && message.requestId === "architecture")
+  if (
+    message.type === "toolResult" &&
+    message.requestId === architectureRequestId
+  )
     architecture = message.result;
+  if (message.type === "referenceAdded") {
+    if (dashboard) dashboard.references = message.references;
+    selectCodebase(message.codebaseId);
+  }
+  if (
+    message.type === "toolResult" &&
+    String(message.requestId).startsWith("reference-remove:") &&
+    message.result?.removed === architectureCodebase
+  )
+    selectCodebase("current");
+  if (
+    message.type === "restore" &&
+    architectureCodebase !== "current" &&
+    !dashboard?.references?.some((r) => r.id === architectureCodebase)
+  )
+    selectCodebase("current");
   if (message.type === "toolResult" && message.requestId === codeRequestId) {
     codeContext = message.result;
     architectureState.contextQuery = codeRequestQuery;

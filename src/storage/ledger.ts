@@ -1,7 +1,7 @@
 import { DatabaseSync } from "node:sqlite";
 import { createHash, randomUUID } from "node:crypto";
 import { mkdirSync } from "node:fs";
-import { dirname } from "node:path";
+import { dirname, toNamespacedPath } from "node:path";
 import {
   ContextoryError,
   type Actor,
@@ -21,7 +21,9 @@ export class Ledger {
     readonly root: string,
   ) {
     mkdirSync(dirname(path), { recursive: true });
-    this.db = new DatabaseSync(path);
+    // Editor global-storage paths plus per-reference cache directories can
+    // exceed MAX_PATH. SQLite needs the explicit Windows extended path form.
+    this.db = new DatabaseSync(toNamespacedPath(path));
     const schema = Number(
       this.db.prepare("PRAGMA user_version").get()!.user_version,
     );
