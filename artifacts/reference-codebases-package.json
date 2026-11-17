@@ -1,0 +1,35 @@
+{
+  "package": "contextory-workspace-0.4.0.vsix",
+  "version": "0.4.0",
+  "sha256": "09a93eeeea6b3d84b6633bbe83c8317b9e4ffd4b8baad5ee2d37edd9963ae214",
+  "runtime": {
+    "extension.js": "59405d1fc35e730fcb4524471ae048e423595f6ad1a347721ef358b4318ed47e",
+    "service.mjs": "915c5fc84c189d44beefe0381cbb6aec0d85feb27054ec9dc8433ce78a22cb38",
+    "contextory.mjs": "4526e050d444d086b0508959428799aaade3e1b86eb6b9cb1a946cb0e0b41f38",
+    "mcp-proxy.mjs": "812ec9d20d6154b967b1ab24f007d8c3c6ce66c54fceb8e73379e5bf2c69ed47",
+    "contextory-hook.mjs": "ae024f7ebbf45aab2ab6de93f57167d9738385e8453a78808b9026d5f7abc67b",
+    "webview.js": "caa6e3d739fc776c102e41df43dfb6a6d263517a45259127bf6287473e914e5f",
+    "codebase-worker.mjs": "62e64e5bcf5845ea50ede05152bab72b62f745ccac248172bf662f82f9e4edd5",
+    "analysis-worker.mjs": "3e550be663d75fceb1d92a62c10d7eba88ed4772b887e02da3c0901df1b93077"
+  },
+  "portableResourcesMatch": true,
+  "documentationMatch": true,
+  "privateAndDevelopmentFilesExcluded": true,
+  "installedInLiveEditor": false,
+  "hosts": [
+    {
+      "host": "Visual Studio Code",
+      "version": "1.145.3",
+      "passed": true,
+      "report": "host-reference-package-vscode.json"
+    },
+    {
+      "host": "IBM Bob",
+      "version": "1.126.0",
+      "passed": true,
+      "report": "host-reference-package-bob.json"
+    }
+  ],
+  "matchesHostTestedRuntime": true,
+  "finalPackageContentsVerified": true
+}
