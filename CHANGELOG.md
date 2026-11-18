@@ -1,5 +1,73 @@
 # Changelog
 
+## 0.6.0 (2026-11-18)
+
+### Commits
+
+- 4ee962dfa4c2d07787e9f1fc9bcf3ee353f0f3f5: chore: record v0.5.1 package qualification
+- 5210f71de8221e0fe561063c21aaa96b8e324106: feat: isolate workspace projects and recover delayed native connections
+
+### Project decisions, features and rules recorded in this interval
+
+These ledger entries are associated by recording interval, not verified commit inclusion. Refer to their immutable revisions for provenance.
+
+- DEC-3aec4632@1 (decision, active): Keep project-owned ledgers and coordinate requests through explicit workspace scope
+- DEC-9b8ef025@1 (decision, active): Retry service readiness without restarting the native session
+- ISS-4d3937bd@2 (finding, resolved): Guard delayed project replies and preserve exact coordinated creation input
+- ISS-550bab11@2 (finding, deferred): Automated 0.5.1 documentation build blocked by GitHub billing lock
+- ISS-87ef3664@1 (finding, resolved): Background native discovery stopped before a slow service became available
+- ISS-b67944fb@1 (finding, resolved): Installed VS Code updater blocked isolated package test startup
+- KN-03b14e11@1 (knowledge, observed): Patch 0.5.1 release notes
+- KN-0e13e5ea@1 (knowledge, observed): Native readiness timing regression coverage
+- KN-1b909a01@1 (knowledge, observed): Searchable documentation site configuration
+- KN-20f55f67@1 (knowledge, observed): Locked package metadata
+- KN-28afc132@1 (knowledge, observed): 0.5.1 IBM Bob package qualification
+- KN-2a8cccd9@1 (knowledge, observed): Extension package metadata
+- KN-35acc3de@1 (knowledge, observed): Project-owned tracked workflow lifecycle
+- KN-3f2dc92e@1 (knowledge, observed): Native stdio MCP proxy and service handshake
+- KN-411757ef@1 (knowledge, observed): Shared native and headless project workflow guidance
+- KN-44d4ab8a@1 (knowledge, observed): Native connection qualification documentation
+- KN-4b4fb23d@1 (knowledge, observed): Version 0.6.0 release notes
+- KN-58e45c09@1 (knowledge, observed): Native MCP startup readiness
+- KN-6202b69f@1 (knowledge, observed): Portable tool schemas and project scope
+- KN-67330941@1 (knowledge, observed): Current release overview and installation
+- KN-69f4cad3@1 (knowledge, observed): Versioned qualification record
+- KN-6a6ce93a@1 (knowledge, observed): Workspace isolation and coordination qualification
+- KN-79441e4a@1 (knowledge, observed): Multi-folder editor services and project-scoped navigation
+- KN-7d9e9bf7@1 (knowledge, observed): Managed project changelog
+- KN-85f84837@1 (knowledge, observed): Project selector, ownership badges and cross-project branch navigation
+- KN-8adaabd9@1 (knowledge, observed): Workspace membership and coordinated request routing
+- KN-a37f3ea2@1 (knowledge, observed): Recoverable cross-project requests with independently verified local branches
+- KN-afd38931@1 (knowledge, observed): Documentation home page
+- KN-b65188ed@1 (knowledge, observed): Version 0.6.0 documentation and upgrade guidance
+- KN-bae604bf@1 (knowledge, observed): Automatic recovery when the native client starts before Contextory
+- KN-bb9f9beb@1 (knowledge, observed): Project-owned application and tool dispatch
+- KN-bc4d1927@1 (knowledge, observed): Owned native provider registration and setup guidance
+- KN-d0bb2583@1 (knowledge, observed): Authenticated service transport and scoped dispatch
+- KN-daf148c0@1 (knowledge, observed): Native connection setup feedback
+- KN-dba05cbb@1 (knowledge, observed): Runtime version and shared model contracts
+- KN-e096f0b4@1 (knowledge, observed): Disposable multi-root editor host qualification
+- KN-e7fc261e@1 (knowledge, observed): Explicit project scope preserves independent ownership and native roles
+- KN-e9a1c43e@1 (knowledge, observed): Delayed dashboard restores cannot change a settled project selection
+- KN-eb29cdfa@1 (knowledge, observed): Headless CLI and explicit project selection
+- KN-f02b97a0@1 (knowledge, observed): Patch 0.5.1 package checksum
+- KN-f5ad8faa@1 (knowledge, observed): Patch 0.5.1 package inspection
+- KN-f6d011ed@1 (knowledge, observed): 0.5.1 VS Code package qualification
+- KN-fd94848d@1 (knowledge, observed): Workspace selector and cross-project request UI qualification
+- OUT-8cc307f4@1 (outcome, submitted): Implemented isolated local multi-root workspace projects with explicit native routing, project selector/badges and recoverable cross-project request branches.
+- OUT-da1431ae@1 (outcome, submitted): Native startup discovery now retries automatically for up to five minutes, with bounded foreground readiness and clearer setup feedback.
+- OUT-dce1b739@1 (outcome, submitted): Contextory v0.5.1 committed, pushed and published with the qualified retry fix, matching VSIX/checksum and verified current documentation.
+- OUT-f644a30d@1 (outcome, submitted): Prepared current guides, release notes and searchable site for Contextory 0.6.0.
+- REQ-19acd150@2 (request, completed): Isolate projects in multi-root workspaces and coordinate cross-project requests
+- REQ-4bdb42b2@2 (request, completed): Document and qualify Contextory 0.6.0 release
+- REQ-c0b1f599@2 (request, completed): Keep native startup readiness retrying for five minutes
+- REQ-fdba89b6@2 (request, completed): Release Contextory v0.5.1 with gray connection retry
+- SPEC-0b8b95fc@6 (spec, completed): Support trusted local multi-root workspaces without merging project records
+- SPEC-1cec3812@4 (spec, completed): Retry background readiness for five minutes with bounded calls
+- SPEC-8d0c953f@4 (spec, completed): Publish qualified v0.5.1 package and release
+- SPEC-9be47776@4 (spec, completed): Prepare current multi-project and native recovery release documentation
+
+
 ## 0.5.1 (2026-11-18)
 
 ### Commits
