@@ -1,5 +1,13 @@
 # Validation records
 
+## 0.5.1: gray connection retry
+
+Recorded 2026-11-18 on Windows/Node 24.19.0. The sidebar regression exercises emitted connection actions: a gray configured agent retries setup, including historical MCP and current hook-only observations; a green observed agent disconnects; an unconfigured agent connects. Keyboard retry, accessible labels and tooltip guidance are included in the **32-test UI suite**. Release qualification also covers canonical skill consistency, TypeScript, backend tests and the complete documentation build.
+
+The final VSIX is qualified in isolated VS Code and IBM Bob profiles, with package/runtime version agreement and its published SHA-256 checked. Package reports are retained in the repository: [VS Code](https://github.com/igormicadei/Contextory/blob/main/artifacts/host-release-051-vscode.json), [IBM Bob](https://github.com/igormicadei/Contextory/blob/main/artifacts/host-release-051-bob.json) and [package inspection](https://github.com/igormicadei/Contextory/blob/main/artifacts/release-0.5.1-package.json). Live editor installations are unchanged.
+
+This patch corrects the footer action. It does not establish why a native client has sent no traffic, approve hooks, or force native MCP reload. Native hook trust approval, authenticated conversations, remote/multi-root workspaces, other operating systems and large-project performance remain outside this qualification.
+
 ## 0.5.0: governed knowledge, project releases and native recovery
 
 The final implementation passed **89 backend tests**, **32 UI tests**, typechecking, canonical/workspace skill drift checks and all three skill validators. This release adds its own notes page to the complete documentation build. Catalog checks cover immutable definitions, human-only approval, source/test freshness and completion accounting, resumable baseline migration and paginated project export. Nine real-Git tests cover global commit membership, version/changelog edits, local commit/tag operations, remote tag-only publication, hooks, CRLF, concurrency, interrupted-result recovery, shallow history and side-branch tags. Native/headless service contracts and UI review/apply/publish paths are exercised.

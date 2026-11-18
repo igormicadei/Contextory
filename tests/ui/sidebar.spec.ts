@@ -1,15 +1,19 @@
 import { test, expect } from "@playwright/test";
 
-test("historical MCP traffic stays grey after service restart until current traffic is observed", async ({
+test("gray native-agent buttons retry setup while observed connections can disconnect", async ({
   page,
 }) => {
   await page.goto("/sidebar.html");
   await expect(
     page.getByRole("button", { name: "Disconnect Codex", exact: true }),
   ).toBeVisible();
-  const restore = async (current: boolean) =>
+  const restore = async (
+    current: boolean,
+    hookCurrent = false,
+    configured = true,
+  ) =>
     page.evaluate(
-      (current) =>
+      ({ current, hookCurrent, configured }) =>
         window.postMessage(
           {
             type: "restore",
@@ -24,30 +28,69 @@ test("historical MCP traffic stays grey after service restart until current traf
               connections: [
                 {
                   provider: "codex",
-                  configured: true,
+                  configured,
                   mcpSeen: "2026-01-01T00:00:00Z",
                   mcpCurrent: current,
-                  hookCurrent: false,
+                  hookCurrent,
                 },
               ],
             },
           },
           "*",
         ),
-      current,
+      { current, hookCurrent, configured },
+    );
+  const messages = () =>
+    page.evaluate(() =>
+      (
+        window as unknown as {
+          contextoryMessages: { type: string; provider?: string }[];
+        }
+      ).contextoryMessages.filter(
+        (message) =>
+          message.provider === "codex" &&
+          ["connect", "disconnect"].includes(message.type),
+      ),
     );
   await restore(false);
   const codex = page.getByRole("button", {
-    name: "Disconnect Codex",
+    name: "Retry Codex connection",
     exact: true,
   });
   await expect(codex.locator(".status-dot")).not.toHaveClass(/online/);
   await expect(codex).toHaveAttribute(
     "title",
-    /waiting for native traffic in this service/,
+    /waiting for native traffic in this service\. Click to retry connection setup/,
   );
+  await codex.click();
+  await expect.poll(messages).toEqual([{ type: "connect", provider: "codex" }]);
+  await restore(false, true);
+  await expect(codex.locator(".status-dot")).not.toHaveClass(/online/);
+  await codex.press("Enter");
+  await expect.poll(messages).toEqual([
+    { type: "connect", provider: "codex" },
+    { type: "connect", provider: "codex" },
+  ]);
   await restore(true);
-  await expect(codex.locator(".status-dot")).toHaveClass(/online/);
+  const connected = page.getByRole("button", {
+    name: "Disconnect Codex",
+    exact: true,
+  });
+  await expect(connected.locator(".status-dot")).toHaveClass(/online/);
+  await connected.click();
+  await restore(false, false, false);
+  const disconnected = page.getByRole("button", {
+    name: "Connect Codex",
+    exact: true,
+  });
+  await expect(disconnected.locator(".status-dot")).not.toHaveClass(/online/);
+  await disconnected.click();
+  await expect.poll(messages).toEqual([
+    { type: "connect", provider: "codex" },
+    { type: "connect", provider: "codex" },
+    { type: "disconnect", provider: "codex" },
+    { type: "connect", provider: "codex" },
+  ]);
 });
 
 test("auto-connect can pause and resume from the footer across tabs and panel/sidebar layouts without disconnecting agents", async ({

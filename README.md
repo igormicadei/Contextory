@@ -1,6 +1,6 @@
 # Contextory
 
-**0.5.0** adds governed project knowledge, a portable migration agent, complete documentation export, project-wide Git version management and native connection recovery. Keep file responsibilities, rules/features, tests and interface contracts together with their original definitions and review history. See the [release notes](docs/releases/v0.5.0.md), [project knowledge](docs/PROJECT-KNOWLEDGE.md) and [versions and tags](docs/PROJECT-RELEASES.md).
+**0.5.1** fixes native-agent connection buttons: clicking a gray indicator retries setup instead of removing an existing configuration. Labels and tooltips explain retry, connect and disconnect. It includes the governed project knowledge, portable migration, documentation export and project-wide version management introduced in 0.5.0. See the [release notes](docs/releases/v0.5.1.md), [project knowledge](docs/PROJECT-KNOWLEDGE.md) and [versions and tags](docs/PROJECT-RELEASES.md).
 
 **Manage requests. Give agents the full picture.**
 
@@ -10,9 +10,9 @@ Contextory is a VS Code and IBM Bob extension that connects your requests, miles
 
 Your agent keeps its own conversation, model, authentication, and editing tools. Contextory manages the project records that need to survive the next session or a switch to another agent.
 
-[Download v0.5.0](https://github.com/igormicadei/Contextory/releases/tag/v0.5.0) · [Full documentation](https://igormicadei.github.io/Contextory/) · [User guide](docs/USER-GUIDE.md) · [Agent tools](docs/MCP-TOOLS.md) · [Development](docs/DEVELOPMENT.md)
+[Download v0.5.1](https://github.com/igormicadei/Contextory/releases/tag/v0.5.1) · [Full documentation](https://igormicadei.github.io/Contextory/) · [User guide](docs/USER-GUIDE.md) · [Agent tools](docs/MCP-TOOLS.md) · [Development](docs/DEVELOPMENT.md)
 
-The **0.5.0** package includes code intelligence and portable execution alongside [automatic agent discovery](docs/releases/v0.2.6.md), Panel layouts and native usage records introduced since 0.2.3.
+The **0.5.1** package includes code intelligence and portable execution alongside [automatic agent discovery](docs/releases/v0.2.6.md), Panel layouts and native usage records introduced since 0.2.3.
 
 ## What it offers
 
@@ -37,18 +37,18 @@ Since **0.4.0**, Contextory supports [isolated reference codebases](docs/CODEBAS
 
 ## Install
 
-The current release is **0.5.0**, a preview for **Windows with one trusted local project folder**.
+The current release is **0.5.1**, a preview for **Windows with one trusted local project folder**.
 
 1. Install [Node.js](https://nodejs.org/en/download) **24 or newer**. Check `node --version` in a terminal; restart the editor if you just installed Node.
 2. Use VS Code **1.96 or newer**, or IBM Bob. The packaged extension has been tested in VS Code **1.145.3** and Bob's VS Code API **1.126.0**.
-3. Download [`contextory-workspace-0.5.0.vsix`](https://github.com/igormicadei/Contextory/releases/download/v0.5.0/contextory-workspace-0.5.0.vsix) from the release assets.
+3. Download [`contextory-workspace-0.5.1.vsix`](https://github.com/igormicadei/Contextory/releases/download/v0.5.1/contextory-workspace-0.5.1.vsix) from the release assets.
 4. In the editor's Extensions view, open the **…** menu, choose **Install from VSIX…**, and select the file. Reload the editor when prompted.
 5. Open a single trusted local project folder and select **Contextory** in the activity bar.
 
 You can also install in VS Code from PowerShell:
 
 ```powershell
-code --install-extension .\contextory-workspace-0.5.0.vsix
+code --install-extension .\contextory-workspace-0.5.1.vsix
 ```
 
 Install your chosen native agent separately and sign in through its own interface. Python source tracing additionally needs **Python 3.10+**; it does not require a Python editor extension. Optional semantic search downloads its model/runtime separately. Installing the VSIX does not require npm, Rust, a database server, or a model download.
@@ -129,7 +129,7 @@ Version 0.2.3 uses the Contextory extension identity and tool/settings namespace
 | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
 | [User guide](docs/USER-GUIDE.md)                       | Prerequisites, installation, first use, workflows, settings, search, code maps, reports, upgrades, and troubleshooting. |
 | [Codebase intelligence](docs/CODEBASE-INTELLIGENCE.md) | Source coverage, Architecture, Graphify, portable skills, generic MCP and headless CLI.                                 |
-| [Release notes](docs/releases/v0.5.0.md)               | Version 0.5.0 changes, installation, upgrades and qualification.                                                        |
+| [Release notes](docs/releases/v0.5.1.md)               | Version 0.5.1 changes, installation, upgrades and qualification.                                                        |
 | [MCP tools](docs/MCP-TOOLS.md)                         | Available agent tools, examples, version/lease rules, and the completion sequence.                                      |
 | [Architecture](docs/NATIVE-AGENT-ARCHITECTURE.md)      | Runtime components, storage, boundaries, retrieval, source analysis, and resource limits.                               |
 | [Development](docs/DEVELOPMENT.md)                     | Build, tests, debugging, packaging, and the release process.                                                            |

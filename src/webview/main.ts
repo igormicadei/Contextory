@@ -178,7 +178,12 @@ function connections() {
       const c = dashboard?.connections.find((c) => c.provider === provider);
       const name = clients[provider].label;
       const online = c?.configured && (c.mcpCurrent ?? Boolean(c.mcpSeen));
-      return `<button class="connection" data-action="${c?.configured ? "disconnect" : "connect"}" data-provider="${provider}" aria-label="${c?.configured ? "Disconnect" : "Connect"} ${name}" title="${name}: ${online ? "MCP observed in this service" : c?.configured ? "Configured; waiting for native traffic in this service" : "Disconnected"}"><strong>${name}</strong><span class="status-dot ${online ? "online" : ""}" role="img" aria-label="${online ? "Connected" : "Not connected"}"></span></button>`;
+      const label = online
+        ? `Disconnect ${name}`
+        : c?.configured
+          ? `Retry ${name} connection`
+          : `Connect ${name}`;
+      return `<button class="connection" data-action="${online ? "disconnect" : "connect"}" data-provider="${provider}" aria-label="${label}" title="${name}: ${online ? "MCP observed in this service. Click to disconnect." : c?.configured ? "Configured; waiting for native traffic in this service. Click to retry connection setup." : "Disconnected. Click to connect."}"><strong>${name}</strong><span class="status-dot ${online ? "online" : ""}" role="img" aria-label="${online ? "Connected" : "Not connected"}"></span></button>`;
     })
     .join("")}</div>`;
 }

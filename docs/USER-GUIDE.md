@@ -21,21 +21,21 @@ In **Architecture**, use **Add reference** to register another local codebase, t
 
 ## Install the VSIX
 
-1. Download `contextory-workspace-0.5.0.vsix` and its `.sha256` file from the [v0.5.0 release](https://github.com/igormicadei/Contextory/releases/tag/v0.5.0).
+1. Download `contextory-workspace-0.5.1.vsix` and its `.sha256` file from the [v0.5.1 release](https://github.com/igormicadei/Contextory/releases/tag/v0.5.1).
 2. Optionally compare the checksum using PowerShell:
 
    ```powershell
-   (Get-FileHash -Algorithm SHA256 .\contextory-workspace-0.5.0.vsix).Hash.ToLowerInvariant()
-   Get-Content .\contextory-workspace-0.5.0.sha256
+   (Get-FileHash -Algorithm SHA256 .\contextory-workspace-0.5.1.vsix).Hash.ToLowerInvariant()
+   Get-Content .\contextory-workspace-0.5.1.sha256
    ```
 
-3. In the editor's Extensions view, use **… → Install from VSIX…** and select the package. In VS Code, `code --install-extension .\contextory-workspace-0.5.0.vsix` is an alternative.
+3. In the editor's Extensions view, use **… → Install from VSIX…** and select the package. In VS Code, `code --install-extension .\contextory-workspace-0.5.1.vsix` is an alternative.
 4. Reload if prompted. Open the project as a single folder and trust it before connecting agents or running checks.
 5. Select the Contextory activity-bar icon: a request card connected to context nodes.
 
 The extension is distributed as a GitHub release asset. You do not need to clone the repository or install its development dependencies to use the package.
 
-Version **0.5.0** adds governed knowledge, project-wide versions, documentation export and native connection recovery; it includes code intelligence and portable execution. Automatic discovery and the pause switch were introduced in 0.2.6. The [release notes](releases/v0.5.0.md) describe project knowledge, release controls, native connection recovery, installation and qualification limits. Browse the [full documentation](https://igormicadei.github.io/Contextory/) for searchable guides and references.
+Version **0.5.1** makes gray agent buttons retry setup and preserves green-button disconnect. It includes the governed knowledge, project-wide versions, documentation export and native recovery introduced in 0.5.0. Automatic discovery and the pause switch were introduced in 0.2.6. The [release notes](releases/v0.5.1.md) describe the patch, installation and qualification limits. Browse the [full documentation](https://igormicadei.github.io/Contextory/) for searchable guides and references.
 
 ## Connect a native agent
 
@@ -247,13 +247,15 @@ A managed MCP connection waits up to 15 seconds for a reopened workspace service
 
 Run **Contextory: Check Native Connections** to open diagnostics in **Output ? Contextory**. It distinguishes MCP traffic and hooks observed in the current service from history. A waiting hook means no event has arrived yet; check native trust and trigger a supported lifecycle event before concluding it is broken. This command observes the service and does not force the native agent to call MCP.
 
+A gray footer agent button retries connection setup when clicked, including when configuration already exists. It preserves the connection configuration while waiting for native traffic. Its tooltip and accessible label describe the retry. A green button disconnects; use **Contextory: Disconnect an Agent** to deliberately remove a configured connection while its indicator is gray. Retrying setup does not approve hooks or force the native client to reload MCP; follow the displayed reload instructions if traffic is still missing.
+
 If an old chat reports disconnection, ask it to discover its current tools and call `contextory_context_get`. If the tool is missing, restart agent extensions and reopen that chat. If the service reports a version/tool-contract mismatch, follow its restart message; a service held by another project window may require closing those editors for 65 seconds. This compares versions and tool contracts, not every byte of same-version builds.
 
 ## Upgrade, disconnect, and uninstall
 
 - **Same Contextory identity:** install the newer VSIX, reload the editor, and reload the native MCP configuration/session. Existing records remain in the extension's storage. Managed workflow instructions refresh for configured agents.
 - **A build under the previous name:** disconnect its agents while that build is still installed, uninstall it, install Contextory, and reconnect. Version 0.2.3 has a new identity and `contextory_`/`contextory.` namespaces. Previous records stay in the former storage and are not imported automatically.
-- **Disconnect:** click the configured footer agent or run **Contextory: Disconnect an Agent**. Only owned configuration entries and the managed skill are removed; unrelated settings and project records remain.
+- **Disconnect:** click a green footer agent or run **Contextory: Disconnect an Agent**. Only owned configuration entries and the managed skill are removed; unrelated settings and project records remain.
 - **Uninstall:** disconnect providers first so native clients do not retain entries pointing at an unavailable service, then uninstall from Extensions. Export/backup records before removing managed storage.
 
 ## Troubleshooting
