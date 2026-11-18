@@ -8,47 +8,42 @@ import { rpc } from "../service/rpc";
 import { ContextoryError, version } from "../contracts/model";
 import { agentInstructions } from "../agents/instructions";
 import definitions from "contextory:tool-definitions";
-import { setTimeout as delay } from "node:timers/promises";
+import { WorkspaceReadiness } from "./readiness";
 const descriptor = process.argv[2];
 if (!descriptor)
   throw new Error("Contextory needs its workspace descriptor path.");
 const shutdown = new AbortController();
 process.stdin.once("end", () => shutdown.abort());
-let readiness: Promise<void> | undefined;
-function waitForWorkspace(): Promise<void> {
-  return (readiness ??= (async () => {
-    const deadline = Date.now() + 15000;
-    let pause = 100;
-    while (!shutdown.signal.aborted) {
-      try {
-        const catalog = await rpc<{ tools: unknown[] }>(
-          descriptor,
-          "tools/list",
-          {},
-          Math.min(1000, Math.max(1, deadline - Date.now())),
+const readiness = new WorkspaceReadiness(async (timeoutMs) => {
+  const catalog = await rpc<{ tools: unknown[] }>(
+    descriptor,
+    "tools/list",
+    {},
+    timeoutMs,
+  );
+  if (JSON.stringify(catalog.tools) !== JSON.stringify(definitions))
+    throw new ContextoryError(
+      "SERVICE_RESTART_REQUIRED",
+      "Contextory's service and this native MCP connection expose different tool contracts. Run Contextory: Restart Agent Extensions and resume the chat. If it persists, close this project's editors for 65 seconds and reopen them.",
+    );
+}, shutdown.signal);
+let observing = false;
+function observeWorkspace() {
+  if (observing || shutdown.signal.aborted) return;
+  observing = true;
+  void readiness
+    .observe()
+    .catch((error: Error) => {
+      if (!shutdown.signal.aborted)
+        process.stderr.write(
+          (error as { code?: string }).code === "SERVICE_RESTART_REQUIRED"
+            ? `${error.message}\n`
+            : "Contextory workspace service was not ready after five minutes. Tools remain registered; check Contextory output and retry.\n",
         );
-        if (JSON.stringify(catalog.tools) !== JSON.stringify(definitions))
-          throw new ContextoryError(
-            "SERVICE_RESTART_REQUIRED",
-            "Contextory's service and this native MCP connection expose different tool contracts. Run Contextory: Restart Agent Extensions and resume the chat. If it persists, close this project's editors for 65 seconds and reopen them.",
-          );
-        return;
-      } catch (error) {
-        if ((error as { code?: string }).code === "SERVICE_RESTART_REQUIRED")
-          throw error;
-        if (Date.now() >= deadline) throw error;
-        await delay(Math.min(pause, deadline - Date.now()), undefined, {
-          signal: shutdown.signal,
-        });
-        pause = Math.min(1000, pause * 2);
-      }
-    }
-    throw new Error("Native MCP connection closed.");
-  })().finally(() => {
-    // Share only an in-flight probe. A prior successful handshake says nothing
-    // about a reopened workspace or rotated descriptor in a resumed chat.
-    readiness = undefined;
-  }));
+    })
+    .finally(() => {
+      observing = false;
+    });
 }
 const server = new Server(
   { name: "contextory-companion", version },
@@ -57,20 +52,17 @@ const server = new Server(
     instructions: agentInstructions,
   },
 );
+server.onclose = () => shutdown.abort();
 server.setRequestHandler(ListToolsRequestSchema, () => {
   // Native clients may start before the editor's service. Keep discovery usable
   // during that race; only the read-only handshake retries, never a mutation.
-  void waitForWorkspace().catch(() => {
-    if (!shutdown.signal.aborted)
-      process.stderr.write(
-        "Contextory workspace service is still starting. Tools remain registered; retry after workspace startup.\n",
-      );
-  });
+  observeWorkspace();
   return { tools: definitions };
 });
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
-    await waitForWorkspace();
+    observeWorkspace();
+    await readiness.wait();
     const release =
       request.params.name.startsWith("contextory_release") ||
       request.params.name === "contextory_version_get";
@@ -82,7 +74,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     );
     return { content: [{ type: "text", text: JSON.stringify(result) }] };
   } catch (error) {
-    readiness = undefined;
     return {
       isError: true,
       content: [

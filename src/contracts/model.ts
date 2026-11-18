@@ -14,6 +14,7 @@ export type Kind =
   | "release"
   | "outcome";
 export interface Entity {
+  projectId?: string;
   id: string;
   kind: Kind;
   parentId?: string;
@@ -57,6 +58,7 @@ export interface CodebaseInfo {
   role: "current" | "reference";
 }
 export interface SourceRef {
+  projectId?: string;
   codebaseId?: string;
   path: string;
   line?: number;
@@ -113,6 +115,7 @@ export interface Connection {
   hookCurrent?: boolean;
 }
 export interface Dashboard {
+  workspace?: WorkspaceInfo;
   versioning?: import("../releases/manager").VersionStatus;
   references?: CodebaseInfo[];
   codebase?: import("../codebase/model").CodeStatus;
@@ -124,6 +127,33 @@ export interface Dashboard {
   connections: Connection[];
   recipes: CheckRecipe[];
   semantic: { ready: boolean; model: string; detail: string };
+}
+export interface WorkspaceProject {
+  id: string;
+  name: string;
+  root: string;
+}
+export interface WorkspaceInfo {
+  id?: string;
+  projects: WorkspaceProject[];
+  contexts: { id: string; projects: WorkspaceProject[] }[];
+}
+export interface WorkspaceRequest {
+  id: string;
+  ownerProjectId: string;
+  projectIds: string[];
+  creation?: { operationId: string; title: string; description: string };
+}
+export interface WorkspaceRequestStatus extends WorkspaceRequest {
+  error?: string;
+  state: "active" | "completed" | "incomplete";
+  partial: boolean;
+  branches: {
+    project: WorkspaceProject;
+    request?: { id: string; title: string; state: string };
+    specs?: { id: string; title: string; state: string }[];
+    error?: string;
+  }[];
 }
 export interface AgentAutomation {
   enabled: boolean;

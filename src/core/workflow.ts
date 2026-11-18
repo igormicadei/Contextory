@@ -6,6 +6,7 @@ import {
   type Actor,
   type Entity,
   type SourceSnapshot,
+  type WorkspaceRequest,
 } from "../contracts/model";
 import type { Input } from "../contracts/tools";
 import { linkSessionModel } from "./usage";
@@ -97,53 +98,64 @@ export class Workflow {
     if (["spec", "milestone"].includes(kind)) this.rollup(parentId, actor);
     return e;
   }
-  request(a: Input<"contextory_request_change">, actor: Actor) {
-    return this.ledger.transaction(a.operationId, actor, "request", a, () => {
-      if (a.action === "create")
-        return this.create(
+  request(
+    a: Input<"contextory_request_change">,
+    actor: Actor,
+    workspaceRequest?: WorkspaceRequest,
+  ) {
+    return this.ledger.transaction(
+      a.operationId,
+      actor,
+      "request",
+      workspaceRequest ? { ...a, workspaceRequest } : a,
+      () => {
+        if (a.action === "create")
+          return this.create(
+            "request",
+            a.title,
+            {
+              original: a.description,
+              description: a.description,
+              provenance: actor.human
+                ? "developer"
+                : "agent-reported user intent",
+              amendments: [],
+              ...(workspaceRequest ? { workspaceRequest } : {}),
+            },
+            actor,
+          );
+        const e = this.kind(
+          requireValue(a.id, "Revision needs an id."),
           "request",
-          a.title,
+        );
+        requireValue(a.reason, "Revision needs a reason.");
+        return this.save(
+          e,
           {
-            original: a.description,
-            description: a.description,
-            provenance: actor.human
-              ? "developer"
-              : "agent-reported user intent",
-            amendments: [],
+            title: a.title,
+            data: {
+              ...e.data,
+              description: a.description,
+              amendments: [
+                ...(e.data.amendments as unknown[]),
+                {
+                  description: a.description,
+                  reason: a.reason,
+                  actor: actor.id,
+                  time: new Date().toISOString(),
+                },
+              ],
+            },
           },
           actor,
+          "request.revised",
+          requireValue(
+            a.expectedRevision,
+            "Request revision needs expectedRevision.",
+          ),
         );
-      const e = this.kind(
-        requireValue(a.id, "Revision needs an id."),
-        "request",
-      );
-      requireValue(a.reason, "Revision needs a reason.");
-      return this.save(
-        e,
-        {
-          title: a.title,
-          data: {
-            ...e.data,
-            description: a.description,
-            amendments: [
-              ...(e.data.amendments as unknown[]),
-              {
-                description: a.description,
-                reason: a.reason,
-                actor: actor.id,
-                time: new Date().toISOString(),
-              },
-            ],
-          },
-        },
-        actor,
-        "request.revised",
-        requireValue(
-          a.expectedRevision,
-          "Request revision needs expectedRevision.",
-        ),
-      );
-    });
+      },
+    );
   }
   spec(
     a: Input<"contextory_spec_change">,

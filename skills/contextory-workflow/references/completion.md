@@ -2,6 +2,8 @@
 
 # Completion and evidence
 
+Multi-project work is a coordinated group of project-owned requests, not a shared ledger or lease. Carry the same projectId (and workspaceId when needed) through each branch's session, spec lease, findings, catalog, checks, evidence, outcome, completion and report export. Evidence and record IDs from another project cannot complete a branch. After every local request completes, query contextory_workspace_get with groupId; offline, detached or missing branches remain explicitly incomplete. Recover partial creation with its exact original operationId/input; each branch retains that input. Native hook/model/usage observations are not reassigned across projects by inference.
+
 Recover earlier work with focused search and read its current request/spec state before creating records. Read cited historical revisions for rationale, then check whether later decisions supersede them. Keep observations, generated source relationships and approved criteria distinct. Hooks can restore reminders after compaction but do not carry the full current contract; reread `contextory_context_get` for it.
 
 Attach a Contextory session with `contextory_session_attach`; never guess a native session ID. Claim/renew with `contextory_spec_lease`. Mutations require fresh revisions and unique operation IDs. Read the record after a conflict rather than replaying a changed mutation with an old idempotency key.

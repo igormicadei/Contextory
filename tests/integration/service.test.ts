@@ -188,6 +188,39 @@ test("native MCP discovery survives the editor service starting later without re
   );
 });
 
+test("native discovery observes a service starting after 15 seconds without another native request", async (t) => {
+  const f = await fixture(t);
+  const client = new Client({ name: "slow-startup", version: "1" });
+  f.cleanups.push(() => client.close());
+  const transport = new StdioClientTransport({
+    command: process.execPath,
+    args: [resolve("dist/mcp-proxy.mjs"), join(f.storage, "codex.json")],
+    stderr: "pipe",
+  });
+  let stderr = "";
+  transport.stderr?.on("data", (chunk) => {
+    stderr += String(chunk);
+  });
+  await client.connect(transport);
+  assert.deepEqual((await client.listTools()).tools, toolDefinitions());
+  await delay(16000);
+  const service = await startService(f);
+  f.cleanups.push(() => service.close());
+  const deadline = Date.now() + 5000;
+  const connection = () =>
+    service.app.dashboard().connections.find((c) => c.provider === "codex");
+  while (!connection()?.mcpCurrent && Date.now() < deadline) await delay(100);
+  assert.equal(connection()?.mcpCurrent, true, stderr);
+  assert.equal(connection()?.hookCurrent, false);
+  assert.equal(service.app.ledger.all("request").length, 0);
+  assert.doesNotMatch(stderr, /still starting|not ready after five minutes/);
+  const result = await client.callTool({
+    name: "contextory_context_get",
+    arguments: {},
+  });
+  assert.ok(!result.isError, JSON.stringify(result));
+});
+
 test("a reused native connection waits across delayed workspace reopen and sends the first mutation once", async (t) => {
   const f = await fixture(t);
   let service = await startService(f);

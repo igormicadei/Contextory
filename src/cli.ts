@@ -28,6 +28,7 @@ Usage: node dist/contextory.mjs <command> [arguments] [options]
   architecture             Summarize subsystems and entry points
   import <workspace.json>  Import a Graphify graph
   references               List isolated reference codebases
+  projects [group-id]       List active workspace projects or coordinated branches
   reference-add <folder>   Register a local reference (optional --name)
   reference-remove <id>    Detach a reference, leaving its source untouched
   versions [release-id]    Current project version, commits and release history
@@ -40,6 +41,7 @@ Usage: node dist/contextory.mjs <command> [arguments] [options]
 Options: --root <workspace> --storage <directory> --descriptor <generic.json>
          --budget <512..6000> --depth <1..10> --python <executable>
          --codebase <reference-id> --name <reference-name>
+         --project <project-id> --workspace <workspace-id> (editor membership)
          --offset <n> --limit <1..50> --operation <id> (durable release retries)
 Source commands default to the current project. --codebase selects a reference;
 paths and citations are relative to its root. Registration never changes source.
@@ -58,6 +60,8 @@ const allowed = new Set([
   "depth",
   "python",
   "codebase",
+  "project",
+  "workspace",
   "name",
   "offset",
   "limit",
@@ -170,6 +174,12 @@ async function call(name: string, arguments_: unknown) {
       name,
       arguments: {
         ...(arguments_ as object),
+        ...(options.has("project")
+          ? { projectId: options.get("project") }
+          : {}),
+        ...(options.has("workspace")
+          ? { workspaceId: options.get("workspace") }
+          : {}),
         ...(scoped && options.has("codebase")
           ? { codebaseId: options.get("codebase") }
           : {}),
@@ -276,6 +286,9 @@ async function main() {
         break;
       case "references":
         result = await call("contextory_codebase_list", {});
+        break;
+      case "projects":
+        result = await call("contextory_workspace_get", { groupId: args[0] });
         break;
       case "reference-add":
         result = await call("contextory_codebase_change", {

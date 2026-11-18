@@ -1,5 +1,15 @@
 # Validation records
 
+## 0.6.0: multi-project workspaces and native startup recovery
+
+The implementation passes **97 backend tests**, **35 UI tests**, TypeScript checking, canonical/workspace skill consistency and the complete documentation/link build. Workspace integration scenarios cover record/symbol isolation, native/hook role restrictions, unknown/ambiguous scope, descriptor identity, partial creation/retry, detach/restart recovery and independent verified completion in both projects. UI scenarios cover stale replies during and after project switching, cleared drafts, duplicate names, narrow layout, exact retry input and branch navigation.
+
+Native recovery checks cover five-minute bounded background readiness, discovery before the service starts, startup beyond the old fifteen-second window, descriptor rotation, incompatible contracts and single mutation dispatch. The cold-start and real first-setup restart scenarios retain their own qualification: restarting does not grant native hook trust, and unchanged configuration does not create a restart loop.
+
+The versioned package is checked against its checksum and delivered runtime/portable resources. Extracted VSIX qualification runs in isolated **VS Code 1.145.3** and **IBM Bob (VS Code API 1.126.0)** profiles. The two-folder scenario checks per-folder identities/storage/requests/symbols/check settings, paused startup/resume, source navigation, cursor project selection and remove/re-add persistence. Retained reports: [VS Code package](https://github.com/igormicadei/Contextory/blob/main/artifacts/host-release-060-vscode-multi-root.json), [IBM Bob package](https://github.com/igormicadei/Contextory/blob/main/artifacts/host-release-060-bob-multi-root.json) and [package inspection](https://github.com/igormicadei/Contextory/blob/main/artifacts/release-0.6.0-package.json). Live editor installations are unchanged.
+
+This qualification concerns local Windows services and protocol/UI fixtures. Authenticated model conversations, remote workspaces, nested project roots, other operating systems and large-workspace resource budgets remain outside it. Up to sixteen separate local roots are accepted; editor scenarios exercise two. There is no shared cross-project lease or atomic commit: each branch owns its verification and missing/offline participants keep aggregate status incomplete. Existing catalog definitions are preserved; scoped source-backed observations await human Knowledge review. Older release-specific limits below describe those published packages.
+
 ## 0.5.1: gray connection retry
 
 Recorded 2026-11-18 on Windows/Node 24.19.0. The sidebar regression exercises emitted connection actions: a gray configured agent retries setup, including historical MCP and current hook-only observations; a green observed agent disconnects; an unconfigured agent connects. Keyboard retry, accessible labels and tooltip guidance are included in the **32-test UI suite**. Release qualification also covers canonical skill consistency, TypeScript, backend tests and the complete documentation build.

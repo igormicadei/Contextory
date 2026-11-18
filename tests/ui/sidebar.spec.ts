@@ -63,13 +63,15 @@ test("gray native-agent buttons retry setup while observed connections can disco
     /waiting for native traffic in this service\. Click to retry connection setup/,
   );
   await codex.click();
-  await expect.poll(messages).toEqual([{ type: "connect", provider: "codex" }]);
+  await expect
+    .poll(messages)
+    .toEqual([{ type: "connect", provider: "codex", projectId: "reopened" }]);
   await restore(false, true);
   await expect(codex.locator(".status-dot")).not.toHaveClass(/online/);
   await codex.press("Enter");
   await expect.poll(messages).toEqual([
-    { type: "connect", provider: "codex" },
-    { type: "connect", provider: "codex" },
+    { type: "connect", provider: "codex", projectId: "reopened" },
+    { type: "connect", provider: "codex", projectId: "reopened" },
   ]);
   await restore(true);
   const connected = page.getByRole("button", {
@@ -86,10 +88,10 @@ test("gray native-agent buttons retry setup while observed connections can disco
   await expect(disconnected.locator(".status-dot")).not.toHaveClass(/online/);
   await disconnected.click();
   await expect.poll(messages).toEqual([
-    { type: "connect", provider: "codex" },
-    { type: "connect", provider: "codex" },
-    { type: "disconnect", provider: "codex" },
-    { type: "connect", provider: "codex" },
+    { type: "connect", provider: "codex", projectId: "reopened" },
+    { type: "connect", provider: "codex", projectId: "reopened" },
+    { type: "disconnect", provider: "codex", projectId: "reopened" },
+    { type: "connect", provider: "codex", projectId: "reopened" },
   ]);
 });
 

@@ -218,11 +218,44 @@ export async function startService(options: ServiceOptions) {
           app.seen(`mcp:${actor.provider}`);
           ledger.onChange();
         }
-        const result = await app.call(
-          String(params.name),
-          params.arguments,
-          actor,
-        );
+        const args =
+          params.arguments && typeof params.arguments === "object"
+            ? (params.arguments as Record<string, unknown>)
+            : {};
+        const projectId = args.projectId;
+        const workspaceId = args.workspaceId;
+        for (const value of [projectId, workspaceId])
+          if (
+            value !== undefined &&
+            (typeof value !== "string" || !value.length || value.length > 160)
+          )
+            throw new ContextoryError(
+              "INVALID_ARGUMENT",
+              "Project and workspace scope must be nonempty IDs.",
+            );
+        let result =
+          projectId && projectId !== "current" && projectId !== ledger.projectId
+            ? await app.workspace.route(
+                String(projectId),
+                workspaceId as string | undefined,
+                String(params.name),
+                args,
+                actor,
+              )
+            : await app.call(String(params.name), params.arguments, actor);
+        if (
+          projectId &&
+          result &&
+          typeof result === "object" &&
+          !Array.isArray(result)
+        ) {
+          const info = app.workspace.info(workspaceId as string | undefined);
+          const project =
+            projectId === "current" || projectId === ledger.projectId
+              ? app.workspace.project
+              : info.projects.find((p) => p.id === projectId);
+          result = { ...result, project };
+        }
         if (actor.human || JSON.stringify(result).length <= 24000)
           return result;
         const artifactId = `ART-${randomUUID()}`;
@@ -244,6 +277,12 @@ export async function startService(options: ServiceOptions) {
           edges: graph.edges?.length,
         };
       }
+      if (method === "workspace.branch.create")
+        return app.workspace.branch(params, actor);
+      if (method === "workspace.branch.get") {
+        app.workspace.assertContext(String(params.workspaceId ?? ""));
+        return app.workspace.localBranch(String(params.groupId));
+      }
       if (!actor.human)
         throw new ContextoryError(
           "FORBIDDEN",
@@ -255,7 +294,15 @@ export async function startService(options: ServiceOptions) {
           return { attached: true };
         case "client.detach":
           clients.delete(String(params.id));
+          app.workspace.detach(String(params.id));
           return { detached: true };
+        case "workspace.configure":
+          if (!clients.has(String(params.clientId)))
+            throw new ContextoryError(
+              "FORBIDDEN",
+              "Attach the editor client before configuring workspace membership.",
+            );
+          return app.workspace.configure(params);
         case "dashboard":
           return app.dashboard();
         case "source.resolve":
@@ -471,7 +518,10 @@ export async function startService(options: ServiceOptions) {
     const began = Date.now();
     const lifetime = setInterval(() => {
       for (const [id, seen] of clients)
-        if (Date.now() - seen > 60000) clients.delete(id);
+        if (Date.now() - seen > 60000) {
+          clients.delete(id);
+          app.workspace.detach(id);
+        }
       if (!options.headless && !clients.size && Date.now() - began > 60000)
         void close();
     }, 10000);

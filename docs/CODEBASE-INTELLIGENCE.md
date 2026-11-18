@@ -2,6 +2,12 @@
 
 Version 0.3.0 adds a persistent source graph, task retrieval, an Architecture workbench, portable Agent Skills and headless execution. [Full delivery plan](CODEBASE-INTELLIGENCE-PLAN.md).
 
+## Workspace projects
+
+For a multi-root editor workspace, call `contextory_workspace_get` to discover the independent project IDs and roots. Pass `projectId` on each related source and workflow call; use `workspaceId` when multiple editor contexts are attached. Omission/current always targets the native server's own project. Project selection applies only to the current call, and the editor selector never changes that default. Carry identity with graph snapshots, artifacts, relative paths and citations, even when two projects contain the same path and symbol.
+
+The editor starts an independent service and graph per non-overlapping local folder, preserving existing storage and per-folder configuration. Removing a workspace member detaches routing without deleting its data. The CLI accepts `projects [group-id]`, `--project <id>` and `--workspace <id>` with the current server descriptor. A standalone service advertises only itself until an editor attaches workspace membership. Workspace projects own writable workflow records; `codebaseId` selects a read-only reference inside the chosen project. See [multi-project requests](USER-GUIDE.md#multiple-projects-in-one-workspace).
+
 ## Explore a project
 
 Open **Architecture** in the sidebar or run **Contextory: Explore Architecture**. The view starts with a stable subsystem map, synchronized repository explorer and source inspector. Select a subsystem, a bounded file shortcut, then a symbol to inspect direct connections. Breadcrumbs and Back restore previous scopes and selection. Calls/imports/structure are shown initially; relationship and direction filters reveal other indexed evidence. **Explore connections** retrieves a fresh neighborhood around the selected source-qualified symbol. The directional **Matrix** counts indexed calls/imports/inheritance/re-exports: rows depend on columns, ↔ marks reciprocal direct dependencies, and selecting a cell explores its source subsystem. Zoom, background drag and fit support navigation. Entry points, shared symbols, conventions, index state and coverage notices remain available. Search for a symbol or describe a task, open cited source, and follow linked project decisions. **Refresh code index** checks current files and publishes a coherent snapshot. The Code map still provides detailed bounded call/control flow from the source cursor.

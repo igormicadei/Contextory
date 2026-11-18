@@ -1,6 +1,6 @@
 # Contextory
 
-**0.5.1** fixes native-agent connection buttons: clicking a gray indicator retries setup instead of removing an existing configuration. Labels and tooltips explain retry, connect and disconnect. It includes the governed project knowledge, portable migration, documentation export and project-wide version management introduced in 0.5.0. See the [release notes](docs/releases/v0.5.1.md), [project knowledge](docs/PROJECT-KNOWLEDGE.md) and [versions and tags](docs/PROJECT-RELEASES.md).
+**0.6.0** adds isolated projects in multi-root workspaces, project badges and coordinated requests across folders. Native MCP connections also retry delayed Contextory startup for up to five minutes. See the [release notes](docs/releases/v0.6.0.md), [multi-project guide](docs/USER-GUIDE.md#multiple-projects-in-one-workspace) and [connection recovery](docs/USER-GUIDE.md#resume-an-existing-chat).
 
 **Manage requests. Give agents the full picture.**
 
@@ -10,14 +10,15 @@ Contextory is a VS Code and IBM Bob extension that connects your requests, miles
 
 Your agent keeps its own conversation, model, authentication, and editing tools. Contextory manages the project records that need to survive the next session or a switch to another agent.
 
-[Download v0.5.1](https://github.com/igormicadei/Contextory/releases/tag/v0.5.1) · [Full documentation](https://igormicadei.github.io/Contextory/) · [User guide](docs/USER-GUIDE.md) · [Agent tools](docs/MCP-TOOLS.md) · [Development](docs/DEVELOPMENT.md)
+[Download v0.6.0](https://github.com/igormicadei/Contextory/releases/tag/v0.6.0) · [Full documentation](https://igormicadei.github.io/Contextory/) · [User guide](docs/USER-GUIDE.md) · [Agent tools](docs/MCP-TOOLS.md) · [Development](docs/DEVELOPMENT.md)
 
-The **0.5.1** package includes code intelligence and portable execution alongside [automatic agent discovery](docs/releases/v0.2.6.md), Panel layouts and native usage records introduced since 0.2.3.
+The **0.6.0** package includes code intelligence and portable execution alongside [automatic agent discovery](docs/releases/v0.2.6.md), Panel layouts and native usage records introduced since 0.2.3.
 
 ## What it offers
 
 | Capability            | What you get                                                                                                                                        |
 | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Workspace projects    | Separate records, source graphs, checks and evidence per folder; coordinate requests with explicitly selected project branches.                     |
 | Request management    | Requests broken into milestones and specs, with acceptance criteria, dependencies, progress, immutable revisions, and original user intent.         |
 | Durable explanations  | Issues and fixes, design choices and tradeoffs, evidence, and implementation outcomes attached to each spec.                                        |
 | Shared agent context  | MCP tools and managed workflow instructions let native agents retrieve and update the same project records.                                         |
@@ -37,18 +38,18 @@ Since **0.4.0**, Contextory supports [isolated reference codebases](docs/CODEBAS
 
 ## Install
 
-The current release is **0.5.1**, a preview for **Windows with one trusted local project folder**.
+The current release is **0.6.0**, a preview for **Windows with trusted local project folders**.
 
 1. Install [Node.js](https://nodejs.org/en/download) **24 or newer**. Check `node --version` in a terminal; restart the editor if you just installed Node.
 2. Use VS Code **1.96 or newer**, or IBM Bob. The packaged extension has been tested in VS Code **1.145.3** and Bob's VS Code API **1.126.0**.
-3. Download [`contextory-workspace-0.5.1.vsix`](https://github.com/igormicadei/Contextory/releases/download/v0.5.1/contextory-workspace-0.5.1.vsix) from the release assets.
+3. Download [`contextory-workspace-0.6.0.vsix`](https://github.com/igormicadei/Contextory/releases/download/v0.6.0/contextory-workspace-0.6.0.vsix) from the release assets.
 4. In the editor's Extensions view, open the **…** menu, choose **Install from VSIX…**, and select the file. Reload the editor when prompted.
-5. Open a single trusted local project folder and select **Contextory** in the activity bar.
+5. Open trusted local project folders and select **Contextory** in the activity bar.
 
 You can also install in VS Code from PowerShell:
 
 ```powershell
-code --install-extension .\contextory-workspace-0.5.1.vsix
+code --install-extension .\contextory-workspace-0.6.0.vsix
 ```
 
 Install your chosen native agent separately and sign in through its own interface. Python source tracing additionally needs **Python 3.10+**; it does not require a Python editor extension. Optional semantic search downloads its model/runtime separately. Installing the VSIX does not require npm, Rust, a database server, or a model download.
@@ -66,7 +67,7 @@ The release includes a SHA-256 checksum. Installation details, upgrades, and tro
 
 The managed `contextory-workflow` skill and MCP instructions describe the workflow. The agent reads context, registers its session, claims a spec, records explanations, runs checks, submits an outcome, and explicitly requests verified completion. Completing every spec rolls up the milestone and request status. Version 0.3.0 also installs `contextory-codebase`: it explains scoped source retrieval, relationship tracing, earlier decisions, freshness and capability fallback. Both skills share the same content across supported agents, with generic MCP export for other clients; hooks are optional.
 
-A green agent light means configured MCP traffic has been observed. Grey means unconfigured or awaiting traffic; hover for detail. Clicking a configured agent disconnects its owned configuration. The light is not a model sign-in indicator.
+A green agent light means configured MCP traffic has been observed. Grey means unconfigured or awaiting traffic; hover for detail. Click a gray agent button to retry setup; click an observed green button to disconnect its owned configuration. The light is not a model sign-in indicator.
 
 Starting with **0.2.6**, `contextory.startupAgent` defaults to `auto`, preparing all detected supported agents. Pause automatic setup with the footer's **Auto-connect** switch or `contextory.autoConnect`; existing connections and records stay available. Fixed providers, `last-used`, and `none` remain optional startup modes. A manual disconnect stays disabled in that workspace until reconnected. Native clients own trust and MCP reload, so first-time setup in an already-running session can still need native approval or an extension/session restart. See [startup settings](docs/USER-GUIDE.md#prepare-the-connection-at-startup).
 
@@ -113,13 +114,15 @@ The header shows the workspace name on every tab. Move **Workspace Tasks** to VS
 
 ## Storage and current scope
 
+Version **0.6.0** supports up to sixteen trusted local, non-nested workspace folders. A Project selector and request/spec badges keep their records and source graphs separate. Select multiple projects when creating a request to coordinate independently verified branches; unavailable branches keep the group incomplete. Folder removal retains its storage. Native calls use explicit project scope and keep a fixed local default. See [multi-project behavior](docs/USER-GUIDE.md#multiple-projects-in-one-workspace). Each folder retains its existing project storage.
+
 Native model and usage records include a specification **Usage** tab, request-report summaries and the agent-facing `contextory_usage_get` tool. Codex can supply per-request token counts; Claude supplies model metadata; Bob's documented hooks currently supply neither. Capture stays local and does not read chat transcripts. Missing counts remain unavailable. See [provider coverage and task association](docs/USER-GUIDE.md#agent-models-and-usage-024).
 
 Records, immutable revisions, audit events, artifacts, and service credentials live under the extension's editor-managed global storage, separated by canonical project path. Native MCP/hook configuration and workflow skills are written into the project. The [user guide](docs/USER-GUIDE.md#configuration-and-storage) lists the files and explains backup and disconnect behavior.
 
 Standalone CLI/MCP uses a separate ledger in `<root>/.contextory-local/service` unless an explicit storage directory or live editor descriptor is supplied. Back up that directory when using headless mode. The source graph is rebuildable; the additive schema 4 migration preserves authoritative work records.
 
-This is a local preview. Remote WSL/SSH/container workspaces, multi-root projects, other operating systems, large-monorepo performance, and universal language flow extraction are not qualified. Authenticated conversations in all three native agent extensions remain a separate qualification step; automated checks cover MCP workflows, hooks, configuration, and actual editor hosts. Static diagrams show possible bounded paths and expose unresolved dynamic behavior.
+This is a local preview. Remote WSL/SSH/container workspaces, other operating systems, large-monorepo performance, and universal language flow extraction are not qualified. Authenticated conversations in all three native agent extensions remain a separate qualification step; automated checks cover MCP workflows, hooks, configuration, and actual editor hosts. Static diagrams show possible bounded paths and expose unresolved dynamic behavior.
 
 Version 0.2.3 uses the Contextory extension identity and tool/settings namespace. Disconnect a build installed under the previous name before replacing it. Its records remain in the former extension storage and are not imported automatically.
 
@@ -129,7 +132,7 @@ Version 0.2.3 uses the Contextory extension identity and tool/settings namespace
 | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
 | [User guide](docs/USER-GUIDE.md)                       | Prerequisites, installation, first use, workflows, settings, search, code maps, reports, upgrades, and troubleshooting. |
 | [Codebase intelligence](docs/CODEBASE-INTELLIGENCE.md) | Source coverage, Architecture, Graphify, portable skills, generic MCP and headless CLI.                                 |
-| [Release notes](docs/releases/v0.5.1.md)               | Version 0.5.1 changes, installation, upgrades and qualification.                                                        |
+| [Release notes](docs/releases/v0.6.0.md)               | Version 0.6.0 changes, installation, upgrades and qualification.                                                        |
 | [MCP tools](docs/MCP-TOOLS.md)                         | Available agent tools, examples, version/lease rules, and the completion sequence.                                      |
 | [Architecture](docs/NATIVE-AGENT-ARCHITECTURE.md)      | Runtime components, storage, boundaries, retrieval, source analysis, and resource limits.                               |
 | [Development](docs/DEVELOPMENT.md)                     | Build, tests, debugging, packaging, and the release process.                                                            |
@@ -144,6 +147,6 @@ The project is currently marked **UNLICENSED**; no open-source license has been 
 
 ### Governed application knowledge
 
-The current development build includes a **Knowledge** view for file responsibilities, rules/features linked to tests, and UI layout/interaction contracts. Review concrete before/after proposals while retaining every definition revision and approval reason. Use the portable `contextory-migrate` agent to bootstrap an existing project, and `contextory_project_export` to let native agents generate documentation from all stored application datasets. See [governed knowledge and documentation](docs/PROJECT-KNOWLEDGE.md) for usage and coverage limits.
+Contextory includes a **Knowledge** view for file responsibilities, rules/features linked to tests, and UI layout/interaction contracts. Review concrete before/after proposals while retaining every definition revision and approval reason. Use the portable `contextory-migrate` agent to bootstrap an existing project, and `contextory_project_export` to let native agents generate documentation from all stored application datasets. See [governed knowledge and documentation](docs/PROJECT-KNOWLEDGE.md) for usage and coverage limits.
 
-The development build also includes global **Versions**: automatic Git observation, version bumps, exact commit changelogs, reviewed release commits/tags and separately verified publication to GitHub or another Git remote. The same controller works from UI, CLI/CI and MCP without relying on agent memory. See [project versions and tags](docs/PROJECT-RELEASES.md).
+Contextory also includes global **Versions**: automatic Git observation, version bumps, exact commit changelogs, reviewed release commits/tags and separately verified publication to GitHub or another Git remote. The same controller works from UI, CLI/CI and MCP without relying on agent memory. See [project versions and tags](docs/PROJECT-RELEASES.md).

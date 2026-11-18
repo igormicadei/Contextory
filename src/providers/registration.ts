@@ -326,6 +326,6 @@ export async function configureProvider(r: Registration, remove = false) {
       ? "Owned Contextory entries removed. Reload native MCP configuration."
       : r.provider === "generic"
         ? "Generic MCP configuration is in .contextory/mcp.json. Import its server entry into your client. Portable skills are in .contextory/skills; install them in your client's skill discovery directory."
-        : "Reload native MCP configuration and review/trust the Contextory hooks in the native client. Keep chatting there; Contextory will display project records. Hook visibility becomes confirmed after an observed event.",
+        : "Workspace MCP/hooks are ready. An existing native MCP connection retries workspace startup automatically for up to five minutes. If Contextory tools are missing from the native client, reload its MCP configuration. Hook status is confirmed only after an observed event; review native hook trust if hooks remain unobserved.",
   };
 }

@@ -4,6 +4,14 @@ Version 0.3.0 adds **Architecture**, task-context/source-impact/path tools, opti
 
 Contextory manages development requests and gives native agents a shared record of what was requested, what changed, and why. The developer continues talking to Codex, Claude Code, or IBM Bob in that agent's normal chat.
 
+## Multiple projects in one workspace
+
+Open a trusted local workspace containing up to sixteen separate, non-nested project folders. The **Project** selector scopes Requests, Knowledge, History, Versions, Architecture and source navigation. Request and spec badges identify their project; hover for the root. Switching projects clears unfinished form drafts and ignores replies from the previous project. Each folder keeps its existing database, symbols, catalog, checks, sessions, evidence, references and releases. Removing a folder detaches it without deleting its records; adding it again restores the same project storage.
+
+In **New request**, select every affected project. Contextory creates a linked local request in each selected folder. **Across projects** displays branch status and opens each branch in its owning project. The agent implements and verifies each branch with separate milestones, specs, leases and checks. The group completes only when every branch completes. Offline, removed or missing projects keep the group incomplete; the original owner offers **Retry missing branches** with the original input. Creation may partially succeed and is safe to retry; it is not an atomic operation across repositories.
+
+Native agents first call `contextory_workspace_get`, then carry explicit `projectId` through related operations. Omitted scope always targets the native server's own project, even after UI selection changes. Multiple attached editor workspaces require `workspaceId` for cross-project calls. Workspace members are writable projects; Architecture references remain read-only analysis registrations. Auto-connect, startup-agent preferences and check recipes use the owning folder's settings. Hooks and usage stay attributed to the observing project. Available since version 0.6.0.
+
 ## Reference repositories (since 0.4.0)
 
 In **Architecture**, use **Add reference** to register another local codebase, then choose it in **Codebase**. You and your agent can inspect its architecture and source alongside the current project, with separate indexes and source identity. **Detach reference** leaves its source untouched. Analysis alone does not apply changes to the current application. See [reference codebases](CODEBASE-INTELLIGENCE.md#analyze-reference-codebases) for agent and CLI examples, persistence and coverage.
@@ -12,7 +20,7 @@ In **Architecture**, use **Add reference** to register another local codebase, t
 
 | Requirement                                 | When it is needed                                                                                                        |
 | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Windows, one trusted local project folder   | The deployment qualified by this preview. Multi-root and remote workspaces are not qualified.                            |
+| Windows, trusted local project folders      | Local single-folder and multi-root editor workspaces. Remote workspaces are not qualified.                               |
 | VS Code 1.96+ or IBM Bob                    | The extension host. Packaged checks ran on VS Code 1.145.3 and Bob's VS Code API 1.126.0.                                |
 | Node.js 24+ with `node:sqlite`              | Runs the isolated workspace service; configured through `contextory.nodeExecutable` if Node is not on the editor's PATH. |
 | Native Codex, Claude Code, or IBM Bob agent | Install and authenticate it separately to work from its native chat.                                                     |
@@ -21,21 +29,21 @@ In **Architecture**, use **Add reference** to register another local codebase, t
 
 ## Install the VSIX
 
-1. Download `contextory-workspace-0.5.1.vsix` and its `.sha256` file from the [v0.5.1 release](https://github.com/igormicadei/Contextory/releases/tag/v0.5.1).
+1. Download `contextory-workspace-0.6.0.vsix` and its `.sha256` file from the [v0.6.0 release](https://github.com/igormicadei/Contextory/releases/tag/v0.6.0).
 2. Optionally compare the checksum using PowerShell:
 
    ```powershell
-   (Get-FileHash -Algorithm SHA256 .\contextory-workspace-0.5.1.vsix).Hash.ToLowerInvariant()
-   Get-Content .\contextory-workspace-0.5.1.sha256
+   (Get-FileHash -Algorithm SHA256 .\contextory-workspace-0.6.0.vsix).Hash.ToLowerInvariant()
+   Get-Content .\contextory-workspace-0.6.0.sha256
    ```
 
-3. In the editor's Extensions view, use **… → Install from VSIX…** and select the package. In VS Code, `code --install-extension .\contextory-workspace-0.5.1.vsix` is an alternative.
-4. Reload if prompted. Open the project as a single folder and trust it before connecting agents or running checks.
+3. In the editor's Extensions view, use **… → Install from VSIX…** and select the package. In VS Code, `code --install-extension .\contextory-workspace-0.6.0.vsix` is an alternative.
+4. Reload if prompted. Open and trust the project before connecting agents or running checks. Multi-root workspaces are supported as described above.
 5. Select the Contextory activity-bar icon: a request card connected to context nodes.
 
 The extension is distributed as a GitHub release asset. You do not need to clone the repository or install its development dependencies to use the package.
 
-Version **0.5.1** makes gray agent buttons retry setup and preserves green-button disconnect. It includes the governed knowledge, project-wide versions, documentation export and native recovery introduced in 0.5.0. Automatic discovery and the pause switch were introduced in 0.2.6. The [release notes](releases/v0.5.1.md) describe the patch, installation and qualification limits. Browse the [full documentation](https://igormicadei.github.io/Contextory/) for searchable guides and references.
+Version **0.6.0** adds separate workspace projects, coordinated cross-project requests and five-minute native MCP startup recovery. It retains the governed knowledge, project-wide versions and documentation export introduced in 0.5.0, plus gray-button retry and green-button disconnect from 0.5.1. The [release notes](releases/v0.6.0.md) cover upgrades and qualification. Browse the [full documentation](https://igormicadei.github.io/Contextory/) for searchable guides and references.
 
 ## Connect a native agent
 
@@ -52,7 +60,7 @@ Review native project/hook trust in the agent. A restart reloads extensions but 
 | Grey         | The provider is not configured, or configuration exists but no MCP traffic has been observed in this service instance. Hover for details.         |
 | Green        | Configured MCP traffic has been observed in this service instance. This does not establish provider authentication or that every hook is working. |
 
-Clicking a configured agent disconnects its owned entries. The tooltip and accessible label identify whether clicking will connect or disconnect. Multiple providers can be configured for a project; they use the same Contextory records. Spec leases prevent two sessions from implementing the same spec at the same time.
+Click a gray agent button to retry setup. Click an observed green agent button to disconnect its owned entries. The tooltip and accessible label identify whether clicking will connect or disconnect. Multiple providers can be configured for a project; they use the same Contextory records. Spec leases prevent two sessions from implementing the same spec at the same time.
 
 ### Prepare the connection at startup
 
@@ -72,7 +80,7 @@ Other values are `auto`, `claude`, `bob`, `last-used`, and `none`. `last-used` u
 
 Manually disconnecting a provider opts it out of startup in that workspace until you connect it again. Configuration errors appear in **Output → Contextory** without preventing access to project records or preparation of other detected agents. Paused automatic setup also skips managed configuration refreshes.
 
-Startup prepares the project's MCP entry, hooks and workflow instructions. Native MCP discovery can list all tools while the service starts; the first call waits up to 15 seconds for readiness. Existing connections reread service descriptors so ordinary service restarts do not require recreating the bridge. Contextory also prepares connections after you grant workspace trust.
+Startup prepares the project's MCP entry, hooks and workflow instructions. Native MCP discovery can list all tools while the service starts; service calls retry startup for up to five minutes while the proxy continues serving MCP discovery. Existing connections reread service descriptors so ordinary service restarts do not require recreating the bridge. Contextory also prepares connections after you grant workspace trust.
 
 The native client still controls starting its agent session, trusting the entry and reloading MCP configuration. Its light turns green when MCP traffic is observed. Codex and Claude Code do not expose a public editor command for Contextory to force MCP reload. First-time configuration in an already-running client can therefore still need native approval and an extension/session restart; automatic preparation cannot guarantee zero reloads. Contextory does not restart the editor or send native chat prompts. See [Codex MCP setup](https://developers.openai.com/codex/mcp/), [Claude MCP trust](https://code.claude.com/docs/en/mcp), and [Bob MCP configuration](https://bob.ibm.com/docs/ide/configuration/mcp/mcp-in-bob).
 
@@ -243,7 +251,7 @@ For an independent backup, close the editor clients, let the service stop after 
 
 ## Resume an existing chat
 
-A managed MCP connection waits up to 15 seconds for a reopened workspace service before dispatching each call. It rereads the service descriptor; it never automatically repeats a mutation. If startup takes longer, retry the read-only probe after startup. The stored project ledger and chat history are independent.
+A managed MCP proxy keeps native tool discovery available while it retries delayed workspace startup in the background for up to five minutes. Each foreground call waits up to 15 seconds for readiness, and later calls reread the current descriptor. The background attempt stops on success, shutdown or incompatible tools; it never automatically repeats a dispatched mutation. Keep the project editor open during startup. The stored project ledger and native chat history remain independent.
 
 Run **Contextory: Check Native Connections** to open diagnostics in **Output ? Contextory**. It distinguishes MCP traffic and hooks observed in the current service from history. A waiting hook means no event has arrived yet; check native trust and trigger a supported lifecycle event before concluding it is broken. This command observes the service and does not force the native agent to call MCP.
 

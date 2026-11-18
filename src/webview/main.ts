@@ -7,6 +7,9 @@ import type {
   Entity,
   FlowGraph,
   SourceRef,
+  WorkspaceInfo,
+  WorkspaceRequest,
+  WorkspaceRequestStatus,
 } from "../contracts/model";
 import { escape, button, badge, sourceButton } from "./html";
 import { relationshipView } from "./relationships";
@@ -41,12 +44,26 @@ declare function acquireVsCodeApi(): {
 const host = acquireVsCodeApi();
 const app = document.querySelector<HTMLDivElement>("#app")!;
 let dashboard: Dashboard | undefined;
+let workspace: WorkspaceInfo | undefined;
+let currentProjectId = "";
+let projectPending = false;
+let expectedProjectId = "";
+const requestProjects = new Set<string>();
+const workspaceRequests = new Map<string, WorkspaceRequestStatus>();
 let automation: AgentAutomation | undefined;
 let entitiesById = new Map<string, Entity>();
 let childrenById = new Map<string, Entity[]>();
 let searchableRequests = new Map<string, string>();
 function indexDashboard(value: Dashboard) {
+  value = {
+    ...value,
+    entities: value.entities.filter(
+      (e) => !e.projectId || e.projectId === value.projectId,
+    ),
+  };
   dashboard = value;
+  currentProjectId = value.projectId;
+  workspace = value.workspace;
   entitiesById = new Map(value.entities.map((e) => [e.id, e]));
   childrenById = new Map();
   searchableRequests = new Map();
@@ -131,6 +148,94 @@ let hits: {
   revision: string;
 }[] = [];
 const drafts: Record<string, string> = {};
+function resetProject() {
+  dashboard = undefined;
+  entitiesById.clear();
+  childrenById.clear();
+  searchableRequests.clear();
+  selected = "";
+  detailTab = "contract";
+  hits = [];
+  notice = "";
+  busy = false;
+  graph = undefined;
+  nodeId = "";
+  relationships = undefined;
+  history = { events: [], nextBefore: null };
+  historyScope = "";
+  historyLoaded = false;
+  openMilestones.clear();
+  usageBySpec.clear();
+  workspaceRequests.clear();
+  requestProjects.clear();
+  catalogPage = undefined;
+  catalogOffset = 0;
+  catalogRequestId = "";
+  versionsPage = undefined;
+  versionDetail = undefined;
+  releasePlan = undefined;
+  releaseActionPending = false;
+  versionsOffset = 0;
+  versionDetailOffset = 0;
+  versionsRequestId = "";
+  versionDetailRequestId = "";
+  versionPlanRequestId = "";
+  architecture = undefined;
+  architectureCodebase = "current";
+  architectureRequestId = "";
+  codeContext = undefined;
+  architectureState = initialArchitectureState();
+  architectureHistory.length = 0;
+  codeRequestId = "";
+  codeRequestQuery = "";
+  renderedView = "";
+  for (const key of Object.keys(drafts)) delete drafts[key];
+}
+function projectName(project: WorkspaceInfo["projects"][number]) {
+  return workspace?.projects.some(
+    (p) => p.id !== project.id && p.name === project.name,
+  )
+    ? `${project.name} (${project.id.slice(-8)})`
+    : project.name;
+}
+function projectBadge() {
+  const project = workspace?.projects.find((p) => p.id === currentProjectId);
+  return dashboard
+    ? `<span class="project-badge" title="${escape(project?.root ?? dashboard.root)}">${escape(project ? projectName(project) : dashboard.root.split(/[\\/]/).pop())}</span>`
+    : "";
+}
+function projectSelector() {
+  return workspace && workspace.projects.length > 1
+    ? `<div class="project-selector"><label for="workspaceProject">Project</label><select id="workspaceProject" name="workspaceProject">${workspace.projects.map((p) => `<option value="${escape(p.id)}" ${p.id === (expectedProjectId || currentProjectId) ? "selected" : ""}>${escape(projectName(p))}</option>`).join("")}</select><span class="muted" title="Requests, knowledge, source, checks and versions are scoped to this project">${workspace.projects.length} projects</span></div>`
+    : "";
+}
+function workspaceRequestView(request: Entity) {
+  const group = request.data.workspaceRequest as WorkspaceRequest | undefined;
+  if (!group) return "";
+  const status = workspaceRequests.get(group.id);
+  const branches: WorkspaceRequestStatus["branches"] =
+    status?.branches ??
+    group.projectIds.map((id) => ({
+      project: workspace?.projects.find((p) => p.id === id) ?? {
+        id,
+        name: id,
+        root: "",
+      },
+    }));
+  return `<section class="workspace-request" aria-label="Cross-project request"><div class="section-heading"><strong>Across projects</strong>${status ? badge(status.state) : '<span class="muted">Loading branches...</span>'}</div><small class="record-id">${escape(group.id)}</small>${status?.error ? `<p class="muted">${escape(status.error)}</p>` : ""}<div class="project-branches">${branches.map((b) => (b.request ? button("projectBranch", `${escape(projectName(b.project))} &middot; ${escape(b.request.state)}${b.specs ? ` &middot; ${b.specs.filter((s) => s.state === "completed").length}/${b.specs.length} specs` : ""}`, `data-project-id="${escape(b.project.id)}" data-record-id="${escape(b.request.id)}" title="${escape(b.project.root)}"`, "small") : `<span class="muted" title="${escape(b.error ?? "Loading branch")}">${escape(projectName(b.project))} &middot; ${escape(b.error ?? "waiting")}</span>`)).join("")}</div>${status?.partial ? `<p class="muted">Some project branches are missing or unavailable. This request is incomplete.</p>${group.ownerProjectId === currentProjectId && group.creation ? button("retryWorkspaceRequest", "Retry missing branches", `data-id="${escape(request.id)}"`, "small") : ""}` : ""}</section>`;
+}
+function loadWorkspaceRequests() {
+  for (const entity of dashboard?.entities ?? []) {
+    const group = entity.data.workspaceRequest as WorkspaceRequest | undefined;
+    if (entity.kind === "request" && group)
+      send({
+        type: "tool",
+        name: "contextory_workspace_get",
+        requestId: `workspace-request:${group.id}`,
+        arguments: { groupId: group.id },
+      });
+  }
+}
 const empty = (title: string, body: string, action = "") =>
   `<div class="empty"><div class="empty-symbol" aria-hidden="true">◇</div><h2>${title}</h2><p>${body}</p>${action}</div>`;
 const children = (id: string, kind?: string) =>
@@ -209,7 +314,7 @@ function overview() {
   return `<div class="overview-layout">
     <div class="metrics" aria-label="Workspace progress"><div><strong>${open.length}</strong><span>open requests</span></div><div><strong>${specs.filter((e) => e.state === "implementing").length}</strong><span>in progress</span></div><div><strong>${specs.filter((e) => e.state === "completed").length}<small> / ${specs.length}</small></strong><span>completed specs</span></div></div>
     <section class="overview-work"><div class="section-heading"><h2 id="work-heading">Current work</h2>${button("navigate", "View requests \u2197", 'data-screen="requests"', "text-button")}</div>
-      <div class="work-list" data-scroll="work" role="region" aria-labelledby="work-heading" tabindex="0">${open.map((r) => `<button class="work-row" data-action="select" data-id="${r.id}"><div><span class="record-id">${r.id}</span><strong>${escape(r.title)}</strong>${requestProgress(r)}</div>${badge(requestState(r))}<span aria-hidden="true">&#8250;</span></button>`).join("") || '<p class="muted">No open requests. Describe a change in native chat, or create a request.</p>'}</div>
+      <div class="work-list" data-scroll="work" role="region" aria-labelledby="work-heading" tabindex="0">${open.map((r) => `<button class="work-row" data-action="select" data-id="${r.id}"><div><span class="record-id">${r.id}</span>${projectBadge()}<strong>${escape(r.title)}</strong>${requestProgress(r)}</div>${badge(requestState(r))}<span aria-hidden="true">&#8250;</span></button>`).join("") || '<p class="muted">No open requests. Describe a change in native chat, or create a request.</p>'}</div>
     </section>
     <section class="overview-activity"><div class="section-heading"><h2 id="activity-heading">Recent activity</h2>${button("navigate", "Full history \u2197", 'data-screen="history"', "text-button")}</div><div class="activity-list" data-scroll="activity" role="region" aria-labelledby="activity-heading" tabindex="0">${activity(dashboard?.events.slice(0, 3) ?? [])}</div></section>
   </div>`;
@@ -217,8 +322,9 @@ function overview() {
 function requestCard(r: Entity) {
   const inline = !horizontalLayout();
   return `<article class="request-card ${requestOf(selected)?.id === r.id ? "selected-request" : ""}" id="record-${r.id}">
-    <div class="section-heading"><div class="request-title"><span class="record-id">${r.id}</span><h2>${escape(r.title)}</h2></div>${badge(requestState(r))}</div>
+    <div class="section-heading"><div class="request-title"><span class="record-id">${r.id}</span>${projectBadge()}<h2>${escape(r.title)}</h2></div>${badge(requestState(r))}</div>
     <p>${escape(r.data.description)}</p>
+    ${workspaceRequestView(r)}
     <div class="request-actions">${button("report", "Export request report", `data-id="${r.id}"`, "small")}${button("history", "Request history", `data-id="${r.id}"`, "text-button")}</div>
     ${
       children(r.id, "milestone")
@@ -232,7 +338,7 @@ function requestCard(r: Entity) {
         children(m.id, "spec")
           .map(
             (s) =>
-              `<button class="spec-row ${selected === s.id ? "selected" : ""}" aria-expanded="${selected === s.id}" ${selected === s.id ? `aria-controls="detail-${s.id}"` : ""} data-action="toggleSpec" data-id="${s.id}"><span class="spec-indicator ${s.state}"></span><div><strong>${escape(s.title)}</strong><small>${s.id} &middot; revision ${s.revision}</small></div>${badge(s.state)}</button>${inline && selected === s.id ? specDetails(s) : ""}`,
+              `<button class="spec-row ${selected === s.id ? "selected" : ""}" aria-expanded="${selected === s.id}" ${selected === s.id ? `aria-controls="detail-${s.id}"` : ""} data-action="toggleSpec" data-id="${s.id}"><span class="spec-indicator ${s.state}"></span><div><strong>${escape(s.title)}</strong><small>${s.id} &middot; revision ${s.revision}</small>${projectBadge()}</div>${badge(s.state)}</button>${inline && selected === s.id ? specDetails(s) : ""}`,
           )
           .join("") || '<p class="muted">Waiting for specifications.</p>'
       }
@@ -269,7 +375,7 @@ function requestTree() {
   const visibleSpec = matching.some((r) => r.id === requestOf(selected)?.id)
     ? entitiesById.get(selected)
     : undefined;
-  return `<div class="requests-view"><div class="requests-toolbar"><div class="section-heading"><h1>Requests</h1>${button("newRequest", "+ New request", "", "primary")}</div><form id="search-form"><label class="sr-only" for="query">Filter requests and their history</label><div class="search-box"><input type="search" id="query" name="query" placeholder="Search requests, changes, decisions..." value="${escape(drafts.query)}"><button type="submit" class="small">Search history</button></div></form><p class="muted search-hint">${matching.length} of ${requests.length} requests &middot; Includes milestones, specs, issues and decisions.</p></div><div class="requests-layout"><div class="request-list" data-scroll="requests" role="region" aria-label="Request list" tabindex="0"><form id="request-form" class="new-request ${drafts.showRequest === "true" ? "" : "hidden"}"><label>Title<input id="requestTitle" name="requestTitle" maxlength="300" required value="${escape(drafts.requestTitle)}"></label><label>What should change?<textarea id="requestDescription" name="requestDescription" maxlength="12000" required>${escape(drafts.requestDescription)}</textarea></label><button type="submit" class="primary">Create request</button></form>${
+  return `<div class="requests-view"><div class="requests-toolbar"><div class="section-heading"><h1>Requests</h1>${button("newRequest", "+ New request", "", "primary")}</div><form id="search-form"><label class="sr-only" for="query">Filter requests and their history</label><div class="search-box"><input type="search" id="query" name="query" placeholder="Search requests, changes, decisions..." value="${escape(drafts.query)}"><button type="submit" class="small">Search history</button></div></form><p class="muted search-hint">${matching.length} of ${requests.length} requests &middot; Includes milestones, specs, issues and decisions.</p></div><div class="requests-layout"><div class="request-list" data-scroll="requests" role="region" aria-label="Request list" tabindex="0"><form id="request-form" class="new-request ${drafts.showRequest === "true" ? "" : "hidden"}"><label>Title<input id="requestTitle" name="requestTitle" maxlength="300" required value="${escape(drafts.requestTitle)}"></label><label>What should change?<textarea id="requestDescription" name="requestDescription" maxlength="12000" required>${escape(drafts.requestDescription)}</textarea></label>${workspace && workspace.projects.length > 1 ? `<fieldset class="request-projects"><legend>Projects affected</legend>${workspace.projects.map((p) => `<label><input type="checkbox" name="requestProject" value="${escape(p.id)}" ${p.id === currentProjectId || requestProjects.has(p.id) ? "checked" : ""} ${p.id === currentProjectId ? "disabled" : ""}>${escape(projectName(p))}</label>`).join("")}<small class="muted">Each project keeps its own specifications and evidence.</small></fieldset>` : ""}<button type="submit" class="primary">Create request</button></form>${
     !requests.length
       ? empty(
           "A clear plan starts here",
@@ -360,7 +466,7 @@ function specDetails(s: Entity) {
         : value.toLocaleString();
     body = `<div class="section-heading"><h3>Agent models and usage</h3>${button("refreshUsage", "Refresh usage", "", "small")}</div>${usage ? `<p>${usage.attempts} native request attempts observed; ${usage.measuredAttempts} with token counts.</p>${usage.groups.map((g) => `<article class="record"><h3>${escape(g.provider)} &middot; ${escape(g.model ?? "Model unavailable")}</h3><p>Input: ${count(g.tokens.inputTokens)} &middot; Output: ${count(g.tokens.outputTokens)} &middot; Total: ${count(g.tokens.totalTokens)}</p><p class="muted">Cached input (included in input): ${count(g.tokens.cachedInputTokens)}<br>Reasoning (included in output): ${count(g.tokens.reasoningTokens)}</p></article>`).join("") || '<p class="muted">No native model or usage records linked to this specification.</p>'}${usage.groupsTruncated ? '<p class="muted">Only the first 100 model groups are shown. Filter with contextory_usage_get.</p>' : ""}<p class="muted">${escape(usage.note)}</p>` : '<p class="muted">Loading native usage records...</p>'}`;
   }
-  return `<section id="detail-${s.id}" class="spec-detail" aria-label="${escape(s.title)} details"><div class="section-heading"><span class="record-id">${s.id} &middot; revision ${s.revision}</span>${badge(s.state)}</div><div class="detail-tabs" role="tablist" aria-label="Specification details">${["contract", "issues", "decisions", "evidence", "outcome", "usage", "history"].map((tab) => `<button id="tab-${tab}" role="tab" aria-selected="${detailTab === tab}" data-action="detailTab" data-tab="${tab}">${tab[0].toUpperCase() + tab.slice(1)}</button>`).join("")}</div><div role="tabpanel" aria-labelledby="tab-${detailTab}">${body}</div><div class="detail-actions">${button("impact", "Explore relationships", `data-id="${s.id}"`)}${s.state === "submitted" ? button("complete", "Check completion", `data-id="${s.id}" data-revision="${s.revision}"`, "primary") : ""}</div></section>`;
+  return `<section id="detail-${s.id}" class="spec-detail" aria-label="${escape(s.title)} details"><div class="section-heading">${projectBadge()}<span class="record-id">${s.id} &middot; revision ${s.revision}</span>${badge(s.state)}</div><div class="detail-tabs" role="tablist" aria-label="Specification details">${["contract", "issues", "decisions", "evidence", "outcome", "usage", "history"].map((tab) => `<button id="tab-${tab}" role="tab" aria-selected="${detailTab === tab}" data-action="detailTab" data-tab="${tab}">${tab[0].toUpperCase() + tab.slice(1)}</button>`).join("")}</div><div role="tabpanel" aria-labelledby="tab-${detailTab}">${body}</div><div class="detail-actions">${button("impact", "Explore relationships", `data-id="${s.id}"`)}${s.state === "submitted" ? button("complete", "Check completion", `data-id="${s.id}" data-revision="${s.revision}"`, "primary") : ""}</div></section>`;
 }
 function map() {
   return flowView(graph, nodeId, drafts);
@@ -401,7 +507,7 @@ function render() {
     "No workspace open";
   const workspacePath =
     document.body.dataset.workspacePath || dashboard?.root || workspaceName;
-  app.innerHTML = `<header class="app-header"><div class="brand"><span class="brand-mark" aria-hidden="true">${contextoryIcon}</span><div class="brand-copy"><strong>Contextory</strong><span class="workspace-name" aria-label="Workspace" title="${escape(workspacePath)}">${escape(workspaceName)}</span></div></div>${button("refresh", "↻", 'aria-label="Refresh workspace" title="Refresh workspace"', "icon-button")}</header><nav class="main-nav ${surface !== "sidebar" ? "hidden" : ""}" aria-label="Contextory views">${[
+  app.innerHTML = `<header class="app-header"><div class="brand"><span class="brand-mark" aria-hidden="true">${contextoryIcon}</span><div class="brand-copy"><strong>Contextory</strong><span class="workspace-name" aria-label="Workspace" title="${escape(workspacePath)}">${escape(workspaceName)}</span></div></div>${button("refresh", "↻", 'aria-label="Refresh workspace" title="Refresh workspace"', "icon-button")}</header>${projectSelector()}<nav class="main-nav ${surface !== "sidebar" ? "hidden" : ""}" aria-label="Contextory views">${[
     ["overview", "Overview"],
     ["requests", "Requests"],
     ["catalog", "Knowledge"],
@@ -416,7 +522,7 @@ function render() {
     )
     .join(
       "",
-    )}</nav>${notice ? `<div class="notice" role="status"><span>${escape(notice)}</span>${button("dismiss", "×", 'aria-label="Dismiss notification"', "icon-button")}</div>` : ""}${busy ? '<div class="loading-line" role="progressbar" aria-label="Contextory is working"></div>' : ""}<main>${!dashboard && screen !== "map" && screen !== "relationships" ? empty("Open your workspace", "Contextory connects your native agents to shared project records. Open a trusted folder, then refresh.", button("refresh", "Refresh", "", "primary")) : screen === "versions" ? versionsView(versionsPage, versionDetail, releasePlan, drafts, versionsOffset) : screen === "catalog" ? catalogView(catalogPage, drafts, catalogOffset) : screen === "architecture" ? architectureView(architecture, codeContext, drafts.codeQuery ?? "", architectureOnly, architectureState, dashboard?.references ?? [], architectureCodebase) : screen === "relationships" ? relationshipView(relationships) : screen === "requests" ? requestTree() : screen === "history" ? historyView() : screen === "map" ? map() : overview()}</main><footer>${surface === "sidebar" ? connections() : ""}<div class="workspace-status"><span class="status-dot ${dashboard ? "online" : ""}"></span><span>${dashboard ? escape(dashboard.root.split(/[\\/]/).pop()) : "Open a workspace"}</span>${surface === "sidebar" ? autoConnectSwitch() : '<span class="footer-label">Native conversation &middot; durable context</span>'}</div></footer>`;
+    )}</nav>${notice ? `<div class="notice" role="status"><span>${escape(notice)}</span>${button("dismiss", "×", 'aria-label="Dismiss notification"', "icon-button")}</div>` : ""}${busy ? '<div class="loading-line" role="progressbar" aria-label="Contextory is working"></div>' : ""}<main>${projectPending ? empty("Switching project", "Loading this project's records...") : !dashboard && screen !== "map" && screen !== "relationships" ? empty("Open your workspace", "Contextory connects your native agents to shared project records. Open a trusted folder, then refresh.", button("refresh", "Refresh", "", "primary")) : screen === "versions" ? versionsView(versionsPage, versionDetail, releasePlan, drafts, versionsOffset) : screen === "catalog" ? catalogView(catalogPage, drafts, catalogOffset) : screen === "architecture" ? architectureView(architecture, codeContext, drafts.codeQuery ?? "", architectureOnly, architectureState, dashboard?.references ?? [], architectureCodebase) : screen === "relationships" ? relationshipView(relationships) : screen === "requests" ? requestTree() : screen === "history" ? historyView() : screen === "map" ? map() : overview()}</main><footer>${surface === "sidebar" ? connections() : ""}<div class="workspace-status"><span class="status-dot ${dashboard ? "online" : ""}"></span><span>${dashboard ? escape(dashboard.root.split(/[\\/]/).pop()) : "Open a workspace"}</span>${surface === "sidebar" ? autoConnectSwitch() : '<span class="footer-label">Native conversation &middot; durable context</span>'}</div></footer>`;
   document.querySelector<HTMLElement>("main")!.dataset.screen = screen;
   for (const scroll of scrollAreas) {
     const replacement = document.querySelector<HTMLElement>(
@@ -455,7 +561,18 @@ function render() {
   restoreMapViewports();
   renderedView = viewKey;
 }
-const send = (message: unknown) => host.postMessage(message);
+const send = (message: Record<string, unknown>) =>
+  host.postMessage({
+    ...message,
+    ...(currentProjectId ? { projectId: currentProjectId } : {}),
+  });
+function chooseProject(projectId: string, recordId?: string) {
+  send({ type: "selectProject", targetProjectId: projectId, recordId });
+  expectedProjectId = projectId;
+  projectPending = true;
+  resetProject();
+  render();
+}
 function loadVersions() {
   versionsRequestId = `versions:${++versionsSequence}`;
   send({
@@ -617,6 +734,22 @@ function selectRecord(id: string) {
 function action(element: Element) {
   const data = (element as HTMLElement).dataset;
   switch (data.action) {
+    case "projectBranch":
+      chooseProject(data.projectId!, data.recordId);
+      break;
+    case "retryWorkspaceRequest": {
+      const group = entitiesById.get(data.id!)?.data.workspaceRequest as
+        | WorkspaceRequest
+        | undefined;
+      if (group?.creation)
+        send({
+          type: "tool",
+          name: "contextory_workspace_request_create",
+          requestId: `workspace-create:${group.id}`,
+          arguments: { ...group.creation, projectIds: group.projectIds },
+        });
+      break;
+    }
     case "autoConnect":
       if (automation)
         send({ type: "autoConnect", enabled: !automation.enabled });
@@ -1010,6 +1143,15 @@ app.addEventListener("input", (event) => {
 });
 app.addEventListener("change", (event) => {
   const input = event.target as HTMLInputElement;
+  if (input.name === "workspaceProject") {
+    chooseProject(input.value);
+    return;
+  }
+  if (input.name === "requestProject") {
+    if (input.checked) requestProjects.add(input.value);
+    else requestProjects.delete(input.value);
+    return;
+  }
   if (input.name) drafts[input.name] = input.value;
   if (input.name === "architectureCodebase") selectCodebase(input.value);
   if (input.name === "architectureRelation") {
@@ -1037,19 +1179,26 @@ app.addEventListener("submit", (event) => {
     requestCode(drafts.codeQuery);
   }
   if (form.id === "request-form") {
+    const projectIds = [...new Set([currentProjectId, ...requestProjects])];
+    const coordinated = projectIds.length > 1;
     send({
       type: "tool",
-      name: "contextory_request_change",
+      name: coordinated
+        ? "contextory_workspace_request_create"
+        : "contextory_request_change",
+      ...(coordinated ? { requestId: "workspace-create:new" } : {}),
       arguments: {
         operationId: crypto.randomUUID(),
-        action: "create",
+        ...(!coordinated ? { action: "create" } : {}),
         title: drafts.requestTitle,
         description: drafts.requestDescription,
+        ...(coordinated ? { projectIds } : {}),
       },
     });
     drafts.showRequest = "false";
     drafts.requestTitle = "";
     drafts.requestDescription = "";
+    requestProjects.clear();
   }
   if (form.id === "catalog-form") {
     catalogOffset = 0;
@@ -1091,15 +1240,58 @@ function loadUsage() {
 }
 window.addEventListener("message", (event) => {
   const message = event.data;
+  if (message.type === "projectChanging") {
+    expectedProjectId = message.targetProjectId ?? expectedProjectId;
+    projectPending = true;
+    resetProject();
+    render();
+    return;
+  }
+  if (
+    message.type !== "restore" &&
+    message.projectId &&
+    message.projectId !== currentProjectId
+  )
+    return;
+  if (projectPending && message.type !== "restore" && message.type !== "notice")
+    return;
   if (message.automation) automation = message.automation;
   if (message.type === "restore") {
+    if (expectedProjectId && message.dashboard.projectId !== expectedProjectId)
+      return;
+    if (
+      workspace?.projects.length &&
+      !projectPending &&
+      currentProjectId &&
+      message.dashboard.projectId !== currentProjectId
+    )
+      return;
+    if (currentProjectId && currentProjectId !== message.dashboard.projectId)
+      resetProject();
+    projectPending = false;
+    expectedProjectId = "";
     const previousVersions = JSON.stringify(dashboard?.versioning);
     indexDashboard(message.dashboard);
+    loadWorkspaceRequests();
     if (
       screen === "versions" &&
       previousVersions !== JSON.stringify(dashboard?.versioning)
     )
       loadVersions();
+  }
+  if (
+    message.type === "toolResult" &&
+    String(message.requestId).startsWith("workspace-request:")
+  )
+    workspaceRequests.set(message.result.id, message.result);
+  if (
+    message.type === "toolResult" &&
+    String(message.requestId).startsWith("workspace-create:")
+  ) {
+    workspaceRequests.set(message.result.id, message.result);
+    if (message.result.partial)
+      notice =
+        "Some project branches could not be created. The request is incomplete; retry its missing branches when the projects are available.";
   }
   if (message.type === "notice") {
     notice = message.text;

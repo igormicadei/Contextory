@@ -57,6 +57,21 @@ const limits = z
   })
   .optional();
 export const tools = {
+  contextory_workspace_get: {
+    description:
+      "List the current project and active editor workspace projects without merging their records or graphs. Optional groupId reads a coordinated request's per-project branches and aggregate completion; unavailable or missing branches remain explicit. With multiple editor workspace contexts, supply workspaceId. Reference codebases are separate from writable workspace projects.",
+    schema: z.object({ groupId: id.optional() }),
+  },
+  contextory_workspace_request_create: {
+    description:
+      "Create one coordinated request across explicitly selected active workspace projectIds. Each project keeps a linked local request, its own milestones/specs, leases, checks and evidence. Reuse exactly the same operationId and input to recover partial creation without duplicates. A partial result is not success; inspect each branch and retry explicitly. Does not authorize implementation or releases beyond user intent.",
+    schema: z.object({
+      operationId,
+      projectIds: z.array(id).min(2).max(16),
+      title: z.string().trim().min(1).max(300),
+      description: text,
+    }),
+  },
   contextory_version_get: {
     description:
       "Read project-wide current version, Git tags/releases, unreleased commits, SemVer bump recommendation and global changelog context. Independent of requests; the service also observes Git automatically. releaseId selects a version's paginated commits and recorded semantic changes. offset/limit page each returned cursor. Observed local tags do not imply remote publication.",
@@ -486,12 +501,24 @@ export function toolDefinitions() {
     name,
     description:
       tool.description +
+      " Optional projectId selects an active workspace project from contextory_workspace_get for this call only; omission/current stays on this server's project. Keep project identity with all records, source IDs and citations. workspaceId disambiguates multiple editor workspace contexts. Unknown projects fail; no project is inferred from an ID or the UI selection." +
       (scopedCodeTools.includes(name)
         ? " Optional codebaseId selects an isolated reference from contextory_codebase_list; omission/current selects the active workspace. Paths and IDs belong to that codebase. Keep returned codebase identity with citations; reference knowledge does not authorize current-project changes."
         : ""),
-    inputSchema: z.toJSONSchema(tool.schema, { target: "draft-7" }),
+    inputSchema: (() => {
+      const schema = z.toJSONSchema(tool.schema, { target: "draft-7" });
+      return {
+        ...schema,
+        properties: {
+          ...schema.properties,
+          projectId: { type: "string", minLength: 1, maxLength: 160 },
+          workspaceId: { type: "string", minLength: 1, maxLength: 160 },
+        },
+      };
+    })(),
     annotations: {
       readOnlyHint: [
+        "contextory_workspace_get",
         "contextory_context_get",
         "contextory_version_get",
         "contextory_project_export",

@@ -33,6 +33,7 @@ import { CodeQueries } from "../codebase/queries";
 import { importGraphify } from "../codebase/import";
 import { ReferenceCodebases } from "../codebase/references";
 import { clients, clientIds } from "../providers/clients";
+import { WorkspaceProjects } from "./workspace";
 import {
   completionNote,
   retrievalGuidance,
@@ -45,6 +46,7 @@ import {
   workspacePath,
 } from "../verification/workspace";
 export class Application {
+  readonly workspace: WorkspaceProjects;
   private readonly observations = new Set<string>();
   readonly releases: ReleaseManager;
   readonly workflow: Workflow;
@@ -62,6 +64,7 @@ export class Application {
     workerPath: string,
     embeddingDirectory: string,
   ) {
+    this.workspace = new WorkspaceProjects(this);
     this.releases = new ReleaseManager(ledger);
     this.workflow = new Workflow(ledger);
     this.catalog = new Catalog(ledger, this.workflow);
@@ -83,11 +86,15 @@ export class Application {
   }
   dashboard(): Dashboard {
     return {
+      workspace: this.workspace.info(),
       versioning: this.releases.status(),
       root: this.ledger.root,
       projectId: this.ledger.projectId,
       sequence: this.ledger.sequence(),
-      entities: this.ledger.all().filter((e) => e.kind !== "release"),
+      entities: this.ledger
+        .all()
+        .filter((e) => e.kind !== "release")
+        .map((e) => ({ ...e, projectId: this.ledger.projectId })),
       events: historyPage(this.ledger, 3).events,
       recipes: this.checks.recipes,
       connections: clientIds
@@ -122,6 +129,7 @@ export class Application {
     return {
       root: this.ledger.root,
       projectId: this.ledger.projectId,
+      workspace: this.workspace.info(),
       sequence: this.ledger.sequence(),
       specs: specs.slice(0, 20),
       recipes: this.checks.recipes,
@@ -154,6 +162,30 @@ export class Application {
     };
   }
   async call(name: string, raw: unknown, actor: Actor): Promise<unknown> {
+    const scope =
+      raw && typeof raw === "object"
+        ? (raw as { projectId?: unknown; workspaceId?: unknown })
+        : {};
+    for (const value of [scope.projectId, scope.workspaceId])
+      if (
+        value !== undefined &&
+        (typeof value !== "string" || !value.length || value.length > 160)
+      )
+        throw new ContextoryError(
+          "INVALID_ARGUMENT",
+          "Project and workspace scope must be nonempty IDs.",
+        );
+    if (
+      scope.projectId &&
+      scope.projectId !== "current" &&
+      scope.projectId !== this.ledger.projectId
+    )
+      throw new ContextoryError(
+        "WRONG_PROJECT",
+        "This application owns a different project; route explicitly through its workspace service.",
+      );
+    if (scope.workspaceId)
+      this.workspace.assertContext(String(scope.workspaceId));
     if (!(name in tools))
       throw new ContextoryError("UNKNOWN_TOOL", `Unknown tool: ${name}`);
     const key = name as ToolName;
@@ -268,6 +300,18 @@ export class Application {
       );
     }
     switch (key) {
+      case "contextory_workspace_get":
+        return this.workspace.get(
+          (a as Input<typeof key>).groupId,
+          scope.workspaceId as string | undefined,
+          actor,
+        );
+      case "contextory_workspace_request_create":
+        return this.workspace.create(
+          a as Input<typeof key>,
+          scope.workspaceId as string | undefined,
+          actor,
+        );
       case "contextory_version_get":
         return this.releases.get(a as Input<typeof key>);
       case "contextory_release_prepare":

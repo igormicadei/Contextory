@@ -1,0 +1,24 @@
+{
+  "version": "0.5.1",
+  "sha256": "fe9cf401d3ca55c5888f1e1b8f36fba5f706eb1257d6378df5755a0fe830a89a",
+  "verifiedResources": [
+    "dist/analysis-worker.mjs",
+    "dist/codebase-worker.mjs",
+    "dist/contextory-hook.mjs",
+    "dist/contextory.mjs",
+    "dist/extension.js",
+    "dist/mcp-proxy.mjs",
+    "dist/python-flow.py",
+    "dist/python-index.py",
+    "dist/service.mjs",
+    "dist/webview.js",
+    "skills/contextory-codebase/SKILL.md",
+    "skills/contextory-migrate/SKILL.md",
+    "skills/contextory-workflow/SKILL.md",
+    "skills/contextory-workflow/references/completion.md",
+    "skills/contextory-codebase/references/retrieval.md"
+  ],
+  "extracted": "C:\\Projetos\\Contextory\\.contextory-local\\multi-root-package-366be67efe6a49abb08f4494d577ac7e\\extension",
+  "installed": false,
+  "published": false
+}

@@ -1,9 +1,10 @@
 {
-  "recordedAt": "2026-11-18T14:09:45.808Z",
+  "recordedAt": "2026-11-18T21:10:39.990Z",
   "host": "Visual Studio Code",
   "vscode": "1.145.3",
   "checks": [
     "extension activation",
+    "paused cold startup creates no provider configuration; resume discovers installed agents",
     "all detected inactive agent extensions and Bob host configured automatically before opening Contextory; no chosen default or native session required",
     "workspace pause/resume persists without removing or rewriting existing agent configuration",
     "isolated Node 24 workspace service",
@@ -22,5 +23,5 @@
     "persistent SQLite ledger"
   ],
   "passed": true,
-  "extensionPath": "C:\\Projetos\\Contextory\\.contextory-local\\connection-package-final\\extension"
+  "extensionPath": "C:\\Projetos\\Contextory"
 }

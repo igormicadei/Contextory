@@ -15,12 +15,15 @@ hero:
       text: Explore code intelligence
       link: /docs/CODEBASE-INTELLIGENCE
     - theme: alt
-      text: Download v0.5.1
-      link: https://github.com/igormicadei/Contextory/releases/tag/v0.5.1
+      text: Download v0.6.0
+      link: https://github.com/igormicadei/Contextory/releases/tag/v0.6.0
 features:
   - title: A map you can understand
     details: Explore subsystems, drill into files and symbols, and follow typed relationships with source citations and visible coverage limits.
     link: /docs/CODEBASE-INTELLIGENCE
+  - title: Separate projects, coordinated work
+    details: Keep each workspace folder's records and symbols independent, with project badges and linked cross-project request branches.
+    link: /docs/USER-GUIDE#multiple-projects-in-one-workspace
   - title: Work that survives the next session
     details: Keep requests, specifications, decisions, findings and check evidence connected in a durable local project ledger.
     link: /docs/USER-GUIDE

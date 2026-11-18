@@ -1,4 +1,4 @@
-param([string]$Executable, [string]$HostName = 'vscode', [string]$ExtensionPath, [switch]$StartPaused)
+param([string]$Executable, [string]$HostName = 'vscode', [string]$ExtensionPath, [switch]$StartPaused, [switch]$MultiRoot)
 $ErrorActionPreference = 'Stop'
 $taskRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
 if (-not $ExtensionPath) { $ExtensionPath = $taskRoot }
@@ -20,9 +20,21 @@ if ($StartPaused) {
 }
 'function start(ok:boolean){if(ok){next()}else{fallback()}} function next(){} function fallback(){}' | Set-Content -LiteralPath (Join-Path $taskWorkspace 'main.ts') -Encoding UTF8
 $taskReport = Join-Path $taskRoot ('artifacts\host-' + $HostName + '.json')
+$taskTest = Join-Path $taskRoot 'tests\host\smoke.cjs'
+if ($MultiRoot) {
+  $taskSecond = Join-Path $taskDirectory 'second'
+  New-Item -ItemType Directory -Path (Join-Path $taskSecond '.vscode') -Force | Out-Null
+  @{ 'contextory.autoConnect' = $false; 'contextory.checks' = @(@{ id = 'beta'; name = 'Beta'; executable = $taskNode; args = @('-e', 'process.exit(0)') }) } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $taskSecond '.vscode\settings.json') -Encoding UTF8
+  'export function start(){return "beta"}' | Set-Content -LiteralPath (Join-Path $taskSecond 'main.ts') -Encoding UTF8
+  $taskWorkspaceFile = Join-Path $taskDirectory 'projects.code-workspace'
+  @{ folders = @(@{ path = $taskWorkspace; name = 'Alpha' }, @{ path = $taskSecond; name = 'Beta' }); settings = @{ 'contextory.nodeExecutable' = $taskNode; 'contextory.restartAfterSetup' = 'never' } } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $taskWorkspaceFile -Encoding UTF8
+  $taskWorkspace = $taskWorkspaceFile
+  $taskTest = Join-Path $taskRoot 'tests\host\workspace.cjs'
+  $taskReport = Join-Path $taskRoot ('artifacts\host-' + $HostName + '-multi-root.json')
+}
 $taskArguments = @('--new-window', '--skip-welcome', '--skip-release-notes', '--disable-extensions', '--disable-updates', '--disable-gpu', '--no-sandbox',
   '--user-data-dir', ('"' + (Join-Path $taskDirectory 'user') + '"'), '--extensions-dir', ('"' + (Join-Path $taskDirectory 'extensions') + '"'),
-  ('--extensionDevelopmentPath="' + $ExtensionPath + '"'), ('--extensionTestsPath="' + (Join-Path $taskRoot 'tests\host\smoke.cjs') + '"'), ('"' + $taskWorkspace + '"'))
+  ('--extensionDevelopmentPath="' + $ExtensionPath + '"'), ('--extensionTestsPath="' + $taskTest + '"'), ('"' + $taskWorkspace + '"'))
 $taskArguments += @('--extensionDevelopmentPath="' + (Join-Path $taskRoot 'tests\host\agents\codex') + '"', '--extensionDevelopmentPath="' + (Join-Path $taskRoot 'tests\host\agents\claude') + '"')
 $taskEnvironment = @{}
 try {
