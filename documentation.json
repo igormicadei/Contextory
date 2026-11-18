@@ -1,5 +1,5 @@
 {
-  "version": "0.4.0",
+  "version": "0.5.0",
   "pages": [
     "changelog.html",
     "docs/CODEBASE-INTELLIGENCE-PLAN.html",
@@ -8,6 +8,8 @@
     "docs/MCP-TOOLS.html",
     "docs/NATIVE-AGENT-ARCHITECTURE.html",
     "docs/NATIVE-AGENT-PLAN.html",
+    "docs/PROJECT-KNOWLEDGE.html",
+    "docs/PROJECT-RELEASES.html",
     "docs/SPEC-OUTCOME-TEMPLATE.html",
     "docs/USER-GUIDE.html",
     "docs/VALIDATION.html",
@@ -18,10 +20,12 @@
     "docs/releases/v0.3.0.html",
     "docs/releases/v0.3.1.html",
     "docs/releases/v0.4.0.html",
+    "docs/releases/v0.5.0.html",
     "index.html",
     "overview.html",
     "skills/contextory-codebase/SKILL.html",
     "skills/contextory-codebase/references/retrieval.html",
+    "skills/contextory-migrate/SKILL.html",
     "skills/contextory-workflow/SKILL.html",
     "skills/contextory-workflow/references/completion.html"
   ]
