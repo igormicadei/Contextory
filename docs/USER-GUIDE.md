@@ -4,7 +4,7 @@ Version 0.3.0 adds **Architecture**, task-context/source-impact/path tools, opti
 
 Contextory manages development requests and gives native agents a shared record of what was requested, what changed, and why. The developer continues talking to Codex, Claude Code, or IBM Bob in that agent's normal chat.
 
-## Reference repositories (0.4.0)
+## Reference repositories (since 0.4.0)
 
 In **Architecture**, use **Add reference** to register another local codebase, then choose it in **Codebase**. You and your agent can inspect its architecture and source alongside the current project, with separate indexes and source identity. **Detach reference** leaves its source untouched. Analysis alone does not apply changes to the current application. See [reference codebases](CODEBASE-INTELLIGENCE.md#analyze-reference-codebases) for agent and CLI examples, persistence and coverage.
 
@@ -21,21 +21,21 @@ In **Architecture**, use **Add reference** to register another local codebase, t
 
 ## Install the VSIX
 
-1. Download `contextory-workspace-0.4.0.vsix` and its `.sha256` file from the [v0.4.0 release](https://github.com/igormicadei/Contextory/releases/tag/v0.4.0).
+1. Download `contextory-workspace-0.5.0.vsix` and its `.sha256` file from the [v0.5.0 release](https://github.com/igormicadei/Contextory/releases/tag/v0.5.0).
 2. Optionally compare the checksum using PowerShell:
 
    ```powershell
-   (Get-FileHash -Algorithm SHA256 .\contextory-workspace-0.4.0.vsix).Hash.ToLowerInvariant()
-   Get-Content .\contextory-workspace-0.4.0.sha256
+   (Get-FileHash -Algorithm SHA256 .\contextory-workspace-0.5.0.vsix).Hash.ToLowerInvariant()
+   Get-Content .\contextory-workspace-0.5.0.sha256
    ```
 
-3. In the editor's Extensions view, use **… → Install from VSIX…** and select the package. In VS Code, `code --install-extension .\contextory-workspace-0.4.0.vsix` is an alternative.
+3. In the editor's Extensions view, use **… → Install from VSIX…** and select the package. In VS Code, `code --install-extension .\contextory-workspace-0.5.0.vsix` is an alternative.
 4. Reload if prompted. Open the project as a single folder and trust it before connecting agents or running checks.
 5. Select the Contextory activity-bar icon: a request card connected to context nodes.
 
 The extension is distributed as a GitHub release asset. You do not need to clone the repository or install its development dependencies to use the package.
 
-Version **0.4.0** includes code intelligence and portable execution; automatic discovery and the pause switch were introduced in 0.2.6. The [release notes](releases/v0.4.0.md) describe reference-codebase isolation, installation and analysis limits. Browse the [full documentation](https://igormicadei.github.io/Contextory/) for searchable guides and references.
+Version **0.5.0** adds governed knowledge, project-wide versions, documentation export and native connection recovery; it includes code intelligence and portable execution. Automatic discovery and the pause switch were introduced in 0.2.6. The [release notes](releases/v0.5.0.md) describe project knowledge, release controls, native connection recovery, installation and qualification limits. Browse the [full documentation](https://igormicadei.github.io/Contextory/) for searchable guides and references.
 
 ## Connect a native agent
 
@@ -43,12 +43,14 @@ Open a trusted local folder and Contextory automatically prepares every detected
 
 To prepare an agent manually, click its name in the sidebar footer or use the corresponding **Contextory: Connect Native …** command. Connection writes an owned MCP server entry, lifecycle hooks, and both codebase/workflow skills into the project. It preserves unrelated configuration and leaves global provider settings and native permission policies alone.
 
-Review the changed files, then use the native client's own trust/reload mechanism. Some clients need their MCP configuration reloaded or their agent session restarted. Keep the editor open so the local Contextory service remains available.
+After first installation or changes to MCP/hooks or their runtime, Contextory offers **Restart Extension Host** once for that setup. This uses the editor's public command and interrupts active extension tasks. Set `contextory.restartAfterSetup` to `automatic` to perform it without the prompt, or `never` to keep manual control. Unchanged configuration and skill-only updates do not restart the host. You can always run **Contextory: Restart Agent Extensions** manually.
 
-| Footer light | Meaning                                                                                                                  |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| Grey         | The provider is not configured, or configuration exists but no MCP traffic has yet been observed. Hover for details.     |
-| Green        | Configured MCP traffic has been observed. This does not establish provider authentication or that every hook is working. |
+Review native project/hook trust in the agent. A restart reloads extensions but does not grant trust or guarantee every already-open chat refreshes its tool inventory. In Codex, resume/reopen the chat after restart if needed; its documented MCP settings also provide **Restart extension**. Keep the project editor open so the local service remains available. See [Codex MCP setup](https://learn.chatgpt.com/docs/extend/mcp?surface=cli).
+
+| Footer light | Meaning                                                                                                                                           |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Grey         | The provider is not configured, or configuration exists but no MCP traffic has been observed in this service instance. Hover for details.         |
+| Green        | Configured MCP traffic has been observed in this service instance. This does not establish provider authentication or that every hook is working. |
 
 Clicking a configured agent disconnects its owned entries. The tooltip and accessible label identify whether clicking will connect or disconnect. Multiple providers can be configured for a project; they use the same Contextory records. Spec leases prevent two sessions from implementing the same spec at the same time.
 
@@ -211,14 +213,15 @@ Provider references: [official OpenAI documentation: Codex model-request hooks](
 
 ## Configuration and storage
 
-| Setting                       | Default  | Purpose                                                                |
-| ----------------------------- | -------- | ---------------------------------------------------------------------- |
-| `contextory.autoConnect`      | `true`   | Pause/resume automatic agent setup; existing bridges remain available. |
-| `contextory.startupAgent`     | `auto`   | All detected agents, a fixed provider, `last-used`, or `none`.         |
-| `contextory.nodeExecutable`   | `node`   | Node 24+ executable for the workspace service.                         |
-| `contextory.pythonExecutable` | `python` | Python 3.10+ executable for Python source analysis.                    |
-| `contextory.flowDepth`        | `5`      | Default flow call-hop depth, from 0 to 12.                             |
-| `contextory.checks`           | `[]`     | Named independent check recipes for this workspace.                    |
+| Setting                        | Default  | Purpose                                                                     |
+| ------------------------------ | -------- | --------------------------------------------------------------------------- |
+| `contextory.autoConnect`       | `true`   | Pause/resume automatic agent setup; existing bridges remain available.      |
+| `contextory.restartAfterSetup` | `prompt` | Restart after changed MCP/hooks/runtime: `prompt`, `automatic`, or `never`. |
+| `contextory.startupAgent`      | `auto`   | All detected agents, a fixed provider, `last-used`, or `none`.              |
+| `contextory.nodeExecutable`    | `node`   | Node 24+ executable for the workspace service.                              |
+| `contextory.pythonExecutable`  | `python` | Python 3.10+ executable for Python source analysis.                         |
+| `contextory.flowDepth`         | `5`      | Default flow call-hop depth, from 0 to 12.                                  |
+| `contextory.checks`            | `[]`     | Named independent check recipes for this workspace.                         |
 
 The Node/Python executable settings have machine scope; automatic connections, startup selection, flow depth and checks have resource scope. The footer switch writes a workspace setting. The managed provider files are:
 
@@ -237,6 +240,14 @@ The SQLite ledger, audit events, check artifacts, and credentials are stored und
 Standalone CLI/MCP uses `<root>/.contextory-local/service` by default, or an explicit `--storage` directory. This is a separate authoritative ledger unless attached to a running editor service through `--descriptor`; records are not silently merged. Back up that service directory as well when using headless mode.
 
 For an independent backup, close the editor clients, let the service stop after its roughly 65-second grace period, and copy the extension's managed storage, including its project directories. Do not delete native provider credentials or edit the ledger directly. Contextory records do not include a native conversation mirror: hooks retain normalized event/session/cwd/tool metadata, not raw prompts, transcript paths, or tool output. Check output and indexed project content are retained locally as part of their respective features.
+
+## Resume an existing chat
+
+A managed MCP connection waits up to 15 seconds for a reopened workspace service before dispatching each call. It rereads the service descriptor; it never automatically repeats a mutation. If startup takes longer, retry the read-only probe after startup. The stored project ledger and chat history are independent.
+
+Run **Contextory: Check Native Connections** to open diagnostics in **Output ? Contextory**. It distinguishes MCP traffic and hooks observed in the current service from history. A waiting hook means no event has arrived yet; check native trust and trigger a supported lifecycle event before concluding it is broken. This command observes the service and does not force the native agent to call MCP.
+
+If an old chat reports disconnection, ask it to discover its current tools and call `contextory_context_get`. If the tool is missing, restart agent extensions and reopen that chat. If the service reports a version/tool-contract mismatch, follow its restart message; a service held by another project window may require closing those editors for 65 seconds. This compares versions and tool contracts, not every byte of same-version builds.
 
 ## Upgrade, disconnect, and uninstall
 

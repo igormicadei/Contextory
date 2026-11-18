@@ -6,9 +6,11 @@ import { access, mkdir, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { fixture } from "../helpers";
+import { fixture, claimed, operationId } from "../helpers";
+import type { Entity } from "../../src/contracts/model";
 import { toolDefinitions } from "../../src/contracts/tools";
 import { startService } from "../../src/service/server";
+import { ReleaseGit } from "../../src/releases/git";
 import {
   agentInstructions,
   retrievalGuidance,
@@ -17,6 +19,139 @@ import {
 
 const exec = promisify(execFile),
   cli = resolve("dist/contextory.mjs");
+
+test("headless MCP and CLI share project releases without a request or lease and retain plans across restart", async (t) => {
+  const f = await fixture(t),
+    git = new ReleaseGit(f.root);
+  await git.run(["init", "-b", "main"]);
+  await git.run(["config", "user.name", "Fixture"]);
+  await git.run(["config", "user.email", "fixture@example.invalid"]);
+  await git.run(["-c", "commit.gpgsign=false", "add", "."]);
+  await git.run([
+    "-c",
+    "commit.gpgsign=false",
+    "commit",
+    "-m",
+    "feat: initial",
+  ]);
+  const service = await startService({ ...f, headless: true });
+  f.cleanups.push(() => service.close());
+  const client = new Client({ name: "release-automation", version: "1" });
+  f.cleanups.push(() => client.close());
+  await client.connect(
+    new StdioClientTransport({
+      command: process.execPath,
+      args: [
+        cli,
+        "mcp",
+        "--root",
+        f.root,
+        "--descriptor",
+        join(f.storage, "generic.json"),
+      ],
+      stderr: "pipe",
+    }),
+  );
+  const call = async (name: string, args: object) => {
+    const result = await client.callTool({
+      name,
+      arguments: args as Record<string, unknown>,
+    });
+    assert.ok(!result.isError, JSON.stringify(result));
+    return JSON.parse((result.content as { text: string }[])[0].text);
+  };
+  const catalog = (await client.listTools()).tools;
+  assert.equal(
+    catalog.find((t) => t.name === "contextory_version_get")?.annotations
+      ?.readOnlyHint,
+    true,
+  );
+  assert.equal(
+    catalog.find((t) => t.name === "contextory_release_change")?.annotations
+      ?.openWorldHint,
+    true,
+  );
+  const status = await call("contextory_version_get", {});
+  assert.equal(status.currentVersion, "0.0.0");
+  const plan = await call("contextory_release_prepare", {
+    operationId: operationId(),
+  });
+  assert.equal(plan.state, "prepared");
+  assert.equal(plan.data.version, "0.1.0");
+  await client.close();
+  await service.close();
+  const run = async (...args: string[]) =>
+    JSON.parse(
+      (
+        await exec(
+          process.execPath,
+          [cli, ...args, "--root", f.root, "--storage", f.storage],
+          { windowsHide: true, timeout: 30000 },
+        )
+      ).stdout,
+    );
+  assert.equal((await run("versions")).releases.items[0].id, plan.id);
+  const cancelled = await run("release-cancel", plan.id, String(plan.revision));
+  assert.equal(cancelled.state, "cancelled");
+  assert.equal(await git.dirty(), "");
+});
+test("headless MCP discovers and uses catalog migration and documentation without granting human approval", async (t) => {
+  const f = await fixture(t);
+  const client = new Client({ name: "documentation-client", version: "1" });
+  f.cleanups.push(() => client.close());
+  await client.connect(
+    new StdioClientTransport({
+      command: process.execPath,
+      args: [cli, "mcp", "--root", f.root, "--storage", f.storage],
+      stderr: "pipe",
+    }),
+  );
+  const call = async (name: string, args: object) => {
+    const result = await client.callTool({
+      name,
+      arguments: args as Record<string, unknown>,
+    });
+    assert.ok(!result.isError, JSON.stringify(result));
+    return JSON.parse((result.content as { text: string }[])[0].text);
+  };
+  assert.ok(
+    (await client.listTools()).tools.some(
+      (t) =>
+        t.name === "contextory_project_export" && t.annotations?.readOnlyHint,
+    ),
+  );
+  const work = await claimed(call);
+  const migration = await call("contextory_catalog_migrate", {
+    operationId: operationId(),
+    specId: work.spec.id,
+    leaseId: work.leaseId,
+    limit: 10,
+  });
+  assert.equal(migration.migration.state, "scanned");
+  const entry = (await call("contextory_catalog_get", { inventory: true }))
+    .records[0] as Entity;
+  const rejected = await client.callTool({
+    name: "contextory_catalog_review",
+    arguments: {
+      operationId: operationId(),
+      id: entry.id,
+      expectedRevision: 1,
+      action: "approve",
+      reason: "Agent attempts self-approval",
+      human: true,
+    },
+  });
+  assert.equal(rejected.isError, true);
+  assert.equal(
+    JSON.parse((rejected.content as { text: string }[])[0].text).code,
+    "FORBIDDEN",
+  );
+  const exported = await call("contextory_project_export", {
+    section: "records",
+    entityId: entry.id,
+  });
+  assert.equal(exported.items[0].state, "observed");
+});
 test("headless CLI persists source knowledge and exposes impact, paths and architecture", async (t) => {
   const f = await fixture(t);
   const run = async (...args: string[]) =>

@@ -11,7 +11,11 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { startService } from "./service/server";
 import { rpc, readDescriptor } from "./service/rpc";
-import { toolDefinitions } from "./contracts/tools";
+import {
+  toolDefinitions,
+  scopedCodeTools,
+  type ToolName,
+} from "./contracts/tools";
 import { ContextoryError, version } from "./contracts/model";
 import { agentInstructions } from "./agents/instructions";
 
@@ -26,10 +30,17 @@ Usage: node dist/contextory.mjs <command> [arguments] [options]
   references               List isolated reference codebases
   reference-add <folder>   Register a local reference (optional --name)
   reference-remove <id>    Detach a reference, leaving its source untouched
+  versions [release-id]    Current project version, commits and release history
+  release-prepare [bump]   Plan auto/patch/minor/major or an exact stable version
+  release-apply <id> <rev> Create the planned version commit and annotated tag
+  release-publish <id> <rev> Publish only that tag using configured Git auth
+  release-recover <id> <rev> Resume an owned interrupted release
+  release-cancel <id> <rev> Cancel an untouched release plan
   mcp                      Serve the same tools over stdio until EOF
 Options: --root <workspace> --storage <directory> --descriptor <generic.json>
          --budget <512..6000> --depth <1..10> --python <executable>
          --codebase <reference-id> --name <reference-name>
+         --offset <n> --limit <1..50> --operation <id> (durable release retries)
 Source commands default to the current project. --codebase selects a reference;
 paths and citations are relative to its root. Registration never changes source.
 Default storage: <root>/.contextory-local/service. Use --descriptor to attach
@@ -48,6 +59,9 @@ const allowed = new Set([
   "python",
   "codebase",
   "name",
+  "offset",
+  "limit",
+  "operation",
 ]);
 for (let i = 2; i < process.argv.length; i++) {
   const arg = process.argv[i];
@@ -141,9 +155,14 @@ async function connect(): Promise<string> {
 }
 async function call(name: string, arguments_: unknown) {
   const descriptor = await connect();
-  const scoped =
-    name !== "contextory_codebase_change" &&
-    name !== "contextory_codebase_list";
+  const scoped = scopedCodeTools.includes(name as ToolName);
+  if (
+    (options.has("codebase") && name.startsWith("contextory_release")) ||
+    (options.has("codebase") && name === "contextory_version_get")
+  )
+    throw new Error(
+      "Project versions belong to the active repository; omit --codebase.",
+    );
   return rpc(
     descriptor,
     "tools/call",
@@ -156,7 +175,9 @@ async function call(name: string, arguments_: unknown) {
           : {}),
       },
     },
-    180000,
+    name.startsWith("contextory_release") || name === "contextory_version_get"
+      ? 300000
+      : 180000,
   );
 }
 const required = (i: number) => {
@@ -225,6 +246,34 @@ async function main() {
   let result: unknown;
   try {
     switch (command) {
+      case "versions":
+        result = await call("contextory_version_get", {
+          releaseId: args[0],
+          offset: Number(options.get("offset") ?? 0),
+          limit: Number(options.get("limit") ?? 20),
+        });
+        break;
+      case "release-prepare": {
+        const value = args[0] ?? "auto";
+        result = await call("contextory_release_prepare", {
+          operationId: options.get("operation") ?? randomUUID(),
+          ...(["auto", "patch", "minor", "major"].includes(value)
+            ? { bump: value }
+            : { version: value }),
+        });
+        break;
+      }
+      case "release-apply":
+      case "release-publish":
+      case "release-recover":
+      case "release-cancel":
+        result = await call("contextory_release_change", {
+          operationId: options.get("operation") ?? randomUUID(),
+          id: required(0),
+          expectedRevision: Number(required(1)),
+          action: command.slice("release-".length),
+        });
+        break;
       case "references":
         result = await call("contextory_codebase_list", {});
         break;

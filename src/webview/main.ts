@@ -18,6 +18,12 @@ import {
   type ArchitectureState,
 } from "./architecture";
 import { flowView } from "./flow";
+import { catalogView, type CatalogPage } from "./catalog";
+import {
+  versionsView,
+  type VersionsPage,
+  type VersionDetail,
+} from "./versions";
 import {
   bindMapInteraction,
   zoomMap,
@@ -101,6 +107,20 @@ let detailTab = "contract";
 const usageBySpec = new Map<string, UsageSummary>();
 let notice = "";
 let busy = false;
+let catalogPage: CatalogPage | undefined;
+let catalogOffset = 0;
+let catalogRequestId = "";
+let catalogSequence = 0;
+let versionsPage: VersionsPage | undefined;
+let versionDetail: VersionDetail | undefined;
+let releasePlan: Entity | undefined;
+let releaseActionPending = false;
+let versionsOffset = 0,
+  versionDetailOffset = 0,
+  versionsSequence = 0;
+let versionsRequestId = "",
+  versionDetailRequestId = "",
+  versionPlanRequestId = "";
 let nodeId = "";
 let hits: {
   id: string;
@@ -157,8 +177,8 @@ function connections() {
     .map((provider) => {
       const c = dashboard?.connections.find((c) => c.provider === provider);
       const name = clients[provider].label;
-      const online = c?.configured && c.mcpSeen;
-      return `<button class="connection" data-action="${c?.configured ? "disconnect" : "connect"}" data-provider="${provider}" aria-label="${c?.configured ? "Disconnect" : "Connect"} ${name}" title="${name}: ${online ? "MCP observed" : c?.configured ? "Waiting for native connection" : "Disconnected"}"><strong>${name}</strong><span class="status-dot ${online ? "online" : ""}" role="img" aria-label="${online ? "Connected" : "Not connected"}"></span></button>`;
+      const online = c?.configured && (c.mcpCurrent ?? Boolean(c.mcpSeen));
+      return `<button class="connection" data-action="${c?.configured ? "disconnect" : "connect"}" data-provider="${provider}" aria-label="${c?.configured ? "Disconnect" : "Connect"} ${name}" title="${name}: ${online ? "MCP observed in this service" : c?.configured ? "Configured; waiting for native traffic in this service" : "Disconnected"}"><strong>${name}</strong><span class="status-dot ${online ? "online" : ""}" role="img" aria-label="${online ? "Connected" : "Not connected"}"></span></button>`;
     })
     .join("")}</div>`;
 }
@@ -379,6 +399,8 @@ function render() {
   app.innerHTML = `<header class="app-header"><div class="brand"><span class="brand-mark" aria-hidden="true">${contextoryIcon}</span><div class="brand-copy"><strong>Contextory</strong><span class="workspace-name" aria-label="Workspace" title="${escape(workspacePath)}">${escape(workspaceName)}</span></div></div>${button("refresh", "↻", 'aria-label="Refresh workspace" title="Refresh workspace"', "icon-button")}</header><nav class="main-nav ${surface !== "sidebar" ? "hidden" : ""}" aria-label="Contextory views">${[
     ["overview", "Overview"],
     ["requests", "Requests"],
+    ["catalog", "Knowledge"],
+    ["versions", "Versions"],
     ["history", "History"],
     ["map", "Code map"],
     ["architecture", "Architecture"],
@@ -389,7 +411,7 @@ function render() {
     )
     .join(
       "",
-    )}</nav>${notice ? `<div class="notice" role="status"><span>${escape(notice)}</span>${button("dismiss", "×", 'aria-label="Dismiss notification"', "icon-button")}</div>` : ""}${busy ? '<div class="loading-line" role="progressbar" aria-label="Contextory is working"></div>' : ""}<main>${!dashboard && screen !== "map" && screen !== "relationships" ? empty("Open your workspace", "Contextory connects your native agents to shared project records. Open a trusted folder, then refresh.", button("refresh", "Refresh", "", "primary")) : screen === "architecture" ? architectureView(architecture, codeContext, drafts.codeQuery ?? "", architectureOnly, architectureState, dashboard?.references ?? [], architectureCodebase) : screen === "relationships" ? relationshipView(relationships) : screen === "requests" ? requestTree() : screen === "history" ? historyView() : screen === "map" ? map() : overview()}</main><footer>${surface === "sidebar" ? connections() : ""}<div class="workspace-status"><span class="status-dot ${dashboard ? "online" : ""}"></span><span>${dashboard ? escape(dashboard.root.split(/[\\/]/).pop()) : "Open a workspace"}</span>${surface === "sidebar" ? autoConnectSwitch() : '<span class="footer-label">Native conversation &middot; durable context</span>'}</div></footer>`;
+    )}</nav>${notice ? `<div class="notice" role="status"><span>${escape(notice)}</span>${button("dismiss", "×", 'aria-label="Dismiss notification"', "icon-button")}</div>` : ""}${busy ? '<div class="loading-line" role="progressbar" aria-label="Contextory is working"></div>' : ""}<main>${!dashboard && screen !== "map" && screen !== "relationships" ? empty("Open your workspace", "Contextory connects your native agents to shared project records. Open a trusted folder, then refresh.", button("refresh", "Refresh", "", "primary")) : screen === "versions" ? versionsView(versionsPage, versionDetail, releasePlan, drafts, versionsOffset) : screen === "catalog" ? catalogView(catalogPage, drafts, catalogOffset) : screen === "architecture" ? architectureView(architecture, codeContext, drafts.codeQuery ?? "", architectureOnly, architectureState, dashboard?.references ?? [], architectureCodebase) : screen === "relationships" ? relationshipView(relationships) : screen === "requests" ? requestTree() : screen === "history" ? historyView() : screen === "map" ? map() : overview()}</main><footer>${surface === "sidebar" ? connections() : ""}<div class="workspace-status"><span class="status-dot ${dashboard ? "online" : ""}"></span><span>${dashboard ? escape(dashboard.root.split(/[\\/]/).pop()) : "Open a workspace"}</span>${surface === "sidebar" ? autoConnectSwitch() : '<span class="footer-label">Native conversation &middot; durable context</span>'}</div></footer>`;
   document.querySelector<HTMLElement>("main")!.dataset.screen = screen;
   for (const scroll of scrollAreas) {
     const replacement = document.querySelector<HTMLElement>(
@@ -429,6 +451,40 @@ function render() {
   renderedView = viewKey;
 }
 const send = (message: unknown) => host.postMessage(message);
+function loadVersions() {
+  versionsRequestId = `versions:${++versionsSequence}`;
+  send({
+    type: "tool",
+    name: "contextory_version_get",
+    requestId: versionsRequestId,
+    arguments: { offset: versionsOffset, limit: 20 },
+  });
+}
+function loadVersionDetail(id: string) {
+  versionDetailRequestId = `version-detail:${++versionsSequence}`;
+  send({
+    type: "tool",
+    name: "contextory_version_get",
+    requestId: versionDetailRequestId,
+    arguments: { releaseId: id, offset: versionDetailOffset, limit: 20 },
+  });
+}
+function loadCatalog() {
+  catalogRequestId = `catalog:${++catalogSequence}`;
+  send({
+    type: "tool",
+    name: "contextory_catalog_get",
+    requestId: catalogRequestId,
+    arguments: {
+      inventory: true,
+      offset: catalogOffset,
+      limit: 20,
+      query: drafts.catalogQuery || undefined,
+      path: drafts.catalogPath || undefined,
+      category: drafts.catalogCategory || undefined,
+    },
+  });
+}
 function rememberArchitecture() {
   architectureHistory.push({
     state: { ...architectureState },
@@ -594,9 +650,86 @@ function action(element: Element) {
       if (screen === "history") loadHistory();
       if (screen === "architecture") loadArchitecture();
       if (screen === "requests") preparePanelSelection();
+      if (screen === "catalog") loadCatalog();
+      if (screen === "versions") loadVersions();
       render();
       if (screen === "requests" && horizontalLayout()) revealSelection();
       break;
+    case "versionsRefresh":
+      loadVersions();
+      break;
+    case "versionsNext":
+      versionsOffset += 20;
+      loadVersions();
+      break;
+    case "versionsPrevious":
+      versionsOffset = Math.max(0, versionsOffset - 20);
+      loadVersions();
+      break;
+    case "versionSelect":
+      versionDetailOffset = 0;
+      loadVersionDetail(data.id!);
+      break;
+    case "versionMore":
+      versionDetailOffset += 20;
+      if (versionDetail) loadVersionDetail(versionDetail.release.id);
+      break;
+    case "versionPlan":
+      versionPlanRequestId = `version-plan:${++versionsSequence}`;
+      send({
+        type: "tool",
+        name: "contextory_entity_get",
+        requestId: versionPlanRequestId,
+        arguments: { id: data.id },
+      });
+      break;
+    case "releaseChange":
+      releaseActionPending = true;
+      send({
+        type: "tool",
+        name: "contextory_release_change",
+        requestId: `release-action:${++versionsSequence}`,
+        arguments: {
+          operationId: crypto.randomUUID(),
+          id: data.id,
+          expectedRevision: Number(data.revision),
+          action: data.release,
+        },
+      });
+      break;
+    case "catalogRefresh":
+      loadCatalog();
+      break;
+    case "catalogNext":
+      catalogOffset += 20;
+      loadCatalog();
+      break;
+    case "catalogPrevious":
+      catalogOffset = Math.max(0, catalogOffset - 20);
+      loadCatalog();
+      break;
+    case "catalogReview": {
+      const reason = drafts[`catalogReason-${data.id}`]?.trim();
+      if (!reason) {
+        notice =
+          "Enter a review reason before approving or rejecting this definition.";
+        render();
+        break;
+      }
+      send({
+        type: "tool",
+        name: "contextory_catalog_review",
+        requestId: `catalog-review:${data.id}`,
+        arguments: {
+          operationId: crypto.randomUUID(),
+          id: data.id,
+          expectedRevision: Number(data.revision),
+          action: data.review,
+          reason,
+        },
+      });
+      break;
+    }
     case "architectureRefresh":
       loadArchitecture();
       break;
@@ -913,6 +1046,23 @@ app.addEventListener("submit", (event) => {
     drafts.requestTitle = "";
     drafts.requestDescription = "";
   }
+  if (form.id === "catalog-form") {
+    catalogOffset = 0;
+    loadCatalog();
+  }
+  if (form.id === "release-form") {
+    releaseActionPending = true;
+    send({
+      type: "tool",
+      name: "contextory_release_prepare",
+      requestId: `release-action:${++versionsSequence}`,
+      arguments: {
+        operationId: crypto.randomUUID(),
+        bump: drafts.releaseBump || "auto",
+        version: drafts.releaseVersion?.trim() || undefined,
+      },
+    });
+  }
   if (form.id === "search-form" && drafts.query?.trim())
     send({
       type: "tool",
@@ -937,15 +1087,63 @@ function loadUsage() {
 window.addEventListener("message", (event) => {
   const message = event.data;
   if (message.automation) automation = message.automation;
-  if (message.type === "restore") indexDashboard(message.dashboard);
+  if (message.type === "restore") {
+    const previousVersions = JSON.stringify(dashboard?.versioning);
+    indexDashboard(message.dashboard);
+    if (
+      screen === "versions" &&
+      previousVersions !== JSON.stringify(dashboard?.versioning)
+    )
+      loadVersions();
+  }
   if (message.type === "notice") {
     notice = message.text;
+    if (releaseActionPending) {
+      releaseActionPending = false;
+      loadVersions();
+      if (releasePlan) {
+        versionPlanRequestId = `version-plan:${++versionsSequence}`;
+        send({
+          type: "tool",
+          name: "contextory_entity_get",
+          requestId: versionPlanRequestId,
+          arguments: { id: releasePlan.id },
+        });
+      }
+    }
     if (architectureState.loading) {
       architectureState.loading = false;
       architectureState.error = message.text;
     }
   }
   if (message.type === "busy") busy = message.value;
+  if (message.type === "toolResult" && message.requestId === versionsRequestId)
+    versionsPage = message.result;
+  if (
+    message.type === "toolResult" &&
+    message.requestId === versionDetailRequestId
+  )
+    versionDetail = message.result;
+  if (
+    message.type === "toolResult" &&
+    message.requestId === versionPlanRequestId
+  )
+    releasePlan = message.result;
+  if (
+    message.type === "toolResult" &&
+    String(message.requestId).startsWith("release-action:")
+  ) {
+    releaseActionPending = false;
+    releasePlan = message.result;
+    loadVersions();
+  }
+  if (message.type === "toolResult" && message.requestId === catalogRequestId)
+    catalogPage = message.result;
+  if (
+    message.type === "toolResult" &&
+    String(message.requestId).startsWith("catalog-review:")
+  )
+    loadCatalog();
   if (
     message.type === "toolResult" &&
     message.requestId === architectureRequestId

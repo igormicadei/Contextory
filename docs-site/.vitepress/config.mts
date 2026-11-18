@@ -8,7 +8,7 @@ export default withMermaid(
   defineConfig({
     title: "Contextory",
     description:
-      "Manage requests. Give agents the full picture. Complete documentation for Contextory 0.4.0.",
+      "Manage requests. Give agents the full picture. Complete documentation for Contextory 0.5.0.",
     lang: "en-US",
     base: "/Contextory/",
     srcDir: "../.contextory-local/docs-content",
@@ -27,7 +27,7 @@ export default withMermaid(
         { text: "Guide", link: "/docs/USER-GUIDE" },
         { text: "Code intelligence", link: "/docs/CODEBASE-INTELLIGENCE" },
         { text: "MCP tools", link: "/docs/MCP-TOOLS" },
-        { text: "v0.4.0", link: "/docs/releases/v0.4.0" },
+        { text: "v0.5.0", link: "/docs/releases/v0.5.0" },
       ],
       search: { provider: "local" },
       socialLinks: [
@@ -45,7 +45,7 @@ export default withMermaid(
           items: [
             { text: "Overview & installation", link: "/overview" },
             { text: "User guide", link: "/docs/USER-GUIDE" },
-            { text: "What’s new in 0.4.0", link: "/docs/releases/v0.4.0" },
+            { text: "What’s new in 0.5.0", link: "/docs/releases/v0.5.0" },
           ],
         },
         {
@@ -56,6 +56,11 @@ export default withMermaid(
               link: "/docs/CODEBASE-INTELLIGENCE",
             },
             { text: "MCP tool reference", link: "/docs/MCP-TOOLS" },
+            { text: "Project versions & tags", link: "/docs/PROJECT-RELEASES" },
+            {
+              text: "Governed project knowledge",
+              link: "/docs/PROJECT-KNOWLEDGE",
+            },
             {
               text: "Runtime architecture",
               link: "/docs/NATIVE-AGENT-ARCHITECTURE",
@@ -67,6 +72,10 @@ export default withMermaid(
           text: "Portable agent skills",
           collapsed: true,
           items: [
+            {
+              text: "Migration agent",
+              link: "/skills/contextory-migrate/SKILL",
+            },
             {
               text: "Codebase skill",
               link: "/skills/contextory-codebase/SKILL",
@@ -118,7 +127,7 @@ export default withMermaid(
       footer: {
         message:
           "Local project context for native agents. Currently UNLICENSED.",
-        copyright: "Contextory · Documentation for version 0.4.0",
+        copyright: "Contextory · Documentation for version 0.5.0",
       },
     },
     mermaid: { securityLevel: "strict" },

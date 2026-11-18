@@ -124,6 +124,7 @@ async function applyFiles(root: string, edits: Edit[]) {
         await replace(edit, edit.original);
     throw error;
   }
+  return prepared.map((edit) => edit.path);
 }
 function jsonEdit(text: string, changes: { path: string[]; value: unknown }[]) {
   let next = text || "{}\n";
@@ -299,9 +300,23 @@ export async function configureProvider(r: Registration, remove = false) {
     });
   const resources = skillEdits(r.root, r.provider, remove);
   edits.push(...resources);
-  await applyFiles(r.root, edits);
+  const changedFiles = await applyFiles(r.root, edits);
   return {
     name,
+    changedFiles,
+    connectionChanged:
+      changedFiles.includes(mcpFile) ||
+      Boolean(hooksFile && changedFiles.includes(hooksFile)),
+    connectionFingerprint: createHash("sha256")
+      .update(
+        JSON.stringify({
+          name,
+          config,
+          command,
+          events: hookEvents(r.provider),
+        }),
+      )
+      .digest("hex"),
     files: [
       mcpFile,
       ...(hooksFile ? [hooksFile] : []),

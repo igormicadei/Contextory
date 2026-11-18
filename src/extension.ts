@@ -6,6 +6,7 @@ import { spawn } from "node:child_process";
 import { ServiceClient } from "./service/client";
 import { configureProvider } from "./providers/registration";
 import { isClient } from "./providers/clients";
+import { SetupReload, type ReloadMode } from "./providers/reload";
 import {
   latestNativeAgent,
   detectedProviders,
@@ -43,6 +44,28 @@ export async function activate(context: vscode.ExtensionContext) {
   let lastSource: FlowInput["root"] | undefined;
   const agentKey = "contextory.lastAgent";
   const disabledKey = "contextory.disconnectedAgents";
+  const setupReload = new SetupReload(
+    context.workspaceState,
+    async () =>
+      (await vscode.window.showInformationMessage(
+        "Contextory installed or updated workspace MCP/hooks. Restart the Extension Host to reload native integrations, then resume your chat. Hook trust remains in the native client; restarting interrupts active extension tasks.",
+        "Restart Extension Host",
+        "Later",
+      )) === "Restart Extension Host",
+    async () =>
+      await vscode.commands.executeCommand(
+        "workbench.action.restartExtensionHost",
+      ),
+  );
+  const offerSetupReload = () => {
+    void setupReload
+      .offer(
+        vscode.workspace
+          .getConfiguration("contextory")
+          .get<ReloadMode>("restartAfterSetup", "prompt"),
+      )
+      .catch((error) => output.appendLine(`Setup reload: ${error.message}`));
+  };
   const automation = (): AgentAutomation => ({
     enabled: vscode.workspace
       .getConfiguration("contextory")
@@ -221,6 +244,16 @@ export async function activate(context: vscode.ExtensionContext) {
       remove,
     );
     await client.call("provider.configured", { provider, configured: !remove });
+    if (
+      !remove &&
+      provider !== "generic" &&
+      (result.connectionChanged || client.bridgeChanged)
+    )
+      await setupReload.changed(
+        provider,
+        `${result.connectionFingerprint}:${client.bridgeFingerprint}`,
+        result.connectionChanged,
+      );
     return result;
   };
   const prepareStartupAgents = (
@@ -272,6 +305,7 @@ export async function activate(context: vscode.ExtensionContext) {
           });
         }
       }
+      offerSetupReload();
     });
   const connect = async (provider: Provider, remove = false) => {
     const client = await service();
@@ -287,6 +321,7 @@ export async function activate(context: vscode.ExtensionContext) {
     });
     post({ type: "notice", text: result.instruction });
     await refresh();
+    offerSetupReload();
     return result;
   };
   const setAutoConnect = async (enabled: boolean) => {
@@ -597,10 +632,17 @@ export async function activate(context: vscode.ExtensionContext) {
           break;
         case "tool": {
           const client = await service();
-          const result = await client.call("tools/call", {
-            name: message.name,
-            arguments: message.arguments,
-          });
+          const result = await client.call(
+            "tools/call",
+            {
+              name: message.name,
+              arguments: message.arguments,
+            },
+            String(message.name).startsWith("contextory_release") ||
+              message.name === "contextory_version_get"
+              ? 300000
+              : 30000,
+          );
           await sender?.postMessage({
             type: "toolResult",
             requestId: message.requestId,
@@ -720,6 +762,34 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.commands.registerCommand(id, () => run(handler)),
     );
   command("contextory.refresh", refresh);
+  command(
+    "contextory.restartAgentExtensions",
+    async () =>
+      await vscode.commands.executeCommand(
+        "workbench.action.restartExtensionHost",
+      ),
+  );
+  command("contextory.checkConnections", async () => {
+    const dashboard = await (await service()).call<Dashboard>("dashboard");
+    const text =
+      dashboard.connections
+        .filter((c) => c.configured)
+        .map(
+          (c) =>
+            `${c.provider}: MCP ${c.mcpCurrent ? "observed in this service" : "waiting for native traffic"}; hooks ${c.provider === "generic" ? "not used" : c.hookCurrent ? "observed in this service" : "not yet observed (check native trust/reload)"}`,
+        )
+        .join("\n") || "No configured native connections.";
+    output.appendLine(text);
+    output.show(true);
+    const choice = await vscode.window.showInformationMessage(
+      text,
+      "Restart Extension Host",
+    );
+    if (choice)
+      await vscode.commands.executeCommand(
+        "workbench.action.restartExtensionHost",
+      );
+  });
   command("contextory.connectNativeCodex", () => connect("codex"));
   command("contextory.connectNativeClaude", () => connect("claude"));
   command("contextory.connectNativeBob", () => connect("bob"));

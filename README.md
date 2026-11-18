@@ -1,6 +1,6 @@
 # Contextory
 
-**0.4.0** adds isolated reference-codebase analysis alongside a persistent code graph and an **Architecture** workbench: agents can retrieve definitions, callers, dependencies, tests and related project decisions together. Canonical portable skills and a standalone CLI/MCP server support clients without hooks or an editor. See the [release notes](docs/releases/v0.4.0.md) and [codebase intelligence guide](docs/CODEBASE-INTELLIGENCE.md).
+**0.5.0** adds governed project knowledge, a portable migration agent, complete documentation export, project-wide Git version management and native connection recovery. Keep file responsibilities, rules/features, tests and interface contracts together with their original definitions and review history. See the [release notes](docs/releases/v0.5.0.md), [project knowledge](docs/PROJECT-KNOWLEDGE.md) and [versions and tags](docs/PROJECT-RELEASES.md).
 
 **Manage requests. Give agents the full picture.**
 
@@ -10,9 +10,9 @@ Contextory is a VS Code and IBM Bob extension that connects your requests, miles
 
 Your agent keeps its own conversation, model, authentication, and editing tools. Contextory manages the project records that need to survive the next session or a switch to another agent.
 
-[Download v0.4.0](https://github.com/igormicadei/Contextory/releases/tag/v0.4.0) · [Full documentation](https://igormicadei.github.io/Contextory/) · [User guide](docs/USER-GUIDE.md) · [Agent tools](docs/MCP-TOOLS.md) · [Development](docs/DEVELOPMENT.md)
+[Download v0.5.0](https://github.com/igormicadei/Contextory/releases/tag/v0.5.0) · [Full documentation](https://igormicadei.github.io/Contextory/) · [User guide](docs/USER-GUIDE.md) · [Agent tools](docs/MCP-TOOLS.md) · [Development](docs/DEVELOPMENT.md)
 
-The **0.4.0** package includes code intelligence and portable execution alongside [automatic agent discovery](docs/releases/v0.2.6.md), Panel layouts and native usage records introduced since 0.2.3.
+The **0.5.0** package includes code intelligence and portable execution alongside [automatic agent discovery](docs/releases/v0.2.6.md), Panel layouts and native usage records introduced since 0.2.3.
 
 ## What it offers
 
@@ -33,22 +33,22 @@ The **0.4.0** package includes code intelligence and portable execution alongsid
 
 Search, relationships, source tracing, and request/spec management are available to the **agent through MCP**, as well as to the user through the interface. Contextory does not require a separate chat turn to expose them.
 
-Version **0.4.0** supports [isolated reference codebases](docs/CODEBASE-INTELLIGENCE.md#analyze-reference-codebases): map other local repositories for migration or implementation guidance alongside the current project. Use **Architecture > Add reference**; agents select each repository explicitly.
+Since **0.4.0**, Contextory supports [isolated reference codebases](docs/CODEBASE-INTELLIGENCE.md#analyze-reference-codebases): map other local repositories for migration or implementation guidance alongside the current project. Use **Architecture > Add reference**; agents select each repository explicitly.
 
 ## Install
 
-The current release is **0.4.0**, a preview for **Windows with one trusted local project folder**.
+The current release is **0.5.0**, a preview for **Windows with one trusted local project folder**.
 
 1. Install [Node.js](https://nodejs.org/en/download) **24 or newer**. Check `node --version` in a terminal; restart the editor if you just installed Node.
 2. Use VS Code **1.96 or newer**, or IBM Bob. The packaged extension has been tested in VS Code **1.145.3** and Bob's VS Code API **1.126.0**.
-3. Download [`contextory-workspace-0.4.0.vsix`](https://github.com/igormicadei/Contextory/releases/download/v0.4.0/contextory-workspace-0.4.0.vsix) from the release assets.
+3. Download [`contextory-workspace-0.5.0.vsix`](https://github.com/igormicadei/Contextory/releases/download/v0.5.0/contextory-workspace-0.5.0.vsix) from the release assets.
 4. In the editor's Extensions view, open the **…** menu, choose **Install from VSIX…**, and select the file. Reload the editor when prompted.
 5. Open a single trusted local project folder and select **Contextory** in the activity bar.
 
 You can also install in VS Code from PowerShell:
 
 ```powershell
-code --install-extension .\contextory-workspace-0.4.0.vsix
+code --install-extension .\contextory-workspace-0.5.0.vsix
 ```
 
 Install your chosen native agent separately and sign in through its own interface. Python source tracing additionally needs **Python 3.10+**; it does not require a Python editor extension. Optional semantic search downloads its model/runtime separately. Installing the VSIX does not require npm, Rust, a database server, or a model download.
@@ -129,7 +129,7 @@ Version 0.2.3 uses the Contextory extension identity and tool/settings namespace
 | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
 | [User guide](docs/USER-GUIDE.md)                       | Prerequisites, installation, first use, workflows, settings, search, code maps, reports, upgrades, and troubleshooting. |
 | [Codebase intelligence](docs/CODEBASE-INTELLIGENCE.md) | Source coverage, Architecture, Graphify, portable skills, generic MCP and headless CLI.                                 |
-| [Release notes](docs/releases/v0.4.0.md)               | Version 0.4.0 changes, installation, upgrades and qualification.                                                        |
+| [Release notes](docs/releases/v0.5.0.md)               | Version 0.5.0 changes, installation, upgrades and qualification.                                                        |
 | [MCP tools](docs/MCP-TOOLS.md)                         | Available agent tools, examples, version/lease rules, and the completion sequence.                                      |
 | [Architecture](docs/NATIVE-AGENT-ARCHITECTURE.md)      | Runtime components, storage, boundaries, retrieval, source analysis, and resource limits.                               |
 | [Development](docs/DEVELOPMENT.md)                     | Build, tests, debugging, packaging, and the release process.                                                            |
@@ -141,3 +141,9 @@ Version 0.2.3 uses the Contextory extension identity and tool/settings namespace
 ## License
 
 The project is currently marked **UNLICENSED**; no open-source license has been granted. Bundled dependency licenses are listed in [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt).
+
+### Governed application knowledge
+
+The current development build includes a **Knowledge** view for file responsibilities, rules/features linked to tests, and UI layout/interaction contracts. Review concrete before/after proposals while retaining every definition revision and approval reason. Use the portable `contextory-migrate` agent to bootstrap an existing project, and `contextory_project_export` to let native agents generate documentation from all stored application datasets. See [governed knowledge and documentation](docs/PROJECT-KNOWLEDGE.md) for usage and coverage limits.
+
+The development build also includes global **Versions**: automatic Git observation, version bumps, exact commit changelogs, reviewed release commits/tags and separately verified publication to GitHub or another Git remote. The same controller works from UI, CLI/CI and MCP without relying on agent memory. See [project versions and tags](docs/PROJECT-RELEASES.md).

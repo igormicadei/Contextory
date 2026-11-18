@@ -1,5 +1,55 @@
 import { test, expect } from "@playwright/test";
 
+test("historical MCP traffic stays grey after service restart until current traffic is observed", async ({
+  page,
+}) => {
+  await page.goto("/sidebar.html");
+  await expect(
+    page.getByRole("button", { name: "Disconnect Codex", exact: true }),
+  ).toBeVisible();
+  const restore = async (current: boolean) =>
+    page.evaluate(
+      (current) =>
+        window.postMessage(
+          {
+            type: "restore",
+            dashboard: {
+              root: "C:/reopened",
+              projectId: "reopened",
+              sequence: 1,
+              entities: [],
+              events: [],
+              recipes: [],
+              semantic: { ready: false, model: "", detail: "" },
+              connections: [
+                {
+                  provider: "codex",
+                  configured: true,
+                  mcpSeen: "2026-01-01T00:00:00Z",
+                  mcpCurrent: current,
+                  hookCurrent: false,
+                },
+              ],
+            },
+          },
+          "*",
+        ),
+      current,
+    );
+  await restore(false);
+  const codex = page.getByRole("button", {
+    name: "Disconnect Codex",
+    exact: true,
+  });
+  await expect(codex.locator(".status-dot")).not.toHaveClass(/online/);
+  await expect(codex).toHaveAttribute(
+    "title",
+    /waiting for native traffic in this service/,
+  );
+  await restore(true);
+  await expect(codex.locator(".status-dot")).toHaveClass(/online/);
+});
+
 test("auto-connect can pause and resume from the footer across tabs and panel/sidebar layouts without disconnecting agents", async ({
   page,
 }) => {
@@ -61,7 +111,7 @@ test("native companion has no chat composer and creates a request", async ({
   ).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: "Knowledge", exact: true }),
-  ).toHaveCount(0);
+  ).toHaveCount(1);
   await expect(page.locator("textarea")).toHaveCount(0);
   await page.getByRole("button", { name: "Requests", exact: true }).click();
   await page.getByRole("button", { name: "+ New request" }).click();

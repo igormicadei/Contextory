@@ -15,8 +15,8 @@ hero:
       text: Explore code intelligence
       link: /docs/CODEBASE-INTELLIGENCE
     - theme: alt
-      text: Download v0.4.0
-      link: https://github.com/igormicadei/Contextory/releases/tag/v0.4.0
+      text: Download v0.5.0
+      link: https://github.com/igormicadei/Contextory/releases/tag/v0.5.0
 features:
   - title: A map you can understand
     details: Explore subsystems, drill into files and symbols, and follow typed relationships with source citations and visible coverage limits.

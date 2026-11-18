@@ -24,6 +24,9 @@ import { recordUsage, usageSummary } from "../core/usage";
 import { hookObservation } from "../contracts/usage";
 import { AnalysisManager } from "../analysis/manager";
 import { Knowledge, Embeddings } from "../knowledge/search";
+import { Catalog } from "../knowledge/catalog";
+import { projectExport } from "../knowledge/export";
+import { ReleaseManager } from "../releases/manager";
 import { CheckRunner } from "../verification/checks";
 import { CodebaseIndex } from "../codebase/index";
 import { CodeQueries } from "../codebase/queries";
@@ -42,8 +45,11 @@ import {
   workspacePath,
 } from "../verification/workspace";
 export class Application {
+  private readonly observations = new Set<string>();
+  readonly releases: ReleaseManager;
   readonly workflow: Workflow;
   readonly knowledge: Knowledge;
+  readonly catalog: Catalog;
   readonly analysis: AnalysisManager;
   readonly checks: CheckRunner;
   readonly codebase: CodebaseIndex;
@@ -56,7 +62,9 @@ export class Application {
     workerPath: string,
     embeddingDirectory: string,
   ) {
+    this.releases = new ReleaseManager(ledger);
     this.workflow = new Workflow(ledger);
+    this.catalog = new Catalog(ledger, this.workflow);
     this.knowledge = new Knowledge(ledger, new Embeddings(embeddingDirectory));
     this.analysis = new AnalysisManager(ledger.root, workerPath);
     this.codebase = new CodebaseIndex(ledger, workerPath);
@@ -75,10 +83,11 @@ export class Application {
   }
   dashboard(): Dashboard {
     return {
+      versioning: this.releases.status(),
       root: this.ledger.root,
       projectId: this.ledger.projectId,
       sequence: this.ledger.sequence(),
-      entities: this.ledger.all(),
+      entities: this.ledger.all().filter((e) => e.kind !== "release"),
       events: historyPage(this.ledger, 3).events,
       recipes: this.checks.recipes,
       connections: clientIds
@@ -94,6 +103,8 @@ export class Application {
           mcpSeen: this.ledger.meta(`mcp:${provider}`),
           hookSeen: this.ledger.meta(`hook:${provider}`),
           lastEvent: this.ledger.meta(`event:${provider}`),
+          mcpCurrent: this.observations.has(`mcp:${provider}`),
+          hookCurrent: this.observations.has(`hook:${provider}`),
         })),
       semantic: this.knowledge.embeddings.status(),
       codebase: this.codebase.status(),
@@ -115,6 +126,8 @@ export class Application {
       specs: specs.slice(0, 20),
       recipes: this.checks.recipes,
       codebase: this.codebase.status(),
+      catalog: this.catalog.summary(),
+      versioning: this.releases.status(),
       references: this.references.list(),
       requests: this.ledger
         .all("request")
@@ -255,6 +268,23 @@ export class Application {
       );
     }
     switch (key) {
+      case "contextory_version_get":
+        return this.releases.get(a as Input<typeof key>);
+      case "contextory_release_prepare":
+        return this.releases.prepare(a as Input<typeof key>, actor);
+      case "contextory_release_change":
+        return this.releases.change(a as Input<typeof key>, actor);
+      case "contextory_project_export":
+        return projectExport(this, a as Input<typeof key>);
+      case "contextory_catalog_get":
+        return this.catalog.get(a as Input<typeof key>);
+      case "contextory_catalog_change":
+        return this.catalog.change(a as Input<typeof key>, actor);
+      case "contextory_catalog_review":
+        return this.catalog.review(a as Input<typeof key>, actor);
+      case "contextory_catalog_migrate":
+        await this.codebase.fresh();
+        return this.catalog.migrate(a as Input<typeof key>, actor);
       case "contextory_codebase_list":
         return {
           current: {
@@ -311,6 +341,17 @@ export class Application {
         return this.workflow.request(a as Input<typeof key>, actor);
       case "contextory_spec_change": {
         const p = a as Input<typeof key>;
+        if (p.action === "complete" && p.id) {
+          const spec = this.ledger.get(p.id);
+          const outcome = spec.data.latestOutcome
+            ? this.ledger.get(String(spec.data.latestOutcome))
+            : undefined;
+          await this.catalog.verify(
+            p.id,
+            outcome?.data
+              .catalog as Input<"contextory_outcome_submit">["catalog"],
+          );
+        }
         return this.workflow.spec(
           p,
           actor,
@@ -344,6 +385,8 @@ export class Application {
       case "contextory_check_run":
         return this.checks.start(a as Input<typeof key>, actor);
       case "contextory_outcome_submit": {
+        const p = a as Input<typeof key>;
+        await this.catalog.verify(p.specId, p.catalog);
         const spec = this.workflow.outcome(
           a as Input<typeof key>,
           actor,
@@ -614,6 +657,7 @@ export class Application {
     return response();
   }
   seen(key: string, value = new Date().toISOString()) {
+    this.observations.add(key);
     this.ledger.db
       .prepare(
         "INSERT INTO meta VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
@@ -666,6 +710,7 @@ export class Application {
     return { files: files.length, chunks, partial: chunks >= 10000, codebase };
   }
   async close() {
+    await this.releases.close();
     await this.references.close();
     await this.codebase.close();
     await this.checks.close();

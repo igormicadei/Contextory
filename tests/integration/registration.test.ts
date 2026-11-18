@@ -26,6 +26,30 @@ const registration = (
   descriptor: "C:/data/provider.json",
   hookDescriptor: "C:/data/hook.json",
 });
+test("registration distinguishes connection changes from portable resource updates and unchanged reopen", async (t) => {
+  const { root } = await fixture(t),
+    r = registration(root, "codex");
+  const first = await configureProvider(r);
+  assert.equal(first.connectionChanged, true);
+  assert.ok(first.changedFiles.includes(join(root, ".codex/config.toml")));
+  const again = await configureProvider(r);
+  assert.deepEqual(again.changedFiles, []);
+  assert.equal(again.connectionChanged, false);
+  assert.equal(again.connectionFingerprint, first.connectionFingerprint);
+  await writeFile(
+    join(root, ".agents/skills/contextory-workflow/SKILL.md"),
+    "<!-- contextory-managed-workflow -->\nold\n",
+  );
+  const resources = await configureProvider(r);
+  assert.equal(resources.connectionChanged, false);
+  assert.equal(resources.changedFiles.length, 1);
+  const moved = await configureProvider({
+    ...r,
+    proxy: "C:/new runtime/proxy.mjs",
+  });
+  assert.equal(moved.connectionChanged, true);
+  assert.notEqual(moved.connectionFingerprint, first.connectionFingerprint);
+});
 test("skill-only sync updates every client resource, preserves config and detects drift", async (t) => {
   const { root } = await fixture(t);
   const configs = new Map<string, string>();

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "branch": "main",
+  "remote": "origin",
+  "versionFiles": [
+    { "path": "package.json", "format": "json", "keys": [["version"]] },
+    {
+      "path": "package-lock.json",
+      "format": "json",
+      "keys": [["version"], ["packages", "", "version"]]
+    },
+    {
+      "path": "src/contracts/model.ts",
+      "format": "text",
+      "prefix": "export const version = \"",
+      "suffix": "\";"
+    }
+  ]
+}

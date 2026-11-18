@@ -78,6 +78,8 @@ exports.run = async function () {
     const commands = await vscode.commands.getCommands(true);
     for (const command of [
       "contextory.refresh",
+      "contextory.restartAgentExtensions",
+      "contextory.checkConnections",
       "contextory.traceFlowFromHere",
       "contextory.connectNativeClaude",
       "contextory.connectNativeCodex",

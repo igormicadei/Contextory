@@ -14,9 +14,9 @@ New-Item -ItemType Directory -Path (Join-Path $taskWorkspace '.vscode') -Force |
 New-Item -ItemType Directory -Path (Join-Path $taskDirectory 'user\User') -Force | Out-Null
 $taskNode = (Get-Command node).Source
 @{ 'security.workspace.trust.enabled' = $false; 'extensions.autoUpdate' = $false; 'update.mode' = 'none'; 'workbench.startupEditor' = 'none' } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $taskDirectory 'user\User\settings.json') -Encoding UTF8
-@{ 'contextory.nodeExecutable' = $taskNode; 'files.autoSave' = 'off' } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $taskWorkspace '.vscode\settings.json') -Encoding UTF8
+@{ 'contextory.nodeExecutable' = $taskNode; 'files.autoSave' = 'off'; 'contextory.restartAfterSetup' = 'never' } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $taskWorkspace '.vscode\settings.json') -Encoding UTF8
 if ($StartPaused) {
-  @{ 'contextory.nodeExecutable' = $taskNode; 'contextory.autoConnect' = $false; 'files.autoSave' = 'off' } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $taskWorkspace '.vscode\settings.json') -Encoding UTF8
+  @{ 'contextory.nodeExecutable' = $taskNode; 'contextory.autoConnect' = $false; 'files.autoSave' = 'off'; 'contextory.restartAfterSetup' = 'never' } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $taskWorkspace '.vscode\settings.json') -Encoding UTF8
 }
 'function start(ok:boolean){if(ok){next()}else{fallback()}} function next(){} function fallback(){}' | Set-Content -LiteralPath (Join-Path $taskWorkspace 'main.ts') -Encoding UTF8
 $taskReport = Join-Path $taskRoot ('artifacts\host-' + $HostName + '.json')

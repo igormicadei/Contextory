@@ -298,12 +298,252 @@ const referenceCodebase = {
   root: "C:/Projects/LegacyCheckout",
   role: "reference",
 };
+const catalogDefinition = {
+  category: "feature",
+  title: "Payment retries",
+  description: "Retries preserve the original payment identity.",
+  sources: [{ path: "src/payments.ts", symbol: "checkout" }],
+  tests: [],
+  testGap: "Gateway recovery still needs a behavioral test.",
+};
+const catalogBaseline = entity(
+  "KN-observed",
+  "knowledge",
+  catalogDefinition.title,
+  { content: catalogDefinition },
+  "SPEC-demo",
+  "observed",
+);
+const catalogUi = {
+  category: "ui",
+  title: "Retry payment control",
+  description: "Recover from a failed charge.",
+  sources: [{ path: "src/payments.ts" }],
+  tests: [{ path: "tests/checkout.spec.ts" }],
+  ui: {
+    location: "Payment summary footer",
+    element: "Retry payment button",
+    trigger: "Click or keyboard activation",
+    behavior: "Resubmit with the original payment identity",
+    states: "Disabled while payment is processing",
+  },
+};
+const catalogApproved = entity(
+  "KN-approved",
+  "knowledge",
+  catalogUi.title,
+  { content: catalogUi },
+  "SPEC-demo",
+  "approved",
+);
+const catalogProposal = entity(
+  "KCH-demo",
+  "knowledge_change",
+  "revise: Retry payment control",
+  {
+    targetId: catalogApproved.id,
+    targetRevision: 1,
+    action: "revise",
+    reason: "Show progress during recovery",
+    before: catalogUi,
+    content: {
+      ...catalogUi,
+      ui: {
+        ...catalogUi.ui,
+        states: "Show progress and disable repeat submission",
+      },
+    },
+  },
+  "SPEC-demo",
+  "pending",
+);
+const releaseFixture = entity(
+  "REL-demo",
+  "release",
+  "Version 1.1.0",
+  {
+    version: "1.1.0",
+    tag: "v1.1.0",
+    remote: "origin",
+    head: "abc123",
+    commits: [
+      { hash: "abc123", subject: "feat: navigation <script>unsafe</script>" },
+    ],
+    semantic: [
+      { id: "DEC-demo", revision: 1, title: "Keep navigation stable" },
+    ],
+    files: [
+      {
+        path: "package.json",
+        before: '{"version":"1.0.0"}',
+        after: '{"version":"1.1.0"}',
+      },
+    ],
+  },
+  undefined,
+  "prepared",
+);
+let releasePrepared = false;
 window.acquireVsCodeApi = () => ({
   getState() {},
   setState() {},
   postMessage(message) {
     window.contextoryMessages.push(message);
     queueMicrotask(() => {
+      if (
+        message.type === "tool" &&
+        message.name === "contextory_version_get"
+      ) {
+        const paged = (items) => ({
+          items,
+          total: items.length,
+          nextOffset: null,
+        });
+        send({
+          type: "toolResult",
+          requestId: message.requestId,
+          result: message.arguments.releaseId
+            ? {
+                release: releaseFixture,
+                commits: paged(releaseFixture.data.commits),
+                semantic: paged(releaseFixture.data.semantic),
+              }
+            : {
+                available: true,
+                currentVersion:
+                  releaseFixture.state === "prepared" ? "1.0.0" : "1.1.0",
+                branch: "main",
+                head: "abc123",
+                dirty: false,
+                recommendedBump: "minor",
+                unreleasedCount: 1,
+                gaps: [],
+                unreleased: paged(releaseFixture.data.commits),
+                releases: paged(
+                  releasePrepared
+                    ? [
+                        {
+                          ...releaseFixture,
+                          ...releaseFixture.data,
+                          commitCount: 1,
+                          semanticCount: 1,
+                          files: ["package.json"],
+                        },
+                      ]
+                    : [],
+                ),
+              },
+        });
+      }
+      if (
+        message.type === "tool" &&
+        message.name === "contextory_release_prepare"
+      ) {
+        releasePrepared = true;
+        send({
+          type: "toolResult",
+          requestId: message.requestId,
+          result: releaseFixture,
+        });
+      }
+      if (
+        message.type === "tool" &&
+        message.name === "contextory_release_change"
+      ) {
+        releaseFixture.state = {
+          apply: "tagged",
+          publish: "published",
+          cancel: "cancelled",
+          recover: "tagged",
+        }[message.arguments.action];
+        releaseFixture.revision += 2;
+        send({
+          type: "toolResult",
+          requestId: message.requestId,
+          result: releaseFixture,
+        });
+      }
+      if (
+        message.type === "tool" &&
+        message.name === "contextory_entity_get" &&
+        message.arguments.id === releaseFixture.id
+      ) {
+        send({
+          type: "toolResult",
+          requestId: message.requestId,
+          result: releaseFixture,
+        });
+      }
+      if (
+        message.type === "tool" &&
+        message.name === "contextory_catalog_get"
+      ) {
+        const records = [catalogBaseline, catalogApproved].filter(
+          (r) =>
+            (!message.arguments.category ||
+              r.data.content.category === message.arguments.category) &&
+            (!message.arguments.query ||
+              JSON.stringify(r.data.content)
+                .toLowerCase()
+                .includes(message.arguments.query.toLowerCase())),
+        );
+        send({
+          type: "toolResult",
+          requestId: message.requestId,
+          result: {
+            entries: 2,
+            approved: [catalogBaseline, catalogApproved].filter(
+              (r) => r.state === "approved",
+            ).length,
+            observed: catalogBaseline.state === "observed" ? 1 : 0,
+            retired: 0,
+            pendingChanges: catalogProposal.state === "pending" ? 1 : 0,
+            records: message.arguments.offset
+              ? []
+              : records.map((r) => ({
+                  ...r,
+                  freshness: { state: "current", changed: [] },
+                })),
+            proposals:
+              catalogProposal.state === "pending" && !message.arguments.offset
+                ? [catalogProposal]
+                : [],
+            nextOffset: null,
+            proposalsNextOffset: null,
+            total: records.length,
+            inventory: {
+              total: 2,
+              described: 0,
+              files: message.arguments.offset
+                ? []
+                : [{ path: "src/payments.ts", described: false }],
+              nextOffset: null,
+            },
+          },
+        });
+      }
+      if (
+        message.type === "tool" &&
+        message.name === "contextory_catalog_review"
+      ) {
+        if (message.arguments.id === catalogBaseline.id) {
+          catalogBaseline.state =
+            message.arguments.action === "approve" ? "approved" : "retired";
+          catalogBaseline.revision++;
+        } else {
+          catalogProposal.state =
+            message.arguments.action === "approve" ? "approved" : "rejected";
+          if (catalogProposal.state === "approved") {
+            catalogApproved.data.content = catalogProposal.data.content;
+            catalogApproved.revision++;
+          }
+        }
+        send({
+          type: "toolResult",
+          requestId: message.requestId,
+          result: { reviewed: true },
+        });
+      }
       if (message.type === "ready" || message.type === "refresh")
         send({ type: "restore", dashboard, automation });
       if (message.type === "autoConnect") {

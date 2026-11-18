@@ -6,9 +6,12 @@ Use the tools advertised by this session. Older MCP connections may lack new cod
 
 Repository map:
 
+Maintain the project catalog through advertised catalog tools: file responsibilities, rules/features with tests or explicit gaps, and UI location/element/trigger/behavior/states. Preserve original definitions and propose replacements/retirements for human Knowledge review. Include catalog coverage in outcomes. Use the portable `skills/contextory-migrate/SKILL.md` agent for existing-project baselines. Documentation can page all stored datasets through `contextory_project_export`; preserve provenance, current versus historical state and source freshness.
+
 - `src/codebase`: persistent source projection, extractors, freshness and queries.
 - `src/service`, `src/contracts`, `src/core`, `src/storage`: application/tool contracts, tracked work and authoritative ledger.
 - `src/knowledge`, `src/analysis`, `src/editor`: project memory, source flow and editor integration.
+- `src/releases`: project-wide Git observation, release plans, version adapters and recoverable tag publication. Versions are independent of requests; implementation does not authorize releasing this workspace.
 - `src/providers/clients.ts`: host capability/discovery differences. Keep shared behavior independent of any host.
 - `src/agents/instructions.ts`: shared runtime retrieval/workflow instructions for native/headless MCP, briefs and hook reminders.
 - `src/webview`, `media`, `tests`: UI, assets and core/integration/analysis/UI/host validation.

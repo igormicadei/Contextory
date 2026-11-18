@@ -1,10 +1,11 @@
 import { spawn, execFile, type ChildProcess } from "node:child_process";
 import { promisify } from "node:util";
-import { randomUUID } from "node:crypto";
-import { mkdir, copyFile } from "node:fs/promises";
+import { randomUUID, createHash } from "node:crypto";
+import { mkdir, copyFile, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { rpc, readDescriptor } from "./rpc";
 import { ContextoryError, version } from "../contracts/model";
+import { toolDefinitions } from "../contracts/tools";
 export class ServiceClient {
   readonly id = randomUUID();
   readonly descriptor: string;
@@ -13,6 +14,8 @@ export class ServiceClient {
   private controller = new AbortController();
   private opened = false;
   node = "node";
+  bridgeChanged = false;
+  bridgeFingerprint = "";
   constructor(
     readonly root: string,
     readonly storage: string,
@@ -46,11 +49,21 @@ export class ServiceClient {
     this.node = runtime.path;
     await mkdir(this.storage, { recursive: true });
     await mkdir(join(this.storage, "runtime"), { recursive: true });
-    for (const file of ["mcp-proxy.mjs", "contextory-hook.mjs"])
+    const bridgeHash = createHash("sha256");
+    for (const file of ["mcp-proxy.mjs", "contextory-hook.mjs"]) {
+      const source = await readFile(join(this.extensionRoot, "dist", file));
+      bridgeHash.update(file).update(source);
+      const old = await readFile(join(this.storage, "runtime", file)).catch(
+        () => undefined,
+      );
+      if (old?.equals(source)) continue;
+      this.bridgeChanged = true;
       await copyFile(
         join(this.extensionRoot, "dist", file),
         join(this.storage, "runtime", file),
       );
+    }
+    this.bridgeFingerprint = bridgeHash.digest("hex");
     try {
       await this.call("health");
     } catch {
@@ -86,10 +99,14 @@ export class ServiceClient {
       await this.call("health");
     }
     const health = await this.call<{ version?: string }>("health");
-    if (health.version !== version)
+    const catalog = await this.call<{ tools: unknown[] }>("tools/list");
+    if (
+      health.version !== version ||
+      JSON.stringify(catalog.tools) !== JSON.stringify(toolDefinitions())
+    )
       throw new ContextoryError(
         "SERVICE_RESTART_REQUIRED",
-        "An earlier Contextory service is still running. Close the editors for this project for 65 seconds, then reopen the project to finish updating Contextory.",
+        "The running Contextory service has a different version or tool contract. Use Contextory: Restart Agent Extensions; if it persists, close the editors for this project for 65 seconds and reopen it. Existing project data is retained.",
       );
     const descriptor = await readDescriptor(this.descriptor);
     if (descriptor.root.toLowerCase() !== this.root.toLowerCase())

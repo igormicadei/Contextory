@@ -2,7 +2,7 @@
   "name": "contextory-workspace",
   "displayName": "Contextory - Requests & Agent Context",
   "description": "Manage requests, milestones and specs. Give native agents shared context through decisions, evidence, workspace search and code flow.",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "publisher": "contextory-local",
   "icon": "media/contextory-icon.png",
   "private": true,
@@ -58,6 +58,14 @@
       ]
     },
     "commands": [
+      {
+        "command": "contextory.restartAgentExtensions",
+        "title": "Contextory: Restart Agent Extensions"
+      },
+      {
+        "command": "contextory.checkConnections",
+        "title": "Contextory: Check Native Connections"
+      },
       {
         "command": "contextory.connectGenericMcp",
         "title": "Contextory: Export Generic MCP Connection"
@@ -148,6 +156,17 @@
           "scope": "machine",
           "description": "Node.js 24+ executable for the isolated workspace service. Native provider executables are not launched by Contextory."
         },
+        "contextory.restartAfterSetup": {
+          "type": "string",
+          "enum": [
+            "prompt",
+            "automatic",
+            "never"
+          ],
+          "default": "prompt",
+          "scope": "resource",
+          "description": "Restart the Extension Host after changed native MCP/hooks or bridge runtime: offer once (default), automatically restart, or never offer. Restarting interrupts active extension tasks; native hook trust remains required. Unchanged project openings do not restart."
+        },
         "contextory.flowDepth": {
           "type": "number",
           "default": 5,
@@ -231,7 +250,7 @@
     "evaluate:codebase": "node --import tsx scripts/evaluate-codebase.ts",
     "prepare:semantic": "node scripts/prepare-embeddings.mjs",
     "check": "npm run skills:check && npm run typecheck && npm run build && npm test && npm run test:ui",
-    "package:vsix": "npm run build && node scripts/licenses.mjs && vsce package --no-dependencies --skip-license -o artifacts/contextory-workspace-0.4.0.vsix",
+    "package:vsix": "npm run build && node scripts/licenses.mjs && node scripts/package-vsix.mjs",
     "format": "prettier --write src tests scripts docs README.md package.json tsconfig.json playwright.config.ts",
     "docs:build": "node scripts/docs.mjs",
     "docs:preview": "vitepress preview docs-site --host 127.0.0.1",

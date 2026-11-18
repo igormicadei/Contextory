@@ -6,16 +6,23 @@ Connect through the extension's provider command rather than assembling private 
 
 ## Available tools
 
-Version 0.4.0 advertises 25 tools, including two reference-codebase tools. Source-aware tools use the same schemas in native proxies and headless stdio MCP:
+Project releases add `contextory_version_get` (global status, paged version commits/semantic records), `contextory_release_prepare` (concrete plan only) and `contextory_release_change` (apply/publish/recover/cancel). They are independent of request/spec leases. See [project versions and tags](PROJECT-RELEASES.md) for automatic observation, configuration, durable retries, CLI/CI usage and publication boundaries.
 
-| Tool | Purpose |
-| --- | --- |
-| `contextory_codebase_list` | List the current project and its isolated local reference registrations. |
-| `contextory_codebase_change` | Register an authorized absolute local directory (`action:add`, `root`, optional `name`) or detach a reference (`action:remove`, `codebaseId`), with an `operationId`. Source files are untouched. |
-| `contextory_code_context_get` | Current definitions, dependencies/callers/tests/documents and project memory for `query`, optional `paths`/`specId`, and `budgetTokens` (512–6000, default 3000). Hard JSON byte cap is three times the requested estimate. |
-| `contextory_code_architecture_get` | Subsystems, dependency counts, entry points, shared symbols and coverage. Default `refresh: true` checks current files; explicit `refresh: false` reads the cached snapshot. |
-| `contextory_code_path_get` | Shortest indexed path from `from` to `to`, direction `forward`/`both`, bounded by `maxDepth` (1–10). Preserves edge categories and locations. |
-| `contextory_code_index_refresh` | Refresh the rebuildable projection, or validate/import optional workspace-relative `graphifyPath`. Does not mutate approved work records. |
+The current build advertises 33 tools, including project releases, the governed catalog and documentation export. Native proxies and headless stdio MCP use the same schemas:
+
+| Tool                               | Purpose                                                                                                                                                                                                                     |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `contextory_project_export`        | Discover and page stored application-documentation datasets, revisions, history, source facts, check jobs and artifacts, preserving sequence/snapshot and provenance.                                                       |
+| `contextory_catalog_get`           | Read file/rule/feature/UI definitions, pending changes and source freshness; optional paged file inventory exposes missing descriptions.                                                                                    |
+| `contextory_catalog_change`        | Create observed definitions or propose replacements/retirements under a spec lease, preserving reason and before/after history.                                                                                             |
+| `contextory_catalog_review`        | Authenticated human UI approval/rejection of an exact baseline/proposal; agents cannot approve.                                                                                                                             |
+| `contextory_catalog_migrate`       | Resumable file scan and candidate bootstrap for the portable migration agent; never auto-approves candidates.                                                                                                               |
+| `contextory_codebase_list`         | List the current project and its isolated local reference registrations.                                                                                                                                                    |
+| `contextory_codebase_change`       | Register an authorized absolute local directory (`action:add`, `root`, optional `name`) or detach a reference (`action:remove`, `codebaseId`), with an `operationId`. Source files are untouched.                           |
+| `contextory_code_context_get`      | Current definitions, dependencies/callers/tests/documents and project memory for `query`, optional `paths`/`specId`, and `budgetTokens` (512–6000, default 3000). Hard JSON byte cap is three times the requested estimate. |
+| `contextory_code_architecture_get` | Subsystems, dependency counts, entry points, shared symbols and coverage. Default `refresh: true` checks current files; explicit `refresh: false` reads the cached snapshot.                                                |
+| `contextory_code_path_get`         | Shortest indexed path from `from` to `to`, direction `forward`/`both`, bounded by `maxDepth` (1–10). Preserves edge categories and locations.                                                                               |
+| `contextory_code_index_refresh`    | Refresh the rebuildable projection, or validate/import optional workspace-relative `graphifyPath`. Does not mutate approved work records.                                                                                   |
 
 `contextory_search` now ranks exact definitions first. `contextory_impact_get` also accepts a code ID, file, unique symbol or `source:path#qualifiedName`. Read-only codebase questions do not require tracked work. [Examples and limits](CODEBASE-INTELLIGENCE.md).
 
@@ -47,6 +54,8 @@ Version 0.2.4 adds `contextory_usage_get` to the native tool list. It reads reco
 | `contextory_report_export`       | Export one request's full report, completed-work changelog, or JSON records.                                                                            |
 
 ## Mutation and session rules
+
+See [governed knowledge and documentation](PROJECT-KNOWLEDGE.md) for catalog schemas, human review, migration, export sections, pagination and enforcement limits. When a catalog exists, outcomes include `catalog:{recordIds,explanation}`; pending proposals and stale affected approved definitions block completion.
 
 Pass the exact `nativeSessionId` supplied in Contextory's hook reminder when calling `contextory_session_attach`. This enables automatic association of native model/usage observations with a single active spec lease. Omit the ID when unavailable; do not invent it or infer token counts. Session/model routing and conversation history remain native.
 

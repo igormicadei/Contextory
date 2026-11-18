@@ -5,7 +5,7 @@ import {
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { rpc } from "../service/rpc";
-import { version } from "../contracts/model";
+import { ContextoryError, version } from "../contracts/model";
 import { agentInstructions } from "../agents/instructions";
 import definitions from "contextory:tool-definitions";
 import { setTimeout as delay } from "node:timers/promises";
@@ -21,14 +21,21 @@ function waitForWorkspace(): Promise<void> {
     let pause = 100;
     while (!shutdown.signal.aborted) {
       try {
-        await rpc(
+        const catalog = await rpc<{ tools: unknown[] }>(
           descriptor,
           "tools/list",
           {},
           Math.min(1000, Math.max(1, deadline - Date.now())),
         );
+        if (JSON.stringify(catalog.tools) !== JSON.stringify(definitions))
+          throw new ContextoryError(
+            "SERVICE_RESTART_REQUIRED",
+            "Contextory's service and this native MCP connection expose different tool contracts. Run Contextory: Restart Agent Extensions and resume the chat. If it persists, close this project's editors for 65 seconds and reopen them.",
+          );
         return;
       } catch (error) {
+        if ((error as { code?: string }).code === "SERVICE_RESTART_REQUIRED")
+          throw error;
         if (Date.now() >= deadline) throw error;
         await delay(Math.min(pause, deadline - Date.now()), undefined, {
           signal: shutdown.signal,
@@ -37,9 +44,10 @@ function waitForWorkspace(): Promise<void> {
       }
     }
     throw new Error("Native MCP connection closed.");
-  })().catch((error) => {
+  })().finally(() => {
+    // Share only an in-flight probe. A prior successful handshake says nothing
+    // about a reopened workspace or rotated descriptor in a resumed chat.
     readiness = undefined;
-    throw error;
   }));
 }
 const server = new Server(
@@ -63,7 +71,15 @@ server.setRequestHandler(ListToolsRequestSchema, () => {
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     await waitForWorkspace();
-    const result = await rpc(descriptor, "tools/call", request.params, 120000);
+    const release =
+      request.params.name.startsWith("contextory_release") ||
+      request.params.name === "contextory_version_get";
+    const result = await rpc(
+      descriptor,
+      "tools/call",
+      request.params,
+      release ? 300000 : 120000,
+    );
     return { content: [{ type: "text", text: JSON.stringify(result) }] };
   } catch (error) {
     readiness = undefined;

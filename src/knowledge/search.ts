@@ -56,7 +56,9 @@ export class Embeddings {
       const transformer = await import(/* @vite-ignore */ moduleUrl);
       transformer.env.allowRemoteModels = false;
       transformer.env.fetch = async () => {
-        throw new Error("Remote model access is disabled for Contextory queries.");
+        throw new Error(
+          "Remote model access is disabled for Contextory queries.",
+        );
       };
       transformer.env.cacheDir = join(this.directory, "models");
       const options = {
@@ -315,17 +317,26 @@ export class Knowledge {
     try {
       const entity = this.ledger.get(id);
       const data = entity.data;
+      const definition = data.content as
+        | { description?: string; sources?: SourceRef[]; tests?: SourceRef[] }
+        | undefined;
       const text = [
         data.description ??
           data.observation ??
           data.summary ??
           data.choice ??
-          data.detail,
+          data.detail ??
+          definition?.description,
         entity.kind === "decision" ? data.rationale : undefined,
       ]
         .filter((v) => typeof v === "string")
         .join(" ");
       const sources: SourceRef[] = [
+        ...(data.content &&
+        typeof data.content === "object" &&
+        Array.isArray((data.content as Record<string, unknown>).sources)
+          ? (data.content as { sources: SourceRef[] }).sources
+          : []),
         ...(Array.isArray(data.sources) ? data.sources : []),
         ...(Array.isArray(data.paths)
           ? data.paths

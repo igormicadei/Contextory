@@ -1,0 +1,12 @@
+{
+  "recordedAt": "2026-11-18T15:09:40.951Z",
+  "host": "Visual Studio Code",
+  "vscode": "1.145.3",
+  "activations": 2,
+  "passed": true,
+  "checks": [
+    "actual automatic first-setup Extension Host restart; configuration survives and public commands are registered",
+    "installed hook executes after restart; status changes only after the hook is actually observed (native trust is not simulated)",
+    "unchanged reconnect does not rewrite config or restart again"
+  ]
+}

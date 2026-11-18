@@ -1,5 +1,7 @@
 # Develop and release Contextory
 
+For the programmatic project-wide version controller, release configuration and UI/CLI/MCP operations, see [project versions and Git tags](PROJECT-RELEASES.md). This repository configures package/lock/runtime version fields in `contextory.release.json`; `npm run package:vsix` derives artifact names and checksum from the package version. A local version/tag does not publish extension assets or documentation.
+
 For 0.3.0 code intelligence, see the [implementation plan](CODEBASE-INTELLIGENCE-PLAN.md) and [runtime/configuration guide](CODEBASE-INTELLIGENCE.md). Build also emits `dist/codebase-worker.mjs`, `dist/python-index.py` and `dist/contextory.mjs`. Canonical portable resources live in `skills/`; `npm run skills:package` generates their TypeScript bundle and `npm run skills:check` rejects drift. `npm run check` includes that drift check. `npm run evaluate:codebase` produces a repeatable retrieval/relationship/freshness report in `artifacts/codebase-evaluation.json`. Preview now also serves `/architecture.html`.
 
 Headless CLI/MCP uses `.contextory-local/service` by default or an explicit storage path; it can attach to the editor's generic descriptor to share its ledger. This is an intentional addition to the development-cache-only use of `.contextory-local` in older builds. Back up the standalone service directory when it contains authoritative work records.
@@ -8,7 +10,7 @@ Headless CLI/MCP uses `.contextory-local/service` by default or an explicit stor
 
 Edit portable behavior in `skills/` and shared runtime guidance in `src/agents/instructions.ts`. Native/headless MCP initialization and workspace briefs use the same full instructions; lifecycle hooks use shared compact retrieval/completion reminders. Per-tool descriptions in `src/contracts/tools.ts` explain selection and input/coverage semantics. Host discovery, paths and output formats belong in `src/providers/clients.ts`.
 
-Run `npm run skills:sync` after editing canonical skills. It regenerates the runtime bundle and updates both skills plus their references in `.agents/skills`, `.claude/skills`, `.bob/skills` and `.contextory/skills`, leaving MCP/hook configuration untouched. All resources are preflighted together; unowned files and linked ancestors are preserved by refusing the sync. `npm run skills:workspace-check` detects missing or changed local copies. These copies are workspace-local; a fresh clone needs sync before this optional workspace check, whereas `npm run check` only requires canonical bundle consistency.
+Run `npm run skills:sync` after editing canonical skills. It regenerates the runtime bundle and updates the codebase, workflow and migration skills plus their references in `.agents/skills`, `.claude/skills`, `.bob/skills` and `.contextory/skills`, leaving MCP/hook configuration untouched. All resources are preflighted together; unowned files and linked ancestors are preserved by refusing the sync. `npm run skills:workspace-check` detects missing or changed local copies. These copies are workspace-local; a fresh clone needs sync before this optional workspace check, whereas `npm run check` only requires canonical bundle consistency.
 
 The repository's `AGENTS.md` links to canonical skills; `CLAUDE.md` imports it. These developer entry files are excluded from the distributable. Installed extensions provide the portable resources and shared MCP instructions for the target project. Do not impose this repository's development commands or source paths on other projects. Generic clients install the exported folders into their own supported discovery location; hooks are optional.
 
@@ -25,6 +27,12 @@ npm run check
 ```
 
 `check` runs TypeScript checking, production bundles, core/analysis/integration tests, and Playwright UI tests. The optional real-model test is skipped unless its embedding profile has been prepared; all lexical/workflow tests work without it. Existing validation includes a successful run with the real model.
+
+## Qualify native reconnection and setup reload
+
+After building, run `node --import tsx scripts/codex-resume-smoke.ts <absolute-codex-executable>` for an installed Codex binary. It uses a disposable `CODEX_HOME`, trusted fixture workspace and offline model provider. It starts no model turn and reads no user chat or credentials: it discovers/calls MCP, rotates the workspace service during a first call, and resumes a persisted disposable thread in a fresh native process. The report is `artifacts/codex-resume.json`. This tests the native app-server protocol, not the IDE chat webview or every historical client version.
+
+Run `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/host-reload-smoke.ps1 -Executable <isolated-Code.exe>` to exercise an actual automatic Extension Host restart after first-time setup. A test-only development extension counts activations across restart, runs the installed hook, verifies observed status and reconnects unchanged configuration without another restart. It uses isolated user/extensions/workspace directories and writes `artifacts/host-reload.json`. Native-agent detection fixtures remain inactive; executing the hook here does not simulate native trust approval. Supply `-ExtensionPath` to qualify an extracted VSIX. Normal `host-smoke.ps1` keeps setup reload in `never` mode so it can qualify the rest of the host independently.
 
 ## Build and inspect
 
@@ -87,10 +95,10 @@ Run `npm run docs:build` to stage canonical Markdown in `.contextory-local/docs-
 3. Run `npm run package:vsix`. Inspect the ZIP manifest and assets, and run both editor-host checks against the extracted package when qualifying a release.
 4. Calculate the SHA-256 checksum of the **final** package and write `artifacts/contextory-workspace-<version>.sha256` in `<hash>  <filename>` format. Rebuilds can change the ZIP bytes, so refresh the checksum after every final rebuild.
 5. Commit the source/docs/evidence, push the release commit to the intended branch, and create an annotated `v<version>` tag at that commit. Never replace an existing published tag without a deliberate release correction.
-6. Create the GitHub release with the matching VSIX and checksum attached. For example, after committing and pushing version 0.4.0:
+6. Create the GitHub release with the matching VSIX and checksum attached. For example, after committing and pushing version 0.5.0:
 
    ```powershell
-   gh release create v0.4.0 artifacts/contextory-workspace-0.4.0.vsix artifacts/contextory-workspace-0.4.0.sha256 --repo igormicadei/Contextory --verify-tag --title 'Contextory v0.4.0' --notes-file docs/releases/v0.4.0.md
+   gh release create v0.5.0 artifacts/contextory-workspace-0.5.0.vsix artifacts/contextory-workspace-0.5.0.sha256 --repo igormicadei/Contextory --verify-tag --title 'Contextory v0.5.0' --notes-file docs/releases/v0.5.0.md
    ```
 
 7. Run `npm run release:verify` to verify the published tag, downloaded VSIX/checksum bytes, orphan `gh-pages` history, live Pages configuration and complete documentation manifest against this checkout. Keep the local final package available for comparison.

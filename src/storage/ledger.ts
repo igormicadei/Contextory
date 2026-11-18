@@ -196,6 +196,10 @@ export class Ledger {
       finding: "ISS",
       decision: "DEC",
       evidence: "EV",
+      knowledge: "KN",
+      knowledge_change: "KCH",
+      migration: "MIG",
+      release: "REL",
       outcome: "OUT",
     };
     const id = `${prefix[kind]}-${randomUUID().slice(0, 8)}`;

@@ -14,6 +14,7 @@ import { Application } from "./application";
 import { Ledger } from "../storage/ledger";
 import { toolDefinitions } from "../contracts/tools";
 import { watchCodebase } from "../codebase/watch";
+import { watchReleases } from "../releases/watch";
 import {
   clientIds,
   clients as clientAdapters,
@@ -102,6 +103,7 @@ export async function startService(options: ServiceOptions) {
     >();
     let changed = false;
     const stopCodeWatch = watchCodebase(app.codebase);
+    const stopReleaseWatch = watchReleases(app.releases);
     let changeTimer: NodeJS.Timeout | undefined;
     const notify = (value: unknown) => {
       for (const stream of streams)
@@ -406,6 +408,7 @@ export async function startService(options: ServiceOptions) {
     });
     cleanup = async () => {
       stopCodeWatch();
+      stopReleaseWatch();
       clearTimeout(changeTimer);
       for (const stream of streams) stream.end();
       http.closeAllConnections();
@@ -437,6 +440,7 @@ export async function startService(options: ServiceOptions) {
       if (closed) return;
       closed = true;
       stopCodeWatch();
+      stopReleaseWatch();
       clearInterval(lifetime);
       clearTimeout(changeTimer);
       ledger.onChange = () => {};

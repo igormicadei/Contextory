@@ -1,5 +1,17 @@
 # Validation records
 
+## 0.5.0: governed knowledge, project releases and native recovery
+
+The final implementation passed **89 backend tests**, **32 UI tests**, typechecking, canonical/workspace skill drift checks and all three skill validators. This release adds its own notes page to the complete documentation build. Catalog checks cover immutable definitions, human-only approval, source/test freshness and completion accounting, resumable baseline migration and paginated project export. Nine real-Git tests cover global commit membership, version/changelog edits, local commit/tag operations, remote tag-only publication, hooks, CRLF, concurrency, interrupted-result recovery, shallow history and side-branch tags. Native/headless service contracts and UI review/apply/publish paths are exercised.
+
+The 0.5.0 VSIX is rebuilt with matching package/lock/runtime metadata. Release qualification runs both isolated editor hosts against the extracted package and verifies its SHA-256 against the attached checksum. Reports: [VS Code](../artifacts/host-release-050-vscode.json), [IBM Bob](../artifacts/host-release-050-bob.json), and [automatic restart](../artifacts/host-reload.json). The scope of native trust/chat coverage is described below.
+
+Recorded 2026-11-18 on Windows/Node 24. Regression tests cover a previously connected MCP client whose first mutation spans delayed workspace restart, retained project identity, no mutation replay after a lost response, tool-contract mismatch, current versus historical traffic, and persisted restart prompt/automatic/never behavior including declined/failed restart and identical-config reinstall. UI coverage checks that historical traffic alone stays grey.
+
+The installed Codex `codex_vscode/0.169.0-alpha.11.1` app-server passed MCP inventory/calls, delayed service restart and resuming a persisted disposable thread from a fresh native process, using an isolated home and offline provider. No model turn, credentials or user chat was used. This does not qualify the Codex chat webview or all older thread formats. The test remains reproducible through `scripts/codex-resume-smoke.ts`.
+
+VS Code 1.145.3 passed an actual automatic first-setup Extension Host restart in an isolated profile, then verified installed hook execution/current observation and unchanged reconnect without a restart loop. The native-agent fixture was not activated; hook trust approval remains untested and client-owned. Reports are `artifacts/codex-resume.json` and `artifacts/host-reload.json`; see [development](DEVELOPMENT.md#qualify-native-reconnection-and-setup-reload) for commands.
+
 ## 0.4.0: isolated reference codebases
 
 Recorded 2026-11-17 on Windows/Node 24: reference tests cover concurrent same-path/same-symbol repositories, separation from current project memory and records, restart persistence, saved-file freshness, scoped context budgets, impact/path/search/flow, invalid roots and aliases, safe detachment, and Windows storage paths over 260 characters. Native and standalone MCP, CLI registration/selection and editor source-resolution checks exercise the advertised contracts. UI checks cover reference selection, source/trace scope, stale response rejection and narrow layouts. Portable skill validation, workspace/bundle drift, typecheck, **63 backend tests**, **29 UI tests** and the complete **23-page** documentation build pass.

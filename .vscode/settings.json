@@ -63,14 +63,22 @@
       "id": "codebase-evaluation",
       "name": "Deterministic retrieval and graph evaluation",
       "executable": "node",
-      "args": ["--import", "tsx", "scripts/evaluate-codebase.ts", "--stdout"],
+      "args": [
+        "--import",
+        "tsx",
+        "scripts/evaluate-codebase.ts",
+        "--stdout"
+      ],
       "timeoutMs": 120000
     },
     {
       "id": "portable-skills",
       "name": "Canonical skill drift",
       "executable": "node",
-      "args": ["scripts/package-skills.mjs", "--check"],
+      "args": [
+        "scripts/package-skills.mjs",
+        "--check"
+      ],
       "timeoutMs": 30000
     },
     {
@@ -89,7 +97,10 @@
       "id": "typecheck",
       "name": "TypeScript typecheck",
       "executable": "node",
-      "args": ["node_modules/typescript/bin/tsc", "--noEmit"],
+      "args": [
+        "node_modules/typescript/bin/tsc",
+        "--noEmit"
+      ],
       "timeoutMs": 120000
     },
     {
@@ -110,21 +121,42 @@
       "id": "documentation",
       "name": "Complete documentation build and link validation",
       "executable": "node",
-      "args": ["scripts/docs.mjs"],
+      "args": [
+        "scripts/docs.mjs"
+      ],
       "timeoutMs": 180000
     },
     {
       "id": "visual-exploration",
       "name": "Visual exploration navigation and UI regression",
       "executable": "node",
-      "args": ["node_modules/@playwright/test/cli.js", "test"],
+      "args": [
+        "node_modules/@playwright/test/cli.js",
+        "test"
+      ],
       "timeoutMs": 180000
     },
     {
       "id": "release-publication",
       "name": "Published release assets, orphan branch and full Pages documentation",
       "executable": "node",
-      "args": ["scripts/verify-release.mjs"],
+      "args": [
+        "scripts/verify-release.mjs"
+      ],
+      "timeoutMs": 180000
+    },
+    {
+      "id": "native-recovery",
+      "name": "Native recovery and persisted setup restart regressions",
+      "executable": "node",
+      "args": [
+        "--import",
+        "tsx",
+        "--test",
+        "tests/core/reload.test.ts",
+        "tests/integration/service.test.ts",
+        "tests/integration/registration.test.ts"
+      ],
       "timeoutMs": 180000
     }
   ]

@@ -8,6 +8,9 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { startService } from "../../src/service/server";
 import { rpc } from "../../src/service/rpc";
+import { ServiceClient } from "../../src/service/client";
+import { setTimeout as delay } from "node:timers/promises";
+import { createServer } from "node:http";
 import { fixture, operationId, claimed, waitJob } from "../helpers";
 import type { Entity } from "../../src/contracts/model";
 import { toolDefinitions } from "../../src/contracts/tools";
@@ -34,6 +37,18 @@ test("service scopes reference source resolution and rejects reference mutations
     rpc(join(f.storage, "codex-hook.json"), "tools/call", args),
     { code: "FORBIDDEN" },
   );
+  await assert.rejects(
+    rpc(join(f.storage, "codex-hook.json"), "tools/call", {
+      name: "contextory_release_prepare",
+      arguments: { operationId: operationId() },
+    }),
+    { code: "FORBIDDEN" },
+  );
+  const versions = (await rpc(join(f.storage, "generic.json"), "tools/call", {
+    name: "contextory_version_get",
+    arguments: {},
+  })) as { available: boolean };
+  assert.equal(versions.available, false);
   const ref = (await rpc(
     join(f.storage, "generic.json"),
     "tools/call",
@@ -58,6 +73,64 @@ test("service scopes reference source resolution and rejects reference mutations
   await assert.rejects(
     rpc(ui, "source.resolve", { path: "main.ts", codebaseId: "missing" }),
     { code: "NOT_FOUND" },
+  );
+});
+
+test("catalog review is restricted by authenticated service role and survives restart with immutable history", async (t) => {
+  const f = await fixture(t);
+  let service = await startService({ ...f, headless: true });
+  f.cleanups.push(() => service.close());
+  const call = (name: string, args: object) =>
+    rpc(join(f.storage, "generic.json"), "tools/call", {
+      name,
+      arguments: args,
+    });
+  const work = await claimed(call);
+  const entry = (await call("contextory_catalog_change", {
+    operationId: operationId(),
+    action: "create",
+    specId: work.spec.id,
+    leaseId: work.leaseId,
+    content: {
+      category: "file",
+      title: "Main",
+      description: "Greeting entry point",
+      sources: [{ path: "main.ts" }],
+    },
+    reason: "Baseline",
+  })) as Entity;
+  const review = {
+    name: "contextory_catalog_review",
+    arguments: {
+      operationId: operationId(),
+      id: entry.id,
+      expectedRevision: 1,
+      action: "approve",
+      reason: "Reviewed in UI",
+    },
+  };
+  await assert.rejects(
+    rpc(join(f.storage, "codex-hook.json"), "tools/call", review),
+    { code: "FORBIDDEN" },
+  );
+  await assert.rejects(
+    rpc(join(f.storage, "generic.json"), "tools/call", review),
+    { code: "FORBIDDEN" },
+  );
+  assert.equal(
+    ((await rpc(join(f.storage, "ui.json"), "tools/call", review)) as Entity)
+      .state,
+    "approved",
+  );
+  await service.close();
+  service = await startService({ ...f, headless: true });
+  const history = (await call("contextory_project_export", {
+    section: "revisions",
+    entityId: entry.id,
+  })) as { items: { record: Entity }[] };
+  assert.deepEqual(
+    history.items.map((i) => i.record.state),
+    ["observed", "approved"],
   );
 });
 
@@ -113,6 +186,172 @@ test("native MCP discovery survives the editor service starting later without re
     (await client.listTools()).tools.length,
     toolDefinitions().length,
   );
+});
+
+test("a reused native connection waits across delayed workspace reopen and sends the first mutation once", async (t) => {
+  const f = await fixture(t);
+  let service = await startService(f);
+  f.cleanups.push(() => service.close());
+  const client = new Client({ name: "resumed-chat", version: "1" });
+  f.cleanups.push(() => client.close());
+  await client.connect(
+    new StdioClientTransport({
+      command: process.execPath,
+      args: [resolve("dist/mcp-proxy.mjs"), join(f.storage, "codex.json")],
+      stderr: "pipe",
+    }),
+  );
+  assert.ok(
+    !(await client.callTool({ name: "contextory_context_get", arguments: {} }))
+      .isError,
+  );
+  assert.equal(
+    service.app.dashboard().connections.find((c) => c.provider === "codex")
+      ?.mcpCurrent,
+    true,
+  );
+  service.app.seen("hook:codex");
+  const projectId = service.app.ledger.projectId;
+  await service.close();
+  const pending = client.callTool({
+    name: "contextory_request_change",
+    arguments: {
+      operationId: operationId(),
+      action: "create",
+      title: "First call after reopen",
+      description: "Must wait and run once",
+    },
+  });
+  await delay(400);
+  service = await startService(f);
+  const fresh = service.app
+    .dashboard()
+    .connections.find((c) => c.provider === "codex")!;
+  assert.ok(fresh.mcpSeen && fresh.hookSeen);
+  assert.equal(fresh.mcpCurrent, false);
+  assert.equal(fresh.hookCurrent, false);
+  const result = await pending;
+  assert.ok(!result.isError, JSON.stringify(result));
+  assert.equal(service.app.ledger.projectId, projectId);
+  assert.equal(service.app.ledger.all("request").length, 1);
+  assert.equal(
+    service.app.dashboard().connections.find((c) => c.provider === "codex")
+      ?.mcpCurrent,
+    true,
+  );
+  assert.equal(
+    service.app.dashboard().connections.find((c) => c.provider === "codex")
+      ?.hookCurrent,
+    false,
+  );
+});
+
+test("proxy never replays a dispatched mutation after response loss and rejects an incompatible service contract", async (t) => {
+  const f = await fixture(t);
+  let calls = 0,
+    mismatch = false;
+  const http = createServer(async (request, response) => {
+    let body = "";
+    for await (const chunk of request) body += chunk;
+    const packet = JSON.parse(body);
+    if (packet.method === "tools/list") {
+      response.setHeader("content-type", "application/json");
+      response.end(
+        JSON.stringify({
+          result: { tools: mismatch ? [] : toolDefinitions() },
+        }),
+      );
+    } else {
+      calls++;
+      response.destroy(); // The mutation may have committed before its response was lost.
+    }
+  });
+  await new Promise<void>((resolve) => http.listen(0, "127.0.0.1", resolve));
+  f.cleanups.push(async () => {
+    http.closeAllConnections();
+    await new Promise<void>((resolve) => http.close(() => resolve()));
+  });
+  const address = http.address() as { port: number };
+  const descriptor = join(f.storage, "codex.json");
+  await writeFile(
+    descriptor,
+    JSON.stringify({
+      schema: 1,
+      url: `http://127.0.0.1:${address.port}/rpc`,
+      token: "a".repeat(64),
+      root: f.root,
+    }),
+  );
+  const client = new Client({ name: "lost-response", version: "1" });
+  f.cleanups.push(() => client.close());
+  await client.connect(
+    new StdioClientTransport({
+      command: process.execPath,
+      args: [resolve("dist/mcp-proxy.mjs"), descriptor],
+      stderr: "pipe",
+    }),
+  );
+  const lost = await client.callTool({
+    name: "contextory_request_change",
+    arguments: {
+      operationId: operationId(),
+      action: "create",
+      title: "Run once",
+      description: "Unknown response",
+    },
+  });
+  assert.equal(lost.isError, true);
+  assert.equal(calls, 1);
+  mismatch = true;
+  const stale = await client.callTool({
+    name: "contextory_context_get",
+    arguments: {},
+  });
+  assert.equal(stale.isError, true);
+  assert.equal(
+    JSON.parse((stale.content as { text: string }[])[0].text).code,
+    "SERVICE_RESTART_REQUIRED",
+  );
+  assert.equal(calls, 1);
+});
+
+test("editor service client reuses unchanged bridge files and detects a same-version stale tool contract", async (t) => {
+  const f = await fixture(t),
+    service = await startService(f);
+  f.cleanups.push(() => service.close());
+  const make = () =>
+    new ServiceClient(
+      f.root,
+      f.storage,
+      resolve("."),
+      process.execPath,
+      f.embeddingDirectory,
+      () => {},
+      () => {},
+    );
+  const first = make();
+  f.cleanups.push(() => first.close());
+  await first.start();
+  assert.equal(first.bridgeChanged, true);
+  await first.close();
+  const reopened = make();
+  f.cleanups.push(() => reopened.close());
+  await reopened.start();
+  assert.equal(reopened.bridgeChanged, false);
+  assert.equal(reopened.bridgeFingerprint, first.bridgeFingerprint);
+  await reopened.close();
+  const stale = make(),
+    actual = stale.call.bind(stale);
+  stale.call = async <T>(
+    method: string,
+    params: unknown = {},
+    timeout?: number,
+  ): Promise<T> =>
+    method === "tools/list"
+      ? ({ tools: [] } as T)
+      : actual<T>(method, params, timeout);
+  await assert.rejects(stale.start(), { code: "SERVICE_RESTART_REQUIRED" });
+  await stale.close();
 });
 
 test("real stdio MCP proxy, role isolation, advisory hooks and descriptor rotation", async (t) => {
@@ -172,7 +411,12 @@ test("real stdio MCP proxy, role isolation, advisory hooks and descriptor rotati
     code: "FORBIDDEN",
   });
   for (const provider of ["codex", "claude", "bob"])
-    for (const event of ["SessionStart", "UserPromptSubmit", "PostCompact"]) {
+    for (const event of [
+      "SessionStart",
+      "UserPromptSubmit",
+      "PostCompact",
+      "PreToolUse",
+    ]) {
       const hook = spawn(
         process.execPath,
         [

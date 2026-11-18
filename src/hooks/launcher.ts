@@ -19,9 +19,14 @@ try {
     observation,
     450,
   );
-  if (["SessionStart", "UserPromptSubmit", "PostCompact"].includes(event)) {
+  if (
+    ["SessionStart", "UserPromptSubmit", "PostCompact", "PreToolUse"].includes(
+      event,
+    ) &&
+    !observation.tool?.includes("contextory_")
+  ) {
     const context = `Contextory companion: ${retrievalReminder} ${completionNote}\nCurrent tracked specs: ${JSON.stringify(
-      brief.specs.map((s: unknown) => {
+      (brief.specs ?? []).map((s: unknown) => {
         const spec = s as { id: string; title: string; state: string };
         return { id: spec.id, title: spec.title, state: spec.state };
       }),

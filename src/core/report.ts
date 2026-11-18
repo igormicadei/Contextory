@@ -48,6 +48,28 @@ export function renderReport(
           const out = records.find((e) => e.id === s.data.latestOutcome);
           return out ? [`- ${out.data.changelog} (${s.id})`] : [];
         }),
+      ...records
+        .filter((e) =>
+          ["knowledge", "knowledge_change", "decision", "migration"].includes(
+            e.kind,
+          ),
+        )
+        .map(
+          (e) =>
+            `- ${e.kind}: ${e.title} (${e.id}; ${e.state}; revision ${e.revision})`,
+        ),
+      ...ledger
+        .events(Number.MAX_SAFE_INTEGER)
+        .filter(
+          (event) =>
+            event.type.startsWith("catalog.") &&
+            records.some((e) => e.id === event.entityId),
+        )
+        .reverse()
+        .map(
+          (event) =>
+            `- ${event.time}: ${event.type} ${event.entityId}; actor ${event.actor}; ${JSON.stringify(event.data)}`,
+        ),
       "",
     ].join("\n");
   const lines = [
@@ -100,6 +122,38 @@ export function renderReport(
     field("Contract fingerprint", e.data.contract);
     const children = byParent.get(e.id) ?? [];
     const sections: [string, string, [string, string][]][] = [
+      [
+        "knowledge",
+        "File, rule, feature and UI definitions",
+        [
+          ["content", "Definition and source/test links"],
+          ["provenance", "Provenance"],
+          ["review", "Human review"],
+          ["fingerprints", "Source fingerprints"],
+        ],
+      ],
+      [
+        "knowledge_change",
+        "Definition changes and retirements",
+        [
+          ["before", "Before"],
+          ["content", "After / retired definition"],
+          ["reason", "Reason"],
+          ["targetId", "Target"],
+          ["targetRevision", "Original revision"],
+          ["review", "Human authorization"],
+        ],
+      ],
+      [
+        "migration",
+        "Baseline migration",
+        [
+          ["cursor", "Scanned files"],
+          ["manifestHash", "Manifest fingerprint"],
+          ["gaps", "Skipped files and coverage gaps"],
+          ["note", "Semantic coverage limits"],
+        ],
+      ],
       [
         "outcome",
         "Changes and outcomes",

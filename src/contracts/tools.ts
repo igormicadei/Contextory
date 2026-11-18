@@ -4,12 +4,49 @@ const text = z.string().min(1).max(12000);
 const operationId = z.string().min(8).max(160);
 const expectedRevision = z.number().int().positive().optional();
 const source = z.object({
-  path: z.string().max(2000),
+  path: z.string().min(1).max(2000),
   line: z.number().int().nonnegative().optional(),
   character: z.number().int().nonnegative().optional(),
   symbol: z.string().max(500).optional(),
 });
 const lease = { specId: id, leaseId: id };
+const category = z.enum(["file", "rule", "feature", "ui"]);
+export const catalogContent = z
+  .object({
+    category,
+    title: z.string().trim().min(1).max(300),
+    description: text,
+    sources: z.array(source).min(1).max(30),
+    tests: z.array(source).max(30).default([]),
+    testGap: z.string().trim().min(1).max(2000).optional(),
+    ui: z
+      .object({
+        location: text,
+        element: text,
+        trigger: text,
+        behavior: text,
+        states: text,
+      })
+      .optional(),
+  })
+  .superRefine((p, ctx) => {
+    if (p.category === "file" && p.sources.length !== 1)
+      ctx.addIssue({
+        code: "custom",
+        message: "A file entry describes exactly one source file.",
+      });
+    if (p.category === "ui" && !p.ui)
+      ctx.addIssue({
+        code: "custom",
+        message:
+          "UI contracts need location, element, trigger, behavior and states.",
+      });
+    if (p.category !== "file" && !p.tests.length && !p.testGap)
+      ctx.addIssue({
+        code: "custom",
+        message: "Behavior needs test links or an explicit testGap.",
+      });
+  });
 const limits = z
   .object({
     callDepth: z.number().int().min(0).max(12).optional(),
@@ -20,6 +57,107 @@ const limits = z
   })
   .optional();
 export const tools = {
+  contextory_version_get: {
+    description:
+      "Read project-wide current version, Git tags/releases, unreleased commits, SemVer bump recommendation and global changelog context. Independent of requests; the service also observes Git automatically. releaseId selects a version's paginated commits and recorded semantic changes. offset/limit page each returned cursor. Observed local tags do not imply remote publication.",
+    schema: z.object({
+      releaseId: id.optional(),
+      offset: z.number().int().nonnegative().default(0),
+      limit: z.number().int().min(1).max(50).default(20),
+    }),
+  },
+  contextory_release_prepare: {
+    description:
+      "Prepare a concrete project-wide release plan from a clean Git root: exact base/head/branch, next SemVer, commit membership, global recorded decisions/definitions and reviewed version/changelog edits. bump=auto derives a recommendation from Conventional Commits; explicit version supports stable SemVer. Does not edit source, commit, tag or publish. No request/spec lease needed. Review the plan before applying it.",
+    schema: z.object({
+      operationId,
+      bump: z.enum(["auto", "patch", "minor", "major"]).default("auto"),
+      version: z.string().max(100).optional(),
+    }),
+  },
+  contextory_release_change: {
+    description:
+      "Execute an explicitly authorized project release plan at its exact revision. apply writes only planned version/changelog files, creates a dedicated Git commit and annotated immutable local tag; publish pushes only that exact tag to the configured remote, never branches or overwritten tags. recover resumes interrupted local application after validating owned partial work. cancel accepts unexecuted plans. Journaled operations support retry with the same operationId/input. Never use this as authorization to release the current project; user scope/native permissions still apply.",
+    schema: z.object({
+      operationId,
+      id,
+      expectedRevision: z.number().int().positive(),
+      action: z.enum(["apply", "publish", "recover", "cancel"]),
+    }),
+  },
+  contextory_project_export: {
+    description:
+      "Discover and page all documentation datasets stored by Contextory: records, immutable revisions, audit history, record/source relationships, code files/nodes/edges/imports, checks/jobs, native usage metadata and artifacts. Use overview first, then section with offset/limit until nextOffset=null; artifact reads page 400-character units by returned file name. Optional entityId filters record revisions/history/relationships/jobs/usage. Preserves sequence/snapshot and provenance. No credentials or native conversations are exposed. Read-only documentation needs no request.",
+    schema: z.object({
+      section: z
+        .enum([
+          "overview",
+          "records",
+          "revisions",
+          "history",
+          "relationships",
+          "code_files",
+          "code_nodes",
+          "code_edges",
+          "code_imports",
+          "jobs",
+          "usage",
+          "artifacts",
+        ])
+        .default("overview"),
+      entityId: id.optional(),
+      artifact: z.string().min(1).max(200).optional(),
+      offset: z.number().int().nonnegative().default(0),
+      limit: z.number().int().min(1).max(50).default(20),
+    }),
+  },
+  contextory_catalog_get: {
+    description:
+      "Read the versioned file-purpose, rule, feature and UI catalog before changes. Filter by path/category/query; page all results. Returns pending proposals and source freshness. Test references are not execution evidence. inventory=true also pages authorized workspace files and exposes missing descriptions; no claim of complete behavioral coverage.",
+    schema: z.object({
+      category: category.optional(),
+      path: z.string().max(2000).optional(),
+      query: z.string().max(4000).optional(),
+      inventory: z.boolean().default(false),
+      offset: z.number().int().nonnegative().default(0),
+      limit: z.number().int().min(1).max(50).default(20),
+    }),
+  },
+  contextory_catalog_change: {
+    description:
+      "Under a spec lease, create an observed source-backed catalog entry or propose a replacement/retirement of an existing entry with expectedRevision and reason. Never silently overwrite or delete established behavior. Proposals retain before/after definitions. Approval requires the human review UI; generated and agent-authored entries are observations, not approved requirements.",
+    schema: z.object({
+      operationId,
+      ...lease,
+      action: z.enum(["create", "revise", "retire"]),
+      id: id.optional(),
+      expectedRevision,
+      content: catalogContent.optional(),
+      reason: text,
+      migrationId: id.optional(),
+    }),
+  },
+  contextory_catalog_review: {
+    description:
+      "Human UI only: approve an observed baseline or approve/reject an exact pending catalog change after reviewing its before/after definition and source freshness. Native agents cannot grant approval; original revisions and reviewer identity remain in history.",
+    schema: z.object({
+      operationId,
+      id,
+      expectedRevision: z.number().int().positive(),
+      action: z.enum(["approve", "reject"]),
+      reason: text,
+    }),
+  },
+  contextory_catalog_migrate: {
+    description:
+      "Bootstrap an existing project's file catalog in resumable bounded batches under a spec lease. Omit migrationId to start, then pass the returned id; the stored manifest/cursor prevents duplicate work. Candidates use current graph symbols with explicit uncertainty; no requirement is auto-approved. Use the contextory-migrate skill to inspect candidates and add rules/features/UI contracts and test gaps.",
+    schema: z.object({
+      operationId,
+      ...lease,
+      migrationId: id.optional(),
+      limit: z.number().int().min(1).max(50).default(20),
+    }),
+  },
   contextory_context_get: {
     description:
       "Read workspace contracts, active specs, failures, configured checks and shared agent guidance before authorized implementation. Includes cached codebase orientation; use code_context_get for current task-specific source. Read-only questions need no request.",
@@ -178,6 +316,9 @@ export const tools = {
       limitations: text,
       report: text,
       changelog: z.string().min(1).max(2000),
+      catalog: z
+        .object({ recordIds: z.array(id).max(200), explanation: text })
+        .optional(),
       criteria: z
         .array(
           z.object({
@@ -352,6 +493,9 @@ export function toolDefinitions() {
     annotations: {
       readOnlyHint: [
         "contextory_context_get",
+        "contextory_version_get",
+        "contextory_project_export",
+        "contextory_catalog_get",
         "contextory_entity_get",
         "contextory_history_get",
         "contextory_usage_get",
@@ -365,7 +509,7 @@ export function toolDefinitions() {
         "contextory_flow_expand",
       ].includes(name),
       destructiveHint: false,
-      openWorldHint: false,
+      openWorldHint: name === "contextory_release_change",
     },
   }));
 }

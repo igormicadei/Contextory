@@ -1,0 +1,12 @@
+{
+  "name": "contextory-reload-probe",
+  "publisher": "contextory-test",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "main": "./index.cjs",
+  "activationEvents": [
+    "*"
+  ]
+}

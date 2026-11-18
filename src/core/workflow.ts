@@ -541,6 +541,10 @@ export class Workflow {
           snapshot,
           contract: spec.data.contract,
           generation: spec.data.generation,
+          catalogRevisions: a.catalog?.recordIds.map((id) => ({
+            id,
+            revision: this.ledger.get(id).revision,
+          })),
         },
         actor,
         spec.id,
@@ -564,6 +568,15 @@ export class Workflow {
         "Submit an outcome with issue/fix/decision explanations first.",
       );
     const outcome = this.kind(String(spec.data.latestOutcome), "outcome");
+    for (const entry of (outcome.data.catalogRevisions ?? []) as {
+      id: string;
+      revision: number;
+    }[])
+      if (this.ledger.get(entry.id).revision !== entry.revision)
+        throw new ContextoryError(
+          "STALE_OUTCOME",
+          "Catalog definitions changed after submission; review them and submit a fresh outcome.",
+        );
     if (
       outcome.data.contract !== spec.data.contract ||
       outcome.data.generation !== spec.data.generation ||

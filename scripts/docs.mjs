@@ -44,7 +44,9 @@ for (const [source, target] of pages) {
   if (source.startsWith("skills/") && /SKILL\.md$/.test(source)) {
     const title = source.includes("contextory-codebase")
       ? "Codebase skill"
-      : "Workflow skill";
+      : source.includes("contextory-migrate")
+        ? "Migration agent skill"
+        : "Workflow skill";
     text =
       `# ${title}\n\n` + text.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, "");
   }

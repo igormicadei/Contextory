@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+## 0.5.0 ? 2026-11-18
+
+- Recover reused native MCP connections across delayed workspace/service restarts without replaying mutations; diagnose same-version tool-contract mismatch and separate current MCP/hook observations from historical traffic.
+- Offer a persisted setup Extension Host restart, with `prompt`, opt-in `automatic`, and `never` modes; add native connection diagnostics and restart commands. Qualify persisted-thread resume with the real Codex app-server and actual automatic restart in isolated VS Code.
+
+- Add project-wide Git version observation, exact commit membership and Conventional Commit bump recommendations independent of requests or agents.
+- Add journaled release plans, deterministic version/changelog adapters, dedicated commits and annotated tags, with separate verified tag publication and interrupted-operation recovery through UI, CLI and MCP.
+- Expose retained global release history and semantic recording intervals for documentation; detect historical tag drift and preserve immutable membership.
+
+- Add a versioned catalog for file responsibilities, rules/features with test links or gaps, and UI layout/interaction contracts. Human Knowledge review approves exact baselines and before/after changes or retirements; prior definitions and reasons remain in history and reports.
+- Add source/test freshness and catalog completion accounting, with pending-proposal and stale-approved-definition blockers. Legacy projects without a catalog retain their existing completion behavior until enrollment.
+- Deliver the portable `contextory-migrate` agent and resumable file-scan MCP tool for existing projects, with explicit inference/coverage limits and no automatic requirement approval.
+- Expose paginated project documentation datasets through `contextory_project_export`, including current and historical definitions, decisions, source facts, relationships, check evidence, usage metadata and artifacts.
+- Update shared native/headless instructions, advisory hooks, canonical skills and documentation.
+
 ## 0.4.0 — 2026-11-17
 
 - Add persistent named local reference codebases with isolated source indexes and concurrent architecture/context/impact/path/search/flow analysis. Keep current-project defaults, work records and source files separate.

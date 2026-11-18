@@ -1,4 +1,4 @@
-export const version = "0.4.0";
+export const version = "0.5.0";
 export type Provider = import("../providers/clients").ClientId;
 export type Kind =
   | "request"
@@ -8,6 +8,10 @@ export type Kind =
   | "finding"
   | "decision"
   | "evidence"
+  | "knowledge"
+  | "knowledge_change"
+  | "migration"
+  | "release"
   | "outcome";
 export interface Entity {
   id: string;
@@ -105,8 +109,11 @@ export interface Connection {
   mcpSeen?: string;
   lastEvent?: string;
   nativeSession?: string;
+  mcpCurrent?: boolean;
+  hookCurrent?: boolean;
 }
 export interface Dashboard {
+  versioning?: import("../releases/manager").VersionStatus;
   references?: CodebaseInfo[];
   codebase?: import("../codebase/model").CodeStatus;
   root: string;
