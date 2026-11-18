@@ -1,0 +1,12 @@
+{
+  "recordedAt": "2026-11-18T22:05:11.002Z",
+  "host": "Visual Studio Code",
+  "vscode": "1.145.3",
+  "checks": [
+    "distinct project identities, SQLite storage, requests, source symbols, source navigation and folder check settings",
+    "root-specific paused startup and resume configure only the intended folder",
+    "cross-project branch navigation and editor cursor tracing select the actual source project",
+    "remove selected folder detaches routing; re-add preserves stable storage, identity and request records"
+  ],
+  "passed": true
+}
