@@ -1,0 +1,27 @@
+{
+  "version": "0.6.0",
+  "tag": "v0.6.0",
+  "commit": "92df77f0c6e8e364b1fc6477e2cdb888b36637cb",
+  "sha256": "4b8c29db1185185bc2c272dfc1ca0c1b963b49e7a855720f17cf51255ac0a43c",
+  "bytes": 4234111,
+  "files": 59,
+  "verifiedResources": [
+    "dist/analysis-worker.mjs",
+    "dist/codebase-worker.mjs",
+    "dist/contextory-hook.mjs",
+    "dist/contextory.mjs",
+    "dist/extension.js",
+    "dist/mcp-proxy.mjs",
+    "dist/python-flow.py",
+    "dist/python-index.py",
+    "dist/service.mjs",
+    "dist/webview.js",
+    "skills/contextory-codebase/SKILL.md",
+    "skills/contextory-migrate/SKILL.md",
+    "skills/contextory-workflow/SKILL.md",
+    "skills/contextory-workflow/references/completion.md",
+    "skills/contextory-codebase/references/retrieval.md"
+  ],
+  "extracted": "C:\\Projetos\\Contextory\\.contextory-local\\release-060-package-e902b1af60754134924aaea398b1c8de\\extension",
+  "liveEditorInstalled": false
+}
