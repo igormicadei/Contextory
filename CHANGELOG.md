@@ -1,5 +1,96 @@
 # Changelog
 
+## 0.5.1 (2026-11-18)
+
+### Commits
+
+- 69f68317af7868f9efb3d873b30ce67d303c7422: fix: retry gray native-agent connections
+
+### Project decisions, features and rules recorded in this interval
+
+These ledger entries are associated by recording interval, not verified commit inclusion. Refer to their immutable revisions for provenance.
+
+- DEC-25c900ca@1 (decision, active): Global Git-backed version controller with explicit durable release actions
+- DEC-295b1850@1 (decision, active): Share portable instructions and contracts while isolating host adapters
+- DEC-3b8769d0@1 (decision, active): Keep references in separate read-only source-analysis runtimes
+- DEC-50083b65@1 (decision, active): Publish complete documentation through existing Pages branch
+- DEC-5b642668@1 (decision, active): Publish additive capabilities as 0.5.0 while preserving 0.4.0
+- DEC-5f60ee39@1 (decision, active): Apply progressive source exploration to the existing normalized graph
+- DEC-76fda164@1 (decision, active): Share retrieval behavior while keeping host adapters thin
+- DEC-81d1b365@1 (decision, active): Separate rebuildable graph projections from work records
+- DEC-8e39cb64@1 (decision, active): Publish a patch release and preserve existing Pages history
+- DEC-9742539f@1 (decision, active): Build complete Pages documentation from canonical Markdown
+- DEC-c963fb8a@1 (decision, active): Recover native MCP connections and bound setup restarts
+- DEC-eddc814b@1 (decision, active): Keep inferred observations separate from human-approved application definitions
+- ISS-1c7354a8@1 (finding, resolved): Class context over-selected local variables and exhausted edge budget
+- ISS-2cdaebb6@1 (finding, resolved): Hosted documentation workflow blocked before startup
+- ISS-79fa0fc0@1 (finding, resolved): Gray configured footer agent removed connection setup when clicked
+- ISS-7a121d8e@1 (finding, resolved): Preserve compact Panel navigation and viewport after explorer redesign
+- ISS-86241727@1 (finding, resolved): Post-compaction hook dropped the agent reminder
+- ISS-9082f9b4@2 (finding, deferred): Automatic documentation runner blocked by account billing; manual Pages publication succeeded
+- ISS-9a6f402b@1 (finding, resolved): Imported relationships could outlive changed source
+- ISS-9c62bcbc@1 (finding, resolved): A workspace inside an ignored parent repository appeared empty
+- ISS-a33837e5@1 (finding, deferred): Hosted documentation Actions cannot start because the GitHub account is billing-locked
+- ISS-ab865376@1 (finding, resolved): MCP discovery requires object-root input schemas
+- ISS-ae1ee12b@1 (finding, resolved): Successful readiness cache survives workspace service shutdown
+- ISS-b15474cd@1 (finding, deferred): Hosted automatic documentation workflow blocked by GitHub billing lock
+- ISS-e0396878@1 (finding, resolved): Windows editor storage can exceed SQLite's normal path limit
+- ISS-fa758e0a@1 (finding, resolved): Release observation and recovery must coalesce events and reconcile completed Git effects
+- ISS-fac0364f@1 (finding, resolved): Generated KaTeX Unicode range blocked by publication scan
+- ISS-faed74a2@1 (finding, resolved): Align regression fixtures with the new knowledge surface and public retrieval contract
+- KN-0b720aa8@1 (knowledge, observed): Native connection user guidance
+- KN-2d6ce110@1 (knowledge, observed): Sidebar connection rendering and actions
+- KN-79bd55f9@1 (knowledge, observed): Native-agent footer retries gray connections
+- KN-cd597472@1 (knowledge, observed): Sidebar connection action regression coverage
+- OUT-1141f675@1 (outcome, submitted): Committed and pushed Contextory v0.5.0, created the immutable annotated tag, published the stable GitHub release with exact VSIX/checksum assets, and published/verified all27documentation pages. main 
+- OUT-15cb5cbf@1 (outcome, submitted): Gray native-agent footer buttons now retry connection setup instead of disconnecting an existing waiting configuration. Green observed connections retain disconnect. Diagnosed the affected project's m
+- OUT-1a7629a8@1 (outcome, submitted): Implemented persistent native source knowledge and validated project configuration.
+- OUT-222cecf1@1 (outcome, submitted): Fixed stale native MCP readiness after project reopen, added explicit version/tool-contract mismatch diagnostics, separated current service MCP/hook observations from history, and delivered persisted 
+- OUT-2a5e7c18@1 (outcome, submitted): Implemented isolated, persistent local reference codebases alongside the active workspace, with explicit per-call agent selection and Architecture navigation.
+- OUT-2c801cc8@1 (outcome, submitted): Implemented project-wide version and release management independent of requests: automatic Git observation and exact per-version membership, global semantic intervals, current version and SemVer recom
+- OUT-2ea5e2c1@1 (outcome, submitted): Published Contextory v0.3.0 with updated complete documentation, visual source exploration, verified VSIX/checksum assets and a live searchable Pages site from an orphan branch.
+- OUT-47d19d7c@1 (outcome, submitted): Delivered Architecture navigation and bounded cached workspace orientation.
+- OUT-4bc0d5b6@1 (outcome, submitted): Validated and documented the full six-stage local 0.3.0 implementation and distributable.
+- OUT-4f3aa737@1 (outcome, submitted): Updated all Contextory agent instruction surfaces while preserving agent-agnostic behavior and thin host adapters.
+- OUT-6f4c370f@1 (outcome, submitted): Implemented canonical portable skills, capability adapters and standalone CLI/MCP.
+- OUT-771dbdff@1 (outcome, submitted): Published Contextory v0.3.1 as latest GitHub release with verified VSIX/SHA-256 and complete live documentation on the preserved orphan gh-pages branch.
+- OUT-7ebef404@1 (outcome, submitted): Implemented coherent graph freshness, static contract links and optional Graphify import.
+- OUT-89980238@1 (outcome, submitted): Committed and pushed isolated reference-codebase support and published Contextory v0.4.0 with verified VSIX/checksum assets and complete live documentation.
+- OUT-929fbeec@1 (outcome, submitted): Implemented versioned project knowledge, human review, resumable migration and complete paginated documentation access.
+- OUT-ac913f87@1 (outcome, submitted): Implemented definition-first task retrieval, project-memory linkage, source impact and relationship paths.
+- OUT-ffb94e00@1 (outcome, submitted): Architecture and Code map now provide coordinated visual source exploration with bounded maps, understandable relationship semantics and direct navigation.
+- REQ-17d86fd1@2 (request, completed): Analyze reference codebases alongside the current project
+- REQ-1f8f26b8@2 (request, completed): Release Contextory v0.3.1 on GitHub
+- REQ-51f339c5@2 (request, completed): Manage project-wide versions, commit changelogs and GitHub tags programmatically
+- REQ-5fc5632c@2 (request, completed): Verify resumed Codex chats and reload newly installed workspace integrations
+- REQ-66b98588@2 (request, completed): Synchronize agent instructions for codebase-aware information retrieval
+- REQ-70858e00@2 (request, completed): Release Contextory v0.4.0 with isolated reference codebases
+- REQ-8cc2df5c@3 (request, completed): Govern project knowledge, migration history and documentation access
+- REQ-c51fae9d@3 (request, completed): Publish Contextory v0.3.0 with visual code exploration and full documentation
+- REQ-cd9f8775@2 (request, completed): Complete codebase awareness and agent portability
+- REQ-e99e4025@2 (request, completed): Release Contextory v0.5.0 with governed knowledge, project versions and native recovery
+- REQ-fdba89b6@1 (request, active): Release Contextory v0.5.1 with gray connection retry
+- REQ-fe40c5c6@2 (request, completed): Retry unobserved native connections from gray agent buttons
+- SPEC-04afbcf9@5 (spec, completed): Maintain current relationships and import Graphify graphs
+- SPEC-0863b3c7@4 (spec, completed): Publish validated v0.5.0 source, package and documentation
+- SPEC-0bb5e79d@5 (spec, completed): Retrieve task context, source impact and relationship paths
+- SPEC-0f5d6a9a@6 (spec, completed): Implement global Git-backed versions and release operations
+- SPEC-28a17f45@4 (spec, completed): Make gray native-agent buttons retry without removing configuration
+- SPEC-3115fc98@5 (spec, completed): Publish v0.3.0 documentation, release assets and Pages site
+- SPEC-487a8f14@4 (spec, completed): Package, commit and publish isolated reference codebases
+- SPEC-515ccb37@5 (spec, completed): Recover resumed native connections and offer one-time setup reload
+- SPEC-5c35863d@4 (spec, completed): Publish v0.3.1 assets and documentation
+- SPEC-61020633@5 (spec, completed): Index symbols, source structure and project configuration
+- SPEC-7ab62c41@4 (spec, completed): Isolated local reference codebases across tools and Architecture
+- SPEC-7af018d9@4 (spec, completed): Synchronize portable skills, workspace instructions and runtime guidance
+- SPEC-8d0c953f@2 (spec, implementing): Publish qualified v0.5.1 package and release
+- SPEC-b48bad9c@5 (spec, completed): Package portable skills and client-neutral execution
+- SPEC-ccfd6f2d@4 (spec, completed): Make Architecture and Code map visual and navigable
+- SPEC-d2fabd1c@5 (spec, completed): Expose architecture and freshness in the extension
+- SPEC-db46ac99@7 (spec, completed): Implement governed catalog, migration agent and documentation access
+- SPEC-dd0f9c36@4 (spec, completed): Evaluate and document the complete implementation
+
+
 ## Unreleased
 
 ## 0.5.0 ? 2026-11-18
