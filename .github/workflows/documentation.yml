@@ -9,10 +9,13 @@ on:
       - "THIRD_PARTY_NOTICES.txt"
       - "docs/**"
       - "docs-site/**"
+      - ".documentation/**"
       - "skills/**"
       - "media/**"
       - "artifacts/**"
       - "scripts/docs.mjs"
+      - "scripts/documentation/**"
+      - "tests/documentation/**"
       - "package*.json"
       - ".github/workflows/documentation.yml"
   workflow_dispatch:
@@ -35,12 +38,16 @@ jobs:
         with:
           node-version: 24
           cache: npm
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.11"
       - run: npm ci
-      - run: npm run docs:build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run docs:check
       - name: Publish static documentation to gh-pages
         uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .contextory-local/docs-site
+          publish_dir: .documentation/site
           publish_branch: gh-pages
           enable_jekyll: false

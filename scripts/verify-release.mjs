@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { readFile, readdir } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import assert from "node:assert/strict";
 
@@ -83,17 +83,20 @@ const response = await fetch(
 assert.equal(response.status, 200);
 const manifest = await response.json();
 assert.equal(manifest.version, version);
-const expected = ["index.html", "overview.html", "changelog.html"];
-async function collect(directory) {
-  for (const item of await readdir(directory, { withFileTypes: true })) {
-    const path = `${directory}/${item.name}`;
-    if (item.isDirectory()) await collect(path);
-    else if (item.name.endsWith(".md"))
-      expected.push(path.replace(/\.md$/, ".html"));
-  }
-}
-await collect("docs");
-await collect("skills");
+const corpus = JSON.parse(
+  await readFile(".documentation/project.json", "utf8"),
+);
+const redirects = JSON.parse(
+  await readFile(".documentation/redirects.json", "utf8"),
+);
+const expected = [
+  "index.html",
+  ...["en", "pt-BR"].flatMap((locale) =>
+    corpus.pages.map((page) => `${locale}/${page.id}.html`),
+  ),
+  ...Object.keys(redirects),
+];
+assert.equal(manifest.layout, "software-documentation default Carbon");
 assert.deepEqual(
   manifest.pages.slice().sort(),
   expected.sort(),
@@ -103,6 +106,8 @@ for (const path of [
   "",
   "docs/USER-GUIDE.html",
   "docs/CODEBASE-INTELLIGENCE.html",
+  "en/overview.html",
+  "pt-BR/overview.html",
   `docs/releases/${tag}.html`,
 ]) {
   const page = await fetch(pages.html_url + path, {
@@ -110,6 +115,18 @@ for (const path of [
   });
   assert.equal(page.status, 200, `Published page unavailable: ${path}`);
   assert.ok((await page.text()).includes("Contextory"));
+}
+for (const path of [
+  "llms.txt",
+  "en/llms-full.txt",
+  "pt-BR/llms-full.txt",
+  "corpus.json",
+  "api.json",
+]) {
+  const exported = await fetch(pages.html_url + path, {
+    signal: AbortSignal.timeout(30000),
+  });
+  assert.equal(exported.status, 200, `Published export unavailable: ${path}`);
 }
 console.log(
   JSON.stringify(

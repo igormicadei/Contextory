@@ -1,0 +1,199 @@
+{
+  "overview.html": [
+    "what-it-offers",
+    "install",
+    "connect-an-agent-and-start-work",
+    "how-it-works",
+    "explore-the-interface",
+    "storage-and-current-scope",
+    "documentation",
+    "license",
+    "governed-application-knowledge"
+  ],
+  "changelog.html": [
+    "070-2026-11-21",
+    "commits",
+    "project-decisions-features-and-rules-recorded-in-this-interval",
+    "060-2026-11-18",
+    "051-2026-11-18",
+    "unreleased",
+    "050--2026-11-18",
+    "040--2026-11-17",
+    "031--2026-11-16",
+    "030--2026-11-16",
+    "026--2026-11-13",
+    "025--2026-11-13",
+    "024--2026-11-12",
+    "023--2026-11-12",
+    "022--2026-11-12",
+    "021--2026-11-12",
+    "020--2026-11-12"
+  ],
+  "docs/USER-GUIDE.html": [
+    "reference-repositories-since-040",
+    "requirements",
+    "install-the-vsix",
+    "connect-a-native-agent",
+    "a-normal-day-of-work",
+    "use-the-sidebar-and-workbench",
+    "overview",
+    "requests",
+    "history",
+    "architecture",
+    "code-map",
+    "theme-behavior",
+    "search-and-shared-project-memory",
+    "export-request-reports",
+    "configuration-and-storage",
+    "upgrade-disconnect-and-uninstall",
+    "troubleshooting"
+  ],
+  "docs/CODEBASE-INTELLIGENCE.html": [
+    "workspace-projects",
+    "explore-a-project",
+    "agent-portability",
+    "run-without-an-editor",
+    "validate"
+  ],
+  "docs/MCP-TOOLS.html": [
+    "available-tools",
+    "mutation-and-session-rules",
+    "complete-a-spec-correctly",
+    "read-only-examples",
+    "history-graphs-artifacts-and-reports",
+    "qualification"
+  ],
+  "docs/PROJECT-KNOWLEDGE.html": [
+    "what-the-catalog-records",
+    "review-and-change-a-definition",
+    "migrate-an-existing-project",
+    "generate-application-documentation-through-mcp"
+  ],
+  "docs/PROJECT-RELEASES.html": [
+    "prepare-apply-and-publish",
+    "global-changelog-and-documentation",
+    "cli-and-mcp-automation"
+  ],
+  "docs/NATIVE-AGENT-ARCHITECTURE.html": [
+    "responsibility-boundary",
+    "process-and-deployment-choices",
+    "records-and-invariants",
+    "transport-and-native-adapters",
+    "knowledge-and-source-flow",
+    "current-limits",
+    "protocol-references"
+  ],
+  "docs/DEVELOPMENT.html": [
+    "maintain-agent-instructions",
+    "set-up",
+    "qualify-native-reconnection-and-setup-reload",
+    "build-and-inspect",
+    "debug-and-test-editor-hosts",
+    "package-contents-and-storage",
+    "build-and-publish-the-documentation",
+    "release-process"
+  ],
+  "docs/SPEC-OUTCOME-TEMPLATE.html": [
+    "identity-and-requirement",
+    "what-changed",
+    "issues-found-and-how-they-were-resolved",
+    "decisions-made",
+    "acceptance-and-validation",
+    "code-and-relationship-references",
+    "deviations-limits-and-follow-up",
+    "report-and-changelog-text"
+  ],
+  "docs/VALIDATION.html": [
+    "070-managed-hook-recovery",
+    "060-multi-project-workspaces-and-native-startup-recovery",
+    "051-gray-connection-retry",
+    "050-governed-knowledge-project-releases-and-native-recovery",
+    "040-isolated-reference-codebases",
+    "031-patch-release-packaging",
+    "030-release-publication-and-visual-exploration",
+    "030-code-intelligence-and-portable-execution-implementation-history",
+    "026-automatic-agent-discovery-and-early-mcp-startup",
+    "025-horizontal-panel-and-startup-preparation",
+    "024-native-model-and-usage-records",
+    "023-qualification-record",
+    "automated-checks",
+    "actual-editor-hosts-and-packaging",
+    "measured-fixture",
+    "qualification-limits"
+  ],
+  "docs/CODEBASE-INTELLIGENCE-PLAN.html": [
+    "delivery-status--2026-11-16",
+    "outcome",
+    "delivery-stages",
+    "architecture-and-invariants",
+    "validation-and-completion",
+    "references"
+  ],
+  "docs/NATIVE-AGENT-PLAN.html": [
+    "milestone-results",
+    "final-source-layout",
+    "important-implementation-decisions",
+    "remaining-qualification",
+    "request-focused-iteration--021",
+    "visual-refinement-and-relationship-view--022",
+    "contextory-identity--023"
+  ],
+  "docs/releases/v0.2.3.html": [
+    "in-this-release",
+    "install",
+    "validation-and-preview-scope",
+    "upgrade-note"
+  ],
+  "docs/releases/v0.2.4.html": [],
+  "docs/releases/v0.2.5.html": [],
+  "docs/releases/v0.2.6.html": [],
+  "docs/releases/v0.3.0.html": [
+    "in-this-release",
+    "install",
+    "upgrade-and-storage",
+    "validation-and-limits"
+  ],
+  "docs/releases/v0.3.1.html": [
+    "changes",
+    "install-or-upgrade",
+    "validation-and-limits"
+  ],
+  "docs/releases/v0.4.0.html": [
+    "changes",
+    "install-or-upgrade",
+    "validation-and-limits"
+  ],
+  "docs/releases/v0.5.0.html": [
+    "changes",
+    "install-or-upgrade",
+    "validation-and-limits"
+  ],
+  "docs/releases/v0.5.1.html": [
+    "changes",
+    "install-or-upgrade",
+    "validation-and-limits"
+  ],
+  "docs/releases/v0.6.0.html": [
+    "changes",
+    "install-or-upgrade",
+    "validation-and-limits"
+  ],
+  "docs/releases/v0.7.0.html": [
+    "changes",
+    "install-or-upgrade",
+    "validation-and-limits"
+  ],
+  "skills/contextory-codebase/SKILL.html": [],
+  "skills/contextory-migrate/SKILL.html": [],
+  "skills/contextory-workflow/SKILL.html": [],
+  "skills/contextory-workflow/references/completion.html": [],
+  "skills/contextory-codebase/references/retrieval.html": [
+    "hook-recovery",
+    "choose-the-lookup",
+    "freshness-and-coverage",
+    "reference-codebases",
+    "active-workspace-projects",
+    "clients-without-a-capability",
+    "application-definitions-and-documentation"
+  ]
+}

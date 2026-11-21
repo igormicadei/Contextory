@@ -1,0 +1,11 @@
+{
+  "docs/USER-GUIDE.md": "user-guide",
+  "docs/CODEBASE-INTELLIGENCE.md": "advanced",
+  "docs/MCP-TOOLS.md": "api",
+  "docs/PROJECT-KNOWLEDGE.md": "knowledge",
+  "docs/PROJECT-RELEASES.md": "releases",
+  "docs/NATIVE-AGENT-ARCHITECTURE.md": "architecture",
+  "docs/DEVELOPMENT.md": "contributing",
+  "docs/SPEC-OUTCOME-TEMPLATE.md": "outcomes",
+  "docs/VALIDATION.md": "validation"
+}

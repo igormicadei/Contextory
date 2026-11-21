@@ -3,6 +3,17 @@ dist/*.map
 src/**
 tests/**
 docs-site/**
+.documentation/site/**
+.documentation/assets/**
+.documentation/legacy/**
+.documentation/REVIEW.md
+.documentation/README.md
+.documentation/legacy-assets.json
+.documentation/project.json
+.documentation/redirects.json
+.documentation/aliases.json
+.documentation/markdown-targets.json
+.documentation/tool-contracts.json
 .github/**
 scripts/**
 !scripts/prepare-embeddings.mjs
@@ -13,6 +24,7 @@ preview/**
 .claude/**
 .bob/**
 .contextory/**
+.remember/**
 .mcp.json
 AGENTS.md
 CLAUDE.md

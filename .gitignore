@@ -1,6 +1,10 @@
 node_modules/
 dist/
 docs-site/.vitepress/.temp/
+.documentation/site/
+.documentation/integrations/
+__pycache__/
+*.pyc
 artifacts/*.vsix
 artifacts/probe*.json
 artifacts/host-smoke.json

@@ -1,0 +1,17 @@
+{
+  "package": "software-documentation",
+  "version": "1.0.0",
+  "origin": "custom-agents/software-documentation",
+  "copied": "2026-11-21",
+  "changes": "None: default renderer, assets and consumer runtime copied byte-for-byte. Application-owned wrapper is ../build.py.",
+  "files": {
+    "consumer.py": "a9e93d1f33d108af9f57139b5b657223f38a13b0c5e4f42f35d16536868e7d4f",
+    "core.py": "3504cc4e063af11ddd33056807a031700fb38bad514b87340d4b7d844268d446",
+    "install_library.py": "99a5c1ff712b8a51f8f1f8a38653ebe8990e92aee02d98fefc519bbc89aec184",
+    "library_mcp.py": "4786599605e950a61e88784f0dcf26d3a6f164c255cc5d0c3b5d5c62e31206db",
+    "LICENSE": "4c59f4a5bd8655b8445dcfe28df1a593dfe71e5854cea2316945e8ec6604475e",
+    "assets/site.css": "aab62dcfe63f969bfa7231be2ba659f208dd081253e5c6204f787ddd25bca3a4",
+    "assets/site.js": "4617797b1f0f3a3d1e77afd47e000a4e59ee8c7916ee37a6bb25cf0773ebfe09"
+  },
+  "license": "MIT; copyright 2026 Igor Campos; see LICENSE"
+}

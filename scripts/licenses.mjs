@@ -8,6 +8,13 @@ const notices = [
   "Optional semantic search installs @huggingface/transformers 4.3.2 (Apache-2.0) and ONNX Runtime separately in managed local storage. The pinned Xenova/all-MiniLM-L6-v2 model is Apache-2.0: https://huggingface.co/Xenova/all-MiniLM-L6-v2/tree/751bff37182d3f1213fa05d7196b954e230abad9. Those optional assets are not included in this VSIX; preparation retains their dependency notices.",
   "",
 ];
+notices.push(
+  "=".repeat(72),
+  "software-documentation 1.0.0 — optional read-only documentation integration",
+  "License: MIT",
+  await readFile("scripts/documentation/vendor/LICENSE", "utf8"),
+  "",
+);
 const seen = new Set();
 for (const [path, entry] of Object.entries(lock.packages)) {
   if (!path || entry.dev || entry.optional) continue;

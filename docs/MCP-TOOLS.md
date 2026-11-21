@@ -1,150 +1,817 @@
-# Contextory MCP tools
+<a id="available-tools"></a>
+<a id="mutation-and-session-rules"></a>
+<a id="complete-a-spec-correctly"></a>
+<a id="read-only-examples"></a>
+<a id="history-graphs-artifacts-and-reports"></a>
+<a id="qualification"></a>
 
-Contextory exposes project workflow, retrieval, source tracing, and reporting through a standard stdio MCP server. Agents use these tools from their native conversation; Contextory does not host a second chat or handle model routing.
+<!-- Generated from .documentation/project.json; edit the bilingual corpus. -->
 
-Connect through the extension's provider command rather than assembling private descriptor paths by hand. The project-specific server name is `contextory_companion_<project hash>`. The authoritative input schemas and descriptions are in [src/contracts/tools.ts](../src/contracts/tools.ts); the running server advertises them through MCP `tools/list`.
+# MCP API reference
 
-## Available tools
+<a id="contract"></a>
 
-Project releases add `contextory_version_get` (global status, paged version commits/semantic records), `contextory_release_prepare` (concrete plan only) and `contextory_release_change` (apply/publish/recover/cancel). They are independent of request/spec leases. See [project versions and tags](PROJECT-RELEASES.md) for automatic observation, configuration, durable retries, CLI/CI usage and publication boundaries.
+## Read the advertised contract
 
-Version 0.7.0 advertises 36 tools, including project-scoped hook recovery, workspace discovery and coordinated requests. Native proxies and headless stdio MCP use the same schemas:
+Contextory 0.7.0 defines 36 tools. The following Zod schema excerpts were extracted with the TypeScript parser from the saved source without executing application code. They preserve required/optional/default/range semantics. The running MCP tools/list response is authoritative for the installed client version. contextory_catalog_review is human-UI-only even if its contract is visible.
 
-| Tool                                  | Purpose                                                                                                                                                                                                                     |
-| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `contextory_hooks_rebuild`            | Repair managed hooks and the packaged launcher for an explicit native provider/project using a unique operation ID. Preserves unrelated configuration and native trust; requires a reachable service.                       |
-| `contextory_workspace_get`            | Discover project identities, canonical roots and attached workspace contexts; optional `groupId` reads cross-project request branches and aggregate status.                                                                 |
-| `contextory_workspace_request_create` | Create linked local requests for explicit `projectIds`, including the owning server project, with durable original input and idempotent partial recovery.                                                                   |
-| `contextory_project_export`           | Discover and page stored application-documentation datasets, revisions, history, source facts, check jobs and artifacts, preserving sequence/snapshot and provenance.                                                       |
-| `contextory_catalog_get`              | Read file/rule/feature/UI definitions, pending changes and source freshness; optional paged file inventory exposes missing descriptions.                                                                                    |
-| `contextory_catalog_change`           | Create observed definitions or propose replacements/retirements under a spec lease, preserving reason and before/after history.                                                                                             |
-| `contextory_catalog_review`           | Authenticated human UI approval/rejection of an exact baseline/proposal; agents cannot approve.                                                                                                                             |
-| `contextory_catalog_migrate`          | Resumable file scan and candidate bootstrap for the portable migration agent; never auto-approves candidates.                                                                                                               |
-| `contextory_codebase_list`            | List the current project and its isolated local reference registrations.                                                                                                                                                    |
-| `contextory_codebase_change`          | Register an authorized absolute local directory (`action:add`, `root`, optional `name`) or detach a reference (`action:remove`, `codebaseId`), with an `operationId`. Source files are untouched.                           |
-| `contextory_code_context_get`         | Current definitions, dependencies/callers/tests/documents and project memory for `query`, optional `paths`/`specId`, and `budgetTokens` (512–6000, default 3000). Hard JSON byte cap is three times the requested estimate. |
-| `contextory_code_architecture_get`    | Subsystems, dependency counts, entry points, shared symbols and coverage. Default `refresh: true` checks current files; explicit `refresh: false` reads the cached snapshot.                                                |
-| `contextory_code_path_get`            | Shortest indexed path from `from` to `to`, direction `forward`/`both`, bounded by `maxDepth` (1–10). Preserves edge categories and locations.                                                                               |
-| `contextory_code_index_refresh`       | Refresh the rebuildable projection, or validate/import optional workspace-relative `graphifyPath`. Does not mutate approved work records.                                                                                   |
+Every tool additionally accepts optional projectId and workspaceId. Omitted/current project scope stays on that server’s project. Source tools additionally accept optional codebaseId where their schema/advertised contract permits it. Lines/characters in product tool source references are zero-based; documentation citation lines are one-based.
 
-`contextory_search` now ranks exact definitions first. `contextory_impact_get` also accepts a code ID, file, unique symbol or `source:path#qualifiedName`. Read-only codebase questions do not require tracked work. [Examples and limits](CODEBASE-INTELLIGENCE.md).
+Shared schema aliases
 
-Every tool accepts optional `projectId` and `workspaceId`. Omitted/current project scope stays on that server's project; it never follows UI selection or an earlier call. Foreign project routing requires current editor workspace membership and preserves the native provider's role. Multiple attached workspace contexts require explicit `workspaceId`. Unknown/detached scope fails. Carry project identity with records, artifacts, graph pages and citations. Cross-project requests retain ordinary project-owned milestones, specs, leases and evidence; an unavailable branch makes the aggregate incomplete. Retry creation using its exact original operationId, title, description and projectIds on the original owner.
+```typescript
+const id = z.string().min(1).max(160);
+const text = z.string().min(1).max(12000);
+const operationId = z.string().min(8).max(160);
+const expectedRevision = z.number().int().positive().optional();
+const source = z.object({
+  path: z.string().min(1).max(2000),
+  line: z.number().int().nonnegative().optional(),
+  character: z.number().int().nonnegative().optional(),
+  symbol: z.string().max(500).optional(),
+});
+const lease = { specId: id, leaseId: id };
+const category = z.enum(["file", "rule", "feature", "ui"]);
+export const catalogContent = z
+  .object({
+    category,
+    title: z.string().trim().min(1).max(300),
+    description: text,
+    sources: z.array(source).min(1).max(30),
+    tests: z.array(source).max(30).default([]),
+    testGap: z.string().trim().min(1).max(2000).optional(),
+    ui: z
+      .object({
+        location: text,
+        element: text,
+        trigger: text,
+        behavior: text,
+        states: text,
+      })
+      .optional(),
+  })
+  .superRefine((p, ctx) => {
+    if (p.category === "file" && p.sources.length !== 1)
+      ctx.addIssue({
+        code: "custom",
+        message: "A file entry describes exactly one source file.",
+      });
+    if (p.category === "ui" && !p.ui)
+      ctx.addIssue({
+        code: "custom",
+        message:
+          "UI contracts need location, element, trigger, behavior and states.",
+      });
+    if (p.category !== "file" && !p.tests.length && !p.testGap)
+      ctx.addIssue({
+        code: "custom",
+        message: "Behavior needs test links or an explicit testGap.",
+      });
+  });
+const limits = z
+  .object({
+    callDepth: z.number().int().min(0).max(12).optional(),
+    nodes: z.number().int().min(5).max(500).optional(),
+    edges: z.number().int().min(5).max(1000).optional(),
+    targetsPerCall: z.number().int().min(1).max(30).optional(),
+    timeoutMs: z.number().int().min(100).max(10000).optional(),
+  })
+  .optional();
 
-Source tools also accept optional `codebaseId` for isolated references inside the chosen project; omitted or `current` targets that project's source. This covers architecture, context, search, impact, path, index/import and flow trace/expand. Paths and source IDs are local to the selected root. Preserve returned codebase identity with citations. References cannot receive workflow mutations. See [reference examples and limits](CODEBASE-INTELLIGENCE.md#analyze-reference-codebases).
-
-Both native and headless MCP initialize with shared retrieval/workflow instructions. The workspace brief returns those guidance arrays alongside cached orientation. Start source tasks with scoped code context and inspect current citations; use search for earlier decisions and state, impact/path for connections and flow for calls/branches. Saved changes refresh automatically; re-query relevant context after edits. See the portable [retrieval reference](../skills/contextory-codebase/references/retrieval.md) for bounded results, paging, Graphify recovery and unavailable capabilities. Existing clients may cache an older tool catalog until their native MCP connection reloads.
-
-Version 0.2.4 adds `contextory_usage_get` to the native tool list. It reads recorded models and observed token usage, with optional `entityId` (request/milestone/spec), `provider`, `nativeSessionId`, `offset` and `limit` filters. Responses include model groups, nulls for unavailable token fields, coverage counts, and paged metadata records. Request-level totals include descendant specs; project-level results also include unassigned observations. This is a read-only record, without billing estimates or transcript access. See [usage capture and provider limits](USER-GUIDE.md#agent-models-and-usage-024).
-
-| Tool                             | Purpose                                                                                                                                                 |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `contextory_context_get`         | Read the workspace brief, active specs, failures, configured checks, and optional focused spec. Start tracked implementation here.                      |
-| `contextory_entity_get`          | Read a record, immutable historical revision, children, check-job result, or a page of an artifact.                                                     |
-| `contextory_history_get`         | Page audit history with readable titles and hierarchy links; optionally scope to a record and its descendants.                                          |
-| `contextory_request_change`      | Create an authorized request or revise it with a reason while preserving original intent.                                                               |
-| `contextory_spec_change`         | Create milestones/specs, revise or reopen a spec, block/cancel it, or request verified completion.                                                      |
-| `contextory_session_attach`      | Register a native session for correlation; return the Contextory session ID.                                                                            |
-| `contextory_spec_lease`          | Claim, renew, or release the active implementation lease for a spec/session.                                                                            |
-| `contextory_finding_record`      | Record/update an issue, its impact, resolution, blocking status, and source references.                                                                 |
-| `contextory_decision_record`     | Retain a choice, rationale, alternatives, consequences, sources, and optional superseded decision.                                                      |
-| `contextory_evidence_record`     | Record external/manual evidence and criterion links, with its reported origin preserved.                                                                |
-| `contextory_check_run`           | Run a named configured recipe independently; return an asynchronous check job.                                                                          |
-| `contextory_outcome_submit`      | Persist changes, issue/decision summaries, validation mappings, limits, report/changelog text, and optional commits. Return the next completion action. |
-| `contextory_search`              | Retrieve current project records and indexed source through lexical, semantic, or hybrid search.                                                        |
-| `contextory_relationship_change` | Link records, or associate a record with a workspace file/symbol, with a relationship kind and rationale.                                               |
-| `contextory_impact_get`          | Traverse relationships forward, reverse, or both, returning readable summaries and explicit limits.                                                     |
-| `contextory_flow_trace`          | Trace supported source calls/control flow from a symbol or position, with bounded depth, fanout, size, and time.                                        |
-| `contextory_flow_expand`         | Read a stored graph page or expand a frontier while checking the source snapshot.                                                                       |
-| `contextory_report_export`       | Export one request's full report, completed-work changelog, or JSON records.                                                                            |
-
-## Mutation and session rules
-
-See [governed knowledge and documentation](PROJECT-KNOWLEDGE.md) for catalog schemas, human review, migration, export sections, pagination and enforcement limits. When a catalog exists, outcomes include `catalog:{recordIds,explanation}`; pending proposals and stale affected approved definitions block completion.
-
-Pass the exact `nativeSessionId` supplied in Contextory's hook reminder when calling `contextory_session_attach`. This enables automatic association of native model/usage observations with a single active spec lease. Omit the ID when unavailable; do not invent it or infer token counts. Session/model routing and conversation history remain native.
-
-- Read existing records before editing them. Operations on existing versioned records require their current `expectedRevision`; resolve conflicts by rereading.
-- Each mutation takes an `operationId` of 8–160 characters. Use a new ID for a new operation and reuse the same ID for a retry of that operation.
-- Create milestones under requests and specs under milestones. Specs require acceptance criteria. Do not create requests for ordinary questions or expand user scope silently.
-- Attach the native session, then claim a spec with that returned Contextory session ID. Findings, decisions, evidence, checks, and outcomes require the returned lease ID. Leases last 30 minutes; renew them during long work.
-- Record concise explanations that a developer can evaluate later. Preserve uncertainty and distinguish agent-authored choices from observed developer decisions.
-- Contextory tools do not grant native permissions or authorize extra work. Check recipes are configured through trusted editor settings rather than arbitrary MCP command execution.
-
-## Complete a spec correctly
-
-1. Read `contextory_context_get` and inspect the current spec/criteria.
-2. Register the native session and claim its spec lease.
-3. Retrieve prior decisions and inspect relevant relationships/source flow. Implement with native editing tools and record findings and decisions as work proceeds.
-4. Use `contextory_check_run` with a configured `recipeId`, criterion IDs, spec ID, and lease ID. Poll the returned job through `contextory_entity_get` until it finishes. Keep the actual result/evidence IDs.
-5. Submit `contextory_outcome_submit` with the current revision and exactly one evidence mapping for every current criterion. Include changes, issue/fix and decision summaries, validation, limitations, report text, and changelog text. Explicitly state when there were no findings or new decisions.
-6. Use the outcome response's next action: `contextory_spec_change` with `action: "complete"`, the spec ID, returned revision, and a new operation ID. Confirm `state: "completed"` in the result.
-
-Outcome submission alone leaves the spec open. Completion rejects stale source/contract/attempt evidence, later failures, pending checks, unresolved blocking findings, or incomplete dependencies. Resolve the blocker or explain it to the user. Verified completion rolls up milestone/request state; new planned work and reopen operations reopen the affected parents.
-
-An outcome is a durable explanation, not permission to overwrite evidence provenance or a shortcut around check requirements. See the [outcome template](SPEC-OUTCOME-TEMPLATE.md) and [check configuration](USER-GUIDE.md#configure-checks).
-
-## Read-only examples
-
-These are MCP tool argument objects. Replace illustrative paths and record IDs with values returned by the current workspace.
-
-Search earlier decisions and changes:
-
-```json
-{
-  "query": "checkout retry idempotency",
-  "mode": "hybrid",
-  "limit": 5
-}
 ```
 
-Call `contextory_search` with that object. Hybrid mode explicitly falls back to lexical retrieval if the optional model is unavailable; semantic-only mode reports its unavailability. Record results cite current revisions. To read a historical version, use `contextory_entity_get` with `id` and `revision`.
+<a id="mutation-rules"></a>
 
-Trace Python source with `contextory_flow_trace`:
+## Revisions, retries and completion
 
-```json
-{
-  "root": {
-    "path": "src/checkout.py",
-    "symbol": "checkout",
-    "start": "function"
-  },
-  "view": "flow",
-  "direction": "outgoing",
-  "limits": { "callDepth": 5, "nodes": 150, "edges": 300, "timeoutMs": 2000 }
-}
+Read a record before editing. Existing records require current expectedRevision. Use a fresh operationId (8–160 characters) for a new mutation; retry uncertain work only with its exact original input/ID. Implementation writes require the attached session’s active spec lease except documented setup/release operations. Native permissions still apply.
+
+[Evidence and completion sequence](SPEC-OUTCOME-TEMPLATE.md)
+
+<a id="contextory-hooks-rebuild"></a>
+
+## Hooks rebuild
+
+Repair one provider’s managed hooks; requires a reachable service and preserves native trust.
+
+Input schema · src/contracts/tools.ts:60
+
+```typescript
+// contextory_hooks_rebuild
+z.object({
+      operationId,
+      provider: z.enum(["codex", "claude", "bob"]),
+    })
 ```
 
-Positions and source references use zero-based lines/characters. Python tracing works through the agent service without an editor language provider. Other languages may rely on the installed editor call-hierarchy provider. Static results expose unresolved targets and traversal boundaries; they are not runtime evidence.
+<a id="contextory-workspace-get"></a>
 
-Explore a request's relationships using `contextory_impact_get`:
+## Workspace get
 
-```json
-{
-  "id": "REQ-example",
-  "direction": "both",
-  "depth": 5,
-  "limit": 50
-}
+Discover project/workspace identities and optional coordinated-request status.
+
+Input schema · src/contracts/tools.ts:68
+
+```typescript
+// contextory_workspace_get
+z.object({ groupId: id.optional() })
 ```
 
-## History, graphs, artifacts, and reports
+<a id="contextory-workspace-request-create"></a>
 
-`contextory_history_get` defaults to 40 events. Pass the response's `nextBefore` as `before` to retrieve older events. `entityId` scopes history to that request/milestone/spec and its descendants.
+## Workspace request create
 
-Large responses can return `ART-` artifact handles instead of the full result. Use `contextory_entity_get` with the handle and `offset`/`limit` to retrieve more; artifact offsets count 400-character pages, while entity-child offsets count records. Graph paging uses `contextory_flow_expand`, `graphId`, and `snapshotId`. Source changes invalidate expansion handles rather than combining different source snapshots.
+Create linked local requests for selected projects with recoverable partial creation.
 
-Export one request with `contextory_report_export`:
+Input schema · src/contracts/tools.ts:73
 
-```json
-{
-  "requestId": "REQ-example",
-  "format": "report"
-}
+```typescript
+// contextory_workspace_request_create
+z.object({
+      operationId,
+      projectIds: z.array(id).min(2).max(16),
+      title: z.string().trim().min(1).max(300),
+      description: text,
+    })
 ```
 
-Use `"changelog"` for completed-spec changelog entries or `"json"` for the scoped records. Reports include the request and descendants rather than unrelated workspace activity. Follow the returned artifact handle for the full content.
+<a id="contextory-version-get"></a>
 
-## Qualification
+## Version get
 
-Automated coverage exercises the actual stdio MCP bridge, all tool definitions, role isolation, descriptor rotation, and a full create/claim/check/outcome/complete/read workflow. Actual editor-host tests generate all three provider configurations. Authenticated model-driven conversations, provider-native trust/reload behavior, and a model following the workflow remain separate qualification steps. See [VALIDATION.md](VALIDATION.md).
+Read repository-wide version state, commits and semantic records with independent pagination.
+
+Input schema · src/contracts/tools.ts:83
+
+```typescript
+// contextory_version_get
+z.object({
+      releaseId: id.optional(),
+      offset: z.number().int().nonnegative().default(0),
+      limit: z.number().int().min(1).max(50).default(20),
+    })
+```
+
+<a id="contextory-release-prepare"></a>
+
+## Release prepare
+
+Prepare a concrete release plan without source edits; no spec lease is needed.
+
+Input schema · src/contracts/tools.ts:92
+
+```typescript
+// contextory_release_prepare
+z.object({
+      operationId,
+      bump: z.enum(["auto", "patch", "minor", "major"]).default("auto"),
+      version: z.string().max(100).optional(),
+    })
+```
+
+<a id="contextory-release-change"></a>
+
+## Release change
+
+Apply, publish, recover or cancel an authorized release plan using its current revision.
+
+Input schema · src/contracts/tools.ts:101
+
+```typescript
+// contextory_release_change
+z.object({
+      operationId,
+      id,
+      expectedRevision: z.number().int().positive(),
+      action: z.enum(["apply", "publish", "recover", "cancel"]),
+    })
+```
+
+<a id="contextory-project-export"></a>
+
+## Project export
+
+Page stored datasets for documentation, retaining sequence, snapshots and provenance.
+
+Input schema · src/contracts/tools.ts:111
+
+```typescript
+// contextory_project_export
+z.object({
+      section: z
+        .enum([
+          "overview",
+          "records",
+          "revisions",
+          "history",
+          "relationships",
+          "code_files",
+          "code_nodes",
+          "code_edges",
+          "code_imports",
+          "jobs",
+          "usage",
+          "artifacts",
+        ])
+        .default("overview"),
+      entityId: id.optional(),
+      artifact: z.string().min(1).max(200).optional(),
+      offset: z.number().int().nonnegative().default(0),
+      limit: z.number().int().min(1).max(50).default(20),
+    })
+```
+
+<a id="contextory-catalog-get"></a>
+
+## Catalog get
+
+Read catalog definitions, pending proposals, source freshness and optional file inventory.
+
+Input schema · src/contracts/tools.ts:137
+
+```typescript
+// contextory_catalog_get
+z.object({
+      category: category.optional(),
+      path: z.string().max(2000).optional(),
+      query: z.string().max(4000).optional(),
+      inventory: z.boolean().default(false),
+      offset: z.number().int().nonnegative().default(0),
+      limit: z.number().int().min(1).max(50).default(20),
+    })
+```
+
+<a id="contextory-catalog-change"></a>
+
+## Catalog change
+
+Under a lease, create observations or propose exact definition replacements/retirements.
+
+Input schema · src/contracts/tools.ts:149
+
+```typescript
+// contextory_catalog_change
+z.object({
+      operationId,
+      ...lease,
+      action: z.enum(["create", "revise", "retire"]),
+      id: id.optional(),
+      expectedRevision,
+      content: catalogContent.optional(),
+      reason: text,
+      migrationId: id.optional(),
+    })
+```
+
+<a id="contextory-catalog-review"></a>
+
+## Catalog review
+
+Human UI only: approve or reject an exact definition/proposal revision; native agents cannot approve.
+
+Input schema · src/contracts/tools.ts:163
+
+```typescript
+// contextory_catalog_review
+z.object({
+      operationId,
+      id,
+      expectedRevision: z.number().int().positive(),
+      action: z.enum(["approve", "reject"]),
+      reason: text,
+    })
+```
+
+<a id="contextory-catalog-migrate"></a>
+
+## Catalog migrate
+
+Bootstrap file descriptions in resumable batches; scanned candidates still need semantic review.
+
+Input schema · src/contracts/tools.ts:174
+
+```typescript
+// contextory_catalog_migrate
+z.object({
+      operationId,
+      ...lease,
+      migrationId: id.optional(),
+      limit: z.number().int().min(1).max(50).default(20),
+    })
+```
+
+<a id="contextory-context-get"></a>
+
+## Context get
+
+Read workspace contracts, active work, check recipes and guidance before implementation.
+
+Input schema · src/contracts/tools.ts:184
+
+```typescript
+// contextory_context_get
+z.object({ specId: id.optional() })
+```
+
+<a id="contextory-entity-get"></a>
+
+## Entity get
+
+Read a current or immutable record revision, child page, job or artifact page.
+
+Input schema · src/contracts/tools.ts:189
+
+```typescript
+// contextory_entity_get
+z.object({
+      id,
+      revision: z.number().int().positive().optional(),
+      offset: z.number().int().nonnegative().default(0),
+      limit: z.number().int().min(1).max(50).default(20),
+    })
+```
+
+<a id="contextory-history-get"></a>
+
+## History get
+
+Page audit history; pass nextBefore as before to continue.
+
+Input schema · src/contracts/tools.ts:199
+
+```typescript
+// contextory_history_get
+z.object({
+      entityId: id.optional(),
+      before: z.number().int().positive().optional(),
+      limit: z.number().int().min(1).max(100).default(40),
+    })
+```
+
+<a id="contextory-request-change"></a>
+
+## Request change
+
+Create or revise an authorized implementation request while preserving original intent.
+
+Input schema · src/contracts/tools.ts:208
+
+```typescript
+// contextory_request_change
+z.object({
+      operationId,
+      action: z.enum(["create", "revise"]),
+      id: id.optional(),
+      expectedRevision,
+      title: z.string().min(1).max(300),
+      description: text,
+      reason: text.optional(),
+    })
+```
+
+<a id="contextory-spec-change"></a>
+
+## Spec change
+
+Create milestones/specs, revise/reopen/block/cancel work or explicitly request verified completion.
+
+Input schema · src/contracts/tools.ts:221
+
+```typescript
+// contextory_spec_change
+z.object({
+      operationId,
+      action: z.enum([
+        "milestone",
+        "create",
+        "revise",
+        "reopen",
+        "complete",
+        "block",
+        "cancel",
+      ]),
+      id: id.optional(),
+      parentId: id.optional(),
+      expectedRevision,
+      title: z.string().min(1).max(300).optional(),
+      description: text.optional(),
+      criteria: z.array(z.string().min(1).max(2000)).min(1).max(50).optional(),
+      paths: z.array(z.string().max(2000)).max(100).optional(),
+      dependencies: z.array(id).max(50).optional(),
+      reason: text.optional(),
+    })
+```
+
+<a id="contextory-session-attach"></a>
+
+## Session attach
+
+Register an agent session; use the exact hook-supplied nativeSessionId or omit it.
+
+Input schema · src/contracts/tools.ts:246
+
+```typescript
+// contextory_session_attach
+z.object({ operationId, nativeSessionId: id.optional() })
+```
+
+<a id="contextory-usage-get"></a>
+
+## Usage get
+
+Read observed models/token metadata; unavailable counts stay unavailable.
+
+Input schema · src/contracts/tools.ts:251
+
+```typescript
+// contextory_usage_get
+z.object({
+      entityId: id.optional(),
+      provider: z.enum(["codex", "claude", "bob"]).optional(),
+      nativeSessionId: z.string().min(1).max(200).optional(),
+      offset: z.number().int().nonnegative().default(0),
+      limit: z.number().int().min(1).max(50).default(20),
+    })
+```
+
+<a id="contextory-spec-lease"></a>
+
+## Spec lease
+
+Claim, renew or release one specification’s implementation lease with an attached session.
+
+Input schema · src/contracts/tools.ts:262
+
+```typescript
+// contextory_spec_lease
+z.object({
+      operationId,
+      specId: id,
+      expectedRevision,
+      action: z.enum(["claim", "renew", "release"]),
+      sessionId: id,
+      leaseId: id.optional(),
+    })
+```
+
+<a id="contextory-finding-record"></a>
+
+## Finding record
+
+Record an issue, impact and resolution; unresolved blocking findings prevent completion.
+
+Input schema · src/contracts/tools.ts:274
+
+```typescript
+// contextory_finding_record
+z.object({
+      operationId,
+      ...lease,
+      id: id.optional(),
+      expectedRevision,
+      title: z.string().min(1).max(300),
+      observation: text,
+      impact: text,
+      resolution: text.optional(),
+      status: z.enum(["open", "resolved", "deferred"]),
+      blocking: z.boolean().default(true),
+      sources: z.array(source).max(30).default([]),
+    })
+```
+
+<a id="contextory-decision-record"></a>
+
+## Decision record
+
+Record a choice, rationale, alternatives and consequences with sources.
+
+Input schema · src/contracts/tools.ts:291
+
+```typescript
+// contextory_decision_record
+z.object({
+      operationId,
+      ...lease,
+      title: z.string().min(1).max(300),
+      choice: text,
+      rationale: text,
+      alternatives: z.string().max(12000).default("None material"),
+      consequences: text,
+      supersedes: id.optional(),
+      sources: z.array(source).max(30).default([]),
+    })
+```
+
+<a id="contextory-evidence-record"></a>
+
+## Evidence record
+
+Record reported external/manual evidence; it remains separate from independent checks.
+
+Input schema · src/contracts/tools.ts:306
+
+```typescript
+// contextory_evidence_record
+z.object({
+      operationId,
+      ...lease,
+      title: z.string().min(1).max(300),
+      detail: text,
+      criteria: z.array(id).min(1).max(50),
+      result: z.enum(["passed", "failed", "not_run"]),
+      command: z.string().max(4000).optional(),
+    })
+```
+
+<a id="contextory-check-run"></a>
+
+## Check run
+
+Run a configured recipe independently and return a job to poll.
+
+Input schema · src/contracts/tools.ts:319
+
+```typescript
+// contextory_check_run
+z.object({
+      operationId,
+      ...lease,
+      recipeId: id,
+      criteria: z.array(id).min(1).max(50),
+    })
+```
+
+<a id="contextory-outcome-submit"></a>
+
+## Outcome submit
+
+Submit criterion evidence and a durable report; a separate complete action is still required.
+
+Input schema · src/contracts/tools.ts:329
+
+```typescript
+// contextory_outcome_submit
+z.object({
+      operationId,
+      ...lease,
+      expectedRevision: z.number().int().positive(),
+      summary: text,
+      issuesSummary: text,
+      decisionsSummary: text,
+      limitations: text,
+      report: text,
+      changelog: z.string().min(1).max(2000),
+      catalog: z
+        .object({ recordIds: z.array(id).max(200), explanation: text })
+        .optional(),
+      criteria: z
+        .array(
+          z.object({
+            criterionId: id,
+            evidenceIds: z.array(id).min(1).max(30),
+          }),
+        )
+        .min(1)
+        .max(50),
+      commits: z
+        .array(z.string().regex(/^[a-f0-9]{40,64}$/))
+        .max(100)
+        .default([]),
+    })
+```
+
+<a id="contextory-search"></a>
+
+## Search
+
+Search source and project memory using lexical, semantic or hybrid retrieval.
+
+Input schema · src/contracts/tools.ts:360
+
+```typescript
+// contextory_search
+z.object({
+      codebaseId: id.optional(),
+      query: z.string().min(1).max(4000),
+      mode: z.enum(["lexical", "semantic", "hybrid"]).default("hybrid"),
+      limit: z.number().int().min(1).max(20).default(5),
+    })
+```
+
+<a id="contextory-code-context-get"></a>
+
+## Code context get
+
+Retrieve ranked current source/task context with paths and a bounded estimated-token budget.
+
+Input schema · src/contracts/tools.ts:370
+
+```typescript
+// contextory_code_context_get
+z.object({
+      codebaseId: id.optional(),
+      query: z.string().min(1).max(4000),
+      paths: z.array(z.string().max(2000)).max(20).default([]),
+      specId: id.optional(),
+      budgetTokens: z.number().int().min(512).max(6000).default(3000),
+    })
+```
+
+<a id="contextory-code-architecture-get"></a>
+
+## Code architecture get
+
+Read subsystems, dependencies, entry points and coverage; refresh defaults to true.
+
+Input schema · src/contracts/tools.ts:381
+
+```typescript
+// contextory_code_architecture_get
+z.object({
+      codebaseId: id.optional(),
+      refresh: z.boolean().default(true),
+    })
+```
+
+<a id="contextory-code-path-get"></a>
+
+## Code path get
+
+Explain a bounded indexed path between two source/record roots.
+
+Input schema · src/contracts/tools.ts:389
+
+```typescript
+// contextory_code_path_get
+z.object({
+      codebaseId: id.optional(),
+      from: z.string().min(1).max(2500),
+      to: z.string().min(1).max(2500),
+      direction: z.enum(["forward", "both"]).default("both"),
+      maxDepth: z.number().int().min(1).max(10).default(6),
+    })
+```
+
+<a id="contextory-code-index-refresh"></a>
+
+## Code index refresh
+
+Refresh source projection or validate/import optional Graphify data.
+
+Input schema · src/contracts/tools.ts:400
+
+```typescript
+// contextory_code_index_refresh
+z.object({
+      codebaseId: id.optional(),
+      graphifyPath: z.string().min(1).max(2000).optional(),
+    })
+```
+
+<a id="contextory-codebase-list"></a>
+
+## Codebase list
+
+List the current project and its isolated read-only reference registrations.
+
+Input schema · src/contracts/tools.ts:408
+
+```typescript
+// contextory_codebase_list
+z.object({})
+```
+
+<a id="contextory-codebase-change"></a>
+
+## Codebase change
+
+Register or detach an authorized local reference; source files remain untouched.
+
+Input schema · src/contracts/tools.ts:413
+
+```typescript
+// contextory_codebase_change
+z
+      .object({
+        operationId,
+        action: z.enum(["add", "remove"]),
+        root: z.string().min(1).max(2000).optional(),
+        name: z.string().trim().min(1).max(100).optional(),
+        codebaseId: id.optional(),
+      })
+      .refine(
+        (p) => (p.action === "add" ? Boolean(p.root) : Boolean(p.codebaseId)),
+        "Add requires root; remove requires codebaseId.",
+      )
+```
+
+<a id="contextory-relationship-change"></a>
+
+## Relationship change
+
+Link project records or source locations with a typed relationship and rationale.
+
+Input schema · src/contracts/tools.ts:429
+
+```typescript
+// contextory_relationship_change
+z.object({
+      operationId,
+      from: id,
+      to: id.optional(),
+      source: source.optional(),
+      kind: z.enum(["implements", "resolves", "validated_by", "related_to"]),
+      rationale: text,
+    })
+```
+
+<a id="contextory-impact-get"></a>
+
+## Impact get
+
+Traverse source/record relationships with explicit direction, depth and size bounds.
+
+Input schema · src/contracts/tools.ts:441
+
+```typescript
+// contextory_impact_get
+z.object({
+      codebaseId: id.optional(),
+      id: z.string().min(1).max(2500),
+      direction: z.enum(["forward", "reverse", "both"]).default("reverse"),
+      depth: z.number().int().min(1).max(10).default(5),
+      limit: z.number().int().min(1).max(200).default(50),
+    })
+```
+
+<a id="contextory-flow-trace"></a>
+
+## Flow trace
+
+Trace bounded calls/control flow from a symbol or source position.
+
+Input schema · src/contracts/tools.ts:452
+
+```typescript
+// contextory_flow_trace
+z.object({
+      codebaseId: id.optional(),
+      root: z.object({
+        path: z.string().min(1).max(2000),
+        position: z
+          .object({
+            line: z.number().int().nonnegative(),
+            character: z.number().int().nonnegative(),
+          })
+          .optional(),
+        symbol: z.string().max(500).optional(),
+        start: z.enum(["cursor", "function"]).optional(),
+      }),
+      view: z.enum(["calls", "flow"]).default("calls"),
+      direction: z.enum(["outgoing", "incoming"]).default("outgoing"),
+      limits,
+    })
+```
+
+<a id="contextory-flow-expand"></a>
+
+## Flow expand
+
+Page a stored graph or expand a frontier while validating its source snapshot.
+
+Input schema · src/contracts/tools.ts:473
+
+```typescript
+// contextory_flow_expand
+z.object({
+      codebaseId: id.optional(),
+      graphId: id,
+      snapshotId: id,
+      nodeId: id.optional(),
+      offset: z.number().int().nonnegative().default(0),
+      limit: z.number().int().min(1).max(50).default(30),
+      limits,
+    })
+```
+
+<a id="contextory-report-export"></a>
+
+## Report export
+
+Export one request’s report, completed-work changelog or JSON through an artifact handle.
+
+Input schema · src/contracts/tools.ts:486
+
+```typescript
+// contextory_report_export
+z.object({
+      format: z.enum(["report", "changelog", "json"]).default("report"),
+      requestId: id,
+    })
+```
+
+## Sources
+
+- src/contracts/tools.ts
+- src/service/application.ts
+- src/service/server.ts

@@ -1,122 +1,88 @@
-# Codebase intelligence and portable agents
+<a id="workspace-projects"></a>
+<a id="explore-a-project"></a>
+<a id="agent-portability"></a>
+<a id="run-without-an-editor"></a>
+<a id="validate"></a>
 
-Version 0.3.0 adds a persistent source graph, task retrieval, an Architecture workbench, portable Agent Skills and headless execution. [Full delivery plan](CODEBASE-INTELLIGENCE-PLAN.md).
+<!-- Generated from .documentation/project.json; edit the bilingual corpus. -->
 
-## Workspace projects
+# Code intelligence and advanced workflows
 
-For a multi-root editor workspace, call `contextory_workspace_get` to discover the independent project IDs and roots. Pass `projectId` on each related source and workflow call; use `workspaceId` when multiple editor contexts are attached. Omission/current always targets the native server's own project. Project selection applies only to the current call, and the editor selector never changes that default. Carry identity with graph snapshots, artifacts, relative paths and citations, even when two projects contain the same path and symbol.
+<a id="retrieve-current-source"></a>
 
-The editor starts an independent service and graph per non-overlapping local folder, preserving existing storage and per-folder configuration. Removing a workspace member detaches routing without deleting its data. The CLI accepts `projects [group-id]`, `--project <id>` and `--workspace <id>` with the current server descriptor. A standalone service advertises only itself until an editor attaches workspace membership. Workspace projects own writable workflow records; `codebaseId` selects a read-only reference inside the chosen project. See [multi-project requests](USER-GUIDE.md#multiple-projects-in-one-workspace).
+## Retrieve current task context
 
-## Explore a project
+1. Start with contextory_workspace_get, then pass the intended projectId on every related call. UI selection never changes an agent server’s local default.
+2. Call contextory_code_context_get with the actual task, known paths and a bounded budgetTokens value. Read the cited current source.
+3. Use architecture for orientation, impact for dependencies/callers, path for connections, and flow trace for detailed calls/branches. Use search for earlier decisions and inspect their current state and revision.
+4. Re-query relevant source after saved changes. Saved-file graphs refresh automatically; unsaved editor flow overlays remain separate. Page or narrow truncated results.
 
-Open **Architecture** in the sidebar or run **Contextory: Explore Architecture**. The view starts with a stable subsystem map, synchronized repository explorer and source inspector. Select a subsystem, a bounded file shortcut, then a symbol to inspect direct connections. Breadcrumbs and Back restore previous scopes and selection. Calls/imports/structure are shown initially; relationship and direction filters reveal other indexed evidence. **Explore connections** retrieves a fresh neighborhood around the selected source-qualified symbol. The directional **Matrix** counts indexed calls/imports/inheritance/re-exports: rows depend on columns, ↔ marks reciprocal direct dependencies, and selecting a cell explores its source subsystem. Zoom, background drag and fit support navigation. Entry points, shared symbols, conventions, index state and coverage notices remain available. Search for a symbol or describe a task, open cited source, and follow linked project decisions. **Refresh code index** checks current files and publishes a coherent snapshot. The Code map still provides detailed bounded call/control flow from the source cursor.
+![Subsystem map, repository explorer and source inspector.](../.documentation/assets/architecture-explorer.png)
 
-Agents should start related work with `contextory_code_context_get`. Exact definitions rank before textual mentions. Context expands through source calls, imports, tests, document links, message contracts and explicit project-record source references. Read-only questions need no request or lease. Use `source:src/payments.ts#charge` when a name is ambiguous. Locations are zero-based in tools and displayed one-based in source buttons.
+Architecture explorer captured from Contextory.
 
-`contextory_impact_get` accepts a source or record root and direction/depth/node bounds. `contextory_code_path_get` explains a bounded shortest connection, with each edge's source, extractor and evidence category. `contextory_code_architecture_get` provides orientation. `contextory_context_get` includes cached, bounded orientation so lifecycle hooks do not synchronously index or walk the graph.
+Task-context arguments; replace the project ID
 
-## Analyze reference codebases
-
-Version 0.4.0 supports up to eight named local reference repositories alongside the current project. Use **Architecture > Add reference** to choose a folder, then choose it in **Codebase**. Its subsystem map, entry points, symbols, context search and source links use that repository. **Trace symbol** opens a separately scoped source-flow guide. Use the sidebar and Architecture workbench to explore the current project and a reference side by side; each view keeps its own selection. **Detach reference** removes the registration and closes its analysis workers; source files are untouched.
-
-For example, ask an agent: "Map `C:\Sources\LegacyBilling` as a reference and explain its payment architecture. Keep its analysis separate from this application." The agent registers that directory with `contextory_codebase_change` (`action:"add"`, absolute `root`, optional `name`, new `operationId`), lists references with `contextory_codebase_list`, then passes the returned `codebaseId` to architecture, context, search, impact, path, index/import and flow trace/expand tools. Omitting the ID, or using `current`, always targets the current workspace. Calls for different roots can run concurrently; no global project switch is involved.
-
-```powershell
-node dist/contextory.mjs reference-add C:\Sources\LegacyBilling --name "Legacy billing" --root C:\Projects\NewBilling
-node dist/contextory.mjs references --root C:\Projects\NewBilling
-node dist/contextory.mjs architecture --codebase ref-ID --root C:\Projects\NewBilling
-node dist/contextory.mjs context "How are payments retried?" --codebase ref-ID --root C:\Projects\NewBilling
-node dist/contextory.mjs reference-remove ref-ID --root C:\Projects\NewBilling
+```json
+{ "projectId": "PROJECT-ID", "query": "How are retries bounded?", "paths": ["src"], "budgetTokens": 3000 }
 ```
 
-Replace `ref-ID` with the returned ID. Keep the same service storage or editor descriptor when using the CLI. Registrations persist in the owning workspace service; separate per-reference projections live under its storage `references/<id>/projection.sqlite3`. No configuration, skills, source, requirements or checks are written into the reference. Duplicate directory aliases share a registration. The active workspace and its parents/children, and service storage, cannot be registered as references. Detaching retains rebuildable cached projections. A missing/moved root fails explicitly and does not redirect to the current project.
+Qualify ambiguous definitions as source:path#qualifiedName. Task context accepts 512–6000 estimated tokens and caps JSON UTF-8 bytes at three times the estimate. Graph links and test references do not establish observed execution or complete behavioral coverage.
 
-Each reference response carries its codebase ID, name and canonical root. Keep that identity with relative source citations and snapshot/coverage notices: `main.ts#run` can mean different source in each repository. Active project decisions, specifications and approved relationships are not injected into reference queries, and references cannot accept current-project specs or workflow mutations. Cross-project comparisons are explanations over separate results; they do not create graph edges, migration requirements or application changes. Applying a learned pattern requires the user's implementation request.
+<a id="analyze-reference-codebases"></a>
 
-Reference graphs refresh on source queries, without background watchers. Use default architecture refresh for current disk content; `refresh:false` reads the saved map. Each root's existing project configuration and native/Graphify coverage limits apply. Regenerate and re-import stale Graphify data within its selected root. Reference source search is lexical graph matching; hybrid reports lexical fallback and semantic-only mode is unavailable. Reference flows use saved files and isolated native parsers, without current-editor overlays or language-service callbacks. Remote URLs/cloning and automatic cross-repository migration are outside this feature.
+## Compare a reference repository
 
-## Configure coverage
+1. In Architecture, choose Add reference and select an authorized absolute local directory. Up to eight references can be registered per project.
+2. Choose that Codebase, or pass its returned codebaseId on source/flow calls. Keep its identity and root with every citation.
+3. Detach reference removes the registration while preserving source files. Registration and inspection do not authorize implementation in either repository.
 
-Create an optional `contextory.project.json` at the workspace root:
+Inspect an explicitly chosen reference
+
+```powershell
+node dist/contextory.mjs reference-add C:/Sources/LegacyApp --root C:/Projects/NewApp --name "Legacy app"
+node dist/contextory.mjs references --root C:/Projects/NewApp
+node dist/contextory.mjs architecture --root C:/Projects/NewApp --codebase ref-ID
+```
+
+Use actual returned IDs. References have separate source projections, refresh on queries and exclude the active project’s work records. Missing roots fail explicitly. Reference search is lexical; semantic-only mode is unavailable.
+
+<a id="configure-coverage"></a>
+
+## Configure extraction and coverage
+
+Optional contextory.project.json
 
 ```json
 {
-  "schemaVersion": 1,
-  "name": "Checkout",
+  "schemaVersion": 1, "name": "Checkout",
   "include": ["src/**", "tests/**", "docs/**", "*.json"],
-  "exclude": ["src/generated/**"],
-  "entryPoints": ["src/main.ts"],
-  "conventions": ["Payment retries preserve the original idempotency key."],
-  "maxFiles": 2000,
-  "maxBytes": 16777216
+  "exclude": ["src/generated/**"], "entryPoints": ["src/main.ts"],
+  "maxFiles": 2000, "maxBytes": 16777216
 }
 ```
 
-Paths and globs are project-relative. Unknown manifest keys and invalid values fail explicitly while preserving the previous graph. Git-ignored files, dependencies, generated output, agent configuration, credential-like paths, binary input and files above 512 KiB are omitted. A non-Git workspace uses bounded filesystem enumeration. The default aggregate input budget is 16 MiB; configuration allows up to 10,000 files/64 MiB. Native extraction caps results at 20,000 nodes/100,000 edges and reports truncation. Indexing parses source and never imports or executes workspace modules.
+TypeScript/JavaScript uses the TypeScript compiler; Python uses isolated AST parsing without importing workspace modules. Dynamic dispatch, framework injection, dependency implementation and unsupported languages remain gaps. The default input budget is 2,000 files/16 MiB, up to 512 KiB per file; configurable limits reach 10,000 files/64 MiB. Extraction caps and truncation are reported.
 
-| Input           | Native coverage and limits                                                                                                                                                                                                                                                                                                                                                               |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| TS/JS           | Compiler-resolved declarations, aliases, calls, references, inheritance, re-exports and local imports. Root tsconfig and indexed local extends/path aliases are supported. Dependency implementation, package-provided tsconfig, nested project-reference builds and dynamic dispatch are not exhaustively resolved.                                                                     |
-| Python          | Isolated Python 3.10+ AST parsing: declarations, imports/aliases, straightforward instance calls, references, inheritance and test references. Shadowing/duplicate declarations suppress uncertain targets. Dynamic monkey-patching, framework injection and complete Python name/dataflow semantics are outside coverage. Python files are reparsed together when the snapshot changes. |
-| Markdown/config | Headings, explicit Markdown source links, literal source-path references and external TS/JS module dependencies. Config parsing does not execute scripts or infer every build system.                                                                                                                                                                                                    |
-| Contracts       | Literal RPC/MCP names and recognized worker/webview message types connect senders to handlers. These links are inferred; equal literals do not prove runtime delivery.                                                                                                                                                                                                                   |
-| Project memory  | Explicit record source references and approved record relationships connect work history to code. Generated topology does not approve workflow dependencies or verification evidence.                                                                                                                                                                                                    |
+<a id="optional-graphify-import"></a>
 
-Static calls describe possible connections; test references do not prove execution coverage. Every response includes snapshot/coverage or truncation information. Missing external/dynamic targets remain notices. Task context enforces a JSON UTF-8 byte cap of three bytes per requested estimated token (512–6000 requested tokens); it is not a model tokenizer guarantee. Optional local embeddings improve project-memory search when prepared; lexical/structural retrieval remains available offline.
+## Import optional Graphify data
 
-Refresh hashes selected files, configuration and extractor version, reuses unchanged TypeScript ASTs and resolves relationships again. It removes obsolete edges after edits, renames, deletions or exclusions. Filesystem events are debounced; Git HEAD/index/ref events and a 30-second fallback poll also trigger checks. Queries verify current disk content before using the graph. Unsaved editor buffers remain the separate flow-analysis overlay feature. Large-repository latency has not been qualified.
-
-## Optional Graphify import
-
-Graphify is optional; no runtime dependency or Graphify source was copied. Export its node-link JSON (schema version 1), place the file in the workspace and call:
+Refresh/import arguments
 
 ```json
-{
-  "name": "contextory_code_index_refresh",
-  "arguments": { "graphifyPath": "graphify-out/graph.json" }
-}
+{ "graphifyPath": "graphify-out/graph.json" }
 ```
 
-The importer validates IDs, edge endpoints, source paths and bounds, namespaces foreign IDs, and retains supplied extracted/inferred/ambiguous provenance. Source files must be readable, included workspace files; external symlinks and parent traversal are rejected. JSON is limited to 16 MiB, each source to 512 KiB, and combined imports to 50,000 nodes/200,000 edges. Re-importing the same canonical path replaces its facts transactionally. Failure preserves the prior saved import and graph. Source hashes invalidate the whole imported graph when any cited file changes, disappears or is excluded; regenerate and re-import it. Unsupported languages can use this path, with the imported extractor's own accuracy limits. Source-free conceptual nodes cannot be invalidated against source content.
+Pass these arguments to contextory_code_index_refresh. The importer checks schema, bounded JSON, IDs, edge endpoints and included local source paths; failures preserve the previous import. Regenerate and re-import the entire graph when a cited source changes, disappears or is excluded. Graphify is optional and its provenance/accuracy limits remain visible.
 
-## Agent portability
+## Sources
 
-The canonical `skills/contextory-codebase` and `skills/contextory-workflow` folders follow the Agent Skills structure: concise discovery descriptions, `SKILL.md` entry points and progressively loaded references. `npm run skills:package` generates the runtime bundle; `npm run skills:check` detects drift. Build packages that same content for every adapter.
-
-The skills explain task context versus history search, source-qualified ambiguity, relationship direction, bounded results, current-file verification, automatic saved-file updates, Graphify invalidation and fallback when a capability is missing. Native and headless MCP expose the same shared runtime instructions; briefs and optional lifecycle reminders reinforce this guidance. Use only tools advertised by the current session: older connections may need a native MCP reload after an upgrade, with CLI/native source inspection available in the meantime.
-
-| Adapter     | MCP configuration      | Skills               | Optional hooks                |
-| ----------- | ---------------------- | -------------------- | ----------------------------- |
-| Codex       | `.codex/config.toml`   | `.agents/skills`     | `.codex/hooks.json`           |
-| Claude Code | `.mcp.json`            | `.claude/skills`     | `.claude/settings.local.json` |
-| IBM Bob     | `.bob/mcp.json`        | `.bob/skills`        | `.bob/settings.json`          |
-| Generic MCP | `.contextory/mcp.json` | `.contextory/skills` | None                          |
-
-Run **Contextory: Export Generic MCP Connection**, import the generated server entry into your MCP client, and install/copy the portable codebase, workflow and migration skill folders into that client's supported discovery location. `.contextory/skills` is an export location, not a universal automatic discovery path. Clients without skills can use MCP tool schemas or the CLI directly. Native clients own trust, reload, permissions and session startup. Hooks add reminders/metadata; they are not prerequisites for retrieval or workflow correctness. Portable instructions do not make host configuration, supported tools or model behavior identical across agents.
-
-When developing Contextory, `npm run skills:sync` regenerates the bundle and updates all four workspace skill locations without changing MCP/hooks. `npm run skills:workspace-check` detects drift. Repository development entry instructions link to the canonical resources; they are not installed into user projects. See [instruction maintenance](DEVELOPMENT.md#maintain-agent-instructions).
-
-## Run without an editor
-
-Use the packaged `dist` directory with Node.js 24+ (Python is needed only for Python symbols/flow):
-
-```powershell
-node dist/contextory.mjs index --root C:/Projects/Checkout
-node dist/contextory.mjs context "payment retries" --root C:/Projects/Checkout --budget 3000
-node dist/contextory.mjs impact "source:src/payments.ts#charge" --root C:/Projects/Checkout
-node dist/contextory.mjs path "checkout" "charge" --root C:/Projects/Checkout
-node dist/contextory.mjs architecture --root C:/Projects/Checkout
-node dist/contextory.mjs import graphify-out/graph.json --root C:/Projects/Checkout
-node dist/contextory.mjs mcp --root C:/Projects/Checkout
-```
-
-For a generic client, configure command `node` and argument array `["/absolute/path/dist/contextory.mjs", "mcp", "--root", "/absolute/workspace"]`. Stdio MCP stays alive until EOF/signals and does not need editor heartbeats. JSON responses go to stdout; diagnostics go to stderr. Native check tools can run explicitly configured workspace recipes from `.vscode/settings.json`; opening an index does not execute them.
-
-Standalone mode uses `<root>/.contextory-local/service` by default, or `--storage <directory>`. Editor-managed storage remains in the editor's global storage and is preserved. To share existing editor records, use `--descriptor <editor-storage>/generic.json` with the matching `--root`; **Export Generic MCP Connection** shows that descriptor in its generated arguments. Keep the editor service running for that attachment. Headless storage is a separate ledger unless explicitly attached; there is no silent record merge. Concurrent headless clients can attach to an existing service in the same storage; if its owning process exits, reconnect the client to start a new owner.
-
-## Validate
-
-`npm run check` covers skill drift, types, build, backend and UI tests. `npm run evaluate:codebase` writes `artifacts/codebase-evaluation.json` from a deterministic checkout fixture: definition rank, relevant-file recall, call/contract correctness, memory linkage, obsolete-edge removal, response bytes and latency. This is a regression evaluation, not a claim about arbitrary repositories or autonomous model behavior. [Validation record](VALIDATION.md).
-
-Design references: [Graphify](https://github.com/Graphify-Labs/graphify), [GitHub's portable skills guide](https://github.blog/ai-and-ml/github-copilot/build-once-run-on-any-agent-a-practical-guide-to-agent-skills/), and the [Agent Skills specification](https://agentskills.io/specification). Shared instructions are portable; client capabilities and actual tool execution remain explicit adapters.
+- src/codebase/queries.ts
+- src/codebase/extract.ts
+- src/codebase/references.ts
+- src/codebase/import.ts
+- src/codebase/config.ts
+- src/analysis/engine.ts
+- tests/integration/codebase.test.ts
+- tests/integration/references.test.ts

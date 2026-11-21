@@ -1,0 +1,761 @@
+"""PT-BR: Mapeamento, validação e publicação estática bilíngue sem executar o projeto.
+
+EN: Map, validate and render bilingual documentation without executing project code.
+"""
+from __future__ import annotations
+
+import ast
+import fnmatch
+import hashlib
+import html
+import json
+import os
+import re
+import shutil
+import subprocess
+import tempfile
+from collections import Counter
+from pathlib import Path
+from urllib.parse import quote, urlsplit
+
+LOCALES = ("pt-BR", "en")
+CONFIG = ".documentation/project.json"
+SITE = ".documentation/site"
+SOURCE_SUFFIXES = {".py", ".pyi", ".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs", ".go", ".rs", ".java", ".c", ".cpp", ".h", ".hpp", ".cs", ".rb", ".php", ".sh", ".ps1", ".sql", ".vue", ".svelte", ".swift", ".kt", ".kts", ".r", ".jl", ".lua", ".ex", ".exs", ".scala", ".dart", ".html", ".css", ".scss"}
+SKIP = {".git", ".hg", ".svn", "node_modules", ".venv", "venv", "__pycache__", ".documentation", ".custom-agents", ".agents", ".codex", ".claude", ".bob", "dist", "build", "coverage", ".next", ".pytest_cache", ".mypy_cache", "vendor"}
+REQUIRED = {
+    "application": ["overview", "install", "quickstart", "features", "walkthroughs", "reference", "faq", "troubleshooting", "contributing"],
+    "library": ["overview", "install", "quickstart", "features", "advanced", "api", "adaptation", "edge-cases", "reference", "faq", "troubleshooting", "contributing"],
+    "plugin": ["overview", "install", "quickstart", "features", "advanced", "api", "adaptation", "edge-cases", "reference", "faq", "troubleshooting", "contributing"],
+}
+TITLES = {
+    "overview": ("Visão geral", "Overview"), "install": ("Instalação", "Installation"),
+    "quickstart": ("Primeiros passos", "Quickstart"), "features": ("Funcionalidades", "Features"),
+    "walkthroughs": ("Guias passo a passo", "Step-by-step guides"), "advanced": ("Uso avançado", "Advanced usage"),
+    "api": ("Referência da API", "API reference"), "adaptation": ("Adaptação e integração", "Adaptation and integration"),
+    "edge-cases": ("Casos especiais e limites", "Edge cases and limits"), "reference": ("Referência técnica", "Technical reference"),
+    "faq": ("Perguntas frequentes", "FAQ"), "troubleshooting": ("Solução de problemas", "Troubleshooting"),
+    "contributing": ("Como contribuir", "Contributing"),
+}
+LABELS = {
+    "pt-BR": {"skip": "Ir para o conteúdo", "search": "Buscar na documentação", "nav": "Navegação", "menu": "Menu", "toc": "Nesta página", "sources": "Fontes", "machine": "Versão para agentes", "results": "Resultados", "none": "Nenhum resultado", "coverage": "Cobertura", "api": "Símbolos documentados", "files": "arquivos", "symbols": "símbolos"},
+    "en": {"skip": "Skip to content", "search": "Search documentation", "nav": "Navigation", "menu": "Menu", "toc": "On this page", "sources": "Sources", "machine": "Agent version", "results": "Results", "none": "No results", "coverage": "Coverage", "api": "Documented symbols", "files": "files", "symbols": "symbols"},
+}
+
+
+def workspace(value):
+    """PT-BR: Exigir uma raiz absoluta existente. EN: Require an existing absolute root."""
+    path = Path(value)
+    if not path.is_absolute() or not path.is_dir():
+        raise ValueError("workspace must be an existing authorized absolute directory")
+    if path.is_symlink():
+        raise ValueError("workspace must not be a symlink")
+    return path.resolve()
+
+
+def safe_path(root, relative):
+    """PT-BR: Conter caminhos e recusar links. EN: Contain paths and refuse symlinks."""
+    root = workspace(root)
+    relative = str(relative)
+    part = Path(relative)
+    if not relative or part.is_absolute() or ".." in part.parts or "\\" in relative or ":" in relative:
+        raise ValueError(f"unsafe workspace-relative path: {relative}")
+    candidate = root / part
+    cursor = candidate
+    while cursor != root:
+        if cursor.is_symlink() or (hasattr(cursor, "is_junction") and cursor.is_junction()):
+            raise ValueError(f"symlink/junction is not allowed: {relative}")
+        cursor = cursor.parent
+    if not candidate.resolve().is_relative_to(root):
+        raise ValueError(f"path escapes workspace: {relative}")
+    return candidate
+
+
+def read_json(path):
+    """PT-BR: Ler JSON UTF-8. EN: Read UTF-8 JSON."""
+    return json.loads(Path(path).read_text(encoding="utf-8-sig"))
+
+
+def write_json(path, data):
+    """PT-BR: Gravar JSON legível. EN: Write readable JSON."""
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
+    Path(path).write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def digest(data):
+    """PT-BR: Resumir bytes ou JSON estável. EN: Hash bytes or stable JSON."""
+    if not isinstance(data, bytes):
+        data = json.dumps(data, sort_keys=True, ensure_ascii=False).encode("utf-8")
+    return hashlib.sha256(data).hexdigest()
+
+
+def source_digest(path, payload):
+    """PT-BR: Ignorar somente links README gerados pelo próprio fluxo. EN: Ignore only README links generated by this workflow."""
+    if path.name.lower() == "readme.md":
+        payload = re.sub(rb"\s*<!-- software-documentation:start -->.*?<!-- software-documentation:end -->\s*", b"", payload, flags=re.S).rstrip()
+    return digest(payload)
+
+
+def load_project(root):
+    """PT-BR: Ler o contrato atual sem migrá-lo. EN: Read the current contract without migration."""
+    data = read_json(safe_path(root, CONFIG))
+    if data.get("schemaVersion") != 1:
+        raise ValueError("unsupported schemaVersion; run docs_migrate in inspection mode")
+    return data
+
+
+def bilingual(value):
+    """PT-BR: Criar texto paralelo. EN: Construct parallel text."""
+    return dict(zip(LOCALES, value))
+
+
+def python_symbols(text, relative):
+    """PT-BR: Inventariar declarações Python sem importação. EN: Inventory Python declarations without imports."""
+    tree = ast.parse(text, filename=relative, type_comments=True)
+    result = [{"name": "<module>", "kind": "module", "line": 1, "endLine": len(text.splitlines()), "docstring": ast.get_docstring(tree) or "", "signature": relative}]
+
+    def visit(node, prefix="", parent="module"):
+        """PT-BR: Percorrer inclusive declarações aninhadas. EN: Visit nested declarations too."""
+        for child in ast.iter_child_nodes(node):
+            if isinstance(child, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
+                name = prefix + child.name
+                kind = "class" if isinstance(child, ast.ClassDef) else "method" if parent == "class" else "function"
+                signature = child.name
+                if kind == "class":
+                    bases = [ast.unparse(base) for base in child.bases]
+                    bases += [(keyword.arg + "=" if keyword.arg else "**") + ast.unparse(keyword.value) for keyword in child.keywords]
+                    signature = "class " + signature + ("(" + ", ".join(bases) + ")" if bases else "")
+                else:
+                    signature += "(" + ast.unparse(child.args) + ")"
+                    if child.returns:
+                        signature += " -> " + ast.unparse(child.returns)
+                    if isinstance(child, ast.AsyncFunctionDef):
+                        signature = "async " + signature
+                result.append({"name": name, "kind": kind, "line": child.lineno, "endLine": child.end_lineno, "signature": signature, "docstring": ast.get_docstring(child) or ""})
+                visit(child, name + ".", "class" if kind == "class" else "function")
+            else:
+                visit(child, prefix, parent)
+
+    visit(tree)
+    return result
+
+
+def map_project(root, data=None):
+    """PT-BR: Mapear fontes, hashes e limites. EN: Map sources, hashes and coverage limits."""
+    root = workspace(root)
+    data = data or (load_project(root) if safe_path(root, CONFIG).exists() else {})
+    roots = data.get("sourceRoots", ["."])
+    if not isinstance(roots, list) or not roots:
+        raise ValueError("sourceRoots must be a nonempty array")
+    exclusions = data.get("exclude", [])
+    if any(not isinstance(item, dict) or not item.get("pattern") or not item.get("reason") for item in exclusions):
+        raise ValueError("every exclusion requires pattern and reason")
+    files, supporting, skipped, errors, seen = [], [], [], [], set()
+    for relative_root in roots:
+        start = safe_path(root, relative_root)
+        if not start.is_dir():
+            errors.append(f"source root missing: {relative_root}")
+            continue
+        for folder, directories, names in os.walk(start, followlinks=False):
+            keep = []
+            for name in sorted(directories):
+                path = Path(folder) / name
+                relative = path.relative_to(root).as_posix()
+                if name in SKIP or path.is_symlink() or (hasattr(path, "is_junction") and path.is_junction()):
+                    skipped.append({"path": relative, "reason": "generated/dependency/tool directory or symlink"})
+                else:
+                    keep.append(name)
+            directories[:] = keep
+            for name in sorted(names):
+                path = Path(folder) / name
+                relative = path.relative_to(root).as_posix()
+                if relative in seen:
+                    continue
+                seen.add(relative)
+                excluded = next((e for e in exclusions if fnmatch.fnmatchcase(relative, e["pattern"])), None)
+                if excluded or path.is_symlink():
+                    skipped.append({"path": relative, "reason": excluded["reason"] if excluded else "symlink"})
+                    continue
+                try:
+                    safe_path(root, relative)
+                    payload = path.read_bytes()
+                    if path.suffix.lower() not in SOURCE_SUFFIXES:
+                        supporting.append({"path": relative, "sha256": source_digest(path, payload), "bytes": len(payload)})
+                        continue
+                    text = payload.decode("utf-8-sig")
+                    language = "python" if path.suffix.lower() in {".py", ".pyi"} else path.suffix.lower().lstrip(".")
+                    item = {"path": relative, "sha256": digest(payload), "language": language, "symbols": [], "coverage": "external-inventory-required"}
+                    if language == "python":
+                        item["symbols"] = python_symbols(text, relative)
+                        item["coverage"] = "python-ast"
+                    files.append(item)
+                except (ValueError, OSError, SyntaxError) as error:
+                    errors.append(f"{relative}: {error}")
+    # Cite-only sources outside ownership roots still affect freshness, without
+    # silently expanding which third-party declarations must be documented.
+    for citation in [s for page in data.get("pages", []) if isinstance(page, dict) for s in page.get("sources", []) if isinstance(s, dict)] + [s for feature in data.get("features", []) if isinstance(feature, dict) for s in feature.get("sources", []) if isinstance(s, dict)]:
+        relative = citation.get("path")
+        if not isinstance(relative, str) or relative in seen:
+            continue
+        try:
+            path = safe_path(root, relative)
+            payload = path.read_bytes()
+            supporting.append({"path": relative, "sha256": source_digest(path, payload), "bytes": len(payload), "reason": "cited outside source ownership roots"})
+            seen.add(relative)
+        except (ValueError, OSError) as error:
+            errors.append(f"{relative}: {error}")
+    files.sort(key=lambda item: item["path"])
+    supporting.sort(key=lambda item: item["path"])
+    state = {item["path"]: item["sha256"] for item in [*files, *supporting]}
+    return {"files": files, "supportingFiles": supporting, "sourceState": state, "sourceFingerprint": digest(state), "languages": dict(Counter(item["language"] for item in files)), "skipped": skipped, "errors": errors, "complete": not errors, "limits": ["Python AST enumerates declarations; other languages require reviewed source-hash-bound inventories.", "Static mapping does not prove runtime feature coverage. Review routes, commands, UI states, plugins and tests."]}
+
+
+def init_project(root, name, kind, source_roots=None):
+    """PT-BR: Criar rascunho sem substituir autoria. EN: Create a draft without replacing authored content."""
+    root = workspace(root)
+    if kind not in REQUIRED:
+        raise ValueError("kind must be application, library or plugin")
+    target = safe_path(root, CONFIG)
+    if target.exists():
+        raise ValueError("documentation already exists; use the update/migration workflow")
+    slug = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+    if not slug:
+        raise ValueError("name needs a nonempty ASCII slug")
+    data = {"schemaVersion": 1, "name": name, "slug": slug, "kind": kind, "hasUserInterface": kind == "application", "version": "0.1.0", "sourceRoots": source_roots or ["."], "exclude": [], "draft": True, "audit": {"featuresReviewed": False, "reviewedSourceFingerprint": ""}, "features": [], "externalCoverage": [], "pages": []}
+    map_project(root, data)
+    for identifier in REQUIRED[kind]:
+        title = bilingual(TITLES[identifier])
+        data["pages"].append({"id": identifier, "title": title, "sources": [], "sections": [{"id": "guide", "title": title, "blocks": [{"type": "paragraph", "text": bilingual(("TODO: escrever com fontes e exemplos verificados.", "TODO: write from verified sources and examples."))}]}]})
+    write_json(target, data)
+    return {"config": CONFIG, "draft": True, "next": "Map features and symbols, author both locales, add sources, then validate. Scaffolds cannot be published."}
+
+
+def localized(value, label, errors):
+    """PT-BR: Exigir as duas traduções. EN: Require both translations."""
+    if not isinstance(value, dict) or set(value) != set(LOCALES):
+        errors.append(f"{label}: exactly pt-BR and en are required")
+        return
+    for locale in LOCALES:
+        text = value[locale]
+        if not isinstance(text, str) or not text.strip() or re.search(r"\b(TODO|TBD|FIXME|PLACEHOLDER)\b", text, re.I):
+            errors.append(f"{label}.{locale}: empty or unfinished translation")
+
+
+def valid_id(value):
+    """PT-BR: Restringir IDs públicos. EN: Restrict public identifiers."""
+    return isinstance(value, str) and bool(re.fullmatch(r"[a-z0-9][a-z0-9-]*", value))
+
+
+def check_sources(root, sources, label, errors):
+    """PT-BR: Verificar citações relativas e linhas. EN: Check relative citations and lines."""
+    if not isinstance(sources, list) or not sources:
+        errors.append(f"{label}: source citations required")
+        return
+    for source in sources:
+        try:
+            path = safe_path(root, source["path"])
+            if not path.is_file():
+                raise ValueError("file does not exist")
+            if "line" in source:
+                line = source["line"]
+                if type(line) is not int or not 1 <= line <= len(path.read_text(encoding="utf-8-sig").splitlines()):
+                    raise ValueError("source line out of range")
+        except (KeyError, TypeError, ValueError, OSError) as error:
+            errors.append(f"{label}: invalid source: {error}")
+
+
+def check_url(value, page_ids):
+    """PT-BR: Validar links de saída e páginas. EN: Validate outgoing links and pages."""
+    if not isinstance(value, str) or any(char in value for char in "\r\n\\\x00"):
+        raise ValueError("invalid URL")
+    if value in page_ids:
+        return
+    url = urlsplit(value)
+    if url.scheme != "https" or not url.netloc or url.username or url.password:
+        raise ValueError("links must reference a page ID or an https URL without credentials")
+
+
+def check_block(root, block, label, page_ids, errors, images):
+    """PT-BR: Validar blocos sem HTML arbitrário. EN: Validate blocks without arbitrary HTML."""
+    if not isinstance(block, dict):
+        errors.append(f"{label}: block must be an object")
+        return
+    kind = block.get("type")
+    if kind in {"paragraph", "heading", "notice", "link"}:
+        localized(block.get("text"), label + ".text", errors)
+        if kind == "link":
+            try:
+                check_url(block.get("href"), page_ids)
+            except ValueError as error:
+                errors.append(f"{label}: {error}")
+    elif kind in {"list", "steps"}:
+        items = block.get("items")
+        if not isinstance(items, list) or not items:
+            errors.append(f"{label}: items must be nonempty")
+        else:
+            for i, item in enumerate(items):
+                localized(item, f"{label}.items[{i}]", errors)
+    elif kind == "code":
+        localized(block.get("caption"), label + ".caption", errors)
+        code = block.get("code")
+        if isinstance(code, dict):
+            localized(code, label + ".code", errors)
+        elif not isinstance(code, str) or not code.strip():
+            errors.append(f"{label}: code must be nonempty")
+        if not re.fullmatch(r"[\w+-]{0,32}", block.get("language", "")):
+            errors.append(f"{label}: invalid code language")
+    elif kind == "image":
+        localized(block.get("alt"), label + ".alt", errors)
+        localized(block.get("caption"), label + ".caption", errors)
+        try:
+            relative = block["src"]
+            if not relative.startswith("assets/"):
+                raise ValueError("images must be under .documentation/assets/")
+            image = safe_path(root, ".documentation/" + relative)
+            if not image.is_file() or image.suffix.lower() not in {".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"}:
+                raise ValueError("missing or unsupported image")
+            if image.suffix.lower() == ".svg":
+                svg = image.read_text(encoding="utf-8")
+                if re.search(r"<\s*(script|foreignObject)|\bon\w+\s*=|(?:href|url)\s*[=(]\s*['\"]?(?:https?:|//|javascript:|data:)", svg, re.I):
+                    raise ValueError("SVG must not contain executable or remote content")
+            images.add(relative)
+        except (KeyError, TypeError, OSError, ValueError) as error:
+            errors.append(f"{label}: {error}")
+    elif kind == "table":
+        headers, rows = block.get("headers"), block.get("rows")
+        if not isinstance(headers, list) or not headers or not isinstance(rows, list) or not rows:
+            errors.append(f"{label}: table headers and rows required")
+        else:
+            for i, header in enumerate(headers):
+                localized(header, f"{label}.headers[{i}]", errors)
+            for i, row in enumerate(rows):
+                if not isinstance(row, list) or len(row) != len(headers):
+                    errors.append(f"{label}.rows[{i}]: column count differs")
+                else:
+                    for j, cell in enumerate(row):
+                        localized(cell, f"{label}.rows[{i}][{j}]", errors)
+    else:
+        errors.append(f"{label}: unsupported block type {kind}")
+
+
+def check_docstring(text):
+    """PT-BR: Verificar marcadores bilíngues explícitos. EN: Check explicit bilingual markers."""
+    return bool(re.search(r"PT-BR:\s*\S", text) and re.search(r"EN:\s*\S", text))
+
+
+def _validate_documentation(root):
+    """PT-BR: Auditar contrato, fontes e comentários. EN: Audit contract, sources and documentation comments."""
+    root = workspace(root)
+    errors, images = [], set()
+    try:
+        data = load_project(root)
+        mapping = map_project(root, data)
+    except (ValueError, OSError, TypeError) as error:
+        return {"valid": False, "errors": [str(error)]}
+    errors.extend(mapping["errors"])
+    if not isinstance(data.get("name"), str) or not data["name"].strip() or not valid_id(data.get("slug")):
+        errors.append("project name and safe slug are required")
+    if not isinstance(data.get("version"), str) or not data["version"].strip():
+        errors.append("project version required")
+    if data.get("draft") is not False:
+        errors.append("draft documentation cannot be built or published")
+    if data.get("kind") not in REQUIRED:
+        errors.append("invalid project kind")
+    has_ui = data.get("hasUserInterface", data.get("kind") == "application")
+    if type(has_ui) is not bool:
+        errors.append("hasUserInterface must be a boolean")
+    pages = data.get("pages", [])
+    if not isinstance(pages, list) or any(not isinstance(page, dict) for page in pages):
+        return {"valid": False, "errors": errors + ["pages must be an array of objects"]}
+    identifiers = [page.get("id") for page in pages]
+    if any(not valid_id(identifier) for identifier in identifiers) or len(set(str(i) for i in identifiers)) != len(identifiers):
+        errors.append("page IDs must be unique safe identifiers")
+    required = set(REQUIRED.get(data.get("kind"), []))
+    if has_ui:
+        required.add("walkthroughs")
+    if required - set(str(i) for i in identifiers):
+        errors.append("missing required pages: " + ", ".join(sorted(required - set(str(i) for i in identifiers))))
+    for page in pages:
+        label = "page." + str(page.get("id"))
+        localized(page.get("title"), label + ".title", errors)
+        check_sources(root, page.get("sources"), label, errors)
+        sections = page.get("sections")
+        if not isinstance(sections, list) or not sections:
+            errors.append(f"{label}: nonempty sections required")
+            continue
+        section_ids = set()
+        for section in sections:
+            if not isinstance(section, dict):
+                errors.append(f"{label}: section must be an object")
+                continue
+            identifier = section.get("id")
+            if not valid_id(identifier) or str(identifier) in section_ids:
+                errors.append(f"{label}: duplicate or invalid section ID")
+            section_ids.add(str(identifier))
+            localized(section.get("title"), label + ".section.title", errors)
+            blocks = section.get("blocks")
+            if not isinstance(blocks, list) or not blocks:
+                errors.append(f"{label}: nonempty blocks required")
+                continue
+            for i, block in enumerate(blocks):
+                check_block(root, block, f"{label}.{identifier}[{i}]", identifiers, errors, images)
+    audit = data.get("audit", {})
+    if not isinstance(audit, dict) or audit.get("featuresReviewed") is not True or audit.get("reviewedSourceFingerprint") != mapping["sourceFingerprint"]:
+        errors.append("feature audit must review the current sourceFingerprint")
+    features = data.get("features", [])
+    if not isinstance(features, list) or not features:
+        errors.append("source-backed feature inventory is required")
+        features = []
+    feature_ids = set()
+    for feature in features:
+        if not isinstance(feature, dict):
+            errors.append("feature must be an object")
+            continue
+        identifier = feature.get("id")
+        if not valid_id(identifier) or str(identifier) in feature_ids:
+            errors.append("feature IDs must be unique safe identifiers")
+        feature_ids.add(str(identifier))
+        localized(feature.get("name"), f"feature.{identifier}.name", errors)
+        check_sources(root, feature.get("sources"), f"feature.{identifier}", errors)
+        linked = feature.get("pages", [])
+        if not isinstance(linked, list) or not linked or any(p not in identifiers for p in linked):
+            errors.append(f"feature.{identifier}: documentation pages are missing")
+        if has_ui:
+            blocks = [block for page in pages if page.get("id") in linked for section in page.get("sections", []) if isinstance(section, dict) for block in section.get("blocks", []) if isinstance(block, dict)]
+            if not any(b.get("type") == "steps" for b in blocks) or not any(b.get("type") == "image" for b in blocks):
+                errors.append(f"feature.{identifier}: UI walkthrough requires steps and an actual image")
+    external = data.get("externalCoverage", [])
+    if not isinstance(external, list):
+        errors.append("externalCoverage must be an array")
+        external = []
+    external_paths = [entry.get("path") for entry in external if isinstance(entry, dict)]
+    if len(external_paths) != len(set(str(p) for p in external_paths)):
+        errors.append("externalCoverage has duplicate paths")
+    known = {item["path"] for item in mapping["files"] if item["language"] != "python"}
+    if set(str(p) for p in external_paths) - known:
+        errors.append("externalCoverage contains removed or non-external files")
+    symbol_count = 0
+    for file in mapping["files"]:
+        if file["language"] != "python":
+            entry = next((e for e in external if isinstance(e, dict) and e.get("path") == file["path"]), {})
+            if entry.get("sha256") != file["sha256"] or not entry.get("provider") or entry.get("complete") is not True:
+                errors.append(f"{file['path']}: current reviewed external symbol inventory required")
+                continue
+            symbols = entry.get("symbols", [])
+            if not isinstance(symbols, list) or not symbols or not any(isinstance(s, dict) and s.get("kind") == "module" for s in symbols):
+                errors.append(f"{file['path']}: external inventory must include its module and all declarations")
+                continue
+            lines = safe_path(root, file["path"]).read_text(encoding="utf-8-sig").splitlines()
+            validated = []
+            for symbol in symbols:
+                try:
+                    start, end = symbol["docStartLine"], symbol["docEndLine"]
+                    line = symbol["line"]
+                    if not symbol["name"] or symbol["kind"] not in {"module", "class", "function", "method"} or type(start) is not int or type(end) is not int or type(line) is not int or not 1 <= start <= end <= len(lines) or not 1 <= line <= len(lines):
+                        raise ValueError("invalid symbol/comment range")
+                    documentation = "\n".join(lines[start - 1:end])
+                    if not check_docstring(documentation):
+                        raise ValueError("native comment needs PT-BR: and EN: text")
+                    validated.append({"name": symbol["name"], "kind": symbol["kind"], "line": line, "signature": symbol.get("signature", symbol["name"]), "docstring": documentation})
+                except (KeyError, TypeError, ValueError) as error:
+                    errors.append(f"{file['path']}: {error}")
+            file["symbols"] = validated
+            file["coverage"] = "reviewed-external-inventory"
+        else:
+            for symbol in file["symbols"]:
+                if not check_docstring(symbol["docstring"]):
+                    errors.append(f"{file['path']}:{symbol['line']}#{symbol['name']}: bilingual docstring required (PT-BR: / EN:)")
+        symbol_count += len(file["symbols"])
+    if not mapping["files"]:
+        errors.append("no owned source files found; check sourceRoots and exclusions")
+    return {"valid": not errors, "errors": errors, "sourceFingerprint": mapping["sourceFingerprint"], "fileCount": len(mapping["files"]), "symbolCount": symbol_count, "images": sorted(images), "mapping": mapping}
+
+
+def validate(root):
+    """PT-BR: Relatar também campos malformados sem derrubar o MCP. EN: Report malformed fields without terminating MCP."""
+    try:
+        return _validate_documentation(root)
+    except (AttributeError, KeyError, IndexError, TypeError, ValueError, OSError, RecursionError) as error:
+        return {"valid": False, "errors": ["invalid documentation contract: " + str(error)]}
+
+
+def block_output(block, locale, markdown=False):
+    """PT-BR: Renderizar HTML escapado ou Markdown. EN: Render escaped HTML or Markdown."""
+    kind = block["type"]
+    esc = html.escape
+    if kind in {"paragraph", "heading", "notice"}:
+        text = block["text"][locale]
+        if markdown:
+            return ("### " if kind == "heading" else "> " if kind == "notice" else "") + text + "\n\n"
+        tag = "h3" if kind == "heading" else "aside" if kind == "notice" else "p"
+        return f"<{tag}>{esc(text)}</{tag}>"
+    if kind in {"list", "steps"}:
+        if markdown:
+            return "\n".join(f"{str(i + 1) + '.' if kind == 'steps' else '-'} {item[locale]}" for i, item in enumerate(block["items"])) + "\n\n"
+        tag = "ol" if kind == "steps" else "ul"
+        return f"<{tag}>" + "".join("<li>" + esc(item[locale]) + "</li>" for item in block["items"]) + f"</{tag}>"
+    if kind == "code":
+        code = block["code"][locale] if isinstance(block["code"], dict) else block["code"]
+        caption = block["caption"][locale]
+        if markdown:
+            fence = "`" * max(3, max((len(m[0]) + 1 for m in re.finditer(r"`+", code)), default=0))
+            return f"{caption}\n\n{fence}{block.get('language', '')}\n{code}\n{fence}\n\n"
+        return f"<figure class='code'><figcaption>{esc(caption)}</figcaption><pre><code>{esc(code)}</code></pre></figure>"
+    if kind == "image":
+        src, alt, caption = block["src"], block["alt"][locale], block["caption"][locale]
+        if markdown:
+            return f"![{alt}](../{quote(src)})\n\n{caption}\n\n"
+        return f"<figure><img loading='lazy' src='../{quote(src)}' alt='{esc(alt, quote=True)}'><figcaption>{esc(caption)}</figcaption></figure>"
+    if kind == "link":
+        href = block["href"] if block["href"].startswith("https://") else block["href"] + (".md" if markdown else ".html")
+        text = block["text"][locale]
+        return f"[{text}]({href})\n\n" if markdown else f"<p><a href='{esc(href, quote=True)}'>{esc(text)}</a></p>"
+    if kind == "table":
+        headers, rows = block["headers"], block["rows"]
+        if markdown:
+            cells = [[cell[locale].replace("|", "\\|").replace("\n", " ") for cell in row] for row in [headers, *rows]]
+            return "| " + " | ".join(cells[0]) + " |\n| " + " | ".join("---" for _ in headers) + " |\n" + "".join("| " + " | ".join(row) + " |\n" for row in cells[1:]) + "\n"
+        return "<div class='table-scroll'><table><thead><tr>" + "".join("<th scope='col'>" + esc(c[locale]) + "</th>" for c in headers) + "</tr></thead><tbody>" + "".join("<tr>" + "".join("<td>" + esc(c[locale]) + "</td>" for c in row) + "</tr>" for row in rows) + "</tbody></table></div>"
+    raise ValueError("unsupported block")
+
+
+def page_markdown(page, locale):
+    """PT-BR: Exportar conteúdo sem a navegação visual. EN: Export content without visual navigation."""
+    text = "# " + page["title"][locale] + "\n\n"
+    for section in page["sections"]:
+        text += "## " + section["title"][locale] + "\n\n"
+        text += "".join(block_output(block, locale, True) for block in section["blocks"])
+    text += "## " + LABELS[locale]["sources"] + "\n\n"
+    text += "".join(f"- {s['path']}" + (f":{s['line']}" if s.get("line") else "") + "\n" for s in page["sources"])
+    return text + "\n"
+
+
+def source_revision(root):
+    """PT-BR: Obter revisão sem alterar Git. EN: Read the revision without changing Git."""
+    try:
+        result = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"], capture_output=True, text=True, timeout=10)
+        return result.stdout.strip() if result.returncode == 0 else "unversioned"
+    except (OSError, subprocess.TimeoutExpired):
+        return "unversioned"
+
+
+def public_corpus(data, report, root):
+    """PT-BR: Exportar somente conhecimento público. EN: Export only public knowledge."""
+    return {"schemaVersion": 1, **{key: data[key] for key in ("name", "slug", "kind", "version", "pages", "features")}, "hasUserInterface": data.get("hasUserInterface", data["kind"] == "application"), "sourceRevision": source_revision(root), "sourceFingerprint": report["sourceFingerprint"], "sources": report["mapping"]["files"], "symbols": [{"path": file["path"], **symbol} for file in report["mapping"]["files"] for symbol in file["symbols"]], "coverage": {"files": report["fileCount"], "supportingFiles": report["mapping"]["supportingFiles"], "symbols": report["symbolCount"], "skipped": report["mapping"]["skipped"], "limits": report["mapping"]["limits"]}}
+
+
+def page_html(data, page, locale, report):
+    """PT-BR: Criar página acessível no padrão visual Carbon. EN: Create an accessible Carbon-based page."""
+    esc, labels = html.escape, LABELS[locale]
+    alternate = "en" if locale == "pt-BR" else "pt-BR"
+    current_attribute = 'aria-current="page"'
+    kind_label = {"application": ("Aplicação", "Application"), "library": ("Biblioteca", "Library"), "plugin": ("Plugin", "Plugin")}[data["kind"]][0 if locale == "pt-BR" else 1]
+    navigation = "".join(f"<a {current_attribute if p['id'] == page['id'] else ''} href='{p['id']}.html'>{esc(p['title'][locale])}</a>" for p in data["pages"])
+    toc = "".join(f"<a href='#{s['id']}'>{esc(s['title'][locale])}</a>" for s in page["sections"])
+    content = "".join(f"<section aria-labelledby='{s['id']}'><h2 id='{s['id']}'>{esc(s['title'][locale])}</h2>" + "".join(block_output(b, locale) for b in s["blocks"]) + "</section>" for s in page["sections"])
+    source_text = ", ".join(s["path"] + (":" + str(s["line"]) if s.get("line") else "") for s in page["sources"])
+    return f"""<!doctype html>
+<html class='no-js' lang='{locale}'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>
+<meta name='generator' content='Custom Agents Documentation'><title>{esc(page['title'][locale])} · {esc(data['name'])}</title>
+<link rel='stylesheet' href='../assets/site.css'><link rel='alternate' hreflang='{alternate}' href='../{alternate}/{page['id']}.html'>
+<link rel='alternate' type='text/markdown' href='{page['id']}.md'><script defer src='../assets/site.js'></script></head>
+<body><a class='skip' href='#content'>{labels['skip']}</a><header><button id='menu' aria-expanded='false' aria-controls='navigation'>{labels['menu']}</button><a class='brand' href='overview.html'>{esc(data['name'])}<span> / {esc(data['version'])}</span></a><a class='locale' lang='{alternate}' href='../{alternate}/{page['id']}.html'>{'English' if alternate == 'en' else 'Português (Brasil)'}</a></header>
+<nav id='navigation' aria-label='{labels['nav']}'><div class='nav-label'>{esc(kind_label)}</div>{navigation}<a class='agent-link' href='llms-full.txt'>{labels['machine']} ↗</a></nav>
+<main id='content' tabindex='-1'><div class='eyebrow'>{esc(data['name'])} / {esc(page['title'][locale])}</div><h1>{esc(page['title'][locale])}</h1><div class='search'><label for='search'>{labels['search']}</label><input id='search' type='search' autocomplete='off' data-none='{labels['none']}'><div id='search-status' role='status'></div><ul id='search-results'></ul></div>{content}<footer><strong>{labels['sources']}</strong><p>{esc(source_text)}</p><a href='{page['id']}.md'>Markdown ↗</a> · <a href='../llms.txt'>llms.txt ↗</a><p>{labels['coverage']}: {report['fileCount']} {labels['files']} · {report['symbolCount']} {labels['symbols']}</p></footer></main><aside class='toc' aria-label='{labels['toc']}'><strong>{labels['toc']}</strong>{toc}</aside></body></html>"""
+
+
+def input_state(root, data, report):
+    """PT-BR: Vincular prova às fontes e imagens atuais. EN: Bind evidence to current sources and images."""
+    images = {relative: digest(safe_path(root, ".documentation/" + relative).read_bytes()) for relative in report["images"]}
+    runtime = Path(__file__).parent
+    generator = {relative: digest((runtime / relative).read_bytes()) for relative in ("core.py", "assets/site.css", "assets/site.js")}
+    return {"configHash": digest(data), "sourceState": report["mapping"]["sourceState"], "images": images, "generatorFingerprint": digest(generator)}
+
+
+def with_api_reference(data, report):
+    """PT-BR: Incluir contratos reais na referência navegável. EN: Include actual contracts in the browsable reference."""
+    rendered = json.loads(json.dumps(data))
+    page = next(page for page in rendered["pages"] if page["id"] == ("reference" if data["kind"] == "application" else "api"))
+    # Reserved section keeps generated declarations separate from authored explanations.
+    if any(section["id"] == "source-api" for section in page["sections"]):
+        raise ValueError("section ID source-api is reserved for generated symbol documentation")
+    blocks = []
+    for file in report["mapping"]["files"]:
+        for symbol in file["symbols"]:
+            source = f"{file['path']}:{symbol['line']} — {symbol['name']}"
+            documentation = symbol["docstring"]
+            chunks = {locale: [] for locale in LOCALES}
+            for match in re.finditer(r"(PT-BR|EN):\s*(.*?)(?=(?:PT-BR|EN):|\Z)", documentation, re.S):
+                locale = "pt-BR" if match[1] == "PT-BR" else "en"
+                text = re.sub(r"(?m)^\s*\*\s?", "", match[2]).strip().removesuffix("*/").strip()
+                chunks[locale].append(text)
+            blocks.extend([{"type": "heading", "text": {locale: source for locale in LOCALES}}, {"type": "code", "language": "python" if file["language"] == "python" else "text", "caption": bilingual(("Assinatura e localização", "Signature and location")), "code": symbol["signature"]}, {"type": "paragraph", "text": {locale: "\n\n".join(chunks[locale]) or documentation for locale in LOCALES}}])
+    page["sections"].append({"id": "source-api", "title": bilingual(("Módulos, classes, métodos e funções", "Modules, classes, methods and functions")), "blocks": blocks})
+    return rendered
+
+
+def managed_output(root):
+    """PT-BR: Recusar arquivos não gerenciados no destino. EN: Refuse unmanaged files in the output."""
+    site = safe_path(root, SITE)
+    if site.exists():
+        manifest_path = safe_path(root, SITE + "/manifest.json")
+        if not manifest_path.is_file():
+            raise ValueError("site output exists without a managed manifest")
+        manifest = read_json(manifest_path)
+        expected = set(manifest.get("files", {})) | {"manifest.json"}
+        actual = set()
+        for file in site.rglob("*"):
+            safe_path(root, file.relative_to(root).as_posix())
+            if file.is_file():
+                actual.add(file.relative_to(site).as_posix())
+        if actual - expected:
+            raise ValueError("unmanaged files in site output: " + ", ".join(sorted(actual - expected)))
+    return site
+
+
+def build(root):
+    """PT-BR: Validar e gerar site e exportações atomicamente. EN: Validate and atomically build site and exports."""
+    root = workspace(root)
+    report = validate(root)
+    if not report["valid"]:
+        raise ValueError("documentation validation failed:\n" + "\n".join(report["errors"]))
+    data = load_project(root)
+    rendered = with_api_reference(data, report)
+    site = managed_output(root)
+    stage = Path(tempfile.mkdtemp(prefix=".site-", dir=safe_path(root, ".documentation")))
+    old = None
+    try:
+        assets = stage / "assets"
+        assets.mkdir()
+        for asset in ("site.css", "site.js"):
+            shutil.copy2(Path(__file__).parent / "assets" / asset, assets / asset)
+        for relative in report["images"]:
+            target = stage / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            if target.exists():
+                raise ValueError("authored asset collides with generated asset: " + relative)
+            shutil.copy2(safe_path(root, ".documentation/" + relative), target)
+        corpus = public_corpus(rendered, report, root)
+        write_json(stage / "corpus.json", corpus)
+        write_json(stage / "api.json", {"sources": corpus["sources"], "coverage": corpus["coverage"]})
+        write_json(stage / "search-index.json", [{"locale": locale, "id": page["id"], "title": page["title"][locale], "text": page_markdown(page, locale)} for locale in LOCALES for page in rendered["pages"]])
+        full = []
+        index = f"# {data['name']}\n\n> {data['kind']} · {data['version']}\n\n"
+        for locale in LOCALES:
+            folder = stage / locale
+            folder.mkdir()
+            complete = f"# {data['name']} ({locale})\n\nVersion: {data['version']}\nSource revision: {corpus['sourceRevision']}\nSource fingerprint: {report['sourceFingerprint']}\n\n"
+            index += f"## {locale}\n\n"
+            for page in rendered["pages"]:
+                markdown = page_markdown(page, locale)
+                (folder / (page["id"] + ".html")).write_text(page_html(rendered, page, locale, report), encoding="utf-8")
+                (folder / (page["id"] + ".md")).write_text(markdown, encoding="utf-8")
+                complete += markdown + "\n---\n\n"
+                index += f"- [{page['title'][locale]}]({locale}/{page['id']}.md)\n"
+            complete += "## " + LABELS[locale]["api"] + "\n\n"
+            for file in corpus["sources"]:
+                for symbol in file["symbols"]:
+                    complete += f"### {file['path']}:{symbol['line']} — {symbol['name']}\n\n{symbol['signature']}\n\n{symbol['docstring']}\n\n"
+            complete += "\n" + "\n".join(corpus["coverage"]["limits"]) + "\n"
+            (folder / "llms-full.txt").write_text(complete, encoding="utf-8")
+            full.append(complete)
+        (stage / "llms.txt").write_text(index + "\n## Full exports\n\n- [Português](pt-BR/llms-full.txt)\n- [English](en/llms-full.txt)\n- [Both languages](llms-full.txt)\n- [API and coverage](api.json)\n", encoding="utf-8")
+        (stage / "llms-full.txt").write_text("\n\n".join(full), encoding="utf-8")
+        (stage / ".nojekyll").write_text("", encoding="utf-8")
+        (stage / "index.html").write_text("<!doctype html><html lang='en'><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>" + html.escape(data["name"]) + "</title><link rel='stylesheet' href='assets/site.css'><main><h1>" + html.escape(data["name"]) + "</h1><p><a href='pt-BR/overview.html' lang='pt-BR'>Português (Brasil)</a></p><p><a href='en/overview.html' lang='en'>English</a></p><p><a href='llms.txt'>llms.txt</a></p></main></html>", encoding="utf-8")
+        state = input_state(root, data, report)
+        manifest = {"schemaVersion": 1, "generator": "software-documentation", "inputFingerprint": digest(state), **state, "files": {file.relative_to(stage).as_posix(): digest(file.read_bytes()) for file in sorted(stage.rglob("*")) if file.is_file()}}
+        write_json(stage / "manifest.json", manifest)
+        if site.exists():
+            old = stage.with_name(stage.name + "-old")
+            os.replace(site, old)
+        try:
+            os.replace(stage, site)
+        except OSError:
+            if old:
+                os.replace(old, site)
+                old = None
+            raise
+        return {"site": SITE, "inputFingerprint": manifest["inputFingerprint"], "fileCount": len(manifest["files"]), "manifest": SITE + "/manifest.json", "valid": True}
+    finally:
+        for directory in (stage, old):
+            if directory and directory.exists() and directory.parent == safe_path(root, ".documentation") and directory.name.startswith(".site-"):
+                shutil.rmtree(directory)
+
+
+def verify_build(root):
+    """PT-BR: Recusar conteúdo ou artefatos obsoletos. EN: Refuse stale content or artifacts."""
+    root = workspace(root)
+    report = validate(root)
+    if not report["valid"]:
+        raise ValueError("current documentation does not validate: " + "; ".join(report["errors"]))
+    manifest = read_json(safe_path(root, SITE + "/manifest.json"))
+    if manifest.get("generator") != "software-documentation" or manifest.get("inputFingerprint") != digest(input_state(root, load_project(root), report)):
+        raise ValueError("build is stale; rebuild after source/content/image changes")
+    site = managed_output(root)
+    for relative, expected in manifest["files"].items():
+        file = safe_path(root, SITE + "/" + relative)
+        if not file.is_file() or digest(file.read_bytes()) != expected:
+            raise ValueError("built artifact changed or missing: " + relative)
+    return manifest
+
+
+def migrate(root, apply=False):
+    """PT-BR: Inspecionar diferenças ou migrar v0 com backup. EN: Inspect changes or migrate v0 with a backup."""
+    root = workspace(root)
+    target = safe_path(root, CONFIG)
+    data = read_json(target)
+    version = data.get("schemaVersion", 0)
+    if type(version) is not int or version not in (0, 1):
+        raise ValueError("future/unknown schema version; migration refused")
+    if version == 0:
+        if not apply:
+            return {"schemaVersion": 0, "targetVersion": 1, "migrationRequired": True, "writes": [CONFIG, CONFIG + ".v0.bak"], "note": "Translations, sources and coverage require author review after conversion."}
+        backup = safe_path(root, CONFIG + ".v0.bak")
+        if backup.exists():
+            raise ValueError("migration backup already exists; preserve and review it first")
+        upgraded = json.loads(json.dumps(data))
+
+        def locale_keys(value):
+            """PT-BR: Converter apenas a chave de idioma legada. EN: Convert only the legacy locale key."""
+            if isinstance(value, dict):
+                if "pt" in value:
+                    if "pt-BR" in value:
+                        raise ValueError("both pt and pt-BR translations exist; resolve explicitly")
+                    value["pt-BR"] = value.pop("pt")
+                for child in value.values():
+                    locale_keys(child)
+            elif isinstance(value, list):
+                for child in value:
+                    locale_keys(child)
+
+        locale_keys(upgraded)
+        upgraded["schemaVersion"] = 1
+        upgraded["draft"] = True
+        upgraded.setdefault("externalCoverage", [])
+        upgraded.setdefault("audit", {"featuresReviewed": False, "reviewedSourceFingerprint": ""})
+        backup.write_bytes(target.read_bytes())
+        write_json(target, upgraded)
+        return {"schemaVersion": 1, "migrated": True, "backup": CONFIG + ".v0.bak", "draft": True}
+    mapping = map_project(root, data)
+    manifest_path = safe_path(root, SITE + "/manifest.json")
+    old = read_json(manifest_path).get("sourceState", {}) if manifest_path.exists() else {}
+    current = mapping["sourceState"]
+    return {"schemaVersion": 1, "migrationRequired": False, "added": sorted(set(current) - set(old)), "removed": sorted(set(old) - set(current)), "changed": sorted(p for p in set(current) & set(old) if current[p] != old[p]), "sourceFingerprint": mapping["sourceFingerprint"], "errors": mapping["errors"], "next": "Preserve authored content and URLs; review renamed/removed features, redirect pages, translations and images before rebuilding."}
+
+
+def readme_links(root, site_url, apply=False):
+    """PT-BR: Preparar ou atualizar bloco de links bilíngues. EN: Prepare or update a bilingual links block."""
+    root = workspace(root)
+    check_url(site_url, [])
+    base = site_url.rstrip("/") + "/"
+    start, end = "<!-- software-documentation:start -->", "<!-- software-documentation:end -->"
+    block = f"{start}\n## Documentação / Documentation\n\n- [Português (Brasil)]({base}pt-BR/overview.html)\n- [English]({base}en/overview.html)\n- [Índice para agentes / Agent index]({base}llms.txt)\n- [Texto completo / Full text]({base}llms-full.txt)\n- [API e cobertura / API and coverage]({base}api.json)\n{end}\n"
+    path = safe_path(root, "README.md")
+    current = path.read_text(encoding="utf-8") if path.exists() else ""
+    if current.count(start) != current.count(end) or current.count(start) > 1 or (start in current and current.index(start) > current.index(end)):
+        raise ValueError("ambiguous managed README markers")
+    updated = re.sub(re.escape(start) + r".*?" + re.escape(end) + r"\n?", lambda _: block, current, flags=re.S) if start in current else current.rstrip() + "\n\n" + block
+    if apply:
+        path.write_text(updated, encoding="utf-8")
+    return {"path": "README.md", "block": block, "changed": updated != current, "applied": apply}

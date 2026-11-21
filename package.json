@@ -254,10 +254,15 @@
     "evaluate:codebase": "node --import tsx scripts/evaluate-codebase.ts",
     "prepare:semantic": "node scripts/prepare-embeddings.mjs",
     "check": "npm run skills:check && npm run typecheck && npm run build && npm test && npm run test:ui",
-    "package:vsix": "npm run build && node scripts/licenses.mjs && node scripts/package-vsix.mjs",
+    "package:vsix": "npm run docs:build && npm run docs:integrations && npm run build && node scripts/licenses.mjs && node scripts/package-vsix.mjs",
     "format": "prettier --write src tests scripts docs README.md package.json tsconfig.json playwright.config.ts",
     "docs:build": "node scripts/docs.mjs",
-    "docs:preview": "vitepress preview docs-site --host 127.0.0.1",
+    "docs:preview": "node scripts/docs.mjs preview",
+    "docs:map": "node scripts/docs.mjs map",
+    "docs:migrate": "node scripts/docs.mjs migrate",
+    "docs:validate": "node scripts/docs.mjs validate",
+    "docs:check": "npm run docs:validate && npm run docs:build && node --test tests/documentation/site.test.mjs",
+    "docs:integrations": "node scripts/docs.mjs integrations",
     "release:verify": "node scripts/verify-release.mjs"
   },
   "devDependencies": {
@@ -267,18 +272,12 @@
     "@vscode/test-electron": "^3.1.0",
     "@vscode/vsce": "^4.1.0",
     "esbuild": "^0.25.12",
-    "mermaid": "11.17.2",
     "prettier": "3.6.2",
-    "tsx": "^4.20.6",
-    "vitepress": "1.6.4",
-    "vitepress-plugin-mermaid": "2.0.17"
+    "tsx": "^4.20.6"
   },
   "overrides": {
     "@vscode/vsce": {
       "minimatch": "^11.0.1"
-    },
-    "vitepress": {
-      "vite": "^6.4.4"
     }
   },
   "dependencies": {
