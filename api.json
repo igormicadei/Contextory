@@ -1,0 +1,898 @@
+{
+  "sources": [
+    {
+      "path": "scripts/documentation/build.py",
+      "sha256": "7ffc5364565cb574fe98a95c20312c0b1de3c8952c4287eae0d2bb91445f8c59",
+      "language": "python",
+      "symbols": [
+        {
+          "name": "<module>",
+          "kind": "module",
+          "line": 1,
+          "endLine": 241,
+          "docstring": "PT-BR: Gera os guias com o runtime e os layouts padrão da skill de documentação.\n\nEN: Build guides with the documentation skill's unchanged runtime and default layouts.",
+          "signature": "scripts/documentation/build.py"
+        },
+        {
+          "name": "Links",
+          "kind": "class",
+          "line": 26,
+          "endLine": 47,
+          "signature": "class Links(HTMLParser)",
+          "docstring": "PT-BR: Coleta destinos locais e âncoras para verificar o HTML gerado.\n\nEN: Collect local destinations and anchors to verify generated HTML."
+        },
+        {
+          "name": "Links.__init__",
+          "kind": "method",
+          "line": 32,
+          "endLine": 36,
+          "signature": "__init__(self)",
+          "docstring": "PT-BR: Inicia coleções por página. EN: Initialize per-page collections."
+        },
+        {
+          "name": "Links.handle_starttag",
+          "kind": "method",
+          "line": 38,
+          "endLine": 47,
+          "signature": "handle_starttag(self, tag, attrs)",
+          "docstring": "PT-BR: Registra links e IDs sem executar scripts. EN: Record links and IDs without running scripts."
+        },
+        {
+          "name": "write_managed",
+          "kind": "function",
+          "line": 50,
+          "endLine": 59,
+          "signature": "write_managed(site, relative, content)",
+          "docstring": "PT-BR: Grava um artefato dentro do site e devolve seu hash de bytes.\n\nEN: Write an artifact inside the site and return its byte hash."
+        },
+        {
+          "name": "verify_vendor",
+          "kind": "function",
+          "line": 62,
+          "endLine": 70,
+          "signature": "verify_vendor()",
+          "docstring": "PT-BR: Recusa alterações no runtime e nos layouts padrão copiados da skill.\n\nEN: Refuse changes to the runtime and default layouts copied from the skill."
+        },
+        {
+          "name": "compatibility",
+          "kind": "function",
+          "line": 73,
+          "endLine": 104,
+          "signature": "compatibility()",
+          "docstring": "PT-BR: Preserva URLs e arquivos legados sem alterar o shell Carbon padrão.\n\nEN: Preserve legacy URLs and files without changing the default Carbon shell."
+        },
+        {
+          "name": "check_links",
+          "kind": "function",
+          "line": 107,
+          "endLine": 135,
+          "signature": "check_links()",
+          "docstring": "PT-BR: Confere páginas, imagens, exports e âncoras locais com o site já gerado.\n\nEN: Check pages, images, exports and local anchors in the completed site."
+        },
+        {
+          "name": "export_markdown",
+          "kind": "function",
+          "line": 138,
+          "endLine": 174,
+          "signature": "export_markdown()",
+          "docstring": "PT-BR: Atualiza apenas guias explicitamente gerenciados e preserva os originais no arquivo.\n\nEN: Update only explicitly managed guides while preserving originals in the archive."
+        },
+        {
+          "name": "export_markdown.repository_link",
+          "kind": "function",
+          "line": 153,
+          "endLine": 164,
+          "signature": "repository_link(match)",
+          "docstring": "PT-BR: Ajusta links do export para o caminho do guia no repositório.\n\nEN: Adjust export links for the guide's repository location."
+        },
+        {
+          "name": "consumer_bundle",
+          "kind": "function",
+          "line": 177,
+          "endLine": 197,
+          "signature": "consumer_bundle()",
+          "docstring": "PT-BR: Gera o bundle de consulta e inclui a licença MIT do runtime distribuído.\n\nEN: Generate the query bundle and include the distributed runtime's MIT license."
+        },
+        {
+          "name": "main",
+          "kind": "function",
+          "line": 200,
+          "endLine": 237,
+          "signature": "main()",
+          "docstring": "PT-BR: Executa mapa/validação/build/export/preview sem publicar nem aprovar fontes.\n\nEN: Run mapping/validation/build/export/preview without publishing or approving sources."
+        }
+      ],
+      "coverage": "python-ast"
+    }
+  ],
+  "coverage": {
+    "files": 1,
+    "supportingFiles": [
+      {
+        "path": ".documentation/aliases.json",
+        "sha256": "0d9d53d7c4fd7659c25e321d5bbfb96898cae2051ad08805d671a9b3823b1fed",
+        "bytes": 5502,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": ".documentation/legacy-assets.json",
+        "sha256": "f9e35165d0f4d8122ab758befc982c3454b49293925451b25fa4338b3e7c29c0",
+        "bytes": 481,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": ".documentation/legacy/docs/CODEBASE-INTELLIGENCE-PLAN.md",
+        "sha256": "fbb90b80808fbf8dad9a8088f50157986291fa78ac801fbdc251ea25b0765d2c",
+        "bytes": 10471,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": ".documentation/legacy/docs/NATIVE-AGENT-PLAN.md",
+        "sha256": "81fba303abf50b78f64b2400dc58decc271de35ccaeabd83f7561b9270bdb8cd",
+        "bytes": 10523,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": ".documentation/legacy/docs/VALIDATION.md",
+        "sha256": "b96bf66e68dc3f1d76b7db77118fc6b2d24a2e8e0b0e66c6a0c85c573763ce9e",
+        "bytes": 33895,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": ".documentation/legacy/docs/releases/v0.2.3.md",
+        "sha256": "e654c70801b109c76f1fb6dfde4a4fed26ac0b779f4e95af4d3d919373f1b2e1",
+        "bytes": 3385,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": ".documentation/legacy/docs/releases/v0.2.4.md",
+        "sha256": "e53a1e93019e34c8dafcd2dbd77114bf16bce8c64a243f486c4478997a7b0e12",
+        "bytes": 1783,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": ".documentation/legacy/docs/releases/v0.2.5.md",
+        "sha256": "f6a88059ebd22ad575bf536f5de34944a3ac0cf731b80fe7f852ac7cc6ee894b",
+        "bytes": 2399,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": ".documentation/legacy/docs/releases/v0.2.6.md",
+        "sha256": "0193ac735b72f74dd8ba8fd1d2d5ec886ce7a69c3e0fc2314afccfee1f3e8b03",
+        "bytes": 2447,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": ".documentation/legacy/docs/releases/v0.3.0.md",
+        "sha256": "44de7e6e8c7beb261f45034ca8f4569e678ccf67ce25109037109325d27cbe54",
+        "bytes": 5039,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": ".documentation/legacy/docs/releases/v0.3.1.md",
+        "sha256": "98a5f0fa7333038e4042bf39d437ac1dec6c2931a7a83a164e0f47ec3b844b7d",
+        "bytes": 2288,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": ".documentation/legacy/docs/releases/v0.4.0.md",
+        "sha256": "79dae47d428aec4c8c13e3a323c62dfd16760656c140864657f40073fd9c9114",
+        "bytes": 4374,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": ".documentation/legacy/docs/releases/v0.5.0.md",
+        "sha256": "4c25c791557e2ccf35c76f36819be5e5fd98f965615f4d54c880a52dca7cdf86",
+        "bytes": 6532,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": ".documentation/legacy/docs/releases/v0.5.1.md",
+        "sha256": "ff7ff6d81047103dfdb6a1a676a1320024f5995ae01565ba101fb5a7877b82ab",
+        "bytes": 2741,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": ".documentation/legacy/docs/releases/v0.6.0.md",
+        "sha256": "e1d5b6a6ff5a587e8fab1b59c89e31aaf24b895e7fb154bd696143d94a65cca1",
+        "bytes": 4448,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": ".documentation/legacy/docs/releases/v0.7.0.md",
+        "sha256": "cdb3847903a78a43daf61a0246bdc71268a6cfdbcaea5c5369c601db5abdd907",
+        "bytes": 3481,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": ".documentation/markdown-targets.json",
+        "sha256": "4e0ec513d32670df855678de34e18ba82b84468ced92cff04bb348c3ce2d8b22",
+        "bytes": 385,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": ".documentation/redirects.json",
+        "sha256": "71054442283f314c6e00242095c5e4fba63162f1df40faffe0f1ddc58a121a97",
+        "bytes": 1551,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": ".documentation/tool-contracts.json",
+        "sha256": "614148d0f9c4cd1c117532229b04609c041750cd8c47bba1c61a8e9dfa7f0eec",
+        "bytes": 14311,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": ".gitattributes",
+        "sha256": "225d5f80538f98153831cac0f9ad17091b6e03a334d47951e0a2b6374dc24c84",
+        "bytes": 434,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": ".github/workflows/documentation.yml",
+        "sha256": "35c5838eb84eb28e64743ce5f31934fb1a2bc4cba71765577f048a06fca74a0d",
+        "bytes": 1428,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": ".vscodeignore",
+        "sha256": "39b396c2e9c25f5641d771e4d4f130e9ba7853d50c97f7fdcf5719a9906f04cf",
+        "bytes": 653,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "CHANGELOG.md",
+        "sha256": "322b00845ef8945e883413ca995f234b446ac0fdb8d4f2c096276c4f603a2283",
+        "bytes": 27541,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "artifacts/architecture-dark.png",
+        "sha256": "6e25548d70e3cbe1d694ac2ab8a44d2555afac827503f7a28e0e5ce497fe65e4",
+        "bytes": 31582,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "artifacts/architecture-explorer.png",
+        "sha256": "cdb5a1bf40c7b4223cdbf145b0dacd907665af6e7b01b41052e4e417f7154fd4",
+        "bytes": 49923,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "artifacts/architecture-light-320.png",
+        "sha256": "b6c67fc3d3fff3a7ee0f42e85bd2f2631f2e592ad087382a45faf8360d390158",
+        "bytes": 32346,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "artifacts/code-map-explorer.png",
+        "sha256": "4b5fc991fa72bf2c8429ef288a87e5d99b8b421cccc8e41512909e1597382c3d",
+        "bytes": 68352,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "artifacts/companion-sidebar.png",
+        "sha256": "24ec34acc5b73f27747778b2aa1cd1d2faadce96b57efb9cb6b3fa8b6cf34127",
+        "bytes": 35512,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "artifacts/contextory-brand.png",
+        "sha256": "fd20e602f47df08408d2650e7b8a0c1f71ed62ac8d7d2a85ce1dcf4703a6394d",
+        "bytes": 18091,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "artifacts/host-release-070-bob.json",
+        "sha256": "110abff30c3d2cb65f988322bd4aa98211d3e7b59b5a0b0fe6f57e5e627ff205",
+        "bytes": 1535,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "artifacts/host-release-070-vscode.json",
+        "sha256": "6d6cfa3a5288fed13b9104a9b7f62b1b8fcbf1ad4bd57c3405c3b7f2d636ba39",
+        "bytes": 1546,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "artifacts/relationships.png",
+        "sha256": "73ae7cfe7b3e9aac8d8d3585d29f131653b287aa310089e2844cd53721aa4d0a",
+        "bytes": 46277,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "artifacts/request-details.png",
+        "sha256": "4f28c11e0cc13e350b885ded1af97d0d25992a4aa7b75fd13a7da88c255fda5a",
+        "bytes": 45224,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "artifacts/request-history.png",
+        "sha256": "b1c22abe1bc3e2f0db0424165ff869ba120119b6a317bb3ccc644694496237af",
+        "bytes": 20000,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "artifacts/source-flow.png",
+        "sha256": "f10fee40b3b97f3dd2800f4c71d514e500b5ebe52c5f0c50b7d7298b6c32e9a8",
+        "bytes": 32782,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "artifacts/themes.png",
+        "sha256": "0fa76b520623f5b1f93f01863cea47d64d1e9f1ee6019755e90e74fd5da0a4b6",
+        "bytes": 278474,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "media/contextory-icon.png",
+        "sha256": "5087019f159f18e1f7b4678cffc94f594a09df8465a31d2803cb872d5c8ca243",
+        "bytes": 9079,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "media/contextory-icon.svg",
+        "sha256": "9b7bea31d0fa3411522ebcaa2cea1fd5816ba47ccb18ebea2eff94a99f42d665",
+        "bytes": 816,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "media/contextory.svg",
+        "sha256": "fbfa509bf4b14ee8ba2e867c41f7c5a2d2ce785a4c270a851f5632c000f76698",
+        "bytes": 452,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "package.json",
+        "sha256": "342e91ade2a1e1eba5e3ae95b928534ffa25069ed229f0eda4172c654948b25d",
+        "bytes": 10314,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "scripts/build.mjs",
+        "sha256": "c3311fc9dfa60109d7896763daf4182e6bb6cca4411a98e9aa60559dd24ad418",
+        "bytes": 3586,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "scripts/docs.mjs",
+        "sha256": "5447c9cebfa61adb3fcfb39c72a57916ed4d16d7a7a51a6bc9c6fb7da6ab4dd5",
+        "bytes": 616,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "scripts/documentation/vendor/PROVENANCE.json",
+        "sha256": "1b67d81d4b84f2aaecfa593c92a62c55e84901e5910935f09abde7d79a3732ee",
+        "bytes": 987,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "scripts/licenses.mjs",
+        "sha256": "9cc511628f8b8721a5dd20ca843a898ffd284c4a0af0e5bccaa3dea647958f4b",
+        "bytes": 1864,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "scripts/package-vsix.mjs",
+        "sha256": "ecdc08098852f6a52d7c66533ee4e58b0a3f037728dc55ba8a0062c83519f618",
+        "bytes": 974,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "scripts/verify-release.mjs",
+        "sha256": "0b5c9e583d57420c06b12b234b2ff64bd77d70317bc05376b9a24e023bbd3752",
+        "bytes": 4586,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "skills/contextory-codebase/SKILL.md",
+        "sha256": "b0e20ca0405d6135b30f988c5c9d0b82921fc8ce553813708bf612ee15d01379",
+        "bytes": 6196,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "skills/contextory-codebase/references/retrieval.md",
+        "sha256": "a693c9799327832fd1bbb6d3b5b7789900b8ee11a104f480542c1336634b826c",
+        "bytes": 13089,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "skills/contextory-migrate/SKILL.md",
+        "sha256": "e2443e67c74da45a1927ec4593a2451135b28eee8a8a97688a71fa875905c2c0",
+        "bytes": 4918,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "skills/contextory-workflow/SKILL.md",
+        "sha256": "0fc83ccd47e98d193322bce4ecb652a27eb7908b8ef66e7d9b003bbeb314af2c",
+        "bytes": 6242,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "skills/contextory-workflow/references/completion.md",
+        "sha256": "a3f8faead998d99d9c70b42cb8209eddce60cdcaac5fbf7290241c00a227be8b",
+        "bytes": 3668,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/agents/instructions.ts",
+        "sha256": "a62d2c8dbe58aea5b2b7949bcd2c5852d0476c927fa541fa294a902e37143ab1",
+        "bytes": 9574,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/analysis/engine.ts",
+        "sha256": "701b6e3e095844b7e7fb64bcebb3a3b2dd0bd8457f5bf049188b3968863bbabf",
+        "bytes": 22287,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/analysis/manager.ts",
+        "sha256": "60a33991502ccfdf4b960c5f74afd5c26394906e472e15255a2adf200f9cc150",
+        "bytes": 3635,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/analysis/python-flow.py",
+        "sha256": "d161d9c73cf2c622202e32448249fcbf4f7f207100e7904ebbbb1b6223c1af10",
+        "bytes": 22361,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/analysis/python.ts",
+        "sha256": "37d7ff10eabc40c224a6fcfea091ddcb651430da53810813bfe309479cbb8b2f",
+        "bytes": 5319,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/analysis/worker.ts",
+        "sha256": "946b30374541974ec0d127c3a3c095e932eb3b4d5b06c5aa6ce837cd3ff9f8e0",
+        "bytes": 651,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/cli.ts",
+        "sha256": "716785efac1b3edc3ea3cadb5891e794bc07f8fd320056a412a10a0c7c7e5079",
+        "bytes": 11958,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/codebase/config.ts",
+        "sha256": "4276798870cd568ec428c50a75beb906c34686e55a3863d288b40bf2a5d600cf",
+        "bytes": 2584,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/codebase/extract.ts",
+        "sha256": "65e46ab09cb905953fc4439096ed93712a4beb73cb0da4231038053393cac027",
+        "bytes": 19069,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/codebase/import.ts",
+        "sha256": "f28c1e0917a7ed9ccdf6ba9323931d2af3c4da0d33969231adc76ce3306ec436",
+        "bytes": 6690,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/codebase/index.ts",
+        "sha256": "51b341ded7f47c755e6898b17758de72b6f3b220b827c64d34e6915ba9dd6f2a",
+        "bytes": 13823,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/codebase/model.ts",
+        "sha256": "17652168a8ad6e0843ef2b9b24669d3f36e48683d57b0772d0d6b4b173a1f238",
+        "bytes": 2474,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/codebase/python-index.py",
+        "sha256": "ede34a1ad16b80b7c7c5ce424dd67a421c35e745f7cc45ee58ef1d6d644838d6",
+        "bytes": 8049,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/codebase/queries.ts",
+        "sha256": "22a4a15139aedc12b4491badbea5b797c8a18f2ba6a6cc4547b1fb15bcd8da25",
+        "bytes": 20829,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/codebase/references.ts",
+        "sha256": "0559c0eaf736c9ec1212572fbc0321eb0fb4488b531c6c38e47256277baf82c1",
+        "bytes": 6793,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/codebase/watch.ts",
+        "sha256": "bd208a67788477f3c014f54be7c626e3cc5d861fbf6a5d03d351602bac554106",
+        "bytes": 1143,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/codebase/worker.ts",
+        "sha256": "655094b621157bd633a5640fbcc12c56c5056e138f17abdb55a2413b42c588a0",
+        "bytes": 2667,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/contracts/model.ts",
+        "sha256": "bf69eeb95238672ec78223c4bbbb48dc31e7dce5e352c12cda0fbf6e8b1f5c82",
+        "bytes": 5386,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/contracts/tools.ts",
+        "sha256": "e1fa268fb24a91f7ec733e7be924f574e10fc1ccac40c4596446b3c3041eb881",
+        "bytes": 27004,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/contracts/usage.ts",
+        "sha256": "92629a6777110aa3d4391e4268a8875b803134a08092876644fad8fb6ab667d1",
+        "bytes": 1718,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/core/history.ts",
+        "sha256": "293d38f17cd7511230bcfa11385f8a4660c181361ce474bb01274a161a862330",
+        "bytes": 4991,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/core/report.ts",
+        "sha256": "c265acc039dd2da65e0d28482dc99a91e72acf65aa772f54b8ecadc759c642f8",
+        "bytes": 7508,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/core/usage.ts",
+        "sha256": "05518edbfaeb37a5b7ac78d63181a001a323c6d3cf04b131ae1afcf259140268",
+        "bytes": 9427,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/core/workflow.ts",
+        "sha256": "bea329ad6c3b17b97efc0022d19270f577843f5bf7026e407d99c8a1904f7cc3",
+        "bytes": 21153,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/editor/calls.ts",
+        "sha256": "b6dc94701ae29627e73c07940f6262f09b3b6682deefd2e6916364242941a111",
+        "bytes": 6297,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/extension.ts",
+        "sha256": "f59a9c66e05fbafff64231e5eb3f20b4e9fdf58cf7eaf1ff745f6fee2b44b83c",
+        "bytes": 44951,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/hooks/launcher.ts",
+        "sha256": "d68b165ecbbcbb972c8aec2381d53b21940a48d53efdfc720fe354fe43d38e27",
+        "bytes": 2042,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/hooks/observation.ts",
+        "sha256": "38cc45e396f52d8795ff42f992b5dc730c911372f1570e78160f75f742b2dd2f",
+        "bytes": 2414,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/knowledge/catalog.ts",
+        "sha256": "32d21d48a0425a10046a561fa6b3d3b7953a990c3d621720d5143578957e4f35",
+        "bytes": 20486,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/knowledge/export.ts",
+        "sha256": "530bf8db92bbbe3592cba508c3376915a0b6514c884f0f95f5bd9494f47899f8",
+        "bytes": 5542,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/knowledge/search.ts",
+        "sha256": "ffc656366452c8f25c4029c3a64d8faa7e28901450cdc103f866a0e9698d03df",
+        "bytes": 14613,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/mcp/proxy.ts",
+        "sha256": "9bdf908ba53d60ec3e9e001796aa36e7e047f4edae898680735e625eeec21f78",
+        "bytes": 3246,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/mcp/readiness.ts",
+        "sha256": "6f510279ca6790e91ff0611574854cedf45fc6e361603ee89348f56308f4195f",
+        "bytes": 2037,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/mcp/tool-definitions.d.ts",
+        "sha256": "1fafef63f7b0f9daaf478f53aaadd8bd4d12454ec13bc1c6d04e700797ed3e3e",
+        "bytes": 141,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/providers/clients.ts",
+        "sha256": "5718f74aa6420c1304fa2fc507c2e68636d8549e93a0962a7b6a3d911bef9eb4",
+        "bytes": 1721,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/providers/recovery.ts",
+        "sha256": "591e5d4bc19a4a82ca0ad4194709f7f443698143e758fa839b4b84485e13171d",
+        "bytes": 4166,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/providers/registration.ts",
+        "sha256": "02ea4d67de43cf24cc198eaaf8bf957b72cecdf27f217fa5cce0d4d3ab4b9627",
+        "bytes": 13756,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/providers/reload.ts",
+        "sha256": "f29f5567ff13f8a239008b48ad2ea68911b446c313f127acad54181c762f5486",
+        "bytes": 1674,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/providers/skill-content.ts",
+        "sha256": "ea36c0c1378d2759b6693aba8db0f2b26414cac9e972883cc46f98c9c2a9f718",
+        "bytes": 34648,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/providers/startup.ts",
+        "sha256": "0590e85caa57e7c61177bd9a75a077964d561fdb4c54c56821c18206d0160632",
+        "bytes": 2099,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/releases/config.ts",
+        "sha256": "284c37e3bb707d82ffc22feced9da3b38ecabfb3fde2671b7987780ba9acd209",
+        "bytes": 7225,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/releases/git.ts",
+        "sha256": "172e2581bce2db2142064768faf1e825b54318222481cf49f51bfce7db924eb9",
+        "bytes": 3576,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/releases/manager.ts",
+        "sha256": "dbf3017786b3c1d86aa8494ce78384292e8351ad71593069fdad9c54ae70dece",
+        "bytes": 35291,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/releases/watch.ts",
+        "sha256": "3c65ed43b6a77df6ebe096e4240f7709eb57047149d85d5402d95058e24f7608",
+        "bytes": 1580,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/service/application.ts",
+        "sha256": "42b236fddcdd8a30f0a0a013219d3cd6bf3e7e16c3e1cdc5053e907feb01f271",
+        "bytes": 27386,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/service/client.ts",
+        "sha256": "bf9151da9762c38f3b593c6ce098868bd3bef008dd3aca3fc83e4f9cdf3d56aa",
+        "bytes": 6575,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/service/main.ts",
+        "sha256": "efb3253e6008eadd7061cabbaefc80301147347b90c9c867262f9e157bab4350",
+        "bytes": 553,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/service/rpc.ts",
+        "sha256": "bfccaaac3babce11da6592b390ffe79ba22ee903f0f360e18eb9b2b095d869eb",
+        "bytes": 1658,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/service/server.ts",
+        "sha256": "4344cdc4085d3d55bfcf1d280da752c40980ae89cbaae99b82bed40e2d35895c",
+        "bytes": 17778,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/service/workspace.ts",
+        "sha256": "beeb76dc28f7439160955970d884c647271ebb2a6e46a7d6168aef71bda789e9",
+        "bytes": 14413,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/storage/atomic.ts",
+        "sha256": "d2f15d169ef32b149962c412109e1365768f6d1298ec3fffc096fa664d7592d9",
+        "bytes": 1113,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/storage/ledger.ts",
+        "sha256": "1dc9ad020dcc4fdb4ea93c55b0a226aa638f031820d4337d915e0002e9301771",
+        "bytes": 13584,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/verification/checks.ts",
+        "sha256": "42c969d55e2971c7f3a90b929e2c26cbfee92f6115604bb150f710aec88ca0df",
+        "bytes": 7233,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/verification/workspace.ts",
+        "sha256": "551d34cb085865277f9d121817571f2c243ee21312f2926fd943119fa96f1f87",
+        "bytes": 4449,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/webview/architecture.ts",
+        "sha256": "8fa0fc18ceb60e7f2ec2ab14630edbd477a889cdbd40f04bc440c416a6a4ab88",
+        "bytes": 14860,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/webview/assets.d.ts",
+        "sha256": "4c93b6422b5adda85c19ce22869713e0f226ea8eb9428c8a483b9e84a018c42f",
+        "bytes": 76,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/webview/catalog.ts",
+        "sha256": "6bfb64686a9491bf195770a5e588839d57665c6f129eb0b252f1c49c6fffb013",
+        "bytes": 5286,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/webview/document.ts",
+        "sha256": "95d1da310e4625fe4b416bac201703e9ec4cc742d68db16b55e36da61d5dfa50",
+        "bytes": 1272,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/webview/explorer.ts",
+        "sha256": "e6dba1fd498cdd967d7659fa90fbf472321efcc5b965d885f7aaafcf03287004",
+        "bytes": 8213,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/webview/flow.ts",
+        "sha256": "94465ae09b544d103ccfc9698d6437a6002bb0dff21756b9e452370609f9ac95",
+        "bytes": 6602,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/webview/html.ts",
+        "sha256": "f6fefaf28bbf7a33ee559fc55180fe7caec972989d67f35eadf3c890922a193d",
+        "bytes": 884,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/webview/main.ts",
+        "sha256": "fdfffb49d447664429e5042b6c46607f11fffae7f74a6164b9d2a1a06c3826a6",
+        "bytes": 59394,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/webview/relationships.ts",
+        "sha256": "56bb1003f6c4baa0ed4ce6a3433ed351db005a92a3b2dccb0d89cbb188eaedb0",
+        "bytes": 3424,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/webview/versions.ts",
+        "sha256": "d4755e2c2e56e180053b76caa9544096c80c2671ce35f4dc274a624cbce1e46d",
+        "bytes": 5158,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "tests/core/readiness.test.ts",
+        "sha256": "e59335ba72e6457ae25a9fc29f3c27294ad0f0e4f7d6d76cee9252e134a3be35",
+        "bytes": 3764,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "tests/core/workflow.test.ts",
+        "sha256": "800d41900434c3895848a6e4a556c182a1c31bbb7068b9a9219f84dd742e1eed",
+        "bytes": 9543,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "tests/documentation/site.test.mjs",
+        "sha256": "0760008b378b11651f06743f045a3cc2b88e1d4f7eb6b171eca6a79e692ecf0f",
+        "bytes": 5219,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "tests/integration/catalog.test.ts",
+        "sha256": "93ee17f2a74ca3a3e7885f750f9e8b5ccda76a4579adc89b166b318615adf9bf",
+        "bytes": 15931,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "tests/integration/codebase.test.ts",
+        "sha256": "a774f74232dbf4cd71dd81d8e76e77f28fff3a4476687699e687227625207363",
+        "bytes": 14095,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "tests/integration/headless.test.ts",
+        "sha256": "a18d1c5a36040dbfc6457baf9c1752807a5754725c121fd964c923208bb29c44",
+        "bytes": 11491,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "tests/integration/references.test.ts",
+        "sha256": "ff00d1d8dbfcbba4c706c6ee86171bc1c8e5926c3682496fdbab6b3c0ea024b9",
+        "bytes": 11503,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "tests/integration/registration.test.ts",
+        "sha256": "e64a28887963aa3e89add1a41093bb357dd196d194e0ac1037018124ecf04a02",
+        "bytes": 11437,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "tests/integration/releases.test.ts",
+        "sha256": "c495b881ffe2da9ebd027fbea5cb5e03501b0154c9b04075056a9488a79d2058",
+        "bytes": 16490,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "tests/integration/service.test.ts",
+        "sha256": "641965b858a2fb694f5c51acbebc78653c79da4ae9d4a094b08552875fc1ac8a",
+        "bytes": 27217,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "tests/integration/workspace.test.ts",
+        "sha256": "d366a3073c291b5af9311084a68694b1c0d99fff549524b06adb468fcfda4d8f",
+        "bytes": 14097,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "tests/ui/catalog.spec.ts",
+        "sha256": "0bc6202ebab80a2b5584bd907e67e14c1782c2f84e3e4029fcf6816d86188ec2",
+        "bytes": 2638,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "tests/ui/sidebar.spec.ts",
+        "sha256": "3fa484e73df8a6ccec3ea5245f56ff9c2c7e65a2a53390bf153d996e3c043c1d",
+        "bytes": 17463,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "tests/ui/workspace.spec.ts",
+        "sha256": "365acfcaaf081e07804088b60efbd5d5ff1e10e507f8947801fc9f700408c404",
+        "bytes": 9272,
+        "reason": "cited outside source ownership roots"
+      }
+    ],
+    "symbols": 12,
+    "skipped": [
+      {
+        "path": "scripts/documentation/vendor",
+        "reason": "generated/dependency/tool directory or symlink"
+      }
+    ],
+    "limits": [
+      "Python AST enumerates declarations; other languages require reviewed source-hash-bound inventories.",
+      "Static mapping does not prove runtime feature coverage. Review routes, commands, UI states, plugins and tests."
+    ]
+  }
+}
