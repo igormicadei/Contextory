@@ -5,7 +5,6 @@ import {
   mkdir,
   readFile,
   realpath,
-  rename,
   unlink,
   writeFile,
 } from "node:fs/promises";
@@ -15,6 +14,7 @@ import { parse, modify, applyEdits, type ParseError } from "jsonc-parser";
 import { ContextoryError, type Provider } from "../contracts/model";
 import { clients, hookEvents } from "./clients";
 import { skillFiles } from "./skill-content";
+import { replaceFile } from "../storage/atomic";
 export interface Registration {
   root: string;
   provider: Provider;
@@ -103,7 +103,7 @@ async function applyFiles(root: string, edits: Edit[]) {
     const temp = `${edit.path}.contextory-${process.pid}-${Date.now()}.tmp`;
     try {
       await writeFile(temp, value, { flag: "wx", mode: 0o600 });
-      await rename(temp, edit.path);
+      await replaceFile(temp, edit.path);
     } finally {
       await unlink(temp).catch(() => {});
     }
@@ -177,6 +177,104 @@ export async function syncProviderSkills(
   const edits = providers.flatMap((provider) => skillEdits(root, provider));
   await applyFiles(root, edits);
   return edits.map((edit) => edit.path);
+}
+function ownedHook(command: unknown, r: Registration) {
+  if (command === hookCommand(r)) return true;
+  if (typeof command !== "string") return false;
+  // Recognize only our four quoted positional arguments. A wrapper, another
+  // project's descriptor, or a user command that merely mentions us is kept.
+  const token = /"([^"]*)"|'((?:[^']|'\\'')*)'/gy;
+  const args: string[] = [];
+  let offset = 0;
+  while (offset < command.length) {
+    token.lastIndex = offset;
+    const match = token.exec(command);
+    if (!match) return false;
+    args.push(match[1] ?? match[2].replaceAll("'\\''", "'"));
+    offset = token.lastIndex;
+    if (offset < command.length && command[offset++] !== " ") return false;
+  }
+  const pathKey = (path: string) => {
+    const normalized = path.replaceAll("\\", "/");
+    return process.platform === "win32" ? normalized.toLowerCase() : normalized;
+  };
+  return (
+    args.length === 4 &&
+    /(?:^|[\\/])node(?:\.exe)?$/i.test(args[0]) &&
+    /(?:^|[\\/])contextory-hook\.mjs$/.test(args[1]) &&
+    pathKey(args[2]) === pathKey(r.hookDescriptor) &&
+    args[3] === r.provider
+  );
+}
+function hooksEdit(r: Registration, remove = false): Edit {
+  return {
+    path: join(r.root, clients[r.provider].hooksPath),
+    transform: (text) => {
+      const parsed = parse(text || "{}") as {
+        hooks?: Record<
+          string,
+          { matcher?: string; hooks?: { command?: string }[] }[]
+        >;
+      };
+      if (
+        !parsed ||
+        typeof parsed !== "object" ||
+        Array.isArray(parsed) ||
+        (parsed.hooks !== undefined &&
+          (!parsed.hooks ||
+            typeof parsed.hooks !== "object" ||
+            Array.isArray(parsed.hooks)))
+      )
+        throw new ContextoryError(
+          "INVALID_CONFIG",
+          "Existing hook configuration must be an object; it was preserved.",
+        );
+      const changes: { path: string[]; value: unknown }[] = [];
+      for (const event of hookEvents(r.provider)) {
+        const rows = parsed.hooks?.[event] ?? [];
+        if (!Array.isArray(rows))
+          throw new ContextoryError(
+            "INVALID_CONFIG",
+            `Existing ${event} hooks must be an array; configuration was preserved.`,
+          );
+        const preserved = rows.flatMap((row) => {
+          if (!row || !Array.isArray(row.hooks)) return [row];
+          const hooks = row.hooks.filter(
+            (hook) => !ownedHook(hook?.command, r),
+          );
+          return hooks.length === row.hooks.length
+            ? [row]
+            : hooks.length
+              ? [{ ...row, hooks }]
+              : [];
+        });
+        if (!remove)
+          preserved.push({
+            ...(event.includes("Tool") ? { matcher: "*" } : {}),
+            hooks: [
+              { type: "command", command: hookCommand(r), timeout: 2 } as {
+                command: string;
+              },
+            ],
+          });
+        changes.push({
+          path: ["hooks", event],
+          value: preserved.length ? preserved : undefined,
+        });
+      }
+      return jsonEdit(text, changes);
+    },
+  };
+}
+// Explicit recovery touches hooks only; it never reinstalls MCP or skills.
+export async function rebuildProviderHooks(r: Registration) {
+  r = { ...r, root: await realpath(r.root) };
+  if (!clients[r.provider].hooksPath)
+    throw new ContextoryError(
+      "INVALID_PROVIDER",
+      "Generic MCP has no native hooks to rebuild.",
+    );
+  return applyFiles(r.root, [hooksEdit(r)]);
 }
 export async function configureProvider(r: Registration, remove = false) {
   r = { ...r, root: await realpath(r.root) };
@@ -256,48 +354,7 @@ export async function configureProvider(r: Registration, remove = false) {
     });
   }
   const hooksFile = adapter.hooksPath ? join(r.root, adapter.hooksPath) : "";
-  if (adapter.hooksPath)
-    edits.push({
-      path: hooksFile,
-      transform: (text) => {
-        const parsed = parse(text || "{}") as {
-          hooks?: Record<
-            string,
-            { matcher?: string; hooks?: { command?: string }[] }[]
-          >;
-        };
-        const changes: { path: string[]; value: unknown }[] = [];
-        for (const event of hookEvents(r.provider)) {
-          const rows = parsed.hooks?.[event] ?? [];
-          if (!Array.isArray(rows))
-            throw new ContextoryError(
-              "INVALID_CONFIG",
-              `Existing ${event} hooks must be an array; configuration was preserved.`,
-            );
-          const preserved = rows.flatMap((row) => {
-            if (!row || !Array.isArray(row.hooks)) return [row];
-            const hooks = row.hooks.filter((hook) => hook.command !== command);
-            return hooks.length === row.hooks.length
-              ? [row]
-              : hooks.length
-                ? [{ ...row, hooks }]
-                : [];
-          });
-          if (!remove)
-            preserved.push({
-              ...(event.includes("Tool") ? { matcher: "*" } : {}),
-              hooks: [
-                { type: "command", command, timeout: 2 } as { command: string },
-              ],
-            });
-          changes.push({
-            path: ["hooks", event],
-            value: preserved.length ? preserved : undefined,
-          });
-        }
-        return jsonEdit(text, changes);
-      },
-    });
+  if (adapter.hooksPath) edits.push(hooksEdit(r, remove));
   const resources = skillEdits(r.root, r.provider, remove);
   edits.push(...resources);
   const changedFiles = await applyFiles(r.root, edits);

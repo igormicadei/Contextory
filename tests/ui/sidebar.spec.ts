@@ -1,5 +1,51 @@
 import { test, expect } from "@playwright/test";
 
+test("hook rebuild action follows the selected project and is disabled while busy", async ({
+  page,
+}) => {
+  await page.goto("/sidebar.html");
+  await page.evaluate(() => {
+    (window as any).contextoryMessages = [];
+    window.postMessage(
+      {
+        type: "restore",
+        dashboard: {
+          root: "C:/Projects/selected",
+          projectId: "selected",
+          entities: [],
+          events: [],
+          connections: [],
+          recipes: [],
+          semantic: { ready: false },
+        },
+      },
+      "*",
+    );
+  });
+  const action = page.getByRole("button", {
+    name: "Rebuild hooks",
+    exact: true,
+  });
+  await expect(action).toBeEnabled();
+  await action.click();
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        (window as any).contextoryMessages.filter(
+          (message: any) => message.type === "rebuildHooks",
+        ),
+      ),
+    )
+    .toEqual([{ type: "rebuildHooks", projectId: "selected" }]);
+  await page.evaluate(() =>
+    window.postMessage(
+      { type: "busy", value: true, projectId: "selected" },
+      "*",
+    ),
+  );
+  await expect(action).toBeDisabled();
+});
+
 test("gray native-agent buttons retry setup while observed connections can disconnect", async ({
   page,
 }) => {

@@ -8,10 +8,11 @@ Connect through the extension's provider command rather than assembling private 
 
 Project releases add `contextory_version_get` (global status, paged version commits/semantic records), `contextory_release_prepare` (concrete plan only) and `contextory_release_change` (apply/publish/recover/cancel). They are independent of request/spec leases. See [project versions and tags](PROJECT-RELEASES.md) for automatic observation, configuration, durable retries, CLI/CI usage and publication boundaries.
 
-Version 0.6.0 advertises 35 tools, including workspace project discovery and coordinated requests. Native proxies and headless stdio MCP use the same schemas:
+Version 0.7.0 advertises 36 tools, including project-scoped hook recovery, workspace discovery and coordinated requests. Native proxies and headless stdio MCP use the same schemas:
 
 | Tool                                  | Purpose                                                                                                                                                                                                                     |
 | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `contextory_hooks_rebuild`            | Repair managed hooks and the packaged launcher for an explicit native provider/project using a unique operation ID. Preserves unrelated configuration and native trust; requires a reachable service.                       |
 | `contextory_workspace_get`            | Discover project identities, canonical roots and attached workspace contexts; optional `groupId` reads cross-project request branches and aggregate status.                                                                 |
 | `contextory_workspace_request_create` | Create linked local requests for explicit `projectIds`, including the owning server project, with durable original input and idempotent partial recovery.                                                                   |
 | `contextory_project_export`           | Discover and page stored application-documentation datasets, revisions, history, source facts, check jobs and artifacts, preserving sequence/snapshot and provenance.                                                       |

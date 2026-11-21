@@ -4,7 +4,6 @@ import {
   mkdir,
   readFile,
   realpath,
-  rename,
   unlink,
   writeFile,
   open,
@@ -12,6 +11,7 @@ import {
 import { join, isAbsolute } from "node:path";
 import { Application } from "./application";
 import { Ledger } from "../storage/ledger";
+import { writeAtomic } from "../storage/atomic";
 import { toolDefinitions } from "../contracts/tools";
 import { watchCodebase } from "../codebase/watch";
 import { watchReleases } from "../releases/watch";
@@ -37,9 +37,7 @@ export interface ServiceOptions {
   headless?: boolean;
 }
 export async function writePrivate(path: string, value: unknown) {
-  const temporary = `${path}.${randomUUID()}.tmp`;
-  await writeFile(temporary, JSON.stringify(value), { mode: 0o600 });
-  await rename(temporary, path);
+  await writeAtomic(path, JSON.stringify(value));
 }
 export async function startService(options: ServiceOptions) {
   if (!isAbsolute(options.root) || !isAbsolute(options.storage))

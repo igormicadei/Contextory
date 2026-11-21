@@ -80,6 +80,7 @@ exports.run = async function () {
       "contextory.refresh",
       "contextory.restartAgentExtensions",
       "contextory.checkConnections",
+      "contextory.rebuildHooks",
       "contextory.traceFlowFromHere",
       "contextory.connectNativeClaude",
       "contextory.connectNativeCodex",
@@ -157,6 +158,24 @@ exports.run = async function () {
       assert.ok(fs.existsSync(path.join(root, file)), file);
     result.checks.push(
       "all three native provider configurations generated in disposable workspace",
+    );
+    const codexConfig = fs.readFileSync(
+      path.join(root, ".codex/config.toml"),
+      "utf8",
+    );
+    fs.unlinkSync(path.join(root, ".codex/hooks.json"));
+    const rebuiltHooks = await vscode.commands.executeCommand(
+      "contextory.rebuildHooks",
+      "codex",
+    );
+    assert.equal(rebuiltHooks.status, "rebuilt");
+    assert.ok(fs.existsSync(path.join(root, ".codex/hooks.json")));
+    assert.equal(
+      fs.readFileSync(path.join(root, ".codex/config.toml"), "utf8"),
+      codexConfig,
+    );
+    result.checks.push(
+      "editor hook rebuild restores missing Codex hooks without changing MCP configuration",
     );
     const source = await vscode.workspace.openTextDocument(
       vscode.Uri.file(path.join(root, "main.ts")),

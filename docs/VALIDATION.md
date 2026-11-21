@@ -1,5 +1,13 @@
 # Validation records
 
+## 0.7.0: managed hook recovery
+
+Recorded 2026-11-21 on Windows/Node 24.19.0. The hook recovery implementation passes **105 backend tests**, **36 UI tests**, TypeScript checks, canonical/workspace skill consistency and both revised skills' skill-creator validation. Native/headless MCP checks cover the new tool, launcher restoration, retained operation results, conflicts, invalid provider/reference scope, hook credentials and project routing. Registration checks preserve unrelated hooks and MCP configuration while repairing missing/stale/duplicate managed entries. Atomic replacement tests cover transient locks, bounded failure and immediate rejection of unrelated errors. UI checks cover selected-project scope and disabling the rebuild action during work.
+
+The final versioned VSIX is inspected for package/runtime version agreement, the new tool/command, portable recovery instructions, launcher contents and SHA-256. Extracted-package qualification runs the same recovery command in isolated **VS Code 1.145.3** and **IBM Bob** profiles. Reports: [VS Code package](../artifacts/host-release-070-vscode.json), [IBM Bob package](../artifacts/host-release-070-bob.json) and [package inspection](../artifacts/release-0.7.0-package.json). The complete searchable documentation and published asset bytes are checked during release verification.
+
+Native hook trust remains client-owned. Read-only diagnosis reproduced separate Codex approval lookups for uppercase/lowercase Windows drive letters; rebuilding does not alter those approvals. Persistent service/permission failures require native/editor diagnosis. Automated checks do not establish authenticated model-driven hook delivery or other operating systems. Earlier source-backed catalog definitions and published release records are preserved; new recovery/release observations retain their provenance and explicit test gaps.
+
 ## 0.6.0: multi-project workspaces and native startup recovery
 
 The implementation passes **97 backend tests**, **35 UI tests**, TypeScript checking, canonical/workspace skill consistency and the complete documentation/link build. Workspace integration scenarios cover record/symbol isolation, native/hook role restrictions, unknown/ambiguous scope, descriptor identity, partial creation/retry, detach/restart recovery and independent verified completion in both projects. UI scenarios cover stale replies during and after project switching, cleared drafts, duplicate names, narrow layout, exact retry input and branch navigation.

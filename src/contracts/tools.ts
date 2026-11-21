@@ -57,6 +57,14 @@ const limits = z
   })
   .optional();
 export const tools = {
+  contextory_hooks_rebuild: {
+    description:
+      "Explicitly rebuild Contextory's project hooks for codex, claude or bob and restore the packaged launcher. Preserves unrelated hooks, MCP configuration, portable skills and native trust. Use for missing/stale/duplicate managed hooks, not to bypass approval. Returns changed files and native trust/reload guidance; unchanged files do not prove hooks executed. Requires a reachable service; when unavailable use the editor's Contextory: Rebuild Agent Hooks command. Reuse the same operationId/input only to recover a retry; use a new operationId for a new repair. Respects projectId/workspaceId; cannot modify reference codebases or global hook approvals.",
+    schema: z.object({
+      operationId,
+      provider: z.enum(["codex", "claude", "bob"]),
+    }),
+  },
   contextory_workspace_get: {
     description:
       "List the current project and active editor workspace projects without merging their records or graphs. Optional groupId reads a coordinated request's per-project branches and aggregate completion; unavailable or missing branches remain explicit. With multiple editor workspace contexts, supply workspaceId. Reference codebases are separate from writable workspace projects.",

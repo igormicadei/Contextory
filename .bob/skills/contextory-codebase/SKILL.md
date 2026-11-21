@@ -2,7 +2,7 @@
 name: contextory-codebase
 description: Understand a connected workspace, locate definitions and related code, assess source impact, and recover relevant project decisions through Contextory. Use for codebase questions and before changes spanning related components.
 metadata:
-  version: "6"
+  version: "7"
 ---
 
 <!-- contextory-managed-codebase -->
@@ -12,6 +12,8 @@ Use the Contextory capabilities advertised by the current client. A connected MC
 In a multi-root editor workspace, first use `contextory_workspace_get`. Pass the intended `projectId` on every related retrieval and workflow call, with `workspaceId` when multiple editor contexts are attached. Omission/current stays on that server's project; changing the UI project does not change agent defaults. Keep project identity/root with records, artifact handles, graph snapshots and citations. Identical paths/symbols in different projects are distinct. Unknown or ambiguous scope fails instead of selecting another project. `codebaseId` still selects a read-only reference within the chosen project; references are not writable workspace members.
 
 After resuming a chat, use its current advertised tools and a read-only probe before reporting Contextory disconnected; an earlier message or generated configuration does not establish current reachability. Report the concrete error or missing capability. In an editor, **Contextory: Check Native Connections** distinguishes current MCP/hook observations from history, and **Contextory: Restart Agent Extensions** reloads the Extension Host. Native project/hook trust remains with the client; reopening a session may still be required after tool changes.
+
+For missing, stale or duplicate Contextory hooks, use advertised `contextory_hooks_rebuild` with the intended `projectId`, explicit native `provider` (`codex`, `claude`, `bob`) and a new `operationId`. It repairs managed hooks and the launcher without changing MCP configuration, other hooks or native trust. Inspect changed files and observations; an unchanged result is not proof of execution. Reuse the exact operation ID/input only to recover an interrupted call. If hooks remain unobserved after one repair, inspect native trust and service logs instead of repeatedly rebuilding. Codex approvals can differ for `C:` versus `c:`: review `/hooks` in the affected session using its actual workspace path. If MCP is unreachable, use **Contextory: Rebuild Agent Hooks** in the editor, then resolve any service startup error and reload the native session as needed. A rebuild cannot approve hooks or repair an unreachable service through MCP.
 
 Start a code question or related edit with `contextory_code_context_get`: put the actual task in `query`, scope with known `paths` and optionally `specId`, and choose a bounded `budgetTokens`. Read the cited current files before deciding or editing. Read-only exploration does not require a tracked request.
 

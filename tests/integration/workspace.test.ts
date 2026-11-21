@@ -72,6 +72,29 @@ async function workspace(t: TestContext) {
   };
 }
 
+test("hook recovery routes only to the explicitly selected workspace project", async (t) => {
+  const f = await workspace(t);
+  const result = (await f.call("contextory_hooks_rebuild", {
+    projectId: f.projects[1].id,
+    workspaceId: f.workspaceId,
+    operationId: operationId(),
+    provider: "codex",
+  })) as { project: { id: string } };
+  assert.equal(result.project.id, f.projects[1].id);
+  await readFile(join(f.b.root, ".codex/hooks.json"));
+  await assert.rejects(readFile(join(f.a.root, ".codex/hooks.json")), {
+    code: "ENOENT",
+  });
+  await assert.rejects(
+    f.call("contextory_hooks_rebuild", {
+      projectId: "missing",
+      operationId: operationId(),
+      provider: "codex",
+    }),
+    { code: "UNKNOWN_PROJECT" },
+  );
+});
+
 test("workspace calls isolate records, symbols and project IDs while preserving native roles", async (t) => {
   const f = await workspace(t);
   const [a, b] = f.projects;

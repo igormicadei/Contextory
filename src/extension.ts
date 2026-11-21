@@ -5,7 +5,7 @@ import { join, relative } from "node:path";
 import { spawn } from "node:child_process";
 import { ServiceClient } from "./service/client";
 import { configureProvider } from "./providers/registration";
-import { isClient } from "./providers/clients";
+import { isClient, nativeClientIds, clients } from "./providers/clients";
 import { SetupReload, type ReloadMode } from "./providers/reload";
 import {
   latestNativeAgent,
@@ -484,6 +484,39 @@ export async function activate(context: vscode.ExtensionContext) {
     offerSetupReload();
     return result;
   };
+  const rebuildHooks = async (provider?: unknown) => {
+    const client = await service();
+    if (
+      provider !== undefined &&
+      (!isClient(String(provider)) || provider === "generic")
+    )
+      throw new Error("Choose Codex, Claude Code or IBM Bob to rebuild hooks.");
+    const picked =
+      provider === undefined
+        ? await vscode.window.showQuickPick(
+            nativeClientIds.map((id) => ({
+              label: clients[id].label,
+              provider: id,
+            })),
+            {
+              placeHolder: `Rebuild Contextory hooks for ${client.root.split(/[\\/]/).pop()}`,
+            },
+          )
+        : { provider: provider as Exclude<Provider, "generic"> };
+    if (!picked) return;
+    const result = await queueConnections(() =>
+      client.call<{ instruction: string; status: string }>("tools/call", {
+        name: "contextory_hooks_rebuild",
+        arguments: { operationId: randomUUID(), provider: picked.provider },
+      }),
+    );
+    output.appendLine(
+      `${picked.provider}: ${result.status}. ${result.instruction}`,
+    );
+    postProject(client, { type: "notice", text: result.instruction });
+    await refresh();
+    return result;
+  };
   const setAutoConnect = async (enabled: boolean) => {
     const projectRoot = root();
     await vscode.workspace
@@ -853,6 +886,9 @@ export async function activate(context: vscode.ExtensionContext) {
           if (typeof message.enabled === "boolean")
             await setAutoConnect(message.enabled);
           break;
+        case "rebuildHooks":
+          await rebuildHooks(message.provider);
+          break;
         case "connect":
           if (isClient(String(message.provider)))
             await connect(message.provider as Provider);
@@ -1000,6 +1036,12 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.commands.registerCommand(id, () => run(handler)),
     );
   command("contextory.refresh", refresh);
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "contextory.rebuildHooks",
+      (provider?: string) => run(() => rebuildHooks(provider)),
+    ),
+  );
   command(
     "contextory.restartAgentExtensions",
     async () =>

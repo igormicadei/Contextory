@@ -2,12 +2,14 @@
 name: contextory-workflow
 description: Track authorized software implementation in the connected Contextory companion. Use for requests, milestones, specs, issues, design decisions, evidence and continuing tracked work; ordinary questions need no new request.
 metadata:
-  version: "6"
+  version: "7"
 ---
 
 <!-- contextory-managed-workflow -->
 
 Requires the workflow tools advertised by a connected Contextory MCP server. Conversation, editing, model selection and permissions remain in the native client; the workflow is shared across agents. Ordinary questions need no new tracked work.
+
+When managed hooks are missing, stale or duplicated, advertised `contextory_hooks_rebuild` repairs only the chosen project's native hooks and launcher. Pass explicit `projectId`, native `provider` and a new `operationId`; no spec lease is needed for this setup repair. Follow its trust/reload guidance and verify an observed hook event. Do not repeatedly rebuild an unchanged setup or edit global trust records. If MCP is unavailable, use the editor's **Contextory: Rebuild Agent Hooks** command and inspect service logs; native approval remains client-owned. See the codebase skill's recovery guidance for Codex workspace path casing.
 
 For multiple workspace folders, read `contextory_workspace_get` and keep an explicit `projectId` on every related workflow/source call, adding `workspaceId` for ambiguous editor contexts. Each project owns its requests, records, sessions/leases, catalog, checks, evidence and releases. Never infer project identity from an ID, source path or the UI selector. For user-authorized work spanning projects, `contextory_workspace_request_create` creates linked local requests for explicit `projectIds` including this server's project. Implement each branch with its own milestones/specs, session, lease and evidence, then check the group with `contextory_workspace_get` and `groupId`. Partial/offline/missing branches remain incomplete. Retry partial creation only with the exact original operationId/input retained on the branch. Keep interface ordering explicit; there is no cross-project spec lease, atomic multi-project transaction or inferred dependency. Hook/usage attribution stays with the observing project.
 

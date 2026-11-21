@@ -67,6 +67,10 @@
         "title": "Contextory: Check Native Connections"
       },
       {
+        "command": "contextory.rebuildHooks",
+        "title": "Contextory: Rebuild Agent Hooks"
+      },
+      {
         "command": "contextory.connectGenericMcp",
         "title": "Contextory: Export Generic MCP Connection"
       },

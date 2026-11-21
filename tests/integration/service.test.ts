@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { readFile, writeFile, mkdir, unlink, symlink } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { execFile, spawn } from "node:child_process";
 import { promisify } from "node:util";
@@ -14,6 +14,87 @@ import { createServer } from "node:http";
 import { fixture, operationId, claimed, waitJob } from "../helpers";
 import type { Entity } from "../../src/contracts/model";
 import { toolDefinitions } from "../../src/contracts/tools";
+
+test("MCP hook rebuild restores the launcher, retains operation results and cannot impersonate hook trust", async (t) => {
+  const f = await fixture(t);
+  let service = await startService({ ...f, headless: true });
+  f.cleanups.push(() => service.close());
+  const call = (args: object, role = "codex") =>
+    rpc<any>(join(f.storage, `${role}.json`), "tools/call", {
+      name: "contextory_hooks_rebuild",
+      arguments: args,
+    });
+  const input = { operationId: operationId(), provider: "codex" };
+  const result = await call(input);
+  assert.equal(result.status, "rebuilt");
+  assert.equal(result.trust, "client-owned");
+  assert.deepEqual(result.changedFiles, [".codex/hooks.json"]);
+  assert.deepEqual(result.observations, { mcp: true, hooks: false });
+  assert.equal(JSON.stringify(result).includes(f.storage), false);
+  const launcher = join(f.storage, "runtime/contextory-hook.mjs");
+  assert.deepEqual(
+    await readFile(launcher),
+    await readFile(resolve("dist/contextory-hook.mjs")),
+  );
+  await assert.rejects(readFile(join(f.root, ".codex/config.toml")), {
+    code: "ENOENT",
+  });
+  await writeFile(join(f.root, ".codex/hooks.json"), "{}");
+  assert.deepEqual(await call(input), result);
+  assert.equal(await readFile(join(f.root, ".codex/hooks.json"), "utf8"), "{}");
+  await assert.rejects(call({ ...input, provider: "bob" }), {
+    code: "OPERATION_CONFLICT",
+  });
+  await assert.rejects(call(input, "codex-hook"), { code: "FORBIDDEN" });
+  await assert.rejects(
+    call({ operationId: operationId(), provider: "generic" }),
+    { code: "INVALID_ARGUMENT" },
+  );
+  await assert.rejects(
+    call({
+      operationId: operationId(),
+      provider: "codex",
+      codebaseId: "reference",
+    }),
+    { code: "INVALID_ARGUMENT" },
+  );
+  await call({ ...input, operationId: operationId() });
+  await unlink(launcher);
+  const restored = await call({ ...input, operationId: operationId() });
+  assert.equal(restored.launcherChanged, true);
+  assert.deepEqual(restored.changedFiles, []);
+  const unchanged = await call({ ...input, operationId: operationId() });
+  assert.equal(unchanged.status, "unchanged");
+  await service.close();
+  service = await startService({ ...f, headless: true });
+  assert.deepEqual(await call(input), result);
+});
+
+test("hook rebuild preserves linked runtime directories without writing external launchers or project hooks", async (t) => {
+  const f = await fixture(t);
+  const service = await startService({ ...f, headless: true });
+  f.cleanups.push(() => service.close());
+  const outside = join(f.directory, "external-runtime");
+  await mkdir(outside);
+  const launcher = join(outside, "contextory-hook.mjs");
+  await writeFile(launcher, "user-owned");
+  await symlink(
+    outside,
+    join(f.storage, "runtime"),
+    process.platform === "win32" ? "junction" : "dir",
+  );
+  await assert.rejects(
+    rpc(join(f.storage, "codex.json"), "tools/call", {
+      name: "contextory_hooks_rebuild",
+      arguments: { provider: "codex", operationId: operationId() },
+    }),
+    { code: "LINKED_CONFIG" },
+  );
+  assert.equal(await readFile(launcher, "utf8"), "user-owned");
+  await assert.rejects(readFile(join(f.root, ".codex/hooks.json")), {
+    code: "ENOENT",
+  });
+});
 import {
   agentInstructions,
   completionNote,

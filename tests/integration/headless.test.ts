@@ -20,6 +20,34 @@ import {
 const exec = promisify(execFile),
   cli = resolve("dist/contextory.mjs");
 
+test("standalone headless MCP advertises and executes hook-only recovery without an editor", async (t) => {
+  const f = await fixture(t);
+  const client = new Client({ name: "hook-recovery", version: "1" });
+  f.cleanups.push(() => client.close());
+  await client.connect(
+    new StdioClientTransport({
+      command: process.execPath,
+      args: [cli, "mcp", "--root", f.root, "--storage", f.storage],
+      stderr: "pipe",
+    }),
+  );
+  const tool = (await client.listTools()).tools.find(
+    (tool) => tool.name === "contextory_hooks_rebuild",
+  );
+  assert.ok(tool);
+  assert.equal(tool.annotations?.readOnlyHint, false);
+  const result = await client.callTool({
+    name: "contextory_hooks_rebuild",
+    arguments: { operationId: operationId(), provider: "claude" },
+  });
+  assert.ok(!result.isError, JSON.stringify(result));
+  const body = JSON.parse((result.content as { text: string }[])[0].text);
+  assert.equal(body.provider, "claude");
+  assert.deepEqual(body.changedFiles, [".claude/settings.local.json"]);
+  await access(join(f.storage, "runtime/contextory-hook.mjs"));
+  await assert.rejects(access(join(f.root, ".mcp.json")), { code: "ENOENT" });
+});
+
 test("headless MCP and CLI share project releases without a request or lease and retain plans across restart", async (t) => {
   const f = await fixture(t),
     git = new ReleaseGit(f.root);

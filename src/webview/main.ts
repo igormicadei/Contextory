@@ -296,6 +296,14 @@ function autoConnectSwitch() {
   const enabled = automation?.enabled ?? true;
   return `<button class="automation-toggle" role="switch" aria-checked="${enabled}" aria-label="Auto-connect" data-action="autoConnect" ${automation ? "" : "disabled"} title="${enabled ? "Pause automatic agent connections" : "Resume automatic agent connections"}. Existing connections stay available."><span>Auto-connect</span><span class="toggle-track" aria-hidden="true"></span></button>`;
 }
+function rebuildHooksButton() {
+  return button(
+    "rebuildHooks",
+    "Rebuild hooks",
+    `title="Restore Contextory hooks for this project" ${!dashboard || busy || projectPending ? "disabled" : ""}`,
+    "text-button hook-rebuild",
+  );
+}
 function requestProgress(request: Entity) {
   const specs = requestSpecs(request.id);
   const done = specs.filter((s) => s.state === "completed").length;
@@ -522,7 +530,7 @@ function render() {
     )
     .join(
       "",
-    )}</nav>${notice ? `<div class="notice" role="status"><span>${escape(notice)}</span>${button("dismiss", "×", 'aria-label="Dismiss notification"', "icon-button")}</div>` : ""}${busy ? '<div class="loading-line" role="progressbar" aria-label="Contextory is working"></div>' : ""}<main>${projectPending ? empty("Switching project", "Loading this project's records...") : !dashboard && screen !== "map" && screen !== "relationships" ? empty("Open your workspace", "Contextory connects your native agents to shared project records. Open a trusted folder, then refresh.", button("refresh", "Refresh", "", "primary")) : screen === "versions" ? versionsView(versionsPage, versionDetail, releasePlan, drafts, versionsOffset) : screen === "catalog" ? catalogView(catalogPage, drafts, catalogOffset) : screen === "architecture" ? architectureView(architecture, codeContext, drafts.codeQuery ?? "", architectureOnly, architectureState, dashboard?.references ?? [], architectureCodebase) : screen === "relationships" ? relationshipView(relationships) : screen === "requests" ? requestTree() : screen === "history" ? historyView() : screen === "map" ? map() : overview()}</main><footer>${surface === "sidebar" ? connections() : ""}<div class="workspace-status"><span class="status-dot ${dashboard ? "online" : ""}"></span><span>${dashboard ? escape(dashboard.root.split(/[\\/]/).pop()) : "Open a workspace"}</span>${surface === "sidebar" ? autoConnectSwitch() : '<span class="footer-label">Native conversation &middot; durable context</span>'}</div></footer>`;
+    )}</nav>${notice ? `<div class="notice" role="status"><span>${escape(notice)}</span>${button("dismiss", "×", 'aria-label="Dismiss notification"', "icon-button")}</div>` : ""}${busy ? '<div class="loading-line" role="progressbar" aria-label="Contextory is working"></div>' : ""}<main>${projectPending ? empty("Switching project", "Loading this project's records...") : !dashboard && screen !== "map" && screen !== "relationships" ? empty("Open your workspace", "Contextory connects your native agents to shared project records. Open a trusted folder, then refresh.", button("refresh", "Refresh", "", "primary")) : screen === "versions" ? versionsView(versionsPage, versionDetail, releasePlan, drafts, versionsOffset) : screen === "catalog" ? catalogView(catalogPage, drafts, catalogOffset) : screen === "architecture" ? architectureView(architecture, codeContext, drafts.codeQuery ?? "", architectureOnly, architectureState, dashboard?.references ?? [], architectureCodebase) : screen === "relationships" ? relationshipView(relationships) : screen === "requests" ? requestTree() : screen === "history" ? historyView() : screen === "map" ? map() : overview()}</main><footer>${surface === "sidebar" ? connections() : ""}<div class="workspace-status"><span class="status-dot ${dashboard ? "online" : ""}"></span><span>${dashboard ? escape(dashboard.root.split(/[\\/]/).pop()) : "Open a workspace"}</span>${surface === "sidebar" ? rebuildHooksButton() + autoConnectSwitch() : '<span class="footer-label">Native conversation &middot; durable context</span>'}</div></footer>`;
   document.querySelector<HTMLElement>("main")!.dataset.screen = screen;
   for (const scroll of scrollAreas) {
     const replacement = document.querySelector<HTMLElement>(
@@ -1025,6 +1033,9 @@ function action(element: Element) {
     case "connect":
     case "disconnect":
       send({ type: data.action, provider: data.provider });
+      break;
+    case "rebuildHooks":
+      send({ type: "rebuildHooks" });
       break;
     case "source":
       send({

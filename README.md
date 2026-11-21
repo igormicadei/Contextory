@@ -1,6 +1,6 @@
 # Contextory
 
-**0.6.0** adds isolated projects in multi-root workspaces, project badges and coordinated requests across folders. Native MCP connections also retry delayed Contextory startup for up to five minutes. See the [release notes](docs/releases/v0.6.0.md), [multi-project guide](docs/USER-GUIDE.md#multiple-projects-in-one-workspace) and [connection recovery](docs/USER-GUIDE.md#resume-an-existing-chat).
+**0.7.0** adds explicit hook recovery from the sidebar, Command Palette and MCP. Agents can rebuild managed hooks while preserving other configuration and native approvals; Windows file replacement retries improve startup recovery. See the [release notes](docs/releases/v0.7.0.md) and [connection recovery guide](docs/USER-GUIDE.md#resume-an-existing-chat).
 
 **Manage requests. Give agents the full picture.**
 
@@ -10,9 +10,9 @@ Contextory is a VS Code and IBM Bob extension that connects your requests, miles
 
 Your agent keeps its own conversation, model, authentication, and editing tools. Contextory manages the project records that need to survive the next session or a switch to another agent.
 
-[Download v0.6.0](https://github.com/igormicadei/Contextory/releases/tag/v0.6.0) · [Full documentation](https://igormicadei.github.io/Contextory/) · [User guide](docs/USER-GUIDE.md) · [Agent tools](docs/MCP-TOOLS.md) · [Development](docs/DEVELOPMENT.md)
+[Download v0.7.0](https://github.com/igormicadei/Contextory/releases/tag/v0.7.0) · [Full documentation](https://igormicadei.github.io/Contextory/) · [User guide](docs/USER-GUIDE.md) · [Agent tools](docs/MCP-TOOLS.md) · [Development](docs/DEVELOPMENT.md)
 
-The **0.6.0** package includes code intelligence and portable execution alongside [automatic agent discovery](docs/releases/v0.2.6.md), Panel layouts and native usage records introduced since 0.2.3.
+The **0.7.0** package includes code intelligence and portable execution alongside [automatic agent discovery](docs/releases/v0.2.6.md), Panel layouts and native usage records introduced since 0.2.3.
 
 ## What it offers
 
@@ -23,6 +23,7 @@ The **0.6.0** package includes code intelligence and portable execution alongsid
 | Durable explanations  | Issues and fixes, design choices and tradeoffs, evidence, and implementation outcomes attached to each spec.                                        |
 | Shared agent context  | MCP tools and managed workflow instructions let native agents retrieve and update the same project records.                                         |
 | Automatic connections | Detect installed Codex and Claude Code extensions and the IBM Bob editor, prepare every detected bridge at startup, or pause setup from the footer. |
+| Hook recovery         | Rebuild managed hooks and their launcher from the editor or MCP; preserve unrelated hooks and keep native trust review explicit.                    |
 | Codebase intelligence | Persistent TS/JS and Python graph, ranked task context, impact and path queries, and an Architecture workbench with source citations and coverage.  |
 | Portable execution    | Shared codebase/workflow skills, generic MCP export, and a standalone CLI/MCP server for clients without hooks or an editor.                        |
 | Search                | Local lexical search over project records and indexed source; optional local vector and hybrid retrieval.                                           |
@@ -38,18 +39,18 @@ Since **0.4.0**, Contextory supports [isolated reference codebases](docs/CODEBAS
 
 ## Install
 
-The current release is **0.6.0**, a preview for **Windows with trusted local project folders**.
+The current release is **0.7.0**, a preview for **Windows with trusted local project folders**.
 
 1. Install [Node.js](https://nodejs.org/en/download) **24 or newer**. Check `node --version` in a terminal; restart the editor if you just installed Node.
 2. Use VS Code **1.96 or newer**, or IBM Bob. The packaged extension has been tested in VS Code **1.145.3** and Bob's VS Code API **1.126.0**.
-3. Download [`contextory-workspace-0.6.0.vsix`](https://github.com/igormicadei/Contextory/releases/download/v0.6.0/contextory-workspace-0.6.0.vsix) from the release assets.
+3. Download [`contextory-workspace-0.7.0.vsix`](https://github.com/igormicadei/Contextory/releases/download/v0.7.0/contextory-workspace-0.7.0.vsix) from the release assets.
 4. In the editor's Extensions view, open the **…** menu, choose **Install from VSIX…**, and select the file. Reload the editor when prompted.
 5. Open trusted local project folders and select **Contextory** in the activity bar.
 
 You can also install in VS Code from PowerShell:
 
 ```powershell
-code --install-extension .\contextory-workspace-0.6.0.vsix
+code --install-extension .\contextory-workspace-0.7.0.vsix
 ```
 
 Install your chosen native agent separately and sign in through its own interface. Python source tracing additionally needs **Python 3.10+**; it does not require a Python editor extension. Optional semantic search downloads its model/runtime separately. Installing the VSIX does not require npm, Rust, a database server, or a model download.
@@ -114,7 +115,7 @@ The header shows the workspace name on every tab. Move **Workspace Tasks** to VS
 
 ## Storage and current scope
 
-Version **0.6.0** supports up to sixteen trusted local, non-nested workspace folders. A Project selector and request/spec badges keep their records and source graphs separate. Select multiple projects when creating a request to coordinate independently verified branches; unavailable branches keep the group incomplete. Folder removal retains its storage. Native calls use explicit project scope and keep a fixed local default. See [multi-project behavior](docs/USER-GUIDE.md#multiple-projects-in-one-workspace). Each folder retains its existing project storage.
+Since version **0.6.0**, Contextory supports up to sixteen trusted local, non-nested workspace folders. A Project selector and request/spec badges keep their records and source graphs separate. Select multiple projects when creating a request to coordinate independently verified branches; unavailable branches keep the group incomplete. Folder removal retains its storage. Native calls use explicit project scope and keep a fixed local default. See [multi-project behavior](docs/USER-GUIDE.md#multiple-projects-in-one-workspace). Each folder retains its existing project storage.
 
 Native model and usage records include a specification **Usage** tab, request-report summaries and the agent-facing `contextory_usage_get` tool. Codex can supply per-request token counts; Claude supplies model metadata; Bob's documented hooks currently supply neither. Capture stays local and does not read chat transcripts. Missing counts remain unavailable. See [provider coverage and task association](docs/USER-GUIDE.md#agent-models-and-usage-024).
 
@@ -132,7 +133,7 @@ Version 0.2.3 uses the Contextory extension identity and tool/settings namespace
 | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
 | [User guide](docs/USER-GUIDE.md)                       | Prerequisites, installation, first use, workflows, settings, search, code maps, reports, upgrades, and troubleshooting. |
 | [Codebase intelligence](docs/CODEBASE-INTELLIGENCE.md) | Source coverage, Architecture, Graphify, portable skills, generic MCP and headless CLI.                                 |
-| [Release notes](docs/releases/v0.6.0.md)               | Version 0.6.0 changes, installation, upgrades and qualification.                                                        |
+| [Release notes](docs/releases/v0.7.0.md)               | Version 0.7.0 changes, installation, upgrades and qualification.                                                        |
 | [MCP tools](docs/MCP-TOOLS.md)                         | Available agent tools, examples, version/lease rules, and the completion sequence.                                      |
 | [Architecture](docs/NATIVE-AGENT-ARCHITECTURE.md)      | Runtime components, storage, boundaries, retrieval, source analysis, and resource limits.                               |
 | [Development](docs/DEVELOPMENT.md)                     | Build, tests, debugging, packaging, and the release process.                                                            |

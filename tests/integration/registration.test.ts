@@ -9,6 +9,8 @@ import {
   configureProvider,
   registrationName,
   syncProviderSkills,
+  rebuildProviderHooks,
+  hookCommand,
   type Registration,
 } from "../../src/providers/registration";
 import { fixture } from "../helpers";
@@ -25,6 +27,77 @@ const registration = (
   hook: "C:/path with spaces/contextory-hook.mjs",
   descriptor: "C:/data/provider.json",
   hookDescriptor: "C:/data/hook.json",
+});
+
+test("hook-only rebuild repairs all native providers, deduplicates stale launchers and preserves user config", async (t) => {
+  for (const provider of ["codex", "claude", "bob"] as const) {
+    const { root } = await fixture(t),
+      r = registration(root, provider);
+    await configureProvider(r);
+    const configPath = join(root, clients[provider].mcpPath);
+    const configBefore = await readFile(configPath, "utf8");
+    const hooksPath = join(root, clients[provider].hooksPath);
+    const otherProject = hookCommand({
+      ...r,
+      hookDescriptor: "C:/another/project/hook.json",
+    });
+    const stale = hookCommand({
+      ...r,
+      hook: "C:/older/runtime/contextory-hook.mjs",
+    });
+    const userHook = { type: "command", command: "echo user-hook", timeout: 9 };
+    const body = {
+      permissions: { allow: ["user-rule"] },
+      hooks: {
+        SessionStart: [
+          {
+            matcher: "startup",
+            hooks: [
+              userHook,
+              { type: "command", command: stale },
+              { type: "command", command: stale },
+              { type: "command", command: otherProject },
+            ],
+          },
+        ],
+        SessionEnd: [{ hooks: [userHook] }],
+      },
+    };
+    await writeFile(hooksPath, JSON.stringify(body));
+    assert.deepEqual(await rebuildProviderHooks(r), [hooksPath]);
+    const rebuilt = JSON.parse(await readFile(hooksPath, "utf8"));
+    assert.deepEqual(rebuilt.permissions, body.permissions);
+    assert.deepEqual(rebuilt.hooks.SessionEnd, body.hooks.SessionEnd);
+    assert.deepEqual(rebuilt.hooks.SessionStart[0], {
+      matcher: "startup",
+      hooks: [userHook, { type: "command", command: otherProject }],
+    });
+    assert.equal(
+      rebuilt.hooks.SessionStart[1].hooks[0].command,
+      hookCommand(r),
+    );
+    assert.equal(await readFile(configPath, "utf8"), configBefore);
+    assert.deepEqual(await rebuildProviderHooks(r), []);
+  }
+});
+
+test("hook-only rebuild creates missing hooks but preserves malformed files and rejects generic", async (t) => {
+  const { root } = await fixture(t),
+    r = registration(root, "codex");
+  await rebuildProviderHooks(r);
+  const path = join(root, clients.codex.hooksPath);
+  for (const invalid of [
+    '{"hooks":{"SessionStart":7}}',
+    '{"hooks":null}',
+    "{invalid",
+  ]) {
+    await writeFile(path, invalid);
+    await assert.rejects(rebuildProviderHooks(r), { code: "INVALID_CONFIG" });
+    assert.equal(await readFile(path, "utf8"), invalid);
+  }
+  await assert.rejects(rebuildProviderHooks({ ...r, provider: "generic" }), {
+    code: "INVALID_PROVIDER",
+  });
 });
 test("registration distinguishes connection changes from portable resource updates and unchanged reopen", async (t) => {
   const { root } = await fixture(t),

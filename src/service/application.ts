@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { readFile, mkdir, writeFile, realpath } from "node:fs/promises";
-import { join, relative, isAbsolute } from "node:path";
+import { join, relative, isAbsolute, dirname } from "node:path";
 import { z } from "zod";
 import {
   tools,
@@ -33,6 +33,7 @@ import { CodeQueries } from "../codebase/queries";
 import { importGraphify } from "../codebase/import";
 import { ReferenceCodebases } from "../codebase/references";
 import { clients, clientIds } from "../providers/clients";
+import { HookRecovery } from "../providers/recovery";
 import { WorkspaceProjects } from "./workspace";
 import {
   completionNote,
@@ -46,6 +47,7 @@ import {
   workspacePath,
 } from "../verification/workspace";
 export class Application {
+  readonly hooks: HookRecovery;
   readonly workspace: WorkspaceProjects;
   private readonly observations = new Set<string>();
   readonly releases: ReleaseManager;
@@ -64,6 +66,11 @@ export class Application {
     workerPath: string,
     embeddingDirectory: string,
   ) {
+    this.hooks = new HookRecovery(
+      ledger,
+      storage,
+      join(dirname(workerPath), "contextory-hook.mjs"),
+    );
     this.workspace = new WorkspaceProjects(this);
     this.releases = new ReleaseManager(ledger);
     this.workflow = new Workflow(ledger);
@@ -300,6 +307,18 @@ export class Application {
       );
     }
     switch (key) {
+      case "contextory_hooks_rebuild":
+        return {
+          ...(await this.hooks.rebuild(a as Input<typeof key>, actor)),
+          observations: {
+            mcp: this.observations.has(
+              `mcp:${(a as Input<typeof key>).provider}`,
+            ),
+            hooks: this.observations.has(
+              `hook:${(a as Input<typeof key>).provider}`,
+            ),
+          },
+        };
       case "contextory_workspace_get":
         return this.workspace.get(
           (a as Input<typeof key>).groupId,

@@ -2,6 +2,12 @@
 
 # Retrieval and coverage
 
+## Hook recovery
+
+Use `contextory_hooks_rebuild` only for an intended project's missing, stale or duplicate managed hooks: `{ "projectId": "<project>", "provider": "codex", "operationId": "<new unique ID>" }`. Supported providers are `codex`, `claude` and `bob`; Generic MCP has no hooks. The response separates changed hook files, launcher restoration and current-service MCP/hook observations. It never reads or writes native approval records, global hooks, MCP configuration or portable skills. Keep the exact operation ID/input for an interrupted retry; a later repair needs a new ID. Project/workspace scope is unchanged and reference codebases cannot be repaired through this tool.
+
+If files are unchanged but hooks remain unobserved, review native trust and reload the affected session instead of issuing more rebuilds. The installed Codex client may distinguish `C:\\` and `c:\\` when looking up hook approval: use `/hooks` from the affected session's actual project path. When MCP is unavailable, the editor's **Contextory: Rebuild Agent Hooks** command or sidebar **Rebuild hooks** action can initiate recovery after the local service starts. Inspect service output if startup itself fails; rebuilding through MCP requires a reachable service.
+
 ## Choose the lookup
 
 | Need                                                | Tool and useful inputs                                                                                                                                                                                                                                                 |
