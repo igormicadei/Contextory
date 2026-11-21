@@ -1,0 +1,23 @@
+{
+  "version": "0.7.0",
+  "tag": "v0.7.0",
+  "commit": "d9e2d8907c131a1ff80e0979daa6d2df78dffa9d",
+  "sha256": "852710631bf00e688c1313566444012fc3258927c84dd7c233eb73a080a71bdf",
+  "bytes": 4252796,
+  "files": 62,
+  "verifiedResources": [
+    "dist/extension.js",
+    "dist/service.mjs",
+    "dist/mcp-proxy.mjs",
+    "dist/contextory-hook.mjs",
+    "dist/contextory.mjs",
+    "dist/analysis-worker.mjs",
+    "dist/codebase-worker.mjs",
+    "dist/webview.js",
+    "skills/contextory-codebase/SKILL.md",
+    "skills/contextory-workflow/SKILL.md",
+    "docs/releases/v0.7.0.md"
+  ],
+  "extracted": "C:\\Projetos\\Contextory\\.contextory-local\\release-070-package\\extension",
+  "liveEditorInstalled": false
+}
