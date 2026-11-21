@@ -43,7 +43,7 @@ Catalog maintenance remains pending service availability. The concrete documenta
 
 ## Delivery limits
 
-The rewrite was first delivered locally. Commit, push and documentation deployment are now authorized; the deployment evidence below will distinguish the pushed source, Pages branch and verified live artifact. No extension release, Git tag or installation into a running editor is authorized by this deployment request. Authenticated native-agent chats and fresh editor-host qualification were not rerun for this documentation-only change. Static-analysis and platform limits remain explicit in the guides.
+The rewritten source is committed and pushed on main, and the documentation site is deployed from gh-pages. The deployment evidence below records the source commit, Pages commit and verified live artifact. No extension release, Git tag or installation into a running editor is authorized by this deployment request. Authenticated native-agent chats and fresh editor-host qualification were not rerun for this documentation-only change. Static-analysis and platform limits remain explicit in the guides.
 
 Preview: `npm run docs:preview` → `http://127.0.0.1:4173/en/overview.html`.
 
@@ -53,6 +53,14 @@ PT-BR: A documentação foi reescrita em dois idiomas com o layout Carbon padrã
 
 Target: `origin`, `github.com/igormicadei/Contextory`, source branch `main`, existing orphan publication branch `gh-pages:/` and site `https://igormicadei.github.io/Contextory/`.
 
-The repository's recent Documentation Actions runs could not start: GitHub reported, "The job was not started because your account is locked due to a billing issue." Local validation and branch-based Pages deployment will be used while preserving the existing independent publication history and custom-domain settings. This does not change billing, credentials or repository protection rules.
+The repository's recent Documentation Actions runs could not start: GitHub reported, "The job was not started because your account is locked due to a billing issue." Local validation and the existing branch-based Pages build were used while preserving the independent publication history and custom-domain settings. This does not change billing, credentials or repository protection rules.
 
 The stock publisher refused the older pre-skill Pages root as foreign history without pushing. The explicit migration verifies the existing independent root 4087fdd5b6fd9dc44d3ffc8963dd37627e01b8ff, previous tip 5cc70e9c6b73c0b7998aa75249484f153d1ecac8, original Contextory site manifest and absence of unrelated files, then appends a normal fast-forward publication commit. No force push, history replacement or source-index mutation is used by publication.
+
+## Deployment result
+
+- Source commit a7f2d02d4483dad662b18faaaafb7493c874332d is on origin/main.
+- Pages commit 48f2a018d2bd539cb4bbdf86e7a57a560ff9730a is on origin/gh-pages as a normal fast-forward. Its parent is the prior tip 5cc70e9c6b73c0b7998aa75249484f153d1ecac8; the existing root 4087fdd5b6fd9dc44d3ffc8963dd37627e01b8ff remains intact.
+- GitHub Pages legacy build 1390854608 completed with status built for that exact Pages commit. The Pages status tool reports deployed and verified the live artifact manifest (SHA-256 6b56232b0fd2acd7980b24236d908c1af54c5abbaa5e5523267a2b9c48efa6ad).
+- Public smoke checks returned HTTP 200 for the site root, English and Brazilian Portuguese overview pages, the preserved /docs/USER-GUIDE.html URL, the local search index, Portuguese LLM export and site JavaScript.
+- GitHub Actions remained unavailable because GitHub rejected job startup for an account billing issue. The site was deployed through the existing branch-based Pages build, without relying on an Actions job.

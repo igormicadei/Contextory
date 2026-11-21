@@ -1,0 +1,52 @@
+{
+  "status": "deployed",
+  "host": "github.com",
+  "owner": "igormicadei",
+  "repository": "Contextory",
+  "identity": "github.com/igormicadei/contextory",
+  "remote": "origin",
+  "branch": "gh-pages",
+  "path": "/",
+  "url": "https://igormicadei.github.io/Contextory/",
+  "commit": "48f2a018d2bd539cb4bbdf86e7a57a560ff9730a",
+  "previousCommit": "5cc70e9c6b73c0b7998aa75249484f153d1ecac8",
+  "historyRoot": "4087fdd5b6fd9dc44d3ffc8963dd37627e01b8ff",
+  "sourceCommit": "a7f2d02d4483dad662b18faaaafb7493c874332d",
+  "artifactDigest": "6b56232b0fd2acd7980b24236d908c1af54c5abbaa5e5523267a2b9c48efa6ad",
+  "inputFingerprint": "b977f819c04a04981d0c7dc4237252e7be20a9b3788fe5b8cbd939ef0f3b20c3",
+  "method": "explicit migration preserving existing orphan history",
+  "buildStatus": "built",
+  "buildId": 1390854608,
+  "builtAt": "2026-11-21T20:24:27Z",
+  "verification": "docs_pages_status verified the exact live artifact manifest",
+  "liveSmokeChecks": [
+    {
+      "path": "/",
+      "status": 200
+    },
+    {
+      "path": "/en/overview.html",
+      "status": 200
+    },
+    {
+      "path": "/pt-BR/overview.html",
+      "status": 200
+    },
+    {
+      "path": "/docs/USER-GUIDE.html",
+      "status": 200
+    },
+    {
+      "path": "/search-index.json",
+      "status": 200
+    },
+    {
+      "path": "/pt-BR/llms-full.txt",
+      "status": 200
+    },
+    {
+      "path": "/assets/site.js",
+      "status": 200
+    }
+  ]
+}
