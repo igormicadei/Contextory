@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.7.0 (2026-11-21)
+
+### Commits
+
+- ebcdecdd95f25901408e739aa939c1e130acee82: chore: record v0.6.0 package qualification
+- cd555b3115bfb13f576d8d5be049b682e9091dcf: feat: rebuild managed hooks from editor and MCP
+
+### Project decisions, features and rules recorded in this interval
+
+These ledger entries are associated by recording interval, not verified commit inclusion. Refer to their immutable revisions for provenance.
+
+- DEC-1145efa5@1 (decision, active): Share hook-only recovery across editor and headless MCP without granting native trust
+- ISS-611ea284@1 (finding, deferred): Codex drive-letter casing can select different saved hook approvals
+- ISS-f4b960e5@1 (finding, resolved): Windows descriptor replacement can abort service startup
+- KN-14c2f9cd@1 (knowledge, observed): Project-scoped managed hook recovery
+- KN-2d08b05c@1 (knowledge, observed): Service-owned hook repair and retained results
+- KN-66e941b0@1 (knowledge, observed): Rebuild hooks from the selected project
+- KN-dd938bd3@1 (knowledge, observed): Hook repair preserves client trust and verifies observations separately
+- KN-f976a9dd@1 (knowledge, observed): Bounded atomic file replacement
+- OUT-48eaef2b@1 (outcome, submitted): Implemented project-scoped hook rebuild in the editor/sidebar and MCP with shared hook-only recovery, launcher restoration, retained operation results, trust/casing guidance and bounded Windows replac
+- REQ-2fc0b255@1 (request, active): Release Contextory 0.7.0 with managed hook recovery
+- REQ-627eef75@2 (request, completed): Rebuild project hooks from the editor and MCP
+- SPEC-d38608ef@2 (spec, implementing): Publish the qualified hook recovery release
+- SPEC-e7b20c6b@4 (spec, completed): Restore managed hooks safely through UI and MCP
+
+
 ## 0.6.0 (2026-11-18)
 
 ### Commits
