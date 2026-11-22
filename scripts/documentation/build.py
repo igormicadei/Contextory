@@ -70,6 +70,24 @@ def verify_vendor():
             raise ValueError("Changed documentation-skill runtime: " + relative)
 
 
+def root_landing(name):
+    """PT-BR: Encaminhar a raiz do site para o guia padrão sem oferecer uma escolha de idioma.
+
+    EN: Send the site root to the default guide without presenting a language choice.
+    """
+    safe_name = html.escape(name)
+    return (
+        "<!doctype html><html lang='en'><head><meta charset='utf-8'>"
+        "<meta name='viewport' content='width=device-width,initial-scale=1'>"
+        "<meta http-equiv='refresh' content='0;url=en/overview.html'>"
+        "<title>" + safe_name + " documentation</title></head><body><main><h1>"
+        + safe_name
+        + "</h1><p><a href='en/overview.html'>Open the documentation</a></p>"
+        "</main><script>window.location.replace('en/overview.html');</script>"
+        "</body></html>\n"
+    )
+
+
 def compatibility():
     """PT-BR: Preserva URLs e arquivos legados sem alterar o shell Carbon padrão.
 
@@ -96,6 +114,9 @@ def compatibility():
         payload = core.safe_path(ROOT, relative).read_bytes()
         for target in (relative, "archive/" + relative):
             manifest["files"][target] = write_managed(site, target, payload)
+    manifest["files"]["index.html"] = write_managed(
+        site, "index.html", root_landing(core.load_project(ROOT)["name"])
+    )
     pages = sorted(path for path in manifest["files"] if path.endswith(".html"))
     metadata = {"version": core.load_project(ROOT)["version"], "pages": pages,
                 "locales": list(core.LOCALES), "layout": "software-documentation default Carbon",

@@ -64,3 +64,11 @@ The stock publisher refused the older pre-skill Pages root as foreign history wi
 - GitHub Pages legacy build 1390854608 completed with status built for that exact Pages commit. The Pages status tool reports deployed and verified the live artifact manifest (SHA-256 6b56232b0fd2acd7980b24236d908c1af54c5abbaa5e5523267a2b9c48efa6ad).
 - Public smoke checks returned HTTP 200 for the site root, English and Brazilian Portuguese overview pages, the preserved /docs/USER-GUIDE.html URL, the local search index, Portuguese LLM export and site JavaScript.
 - GitHub Actions remained unavailable because GitHub rejected job startup for an account billing issue. The site was deployed through the existing branch-based Pages build, without relying on an Actions job.
+
+## Landing-page correction (2026-11-22)
+
+The public root still showed the English and Portuguese links because the vendored `software-documentation` 1.0.0 runtime hardcodes both links in `runtime/core.py` when it writes `index.html`. The installed runtime and repository copy have the same SHA-256; the documentation refresh had preserved that generated index unchanged. The application-owned build wrapper now replaces only the root index with a relative redirect to the English overview and a single fallback link. The per-page locale switch remains available. The protected vendor files and their provenance hashes are unchanged.
+
+The contributing guide now records this root behavior in both languages. The complete source map reports 129 supporting files and 13 documented builder symbols, with reviewed source fingerprint `e0accfdbc75bf479055e37e7cc99f8c2c45c2a3dbec37a3e003d3e7791e2d7eb`. `npm run docs:check` passes corpus validation, the 251-file managed build, local link/anchor checks and all five browser cases; the root redirect works with and without JavaScript. `npm run docs:integrations` regenerated the 15-file consumer bundle. Build input fingerprint: `549c480d918026b31b3dbc0f2bccb39ad4a447cf94cc852da860d7bd931cb303`.
+
+The Contextory service returned `SERVICE_UNAVAILABLE` for the current workspace/context/catalog probes; no tracking IDs or catalog approvals were invented. Pages publication and live verification are recorded after they complete.

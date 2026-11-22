@@ -17,7 +17,7 @@
   "draft": false,
   "audit": {
     "featuresReviewed": true,
-    "reviewedSourceFingerprint": "c13e596c60c74e49a7586d137b8b86f43e9b610e7600204a90ab1e4ffa671567"
+    "reviewedSourceFingerprint": "e0accfdbc75bf479055e37e7cc99f8c2c45c2a3dbec37a3e003d3e7791e2d7eb"
   },
   "features": [
     {
@@ -3507,6 +3507,13 @@
               "text": {
                 "pt-BR": "Edite .documentation/project.json: IDs de páginas/seções são compartilhados por en e pt-BR. Use blocos de texto simples com fontes, exemplos/legendas/textos alternativos traduzidos e capturas reais. O runtime software-documentation copiado gera seu shell Carbon padrão sem alterações, busca local, navegação responsiva, Markdown, llms.txt e exportações de corpus/API. O gerador precisa de Python 3.11+.",
                 "en": "Edit .documentation/project.json: page/section IDs are shared by en and pt-BR. Use source-backed plain-text blocks, translated examples/captions/alt text and actual application screenshots. The vendored software-documentation runtime renders its unchanged Carbon shell, local search, responsive navigation, Markdown, llms.txt and corpus/API exports. Python 3.11+ is required for documentation tooling."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "pt-BR": "A raiz publicada abre diretamente a visão geral padrão em inglês, sem seletor de idioma. A troca de idioma continua disponível no cabeçalho de cada página.",
+                "en": "The published root opens the default English overview directly, without a language chooser. Language switching remains available in each page header."
               }
             },
             {

@@ -56,6 +56,8 @@ npm run docs:preview
 
 Edit .documentation/project.json: page/section IDs are shared by en and pt-BR. Use source-backed plain-text blocks, translated examples/captions/alt text and actual application screenshots. The vendored software-documentation runtime renders its unchanged Carbon shell, local search, responsive navigation, Markdown, llms.txt and corpus/API exports. Python 3.11+ is required for documentation tooling.
 
+The published root opens the default English overview directly, without a language chooser. Language switching remains available in each page header.
+
 After reviewing changed source, set audit.reviewedSourceFingerprint to the current docs:map value. Builds refuse stale reviews; the build never approves source changes automatically. Use docs:migrate to inspect source drift. It previews supported versioned migration and refuses unknown schemas.
 
 Generated output is .documentation/site/. The managed manifest detects stale inputs and protects unrelated output files. Existing URLs are kept by .documentation/redirects.json; old fragments remain usable on compatibility pages. Original English guides, plans, skills and release records are preserved under .documentation/legacy and published as archive downloads. Current guides under docs/ are managed English exports of the same corpus.
