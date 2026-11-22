@@ -787,7 +787,17 @@ verify_vendor()
 
 Recusa alterações no runtime e nos layouts padrão copiados da skill.
 
-### scripts/documentation/build.py:73 — compatibility
+### scripts/documentation/build.py:73 — root_landing
+
+Assinatura e localização
+
+```python
+root_landing(name)
+```
+
+Encaminhar a raiz do site para o guia padrão sem oferecer uma escolha de idioma.
+
+### scripts/documentation/build.py:91 — compatibility
 
 Assinatura e localização
 
@@ -797,7 +807,7 @@ compatibility()
 
 Preserva URLs e arquivos legados sem alterar o shell Carbon padrão.
 
-### scripts/documentation/build.py:107 — check_links
+### scripts/documentation/build.py:128 — check_links
 
 Assinatura e localização
 
@@ -807,7 +817,7 @@ check_links()
 
 Confere páginas, imagens, exports e âncoras locais com o site já gerado.
 
-### scripts/documentation/build.py:138 — export_markdown
+### scripts/documentation/build.py:159 — export_markdown
 
 Assinatura e localização
 
@@ -817,7 +827,7 @@ export_markdown()
 
 Atualiza apenas guias explicitamente gerenciados e preserva os originais no arquivo.
 
-### scripts/documentation/build.py:153 — export_markdown.repository_link
+### scripts/documentation/build.py:174 — export_markdown.repository_link
 
 Assinatura e localização
 
@@ -827,7 +837,7 @@ repository_link(match)
 
 Ajusta links do export para o caminho do guia no repositório.
 
-### scripts/documentation/build.py:177 — consumer_bundle
+### scripts/documentation/build.py:198 — consumer_bundle
 
 Assinatura e localização
 
@@ -837,7 +847,7 @@ consumer_bundle()
 
 Gera o bundle de consulta e inclui a licença MIT do runtime distribuído.
 
-### scripts/documentation/build.py:200 — main
+### scripts/documentation/build.py:221 — main
 
 Assinatura e localização
 

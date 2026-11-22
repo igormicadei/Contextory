@@ -39,6 +39,8 @@ npm run docs:preview
 
 Edite .documentation/project.json: IDs de páginas/seções são compartilhados por en e pt-BR. Use blocos de texto simples com fontes, exemplos/legendas/textos alternativos traduzidos e capturas reais. O runtime software-documentation copiado gera seu shell Carbon padrão sem alterações, busca local, navegação responsiva, Markdown, llms.txt e exportações de corpus/API. O gerador precisa de Python 3.11+.
 
+A raiz publicada abre diretamente a visão geral padrão em inglês, sem seletor de idioma. A troca de idioma continua disponível no cabeçalho de cada página.
+
 Depois de revisar fontes alteradas, defina audit.reviewedSourceFingerprint com o valor atual de docs:map. O build recusa revisões obsoletas; ele nunca aprova alterações automaticamente. Use docs:migrate para inspecionar drift. Ele mostra a migração versionada suportada e recusa schemas desconhecidos.
 
 A saída gerada é .documentation/site/. O manifesto gerenciado detecta entradas obsoletas e protege arquivos alheios. URLs existentes são mantidas por .documentation/redirects.json; fragmentos antigos continuam utilizáveis nas páginas de compatibilidade. Guias, planos, skills e registros de release originais em inglês ficam preservados em .documentation/legacy e são publicados como arquivos históricos para download. Os guias atuais em docs/ são exportações gerenciadas em inglês do mesmo corpus.

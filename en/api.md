@@ -787,7 +787,17 @@ verify_vendor()
 
 Refuse changes to the runtime and default layouts copied from the skill.
 
-### scripts/documentation/build.py:73 — compatibility
+### scripts/documentation/build.py:73 — root_landing
+
+Signature and location
+
+```python
+root_landing(name)
+```
+
+Send the site root to the default guide without presenting a language choice.
+
+### scripts/documentation/build.py:91 — compatibility
 
 Signature and location
 
@@ -797,7 +807,7 @@ compatibility()
 
 Preserve legacy URLs and files without changing the default Carbon shell.
 
-### scripts/documentation/build.py:107 — check_links
+### scripts/documentation/build.py:128 — check_links
 
 Signature and location
 
@@ -807,7 +817,7 @@ check_links()
 
 Check pages, images, exports and local anchors in the completed site.
 
-### scripts/documentation/build.py:138 — export_markdown
+### scripts/documentation/build.py:159 — export_markdown
 
 Signature and location
 
@@ -817,7 +827,7 @@ export_markdown()
 
 Update only explicitly managed guides while preserving originals in the archive.
 
-### scripts/documentation/build.py:153 — export_markdown.repository_link
+### scripts/documentation/build.py:174 — export_markdown.repository_link
 
 Signature and location
 
@@ -827,7 +837,7 @@ repository_link(match)
 
 Adjust export links for the guide's repository location.
 
-### scripts/documentation/build.py:177 — consumer_bundle
+### scripts/documentation/build.py:198 — consumer_bundle
 
 Signature and location
 
@@ -837,7 +847,7 @@ consumer_bundle()
 
 Generate the query bundle and include the distributed runtime's MIT license.
 
-### scripts/documentation/build.py:200 — main
+### scripts/documentation/build.py:221 — main
 
 Signature and location
 

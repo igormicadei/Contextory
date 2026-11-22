@@ -1,8 +1,8 @@
 # Contextory (pt-BR)
 
 Version: 0.7.0
-Source revision: a7f2d02d4483dad662b18faaaafb7493c874332d
-Source fingerprint: c13e596c60c74e49a7586d137b8b86f43e9b610e7600204a90ab1e4ffa671567
+Source revision: 63e0eee9f865626da3fb6d8e45b386d2f51adf09
+Source fingerprint: e0accfdbc75bf479055e37e7cc99f8c2c45c2a3dbec37a3e003d3e7791e2d7eb
 
 # Contextory
 
@@ -941,6 +941,8 @@ npm run docs:preview
 
 Edite .documentation/project.json: IDs de páginas/seções são compartilhados por en e pt-BR. Use blocos de texto simples com fontes, exemplos/legendas/textos alternativos traduzidos e capturas reais. O runtime software-documentation copiado gera seu shell Carbon padrão sem alterações, busca local, navegação responsiva, Markdown, llms.txt e exportações de corpus/API. O gerador precisa de Python 3.11+.
 
+A raiz publicada abre diretamente a visão geral padrão em inglês, sem seletor de idioma. A troca de idioma continua disponível no cabeçalho de cada página.
+
 Depois de revisar fontes alteradas, defina audit.reviewedSourceFingerprint com o valor atual de docs:map. O build recusa revisões obsoletas; ele nunca aprova alterações automaticamente. Use docs:migrate para inspecionar drift. Ele mostra a migração versionada suportada e recusa schemas desconhecidos.
 
 A saída gerada é .documentation/site/. O manifesto gerenciado detecta entradas obsoletas e protege arquivos alheios. URLs existentes são mantidas por .documentation/redirects.json; fragmentos antigos continuam utilizáveis nas páginas de compatibilidade. Guias, planos, skills e registros de release originais em inglês ficam preservados em .documentation/legacy e são publicados como arquivos históricos para download. Os guias atuais em docs/ são exportações gerenciadas em inglês do mesmo corpus.
@@ -1821,7 +1823,17 @@ verify_vendor()
 
 Recusa alterações no runtime e nos layouts padrão copiados da skill.
 
-### scripts/documentation/build.py:73 — compatibility
+### scripts/documentation/build.py:73 — root_landing
+
+Assinatura e localização
+
+```python
+root_landing(name)
+```
+
+Encaminhar a raiz do site para o guia padrão sem oferecer uma escolha de idioma.
+
+### scripts/documentation/build.py:91 — compatibility
 
 Assinatura e localização
 
@@ -1831,7 +1843,7 @@ compatibility()
 
 Preserva URLs e arquivos legados sem alterar o shell Carbon padrão.
 
-### scripts/documentation/build.py:107 — check_links
+### scripts/documentation/build.py:128 — check_links
 
 Assinatura e localização
 
@@ -1841,7 +1853,7 @@ check_links()
 
 Confere páginas, imagens, exports e âncoras locais com o site já gerado.
 
-### scripts/documentation/build.py:138 — export_markdown
+### scripts/documentation/build.py:159 — export_markdown
 
 Assinatura e localização
 
@@ -1851,7 +1863,7 @@ export_markdown()
 
 Atualiza apenas guias explicitamente gerenciados e preserva os originais no arquivo.
 
-### scripts/documentation/build.py:153 — export_markdown.repository_link
+### scripts/documentation/build.py:174 — export_markdown.repository_link
 
 Assinatura e localização
 
@@ -1861,7 +1873,7 @@ repository_link(match)
 
 Ajusta links do export para o caminho do guia no repositório.
 
-### scripts/documentation/build.py:177 — consumer_bundle
+### scripts/documentation/build.py:198 — consumer_bundle
 
 Assinatura e localização
 
@@ -1871,7 +1883,7 @@ consumer_bundle()
 
 Gera o bundle de consulta e inclui a licença MIT do runtime distribuído.
 
-### scripts/documentation/build.py:200 — main
+### scripts/documentation/build.py:221 — main
 
 Assinatura e localização
 
@@ -2250,7 +2262,15 @@ PT-BR: Recusa alterações no runtime e nos layouts padrão copiados da skill.
 
 EN: Refuse changes to the runtime and default layouts copied from the skill.
 
-### scripts/documentation/build.py:73 — compatibility
+### scripts/documentation/build.py:73 — root_landing
+
+root_landing(name)
+
+PT-BR: Encaminhar a raiz do site para o guia padrão sem oferecer uma escolha de idioma.
+
+EN: Send the site root to the default guide without presenting a language choice.
+
+### scripts/documentation/build.py:91 — compatibility
 
 compatibility()
 
@@ -2258,7 +2278,7 @@ PT-BR: Preserva URLs e arquivos legados sem alterar o shell Carbon padrão.
 
 EN: Preserve legacy URLs and files without changing the default Carbon shell.
 
-### scripts/documentation/build.py:107 — check_links
+### scripts/documentation/build.py:128 — check_links
 
 check_links()
 
@@ -2266,7 +2286,7 @@ PT-BR: Confere páginas, imagens, exports e âncoras locais com o site já gerad
 
 EN: Check pages, images, exports and local anchors in the completed site.
 
-### scripts/documentation/build.py:138 — export_markdown
+### scripts/documentation/build.py:159 — export_markdown
 
 export_markdown()
 
@@ -2274,7 +2294,7 @@ PT-BR: Atualiza apenas guias explicitamente gerenciados e preserva os originais 
 
 EN: Update only explicitly managed guides while preserving originals in the archive.
 
-### scripts/documentation/build.py:153 — export_markdown.repository_link
+### scripts/documentation/build.py:174 — export_markdown.repository_link
 
 repository_link(match)
 
@@ -2282,7 +2302,7 @@ PT-BR: Ajusta links do export para o caminho do guia no repositório.
 
 EN: Adjust export links for the guide's repository location.
 
-### scripts/documentation/build.py:177 — consumer_bundle
+### scripts/documentation/build.py:198 — consumer_bundle
 
 consumer_bundle()
 
@@ -2290,7 +2310,7 @@ PT-BR: Gera o bundle de consulta e inclui a licença MIT do runtime distribuído
 
 EN: Generate the query bundle and include the distributed runtime's MIT license.
 
-### scripts/documentation/build.py:200 — main
+### scripts/documentation/build.py:221 — main
 
 main()
 

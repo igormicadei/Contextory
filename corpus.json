@@ -3307,6 +3307,13 @@
             {
               "type": "paragraph",
               "text": {
+                "pt-BR": "A raiz publicada abre diretamente a visão geral padrão em inglês, sem seletor de idioma. A troca de idioma continua disponível no cabeçalho de cada página.",
+                "en": "The published root opens the default English overview directly, without a language chooser. Language switching remains available in each page header."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
                 "pt-BR": "Depois de revisar fontes alteradas, defina audit.reviewedSourceFingerprint com o valor atual de docs:map. O build recusa revisões obsoletas; ele nunca aprova alterações automaticamente. Use docs:migrate para inspecionar drift. Ele mostra a migração versionada suportada e recusa schemas desconhecidos.",
                 "en": "After reviewing changed source, set audit.reviewedSourceFingerprint to the current docs:map value. Builds refuse stale reviews; the build never approves source changes automatically. Use docs:migrate to inspect source drift. It previews supported versioned migration and refuses unknown schemas."
               }
@@ -4700,8 +4707,31 @@
             {
               "type": "heading",
               "text": {
-                "pt-BR": "scripts/documentation/build.py:73 — compatibility",
-                "en": "scripts/documentation/build.py:73 — compatibility"
+                "pt-BR": "scripts/documentation/build.py:73 — root_landing",
+                "en": "scripts/documentation/build.py:73 — root_landing"
+              }
+            },
+            {
+              "type": "code",
+              "language": "python",
+              "caption": {
+                "pt-BR": "Assinatura e localização",
+                "en": "Signature and location"
+              },
+              "code": "root_landing(name)"
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "pt-BR": "Encaminhar a raiz do site para o guia padrão sem oferecer uma escolha de idioma.",
+                "en": "Send the site root to the default guide without presenting a language choice."
+              }
+            },
+            {
+              "type": "heading",
+              "text": {
+                "pt-BR": "scripts/documentation/build.py:91 — compatibility",
+                "en": "scripts/documentation/build.py:91 — compatibility"
               }
             },
             {
@@ -4723,8 +4753,8 @@
             {
               "type": "heading",
               "text": {
-                "pt-BR": "scripts/documentation/build.py:107 — check_links",
-                "en": "scripts/documentation/build.py:107 — check_links"
+                "pt-BR": "scripts/documentation/build.py:128 — check_links",
+                "en": "scripts/documentation/build.py:128 — check_links"
               }
             },
             {
@@ -4746,8 +4776,8 @@
             {
               "type": "heading",
               "text": {
-                "pt-BR": "scripts/documentation/build.py:138 — export_markdown",
-                "en": "scripts/documentation/build.py:138 — export_markdown"
+                "pt-BR": "scripts/documentation/build.py:159 — export_markdown",
+                "en": "scripts/documentation/build.py:159 — export_markdown"
               }
             },
             {
@@ -4769,8 +4799,8 @@
             {
               "type": "heading",
               "text": {
-                "pt-BR": "scripts/documentation/build.py:153 — export_markdown.repository_link",
-                "en": "scripts/documentation/build.py:153 — export_markdown.repository_link"
+                "pt-BR": "scripts/documentation/build.py:174 — export_markdown.repository_link",
+                "en": "scripts/documentation/build.py:174 — export_markdown.repository_link"
               }
             },
             {
@@ -4792,8 +4822,8 @@
             {
               "type": "heading",
               "text": {
-                "pt-BR": "scripts/documentation/build.py:177 — consumer_bundle",
-                "en": "scripts/documentation/build.py:177 — consumer_bundle"
+                "pt-BR": "scripts/documentation/build.py:198 — consumer_bundle",
+                "en": "scripts/documentation/build.py:198 — consumer_bundle"
               }
             },
             {
@@ -4815,8 +4845,8 @@
             {
               "type": "heading",
               "text": {
-                "pt-BR": "scripts/documentation/build.py:200 — main",
-                "en": "scripts/documentation/build.py:200 — main"
+                "pt-BR": "scripts/documentation/build.py:221 — main",
+                "en": "scripts/documentation/build.py:221 — main"
               }
             },
             {
@@ -5848,19 +5878,19 @@
     }
   ],
   "hasUserInterface": true,
-  "sourceRevision": "a7f2d02d4483dad662b18faaaafb7493c874332d",
-  "sourceFingerprint": "c13e596c60c74e49a7586d137b8b86f43e9b610e7600204a90ab1e4ffa671567",
+  "sourceRevision": "63e0eee9f865626da3fb6d8e45b386d2f51adf09",
+  "sourceFingerprint": "e0accfdbc75bf479055e37e7cc99f8c2c45c2a3dbec37a3e003d3e7791e2d7eb",
   "sources": [
     {
       "path": "scripts/documentation/build.py",
-      "sha256": "7ffc5364565cb574fe98a95c20312c0b1de3c8952c4287eae0d2bb91445f8c59",
+      "sha256": "4ab2886fcc1cc1c7db83293b19720be006dbbeb4f99a7b47b411bc640eee014d",
       "language": "python",
       "symbols": [
         {
           "name": "<module>",
           "kind": "module",
           "line": 1,
-          "endLine": 241,
+          "endLine": 262,
           "docstring": "PT-BR: Gera os guias com o runtime e os layouts padrão da skill de documentação.\n\nEN: Build guides with the documentation skill's unchanged runtime and default layouts.",
           "signature": "scripts/documentation/build.py"
         },
@@ -5905,50 +5935,58 @@
           "docstring": "PT-BR: Recusa alterações no runtime e nos layouts padrão copiados da skill.\n\nEN: Refuse changes to the runtime and default layouts copied from the skill."
         },
         {
-          "name": "compatibility",
+          "name": "root_landing",
           "kind": "function",
           "line": 73,
-          "endLine": 104,
+          "endLine": 88,
+          "signature": "root_landing(name)",
+          "docstring": "PT-BR: Encaminhar a raiz do site para o guia padrão sem oferecer uma escolha de idioma.\n\nEN: Send the site root to the default guide without presenting a language choice."
+        },
+        {
+          "name": "compatibility",
+          "kind": "function",
+          "line": 91,
+          "endLine": 125,
           "signature": "compatibility()",
           "docstring": "PT-BR: Preserva URLs e arquivos legados sem alterar o shell Carbon padrão.\n\nEN: Preserve legacy URLs and files without changing the default Carbon shell."
         },
         {
           "name": "check_links",
           "kind": "function",
-          "line": 107,
-          "endLine": 135,
+          "line": 128,
+          "endLine": 156,
           "signature": "check_links()",
           "docstring": "PT-BR: Confere páginas, imagens, exports e âncoras locais com o site já gerado.\n\nEN: Check pages, images, exports and local anchors in the completed site."
         },
         {
           "name": "export_markdown",
           "kind": "function",
-          "line": 138,
-          "endLine": 174,
+          "line": 159,
+          "endLine": 195,
           "signature": "export_markdown()",
           "docstring": "PT-BR: Atualiza apenas guias explicitamente gerenciados e preserva os originais no arquivo.\n\nEN: Update only explicitly managed guides while preserving originals in the archive."
         },
         {
           "name": "export_markdown.repository_link",
           "kind": "function",
-          "line": 153,
-          "endLine": 164,
+          "line": 174,
+          "endLine": 185,
           "signature": "repository_link(match)",
           "docstring": "PT-BR: Ajusta links do export para o caminho do guia no repositório.\n\nEN: Adjust export links for the guide's repository location."
         },
         {
           "name": "consumer_bundle",
           "kind": "function",
-          "line": 177,
-          "endLine": 197,
+          "line": 198,
+          "endLine": 218,
           "signature": "consumer_bundle()",
           "docstring": "PT-BR: Gera o bundle de consulta e inclui a licença MIT do runtime distribuído.\n\nEN: Generate the query bundle and include the distributed runtime's MIT license."
         },
         {
           "name": "main",
           "kind": "function",
-          "line": 200,
-          "endLine": 237,
+          "line": 221,
+          "endLine": 258,
           "signature": "main()",
           "docstring": "PT-BR: Executa mapa/validação/build/export/preview sem publicar nem aprovar fontes.\n\nEN: Run mapping/validation/build/export/preview without publishing or approving sources."
         }
@@ -5962,7 +6000,7 @@
       "name": "<module>",
       "kind": "module",
       "line": 1,
-      "endLine": 241,
+      "endLine": 262,
       "docstring": "PT-BR: Gera os guias com o runtime e os layouts padrão da skill de documentação.\n\nEN: Build guides with the documentation skill's unchanged runtime and default layouts.",
       "signature": "scripts/documentation/build.py"
     },
@@ -6013,10 +6051,19 @@
     },
     {
       "path": "scripts/documentation/build.py",
-      "name": "compatibility",
+      "name": "root_landing",
       "kind": "function",
       "line": 73,
-      "endLine": 104,
+      "endLine": 88,
+      "signature": "root_landing(name)",
+      "docstring": "PT-BR: Encaminhar a raiz do site para o guia padrão sem oferecer uma escolha de idioma.\n\nEN: Send the site root to the default guide without presenting a language choice."
+    },
+    {
+      "path": "scripts/documentation/build.py",
+      "name": "compatibility",
+      "kind": "function",
+      "line": 91,
+      "endLine": 125,
       "signature": "compatibility()",
       "docstring": "PT-BR: Preserva URLs e arquivos legados sem alterar o shell Carbon padrão.\n\nEN: Preserve legacy URLs and files without changing the default Carbon shell."
     },
@@ -6024,8 +6071,8 @@
       "path": "scripts/documentation/build.py",
       "name": "check_links",
       "kind": "function",
-      "line": 107,
-      "endLine": 135,
+      "line": 128,
+      "endLine": 156,
       "signature": "check_links()",
       "docstring": "PT-BR: Confere páginas, imagens, exports e âncoras locais com o site já gerado.\n\nEN: Check pages, images, exports and local anchors in the completed site."
     },
@@ -6033,8 +6080,8 @@
       "path": "scripts/documentation/build.py",
       "name": "export_markdown",
       "kind": "function",
-      "line": 138,
-      "endLine": 174,
+      "line": 159,
+      "endLine": 195,
       "signature": "export_markdown()",
       "docstring": "PT-BR: Atualiza apenas guias explicitamente gerenciados e preserva os originais no arquivo.\n\nEN: Update only explicitly managed guides while preserving originals in the archive."
     },
@@ -6042,8 +6089,8 @@
       "path": "scripts/documentation/build.py",
       "name": "export_markdown.repository_link",
       "kind": "function",
-      "line": 153,
-      "endLine": 164,
+      "line": 174,
+      "endLine": 185,
       "signature": "repository_link(match)",
       "docstring": "PT-BR: Ajusta links do export para o caminho do guia no repositório.\n\nEN: Adjust export links for the guide's repository location."
     },
@@ -6051,8 +6098,8 @@
       "path": "scripts/documentation/build.py",
       "name": "consumer_bundle",
       "kind": "function",
-      "line": 177,
-      "endLine": 197,
+      "line": 198,
+      "endLine": 218,
       "signature": "consumer_bundle()",
       "docstring": "PT-BR: Gera o bundle de consulta e inclui a licença MIT do runtime distribuído.\n\nEN: Generate the query bundle and include the distributed runtime's MIT license."
     },
@@ -6060,8 +6107,8 @@
       "path": "scripts/documentation/build.py",
       "name": "main",
       "kind": "function",
-      "line": 200,
-      "endLine": 237,
+      "line": 221,
+      "endLine": 258,
       "signature": "main()",
       "docstring": "PT-BR: Executa mapa/validação/build/export/preview sem publicar nem aprovar fontes.\n\nEN: Run mapping/validation/build/export/preview without publishing or approving sources."
     }
@@ -6773,8 +6820,8 @@
       },
       {
         "path": "tests/documentation/site.test.mjs",
-        "sha256": "0760008b378b11651f06743f045a3cc2b88e1d4f7eb6b171eca6a79e692ecf0f",
-        "bytes": 5219,
+        "sha256": "23d889c80f2ce10f4f28f603113da1d01c0ddb6f8dae9fec36f5f81a60d8b4fa",
+        "bytes": 6198,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -6844,7 +6891,7 @@
         "reason": "cited outside source ownership roots"
       }
     ],
-    "symbols": 12,
+    "symbols": 13,
     "skipped": [
       {
         "path": "scripts/documentation/vendor",
