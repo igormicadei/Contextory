@@ -8,20 +8,22 @@
   "branch": "gh-pages",
   "path": "/",
   "url": "https://igormicadei.github.io/Contextory/",
-  "commit": "48f2a018d2bd539cb4bbdf86e7a57a560ff9730a",
-  "previousCommit": "5cc70e9c6b73c0b7998aa75249484f153d1ecac8",
+  "commit": "be1e8f0351ad9fd7c5538ced6cd2b885e77d4d87",
+  "previousCommit": "48f2a018d2bd539cb4bbdf86e7a57a560ff9730a",
   "historyRoot": "4087fdd5b6fd9dc44d3ffc8963dd37627e01b8ff",
-  "sourceCommit": "a7f2d02d4483dad662b18faaaafb7493c874332d",
-  "artifactDigest": "6b56232b0fd2acd7980b24236d908c1af54c5abbaa5e5523267a2b9c48efa6ad",
-  "inputFingerprint": "b977f819c04a04981d0c7dc4237252e7be20a9b3788fe5b8cbd939ef0f3b20c3",
-  "method": "explicit migration preserving existing orphan history",
+  "sourceCommit": "63e0eee9f865626da3fb6d8e45b386d2f51adf09",
+  "artifactDigest": "350c0007c34106cd62589b44dee41edceefe929504f0e4db785be13efdd5b42c",
+  "inputFingerprint": "549c480d918026b31b3dbc0f2bccb39ad4a447cf94cc852da860d7bd931cb303",
+  "method": "normal fast-forward publication preserving the existing orphan history",
   "buildStatus": "built",
-  "buildId": 1390854608,
-  "builtAt": "2026-11-21T20:24:27Z",
-  "verification": "docs_pages_status verified the exact live artifact manifest",
+  "verification": "GitHub Pages built the published commit. The live manifest fingerprint and root index SHA-256 match the verified artifact; the root redirects to the English overview without language choices.",
   "liveSmokeChecks": [
     {
       "path": "/",
+      "status": 200
+    },
+    {
+      "path": "/manifest.json",
       "status": 200
     },
     {
