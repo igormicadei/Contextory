@@ -4,6 +4,7 @@ import { mkdir, realpath } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { spawn } from "node:child_process";
 import { ServiceClient } from "./service/client";
+import { ReconnectLoop } from "./service/reconnect";
 import { configureProvider } from "./providers/registration";
 import { isClient, nativeClientIds, clients } from "./providers/clients";
 import { SetupReload, type ReloadMode } from "./providers/reload";
@@ -45,6 +46,8 @@ export async function activate(context: vscode.ExtensionContext) {
   const projectClients = new Map<string, Promise<ServiceClient>>();
   const clientFolders = new Map<ServiceClient, vscode.WorkspaceFolder>();
   const failedClients = new Set<ServiceClient>();
+  const configurationErrors = new Map<string, string>();
+  const notifiedReviews = new Map<string, string>();
   let selectedRoot =
     context.workspaceState.get<string>("contextory.selectedProjectRoot") ??
     vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
@@ -79,6 +82,7 @@ export async function activate(context: vscode.ExtensionContext) {
       .catch((error) => output.appendLine(`Setup reload: ${error.message}`));
   };
   const automation = (path = selectedRoot): AgentAutomation => ({
+    reloadRequired: setupReload.pending,
     enabled: vscode.workspace
       .getConfiguration("contextory", path ? vscode.Uri.file(path) : undefined)
       .get("autoConnect", true),
@@ -183,6 +187,7 @@ export async function activate(context: vscode.ExtensionContext) {
     const dashboard = await client.call<Dashboard>("dashboard");
     if (!selectedClient(client)) return;
     dashboard.workspace = workspaceInfo;
+    dashboard.configurationError = configurationErrors.get(client.root);
     const observed = latestNativeAgent(dashboard.connections);
     if (observed) await rememberAgent(observed, client.root);
     if (!selectedClient(client)) return;
@@ -192,11 +197,118 @@ export async function activate(context: vscode.ExtensionContext) {
       projectId: dashboard.projectId,
       automation: automation(client.root),
     });
+    reconnect.reset();
+    post({
+      type: "serviceConnection",
+      state: "connected",
+      checkedAt: new Date().toISOString(),
+    });
+    notifyReviews(client, dashboard);
+  };
+  const reconnect = new ReconnectLoop(
+    async () => {
+      root();
+      await refresh();
+    },
+    (error, nextRetryAt) => {
+      post({
+        type: "serviceConnection",
+        state: "reconnecting",
+        nextRetryAt,
+        text:
+          error instanceof Error
+            ? error.message
+            : "Restoring the workspace connection.",
+      });
+    },
+  );
+  context.subscriptions.push({ dispose: () => reconnect.dispose() });
+  const recover = (error: unknown) => {
+    if (
+      vscode.workspace.isTrusted &&
+      vscode.workspace.workspaceFolders?.some((f) => f.uri.scheme === "file")
+    )
+      reconnect.request(error);
+  };
+  const notifyReviews = (client: ServiceClient, dashboard: Dashboard) => {
+    const count =
+      (dashboard.catalog?.observed ?? 0) +
+      (dashboard.catalog?.pendingChanges ?? 0);
+    if (view)
+      view.badge = count
+        ? { value: count, tooltip: `${count} knowledge items await review` }
+        : undefined;
+    const key = projectKey("contextory.reviewNotification", client.root);
+    const signature = dashboard.entities
+      .filter(
+        (e) =>
+          (e.kind === "knowledge" && e.state === "observed") ||
+          (e.kind === "knowledge_change" && e.state === "pending"),
+      )
+      .map((e) => `${e.id}:${e.revision}`)
+      .sort()
+      .join(",");
+    if (
+      !count ||
+      notifiedReviews.get(key) === signature ||
+      context.workspaceState.get<string>(key) === signature
+    )
+      return;
+    notifiedReviews.set(key, signature);
+    void Promise.resolve(context.workspaceState.update(key, signature))
+      .then(async () => {
+        const choice = await vscode.window.showInformationMessage(
+          `${count} knowledge ${count === 1 ? "item needs" : "items need"} your review in ${client.root.split(/[\\/]/).pop()}.`,
+          "Review now",
+        );
+        if (choice !== "Review now") return;
+        const folder = clientFolders.get(client);
+        if (!folder) return;
+        await selectProjectRoot(folder.uri.fsPath);
+        await vscode.commands.executeCommand("contextory.tasks.focus");
+        post({
+          type: "navigate",
+          screen: "catalog",
+          projectId: dashboard.projectId,
+        });
+      })
+      .catch((error: Error) =>
+        output.appendLine(`Knowledge review notification: ${error.message}`),
+      );
+  };
+  const configureClient = async (
+    client: ServiceClient,
+    folder: vscode.WorkspaceFolder,
+  ) => {
+    const settings = vscode.workspace.getConfiguration(
+      "contextory",
+      folder.uri,
+    );
+    try {
+      await client.call("configure", {
+        recipes: settings.get("checks", []),
+        pythonExecutable: settings.get("pythonExecutable", "python"),
+      });
+      configurationErrors.delete(client.root);
+    } catch (error) {
+      if ((error as { code?: string }).code !== "INVALID_CHECKS") throw error;
+      const text = `${error instanceof Error ? error.message : String(error)} The connection remains available; checks retain their last valid configuration.`;
+      configurationErrors.set(client.root, text);
+      output.appendLine(text);
+    }
   };
   const handleEvent = (
     client: ServiceClient,
     event: Record<string, unknown>,
   ) => {
+    if (event.type === "health" && !failedClients.has(client)) {
+      postProject(client, {
+        type: "serviceConnection",
+        state: "connected",
+        checkedAt: event.checkedAt,
+      });
+      return;
+    }
     if (event.type === "changed" || event.type === "connected")
       void refresh().catch((error) =>
         post({ type: "notice", text: error.message }),
@@ -223,6 +335,11 @@ export async function activate(context: vscode.ExtensionContext) {
       clientFolders.delete(client);
       void client.close();
       running.delete(client);
+      recover(
+        new Error(
+          String(event.message ?? "Contextory connection interrupted."),
+        ),
+      );
     }
   };
   const service = (folderRoot = root()): Promise<ServiceClient> => {
@@ -267,14 +384,7 @@ export async function activate(context: vscode.ExtensionContext) {
       running.add(client);
       if (folderRoot === root()) active = client;
       await client.start();
-      await client.call("configure", {
-        recipes: vscode.workspace
-          .getConfiguration("contextory", folder.uri)
-          .get("checks", []),
-        pythonExecutable: vscode.workspace
-          .getConfiguration("contextory", folder.uri)
-          .get("pythonExecutable", "python"),
-      });
+      await configureClient(client, folder);
       try {
         await prepareStartupAgents(client, true);
       } catch (error) {
@@ -365,6 +475,8 @@ export async function activate(context: vscode.ExtensionContext) {
         error instanceof Error ? error.message : "Contextory operation failed.";
       post({ type: "notice", text, projectId });
       output.appendLine(text);
+      if ((error as { code?: string }).code === "SERVICE_UNAVAILABLE")
+        recover(error);
       return undefined;
     } finally {
       post({ type: "busy", value: false, projectId });
@@ -505,7 +617,12 @@ export async function activate(context: vscode.ExtensionContext) {
         : { provider: provider as Exclude<Provider, "generic"> };
     if (!picked) return;
     const result = await queueConnections(() =>
-      client.call<{ instruction: string; status: string }>("tools/call", {
+      client.call<{
+        instruction: string;
+        status: string;
+        changedFiles: string[];
+        launcherChanged: boolean;
+      }>("tools/call", {
         name: "contextory_hooks_rebuild",
         arguments: { operationId: randomUUID(), provider: picked.provider },
       }),
@@ -514,7 +631,15 @@ export async function activate(context: vscode.ExtensionContext) {
       `${picked.provider}: ${result.status}. ${result.instruction}`,
     );
     postProject(client, { type: "notice", text: result.instruction });
+    if (result.changedFiles.length || result.launcherChanged) {
+      await setupReload.changed(
+        `hooks:${client.root}:${picked.provider}`,
+        createHash("sha256").update(JSON.stringify(result)).digest("hex"),
+        true,
+      );
+    }
     await refresh();
+    offerSetupReload();
     return result;
   };
   const setAutoConnect = async (enabled: boolean) => {
@@ -812,6 +937,20 @@ export async function activate(context: vscode.ExtensionContext) {
       return;
     await run(async () => {
       switch (message.type) {
+        case "restartAgents":
+          await vscode.commands.executeCommand(
+            "workbench.action.restartExtensionHost",
+          );
+          break;
+        case "checkConnections":
+          await vscode.commands.executeCommand("contextory.checkConnections");
+          break;
+        case "checkSettings":
+          await vscode.commands.executeCommand(
+            "workbench.action.openWorkspaceSettings",
+            "contextory.checks",
+          );
+          break;
         case "selectProject": {
           await synchronizeProjects();
           const project = workspaceInfo?.projects.find(
@@ -911,7 +1050,7 @@ export async function activate(context: vscode.ExtensionContext) {
             String(message.name).startsWith("contextory_release") ||
               message.name === "contextory_version_get"
               ? 300000
-              : 30000,
+              : 120000,
           );
           await sender?.postMessage({
             type: "toolResult",
@@ -1149,6 +1288,7 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.workspace.onDidChangeConfiguration((event) => {
       if (!event.affectsConfiguration("contextory")) return;
       void (async () => {
+        if (!projectClients.size) await startWhenReady();
         for (const pending of projectClients.values()) {
           const client = await pending;
           const folder = clientFolders.get(client)!;
@@ -1164,14 +1304,7 @@ export async function activate(context: vscode.ExtensionContext) {
               folder.uri,
             )
           ) {
-            const settings = vscode.workspace.getConfiguration(
-              "contextory",
-              folder.uri,
-            );
-            await client.call("configure", {
-              recipes: settings.get("checks", []),
-              pythonExecutable: settings.get("pythonExecutable", "python"),
-            });
+            await configureClient(client, folder);
           }
         }
         offerSetupReload();
@@ -1196,21 +1329,23 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.workspace.workspaceFolders.every(
         (folder) => folder.uri.scheme === "file",
       )
-    )
-      await refresh();
+    ) {
+      try {
+        await refresh();
+      } catch (error) {
+        const text = error instanceof Error ? error.message : String(error);
+        output.appendLine(text);
+        post({ type: "notice", text });
+        recover(error);
+      }
+    }
   };
   context.subscriptions.push(
     vscode.workspace.onDidGrantWorkspaceTrust(() => {
-      void startWhenReady().catch((error) => {
-        output.appendLine(error.message);
-        post({ type: "notice", text: error.message });
-      });
+      void startWhenReady();
     }),
   );
-  const ready = startWhenReady().catch((error) => {
-    output.appendLine(error.message);
-    post({ type: "notice", text: error.message });
-  });
+  const ready = startWhenReady();
   context.subscriptions.push(
     vscode.workspace.onDidChangeWorkspaceFolders(() => {
       membership = "";
@@ -1219,6 +1354,7 @@ export async function activate(context: vscode.ExtensionContext) {
       pendingRecord = undefined;
       post({ type: "projectChanging" });
       if (!vscode.workspace.workspaceFolders?.length) {
+        reconnect.reset();
         for (const pending of projectClients.values())
           void pending.then((client) => client.close());
         projectClients.clear();
@@ -1229,9 +1365,7 @@ export async function activate(context: vscode.ExtensionContext) {
         });
         return;
       }
-      void startWhenReady().catch((error) =>
-        post({ type: "notice", text: error.message }),
-      );
+      void startWhenReady();
     }),
     vscode.extensions.onDidChange(() => {
       if (
@@ -1249,7 +1383,10 @@ export async function activate(context: vscode.ExtensionContext) {
           offerSetupReload();
           await refresh();
         })
-        .catch((error) => output.appendLine(error.message));
+        .catch((error) => {
+          output.appendLine(error.message);
+          recover(error);
+        });
     }),
   );
   return {

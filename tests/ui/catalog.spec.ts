@@ -1,3 +1,4 @@
+import { openTool } from "./navigation";
 import { test, expect } from "@playwright/test";
 
 test("knowledge review presents source/test gaps and before/after UI behavior and requires a concrete review reason", async ({
@@ -6,7 +7,7 @@ test("knowledge review presents source/test gaps and before/after UI behavior an
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/sidebar.html");
-  await page.getByRole("button", { name: "Knowledge", exact: true }).click();
+  await openTool(page, "Knowledge");
   await expect(
     page.getByRole("heading", { name: "Project knowledge" }),
   ).toBeVisible();
@@ -52,6 +53,7 @@ test("knowledge review presents source/test gaps and before/after UI behavior an
   await expect(
     page.getByRole("button", { name: "Approve baseline", exact: true }),
   ).toHaveCount(0);
+  await page.locator(".catalog-search summary").click();
   await page
     .getByRole("textbox", { name: "Find a definition" })
     .fill("Payment retries");

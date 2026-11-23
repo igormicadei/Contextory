@@ -38,6 +38,8 @@ Requests in a horizontal editor Panel.
 
 ## Prepare connections at startup
 
+Service startup and native bridge preparation run when the extension activates, even while Explorer or another sidebar is visible. Trust, folder, installed-agent and repaired runtime changes enter the same recovery path. Auto-connect pauses remain respected.
+
 Auto-connect defaults to on and contextory.startupAgent defaults to auto, preparing all detected supported agents. Use the footer Auto-connect switch to pause automatic setup. Existing connections, sessions and records remain available. A manually disconnected provider stays opted out until reconnected.
 
 Startup choices are auto, last-used, codex, claude, bob and none. Contextory prepares workspace-local configuration; native clients control trust, MCP reload, sign-in and session startup.
@@ -63,11 +65,13 @@ Example workspace recipe
 
 Use executable plus argument arrays for real project checks. The agent invokes a configured recipe, polls its job and maps independently produced evidence to each current criterion. Source, contract or attempt changes can invalidate older evidence.
 
+Configure up to 256 recipes. Invalid settings show Fix check settings while keeping the service connection and last valid recipe list. A fresh service has no valid recipes until configuration succeeds.
+
 <a id="agent-models-and-usage-024"></a>
 
 ## Read model and usage records
 
-The Usage tab and contextory_usage_get show observed metadata. Codex can report per-request token counts, Claude provides model metadata, and Bob’s documented hooks currently supply neither. Missing counts remain unavailable. Session/lease correlation is exact; unassigned observations remain unassigned.
+The Usage section in Specification details and contextory_usage_get show observed metadata. Codex can report per-request token counts, Claude provides model metadata, and Bob’s documented hooks currently supply neither. Missing counts remain unavailable. Session/lease correlation is exact; unassigned observations remain unassigned.
 
 Counts are not billing or quota estimates. Cached and reasoning tokens are subsets. Contextory does not read or mirror native conversations to calculate usage.
 
@@ -90,3 +94,10 @@ The proxy keeps discovery available during delayed startup and retries readiness
 - src/service/workspace.ts
 - src/core/usage.ts
 - tests/ui/workspace.spec.ts
+- src/extension.ts
+- src/service/reconnect.ts
+- src/service/rpc.ts
+- src/webview/progress.ts
+- tests/ui/console.spec.ts
+- tests/integration/recipe-configuration.test.ts
+- scripts/verify-background-startup.mjs

@@ -92,7 +92,26 @@ export class Application {
     );
   }
   dashboard(): Dashboard {
+    const attemptStartedAt: Record<string, string> = {};
+    for (const row of this.ledger.db
+      .prepare(
+        "SELECT entity_id,time FROM audit WHERE type='spec.claimed' ORDER BY sequence",
+      )
+      .all())
+      attemptStartedAt[String(row.entity_id)] = String(row.time);
     return {
+      catalog: this.catalog.summary(),
+      attemptStartedAt,
+      checks: [...this.checks.running.keys()].map((id) => {
+        const job = this.checks.job(id);
+        const data = job.data as { specId: string; recipe: { name: string } };
+        return {
+          id,
+          specId: data.specId,
+          name: data.recipe.name,
+          state: job.state,
+        };
+      }),
       workspace: this.workspace.info(),
       versioning: this.releases.status(),
       root: this.ledger.root,

@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
+import { createReadStream } from "node:fs";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { lstat, readFile, readdir, realpath } from "node:fs/promises";
+import { lstat, readdir, realpath } from "node:fs/promises";
 import { isAbsolute, relative, resolve } from "node:path";
 import { ContextoryError, type SourceSnapshot } from "../contracts/model";
 const exec = promisify(execFile);
@@ -95,6 +96,9 @@ export async function workspaceFiles(
   await walk("");
   return found.sort();
 }
+/** PT-BR: Assina os arquivos completos com buffer limitado e recusa mudanças durante a leitura.
+ * EN: Hash complete files with a bounded buffer and reject changes during a read.
+ */
 export async function sourceSnapshot(root: string): Promise<SourceSnapshot> {
   const hash = createHash("sha256");
   const files = await workspaceFiles(root);
@@ -108,16 +112,30 @@ export async function sourceSnapshot(root: string): Promise<SourceSnapshot> {
         continue;
       }
       if (!stat.isFile()) continue;
-      if (stat.size > 20 * 1024 * 1024)
+      const contentHash = createHash("sha256");
+      const verifiedPath = await workspacePath(root, name);
+      for await (const chunk of createReadStream(verifiedPath, {
+        highWaterMark: 1024 * 1024,
+      })) {
+        contentHash.update(chunk);
+      }
+      const checked = await lstat(path);
+      if (
+        !checked.isFile() ||
+        checked.size !== stat.size ||
+        checked.mtimeMs !== stat.mtimeMs ||
+        checked.ctimeMs !== stat.ctimeMs ||
+        checked.dev !== stat.dev ||
+        checked.ino !== stat.ino
+      )
         throw new ContextoryError(
-          "SOURCE_LIMIT",
-          `Source file ${name} exceeds snapshot limits.`,
+          "STALE_SOURCE",
+          `Source file ${name} changed during snapshot.`,
         );
-      const contents = await readFile(await workspacePath(root, name));
       hash
         .update(name.replaceAll("\\", "/"))
         .update("\0")
-        .update(createHash("sha256").update(contents).digest());
+        .update(contentHash.digest());
       count++;
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === "ENOENT") {

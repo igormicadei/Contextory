@@ -1,3 +1,4 @@
+import { openTool } from "./navigation";
 import { test, expect, type Page } from "@playwright/test";
 
 const rgb = (hex: string) =>
@@ -44,7 +45,7 @@ test("sidebar follows live theme changes without losing the active request or dr
     );
     await expect(page.locator("#record-REQ-demo")).toHaveCSS(
       "background-color",
-      rgb(theme.editor),
+      "rgba(0, 0, 0, 0)",
     );
     await expect(title).toHaveCSS("background-color", rgb(theme.input));
     await expect(title).toHaveCSS("color", rgb(theme.inputText));
@@ -82,11 +83,11 @@ test("progress, flow and relationships follow custom and contrast theme tokens",
 }) => {
   await page.goto("/sidebar.html?theme=custom");
   const theme = await changeTheme(page, "custom");
-  await expect(page.locator(".request-progress").first()).toHaveCSS(
-    "accent-color",
-    rgb(theme.progress),
+  await expect(page.locator(".criterion-segments .check").first()).toHaveCSS(
+    "background-color",
+    rgb(theme.green),
   );
-  await page.getByRole("button", { name: "Code map", exact: true }).click();
+  await openTool(page, "Code map");
   await page.getByRole("button", { name: "Trace current symbol" }).click();
   const node = page.locator(".graph-node rect").first();
   for (const name of [

@@ -33,9 +33,12 @@
 
 Requests in a horizontal editor Panel.
 
+The snapshot hashes the complete contents of manifest files using 1 MiB read chunks. Files larger than 20 MiB remain included; fixtures do not need to be removed to run checks. If a file changes size, modification/metadata timestamps, identity or type during the read, capture is rejected with STALE_SOURCE. Before/after command snapshot comparison and independent-evidence requirements remain active.
+
 ## Sources
 
 - src/contracts/tools.ts
 - src/core/workflow.ts
 - src/core/report.ts
 - tests/core/workflow.test.ts
+- src/verification/workspace.ts

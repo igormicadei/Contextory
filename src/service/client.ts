@@ -117,8 +117,10 @@ export class ServiceClient {
     await this.call("client.attach", { id: this.id });
     this.opened = true;
     this.heartbeat = setInterval(() => {
-      void this.call("client.attach", { id: this.id }).catch((error) =>
-        this.event({ type: "disconnected", message: error.message }),
+      void this.call("client.attach", { id: this.id }, 5000).then(
+        () =>
+          this.event({ type: "health", checkedAt: new Date().toISOString() }),
+        (error) => this.event({ type: "disconnected", message: error.message }),
       );
     }, 20000);
     this.heartbeat.unref();
@@ -144,7 +146,7 @@ export class ServiceClient {
         try {
           while (true) {
             const next = await reader.read();
-            if (next.done) break;
+            if (next.done) throw new Error("Contextory event stream closed.");
             buffer += decoder.decode(next.value, { stream: true });
             let end: number;
             while ((end = buffer.indexOf("\n\n")) >= 0) {

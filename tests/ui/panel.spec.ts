@@ -1,3 +1,4 @@
+import { openTool } from "./navigation";
 import { test, expect, type Page } from "@playwright/test";
 
 async function shellFits(page: Page, height: number) {
@@ -29,15 +30,15 @@ for (const size of [
       "horizontal",
     );
     const work = (await page.locator(".overview-work").boundingBox())!;
-    const activity = (await page.locator(".overview-activity").boundingBox())!;
-    expect(work.y).toBeCloseTo(activity.y, 0);
-    expect(activity.x).toBeGreaterThan(work.x + work.width);
+    const focus = (await page.locator(".focus-work").boundingBox())!;
+    expect(work.y).toBeCloseTo(focus.y, 0);
+    expect(work.x).toBeGreaterThan(focus.x + focus.width);
     expect((await page.locator(".app-header").boundingBox())!.y).toBeCloseTo(
       (await page.locator(".main-nav").boundingBox())!.y,
       0,
     );
     await expect(page.locator(".work-row")).toHaveCount(8);
-    await expect(page.locator(".activity li")).toHaveCount(3);
+    await expect(page.locator(".activity li")).toHaveCount(0);
     await expect(page.locator(".app-header .workspace-name")).toHaveText(
       "Checkout",
     );
@@ -52,15 +53,6 @@ for (const size of [
       list.y + list.height + 1,
     );
     await shellFits(page, size.height);
-    if (size.width === 1280) {
-      const third = (await page
-        .locator(".overview-activity .activity li")
-        .nth(2)
-        .boundingBox())!;
-      expect(third.y + third.height).toBeLessThanOrEqual(
-        activity.y + activity.height + 1,
-      );
-    }
   });
 
 test("moving between panel and sidebar retains the spec, detail tab, expanded milestone and request draft", async ({
@@ -77,7 +69,9 @@ test("moving between panel and sidebar retains the spec, detail tab, expanded mi
   expect(
     (await page.locator(".request-inspector").boundingBox())!.x,
   ).toBeGreaterThan(list.x + list.width);
-  await page.getByRole("tab", { name: "Issues", exact: true }).click();
+  await page
+    .getByLabel("Specification details", { exact: true })
+    .selectOption("issues");
   await expect(
     page.getByText("Reuse the original key for every attempt."),
   ).toBeAttached();
@@ -93,8 +87,8 @@ test("moving between panel and sidebar retains the spec, detail tab, expanded mi
   await expect(page.locator("body")).toHaveAttribute("data-layout", "vertical");
   await expect(page.locator("#record-REQ-demo .spec-detail")).toHaveCount(1);
   await expect(
-    page.getByRole("tab", { name: "Issues", exact: true }),
-  ).toHaveAttribute("aria-selected", "true");
+    page.getByLabel("Specification details", { exact: true }),
+  ).toHaveValue("issues");
   await expect(page.locator('[data-milestone="MS-demo"]')).toHaveAttribute(
     "open",
     "",
@@ -114,8 +108,8 @@ test("moving between panel and sidebar retains the spec, detail tab, expanded mi
     "Keep the selected spec when changing dock position.",
   );
   await expect(
-    page.getByRole("tab", { name: "Issues", exact: true }),
-  ).toHaveAttribute("aria-selected", "true");
+    page.getByLabel("Specification details", { exact: true }),
+  ).toHaveValue("issues");
   await page
     .getByLabel("Filter requests and their history")
     .fill("nothing-matches-this");
@@ -129,8 +123,9 @@ test("workspace identity stays visible on every tab, layout and standalone view,
 }) => {
   await page.setViewportSize({ width: 1280, height: 420 });
   await page.goto("/sidebar.html");
-  for (const name of ["Overview", "Requests", "History", "Code map"]) {
-    await page.getByRole("button", { name, exact: true }).click();
+  for (const name of ["Work", "Requests", "History", "Code map"]) {
+    if (["History", "Code map"].includes(name)) await openTool(page, name);
+    else await page.getByRole("button", { name, exact: true }).click();
     await expect(page.locator(".app-header .workspace-name")).toHaveText(
       "Checkout",
     );
@@ -140,7 +135,7 @@ test("workspace identity stays visible on every tab, layout and standalone view,
     document.body.dataset.workspaceName =
       'A very long workspace name with <source> & "quoted" sections';
   });
-  await page.getByRole("button", { name: "Overview", exact: true }).click();
+  await page.getByRole("button", { name: "Work", exact: true }).click();
   await expect(page.locator(".workspace-name")).toHaveText(
     'A very long workspace name with <source> & "quoted" sections',
   );
@@ -166,7 +161,7 @@ test("history and source flow use bounded panel scrolling and retain their posit
 }) => {
   await page.setViewportSize({ width: 1280, height: 420 });
   await page.goto("/sidebar.html");
-  await page.getByRole("button", { name: "History", exact: true }).click();
+  await openTool(page, "History");
   await expect(page.locator(".history-feed .activity li")).toHaveCount(40);
   await page.screenshot({ path: "artifacts/panel-history.png" });
   await page
@@ -179,7 +174,7 @@ test("history and source flow use bounded panel scrolling and retain their posit
     )
     .toBe(450);
   await shellFits(page, 420);
-  await page.getByRole("button", { name: "Code map", exact: true }).click();
+  await openTool(page, "Code map");
   await page.getByRole("button", { name: "Trace current symbol" }).click();
   await expect(page.locator(".flow-diagram")).toBeVisible();
   const diagram = (await page.locator(".diagram-scroll").boundingBox())!;
@@ -211,10 +206,10 @@ test("short panels keep specification controls reachable and a useful source dia
   await page.goto("/sidebar.html");
   await page.locator('.work-row[data-id="REQ-demo"]').click();
   await expect(
-    page.getByRole("tab", { name: "Contract", exact: true }),
+    page.getByLabel("Specification details", { exact: true }),
   ).toBeInViewport();
   await page.screenshot({ path: "artifacts/panel-requests-760.png" });
-  await page.getByRole("button", { name: "Code map", exact: true }).click();
+  await openTool(page, "Code map");
   await page.getByRole("button", { name: "Trace current symbol" }).click();
   await expect(page.locator(".flow-diagram")).toBeVisible();
   expect(

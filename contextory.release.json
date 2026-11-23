@@ -3,6 +3,7 @@
   "branch": "main",
   "remote": "origin",
   "versionFiles": [
+    { "path": ".documentation/project.json", "format": "json", "keys": [["version"]] },
     { "path": "package.json", "format": "json", "keys": [["version"]] },
     {
       "path": "package-lock.json",

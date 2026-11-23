@@ -18,6 +18,9 @@ export class SetupReload {
     readonly prompt: () => Promise<boolean>,
     readonly restart: () => Promise<unknown>,
   ) {}
+  get pending() {
+    return this.store.get<State>(key)?.pending ?? false;
+  }
   async changed(provider: string, fingerprint: string, configChanged = false) {
     const state = this.store.get<State>(key) ?? {
       fingerprints: {},

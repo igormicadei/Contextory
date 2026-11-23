@@ -1,10 +1,11 @@
+import { openTool } from "./navigation";
 import { test, expect } from "@playwright/test";
 
 test("project versions require explicit plan, apply and publish actions with reviewable edits and escaped membership", async ({
   page,
 }) => {
   await page.goto("/sidebar.html");
-  await page.getByRole("button", { name: "Versions", exact: true }).click();
+  await openTool(page, "Versions");
   await expect(
     page.getByRole("heading", { name: "Project versions", exact: true }),
   ).toBeVisible();

@@ -27,5 +27,6 @@
   "skills/contextory-migrate/SKILL.html": "skill-contextory-migrate-skill",
   "skills/contextory-workflow/SKILL.html": "skill-contextory-workflow-skill",
   "skills/contextory-workflow/references/completion.html": "skill-contextory-workflow-references-completion",
-  "skills/contextory-codebase/references/retrieval.html": "skill-contextory-codebase-references-retrieval"
+  "skills/contextory-codebase/references/retrieval.html": "skill-contextory-codebase-references-retrieval",
+  "docs/releases/v0.8.0.html": "release-v0-8-0"
 }
