@@ -59,7 +59,9 @@ const pages = api("pages");
 assert.equal(pages.source.branch, "gh-pages");
 assert.equal(pages.source.path, "/");
 assert.equal(pages.https_enforced, true);
-const pagesCommit = api("commits/gh-pages");
+// Commit metadata avoids downloading large generated-page patches during verification.
+const pagesHead = api("git/ref/heads/gh-pages").object.sha;
+const pagesCommit = api(`git/commits/${pagesHead}`);
 // Follow the first-parent chain; the documentation branch must have its own root.
 let root = pagesCommit;
 for (let i = 0; root.parents.length; i++) {
@@ -69,7 +71,7 @@ for (let i = 0; root.parents.length; i++) {
     1,
     "Pages history must not merge the source branch",
   );
-  root = api(`commits/${root.parents[0].sha}`);
+  root = api(`git/commits/${root.parents[0].sha}`);
 }
 assert.notEqual(
   root.sha,
