@@ -1,0 +1,24 @@
+/* IBM Carbon Design System — Motion — durations and easing curves
+   Generated from the @carbon/* v11 npm packages (Apache-2.0).
+   Values are authoritative, not transcribed. Regenerate rather than hand-editing. */
+
+:root{
+  --cds-duration-fast-01:70ms;
+  --cds-duration-fast-02:110ms;
+  --cds-duration-moderate-01:150ms;
+  --cds-duration-moderate-02:240ms;
+  --cds-duration-slow-01:400ms;
+  --cds-duration-slow-02:700ms;
+  --cds-easing-standard-productive:cubic-bezier(0.2, 0, 0.38, 0.9);
+  --cds-easing-standard-expressive:cubic-bezier(0.4, 0.14, 0.3, 1);
+  --cds-easing-entrance-productive:cubic-bezier(0, 0, 0.38, 0.9);
+  --cds-easing-entrance-expressive:cubic-bezier(0, 0, 0.3, 1);
+  --cds-easing-exit-productive:cubic-bezier(0.2, 0, 1, 0.9);
+  --cds-easing-exit-expressive:cubic-bezier(0.4, 0.14, 1, 1);
+}
+
+/* Productive easing = everyday UI feedback. Expressive = larger, more emotive movement.
+   Carbon never uses bounce or overshoot. */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important;}
+}

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+  "rules": {},
+  "designSystem": {
+    "namespace": "IBMCarbonDesignSystem_8852ea",
+    "forbidRawHex": true,
+    "forbidBorderRadiusExcept": [
+      "0",
+      "0px",
+      "var(--cds-radius-none)",
+      "var(--cds-radius-sm)",
+      "var(--cds-radius-md)",
+      "var(--cds-radius-pill)",
+      "50%"
+    ],
+    "forbidBoxShadow": true,
+    "requireTokenPrefix": "--cds-"
+  }
+}

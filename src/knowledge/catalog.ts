@@ -148,15 +148,27 @@ export class Catalog {
       );
     };
     const all = this.ledger.all("knowledge");
-    const filtered = all.filter(matches);
-    const page = filtered.slice(p.offset, p.offset + p.limit);
+    const matching = all.filter(matches);
     const proposals = this.ledger
       .all("knowledge_change")
       .filter(
         (e) =>
           e.state === "pending" &&
-          filtered.some((k) => k.id === e.data.targetId),
+          matching.some((k) => k.id === e.data.targetId),
       );
+    const filtered = p.pendingOnly
+      ? matching.filter((e) => e.state === "observed")
+      : matching;
+    const pendingTargets = new Set(proposals.map((e) => e.data.targetId));
+    const priority = (e: Entity) =>
+      e.state === "observed" || pendingTargets.has(e.id)
+        ? 0
+        : e.state === "retired"
+          ? 2
+          : 1;
+    // Sort the complete matching set before paging; stable ties retain ledger order.
+    filtered.sort((a, b) => priority(a) - priority(b));
+    const page = filtered.slice(p.offset, p.offset + p.limit);
     const files = p.inventory
       ? (await workspaceFiles(this.ledger.root)).filter(
           (path) =>
@@ -190,7 +202,17 @@ export class Catalog {
         p.offset + page.length < filtered.length
           ? p.offset + page.length
           : null,
-      proposals: proposals.slice(p.offset, p.offset + p.limit),
+      proposals: await Promise.all(
+        proposals.slice(p.offset, p.offset + p.limit).map(async (e) => ({
+          ...e,
+          freshness: await this.freshness(e),
+          reviewBlocker:
+            this.kind(String(e.data.targetId), "knowledge").revision !==
+            e.data.targetRevision
+              ? "The definition changed after this proposal. Reject this proposal and ask your agent for a replacement against the current revision."
+              : undefined,
+        })),
+      ),
       proposalsTotal: proposals.length,
       proposalsNextOffset:
         p.offset + p.limit < proposals.length ? p.offset + p.limit : null,
@@ -365,7 +387,20 @@ export class Catalog {
     if (!actor.human)
       throw new ContextoryError(
         "FORBIDDEN",
-        "Only the authenticated human review UI can approve or reject catalog definitions.",
+        "Only the authenticated human review UI can review or refresh catalog definitions.",
+      );
+    // Exact retries must return their recorded result even after a later source edit.
+    if (
+      this.ledger.db
+        .prepare("SELECT id FROM operations WHERE id=?")
+        .get(p.operationId)
+    )
+      return this.ledger.transaction(
+        p.operationId,
+        actor,
+        "catalog.review",
+        p,
+        () => null,
       );
     const candidate = this.ledger.get(p.id);
     if (!["knowledge", "knowledge_change"].includes(candidate.kind))
@@ -373,6 +408,39 @@ export class Catalog {
         "WRONG_KIND",
         "Review a catalog baseline or change.",
       );
+    const assertReviewable = (record: Entity) => {
+      if (record.revision !== p.expectedRevision)
+        throw new ContextoryError(
+          "REVISION_CONFLICT",
+          "This item changed. Reload its latest revision before reviewing it.",
+        );
+      if (
+        (record.kind === "knowledge" && record.state !== "observed") ||
+        (record.kind === "knowledge_change" && record.state !== "pending")
+      )
+        throw new ContextoryError(
+          "INVALID_STATE",
+          "This item has already been reviewed.",
+        );
+      if (record.kind === "knowledge_change" && p.action !== "reject") {
+        const target = this.kind(String(record.data.targetId), "knowledge");
+        if (target.revision !== record.data.targetRevision)
+          throw new ContextoryError(
+            "REVISION_CONFLICT",
+            "The definition changed after this proposal. Reject this proposal and ask your agent for a replacement against the current revision.",
+          );
+      }
+    };
+    assertReviewable(candidate);
+    if (p.action === "refresh" && candidate.data.action === "retire")
+      throw new ContextoryError(
+        "INVALID_STATE",
+        "Retirement proposals can be approved or rejected without refreshing removed sources.",
+      );
+    const fingerprints =
+      p.action === "refresh"
+        ? await this.capture(candidate.data.content as Content)
+        : undefined;
     if (
       p.action === "approve" &&
       candidate.data.action !== "retire" &&
@@ -380,7 +448,7 @@ export class Catalog {
     )
       throw new ContextoryError(
         "STALE_CATALOG",
-        "Sources changed since this candidate was recorded. Refresh the proposal before approval.",
+        "Sources changed since this item was prepared. Review the changed files, refresh its source snapshot, then approve the refreshed revision.",
       );
     return this.ledger.transaction(
       p.operationId,
@@ -389,16 +457,23 @@ export class Catalog {
       p,
       () => {
         const current = this.ledger.get(p.id);
-        if (current.revision !== p.expectedRevision)
-          throw new ContextoryError(
-            "REVISION_CONFLICT",
-            "Read the exact current candidate before review.",
-          );
+        assertReviewable(current);
         const review = {
           actor: actor.id,
           reason: p.reason,
           time: new Date().toISOString(),
         };
+        if (p.action === "refresh") {
+          const refreshed = this.ledger.update(current, current.revision, {
+            data: { ...current.data, fingerprints, sourceRefresh: review },
+          });
+          this.ledger.audit("catalog.sources_refreshed", current.id, actor, {
+            beforeRevision: current.revision,
+            revision: refreshed.revision,
+            review,
+          });
+          return refreshed;
+        }
         if (current.kind === "knowledge") {
           if (current.state !== "observed")
             throw new ContextoryError(

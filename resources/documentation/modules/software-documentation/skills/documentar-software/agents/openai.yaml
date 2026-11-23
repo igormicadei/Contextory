@@ -1,0 +1,4 @@
+interface:
+  display_name: "Documentar software"
+  short_description: "Crie documentação bilíngue do código ao site"
+  default_prompt: "Use $documentar-software para documentar aplicações, bibliotecas e plugins a partir do código, em português brasileiro e inglês, com comentários de código, guias de uso, site Carbon, versão para agentes e publicação no GitHub Pages quando autorizada."

@@ -1,0 +1,26 @@
+{
+  "id": "carbon-design",
+  "version": "1.0.0",
+  "description": "Local IBM Carbon tokens, fonts, guidelines and optional official Carbon MCP guidance.",
+  "requires": [],
+  "optional": [],
+  "runtime": null,
+  "skills": [
+    "ibm-carbon-design",
+    "carbon-mcp-guidance"
+  ],
+  "agents": [],
+  "tools": [],
+  "hooks": [],
+  "scopes": [
+    "project",
+    "global"
+  ],
+  "clients": [
+    "codex",
+    "claude",
+    "bob"
+  ],
+  "usesTools": [],
+  "requirements": {}
+}

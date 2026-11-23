@@ -1,0 +1,44 @@
+<!-- @dsCard group="Motion" viewport="900x340" name="Motion" subtitle="Six durations, two easing families — no bounce, ever" -->
+<html data-carbon-theme="white"><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
+<style>
+body{margin:0;padding:24px;background:var(--cds-background);color:var(--cds-text-primary);font-family:var(--cds-font-sans)}
+.h{font-size:.75rem;letter-spacing:.32px;color:var(--cds-text-secondary);margin:0 0 12px}
+.sw{display:flex;flex-direction:column;justify-content:flex-end;padding:6px;font-size:10px;line-height:1.2}
+@keyframes slide{0%,15%{transform:translateX(0)}55%,85%{transform:translateX(180px)}100%{transform:translateX(0)}}
+.rail{position:relative;height:20px;background:var(--cds-layer-01);width:220px}
+.dot{position:absolute;top:2px;left:2px;width:16px;height:16px;background:var(--cds-interactive)}
+</style></head>
+<body>
+<p class="h">Productive easing is for everyday UI feedback; expressive is for larger,
+  more emotive movement. Duration scales with the distance travelled — small things move fast.</p>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+<div>
+  <div style="font-size:11px;color:var(--cds-text-primary)">fast-01 · 70ms</div>
+  <div style="font-size:10px;color:var(--cds-text-secondary);margin-bottom:6px">Micro-interactions: checkbox, toggle</div>
+  <div class="rail"><span class="dot" style="animation:slide 2.4s var(--cds-easing-standard-productive) infinite"></span></div>
+</div><div>
+  <div style="font-size:11px;color:var(--cds-text-primary)">fast-02 · 110ms</div>
+  <div style="font-size:10px;color:var(--cds-text-secondary);margin-bottom:6px">Small expansions, tooltips</div>
+  <div class="rail"><span class="dot" style="animation:slide 2.4s var(--cds-easing-standard-productive) infinite"></span></div>
+</div><div>
+  <div style="font-size:11px;color:var(--cds-text-primary)">moderate-01 · 150ms</div>
+  <div style="font-size:10px;color:var(--cds-text-secondary);margin-bottom:6px">Panel slide, accordion</div>
+  <div class="rail"><span class="dot" style="animation:slide 2.4s var(--cds-easing-standard-productive) infinite"></span></div>
+</div><div>
+  <div style="font-size:11px;color:var(--cds-text-primary)">moderate-02 · 240ms</div>
+  <div style="font-size:10px;color:var(--cds-text-secondary);margin-bottom:6px">Larger panels, side nav</div>
+  <div class="rail"><span class="dot" style="animation:slide 2.4s var(--cds-easing-standard-productive) infinite"></span></div>
+</div><div>
+  <div style="font-size:11px;color:var(--cds-text-primary)">slow-01 · 400ms</div>
+  <div style="font-size:10px;color:var(--cds-text-secondary);margin-bottom:6px">Full-screen transitions</div>
+  <div class="rail"><span class="dot" style="animation:slide 2.4s var(--cds-easing-standard-productive) infinite"></span></div>
+</div><div>
+  <div style="font-size:11px;color:var(--cds-text-primary)">slow-02 · 700ms</div>
+  <div style="font-size:10px;color:var(--cds-text-secondary);margin-bottom:6px">Rare, large expressive moves</div>
+  <div class="rail"><span class="dot" style="animation:slide 2.4s var(--cds-easing-standard-productive) infinite"></span></div>
+</div>
+</div>
+<div style="margin-top:18px;font-size:10px;color:var(--cds-text-secondary);font-family:var(--cds-font-mono)">
+  standard-productive cubic-bezier(0.2, 0, 0.38, 0.9) &nbsp;·&nbsp; standard-expressive cubic-bezier(0.4, 0.14, 0.3, 1)
+</div>
+</body></html>

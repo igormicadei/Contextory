@@ -190,6 +190,22 @@ test("catalog review is restricted by authenticated service role and survives re
       reason: "Reviewed in UI",
     },
   };
+  const refresh = {
+    ...review,
+    arguments: {
+      ...review.arguments,
+      operationId: operationId(),
+      action: "refresh",
+    },
+  };
+  await assert.rejects(
+    rpc(join(f.storage, "generic.json"), "tools/call", refresh),
+    { code: "FORBIDDEN" },
+  );
+  await assert.rejects(
+    rpc(join(f.storage, "codex-hook.json"), "tools/call", refresh),
+    { code: "FORBIDDEN" },
+  );
   await assert.rejects(
     rpc(join(f.storage, "codex-hook.json"), "tools/call", review),
     { code: "FORBIDDEN" },

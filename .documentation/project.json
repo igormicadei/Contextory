@@ -17,7 +17,7 @@
   "draft": false,
   "audit": {
     "featuresReviewed": true,
-    "reviewedSourceFingerprint": "1b0bb953a62c645c5390deb1c975245811ec74c73b9e2eaaed70c49e8fe985df"
+    "reviewedSourceFingerprint": "1628b3d937ecd8eb31f8263b13c2dc6825e180a7325989b6a4e69a18b2b532e7"
   },
   "features": [
     {
@@ -218,6 +218,43 @@
       "pages": [
         "advanced"
       ]
+    },
+    {
+      "id": "approvals",
+      "name": {
+        "pt-BR": "Revise conhecimento pendente em Approvals",
+        "en": "Review pending knowledge in Approvals"
+      },
+      "sources": [
+        {
+          "path": "src/webview/catalog.ts"
+        },
+        {
+          "path": "src/knowledge/catalog.ts"
+        }
+      ],
+      "pages": [
+        "knowledge",
+        "walkthroughs"
+      ]
+    },
+    {
+      "id": "project-documentation",
+      "name": {
+        "en": "Portable project explanations with Carbon",
+        "pt-BR": "Explicações portáteis de projeto com Carbon"
+      },
+      "sources": [
+        {
+          "path": "src/documentation/manager.ts"
+        },
+        {
+          "path": "src/webview/documentation.ts"
+        }
+      ],
+      "pages": [
+        "documentation"
+      ]
     }
   ],
   "externalCoverage": [],
@@ -278,8 +315,8 @@
             {
               "type": "paragraph",
               "text": {
-                "pt-BR": "Este guia descreve o Contextory 0.8.0, uma prévia qualificada no Windows com pastas locais confiáveis no VS Code e IBM Bob. A extensão precisa do Node.js 24+. Python 3.10+ é opcional para análise Python. Cada agente usa sua própria conta, modelo e conversa.",
-                "en": "This guide describes Contextory 0.8.0, a preview qualified on Windows with trusted local folders in VS Code and IBM Bob. The extension needs Node.js 24+. Python 3.10+ is optional for Python analysis. Your agent supplies its own account, model and conversation."
+                "pt-BR": "Este guia descreve o Contextory 0.9.0, uma prévia qualificada no Windows com pastas locais confiáveis no VS Code e IBM Bob. A extensão precisa do Node.js 24+. Python 3.10+ é opcional para análise Python. Cada agente usa sua própria conta, modelo e conversa.",
+                "en": "This guide describes Contextory 0.9.0, a preview qualified on Windows with trusted local folders in VS Code and IBM Bob. The extension needs Node.js 24+. Python 3.10+ is optional for Python analysis. Your agent supplies its own account, model and conversation."
               }
             },
             {
@@ -427,6 +464,30 @@
               }
             }
           ]
+        },
+        {
+          "id": "project-documentation-link",
+          "title": {
+            "en": "Project explanations",
+            "pt-BR": "Explicações do projeto"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Use Tools > Documentation to find explanations linked to current source and tracked work. The bundled documentation/Carbon capability requires no external plugin; generation runs on demand.",
+                "pt-BR": "Use Tools > Documentation para consultar explicações vinculadas às fontes e ao trabalho rastreado. A capacidade de documentação/Carbon incluída dispensa plugin externo; a geração acontece sob demanda."
+              }
+            },
+            {
+              "type": "link",
+              "href": "documentation",
+              "text": {
+                "en": "Read the project documentation guide",
+                "pt-BR": "Leia o guia de documentação de projetos"
+              }
+            }
+          ]
         }
       ]
     },
@@ -545,8 +606,8 @@
               "type": "steps",
               "items": [
                 {
-                  "pt-BR": "Baixe contextory-workspace-0.8.0.vsix e o arquivo .sha256 na release v0.8.0.",
-                  "en": "Download contextory-workspace-0.8.0.vsix and its .sha256 file from the v0.8.0 release."
+                  "pt-BR": "Baixe contextory-workspace-0.9.0.vsix e o arquivo .sha256 na release v0.9.0.",
+                  "en": "Download contextory-workspace-0.9.0.vsix and its .sha256 file from the v0.9.0 release."
                 },
                 {
                   "pt-BR": "Compare o checksum do pacote baixado com o checksum da release.",
@@ -564,10 +625,10 @@
             },
             {
               "type": "link",
-              "href": "https://github.com/igormicadei/Contextory/releases/tag/v0.8.0",
+              "href": "https://github.com/igormicadei/Contextory/releases/tag/v0.9.0",
               "text": {
-                "pt-BR": "Baixar a versão 0.8.0",
-                "en": "Download version 0.8.0"
+                "pt-BR": "Baixar a versão 0.9.0",
+                "en": "Download version 0.9.0"
               }
             },
             {
@@ -577,7 +638,7 @@
                 "pt-BR": "Verificar e instalar o pacote da release",
                 "en": "Verify and install the release package"
               },
-              "code": "(Get-FileHash -Algorithm SHA256 .\\contextory-workspace-0.8.0.vsix).Hash.ToLowerInvariant()\nGet-Content .\\contextory-workspace-0.8.0.sha256\ncode --install-extension .\\contextory-workspace-0.8.0.vsix"
+              "code": "(Get-FileHash -Algorithm SHA256 .\\contextory-workspace-0.9.0.vsix).Hash.ToLowerInvariant()\nGet-Content .\\contextory-workspace-0.9.0.sha256\ncode --install-extension .\\contextory-workspace-0.9.0.vsix"
             },
             {
               "type": "paragraph",
@@ -1071,6 +1132,12 @@
         },
         {
           "path": "scripts/verify-background-startup.mjs"
+        },
+        {
+          "path": "src/knowledge/catalog.ts"
+        },
+        {
+          "path": "tests/integration/catalog.test.ts"
         }
       ],
       "sections": [
@@ -1180,16 +1247,16 @@
         {
           "id": "knowledge-and-versions",
           "title": {
-            "pt-BR": "Revise Knowledge e Versions",
-            "en": "Review Knowledge and Versions"
+            "pt-BR": "Use Approvals, Knowledge e Versions",
+            "en": "Use Approvals, Knowledge and Versions"
           },
           "blocks": [
             {
               "type": "steps",
               "items": [
                 {
-                  "pt-BR": "Escolha o alerta persistente de revisão ou Tools > Knowledge. Revise primeiro a fila; expanda busca de definições e cobertura de arquivos quando necessário.",
-                  "en": "Choose the persistent review alert, or Tools > Knowledge. Review the queue first; expand definition search and file coverage separately when needed."
+                  "pt-BR": "Abra a aba Approvals ou o alerta para revisar pendências. A aba mostra um contador e não inclui definições já revisadas. Use Tools > Knowledge para buscar definições e consultar a cobertura das fontes.",
+                  "en": "Open the Approvals tab or the review alert to review pending items. The tab shows a pending count and contains no already-reviewed definitions. Use Tools > Knowledge for definition search and source coverage."
                 },
                 {
                   "pt-BR": "Para uma linha de base observada ou alteração pendente, leia a proposta exata e informe um motivo antes de Approve baseline, Approve change ou Reject. Apenas uma pessoa usa esses controles de revisão.",
@@ -1336,8 +1403,8 @@
             {
               "type": "paragraph",
               "text": {
-                "pt-BR": "Abra até 16 pastas locais confiáveis e não aninhadas. O seletor Project delimita Requests, Knowledge, History, Versions e Architecture. Registros, verificações, evidências, grafos de código, referências e releases pertencem a cada projeto de forma independente. Remover uma pasta a desconecta, preservando seu armazenamento.",
-                "en": "Open up to 16 trusted local, non-nested folders. The Project selector scopes Requests, Knowledge, History, Versions and Architecture. Records, checks, evidence, source graphs, reference repositories and releases belong to each project independently. Removing a folder detaches it while retaining its storage."
+                "pt-BR": "Abra até 16 pastas locais confiáveis e não aninhadas. O seletor Project delimita Requests, Approvals, Knowledge, History, Versions e Architecture. Registros, verificações, evidências, grafos de código, referências e releases pertencem a cada projeto de forma independente. Remover uma pasta a desconecta, preservando seu armazenamento.",
+                "en": "Open up to 16 trusted local, non-nested folders. The Project selector scopes Requests, Approvals, Knowledge, History, Versions and Architecture. Records, checks, evidence, source graphs, reference repositories and releases belong to each project independently. Removing a folder detaches it while retaining its storage."
               }
             },
             {
@@ -1501,6 +1568,30 @@
               "text": {
                 "pt-BR": "O proxy mantém a descoberta disponível na inicialização atrasada e tenta aguardar prontidão por até cinco minutos, com esperas de até 15 segundos por chamada. Ele relê descritores após reinícios e nunca repete automaticamente uma mutação já enviada. Uma divergência de contrato exige a ação de recarga/reinício informada.",
                 "en": "The proxy keeps discovery available during delayed startup and retries readiness for up to five minutes, with foreground waits bounded to 15 seconds. It rereads descriptors after restarts and never automatically replays a dispatched mutation. A contract mismatch needs the displayed reload/restart action."
+              }
+            }
+          ]
+        },
+        {
+          "id": "project-documentation-link",
+          "title": {
+            "en": "Project explanations",
+            "pt-BR": "Explicações do projeto"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Use Tools > Documentation to find explanations linked to current source and tracked work. The bundled documentation/Carbon capability requires no external plugin; generation runs on demand.",
+                "pt-BR": "Use Tools > Documentation para consultar explicações vinculadas às fontes e ao trabalho rastreado. A capacidade de documentação/Carbon incluída dispensa plugin externo; a geração acontece sob demanda."
+              }
+            },
+            {
+              "type": "link",
+              "href": "documentation",
+              "text": {
+                "en": "Read the project documentation guide",
+                "pt-BR": "Leia o guia de documentação de projetos"
               }
             }
           ]
@@ -1689,6 +1780,30 @@
               }
             }
           ]
+        },
+        {
+          "id": "project-documentation-link",
+          "title": {
+            "en": "Project explanations",
+            "pt-BR": "Explicações do projeto"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Use Tools > Documentation to find explanations linked to current source and tracked work. The bundled documentation/Carbon capability requires no external plugin; generation runs on demand.",
+                "pt-BR": "Use Tools > Documentation para consultar explicações vinculadas às fontes e ao trabalho rastreado. A capacidade de documentação/Carbon incluída dispensa plugin externo; a geração acontece sob demanda."
+              }
+            },
+            {
+              "type": "link",
+              "href": "documentation",
+              "text": {
+                "en": "Read the project documentation guide",
+                "pt-BR": "Leia o guia de documentação de projetos"
+              }
+            }
+          ]
         }
       ]
     },
@@ -1734,6 +1849,12 @@
         },
         {
           "path": "scripts/verify-background-startup.mjs"
+        },
+        {
+          "path": "tests/ui/catalog.spec.ts"
+        },
+        {
+          "path": "src/webview/main.ts"
         }
       ],
       "sections": [
@@ -1811,8 +1932,8 @@
         {
           "id": "review-a-definition",
           "title": {
-            "pt-BR": "Revise uma revisão exata da definição",
-            "en": "Review an exact definition revision"
+            "pt-BR": "Revise itens pendentes em Approvals",
+            "en": "Review pending items in Approvals"
           },
           "blocks": [
             {
@@ -1826,36 +1947,81 @@
               "type": "steps",
               "items": [
                 {
-                  "pt-BR": "Abra Knowledge, escolha uma definição e inspecione fontes, testes, estado, revisão e atualização.",
-                  "en": "Open Knowledge, choose a definition and inspect its sources, tests, state, revision and freshness."
+                  "pt-BR": "Abra Approvals ao lado de Work e Requests ou use o alerta persistente. Essa aba contém apenas alterações pendentes e linhas de base observadas. Inspecione fontes, testes, estado, revisão e atualização. Use Tools > Knowledge separadamente para consultar todas as definições e a cobertura dos arquivos.",
+                  "en": "Open Approvals beside Work and Requests, or use the persistent review alert. This tab contains only pending changes and observed baselines. Inspect sources, tests, state, revision and freshness. Use Tools > Knowledge separately to browse all definitions and file coverage."
                 },
                 {
                   "pt-BR": "Revise as observações iniciais ou o conteúdo antes/depois de substituições ou aposentadorias. Informe um motivo antes de aprovar ou rejeitar.",
                   "en": "Review baseline observations or the before/after content of a replacement or retirement. Enter a reason before approving or rejecting."
                 },
                 {
-                  "pt-BR": "Atualize candidatos obsoletos antes da aprovação. Propostas concorrentes devem corresponder à revisão atual exata. Rejeições mantêm a definição original e todas as revisões são preservadas.",
-                  "en": "Refresh stale candidates before approval. Competing proposals must match the exact current target revision. Rejections keep the original definition and all revisions remain retained."
+                  "pt-BR": "Se aparecer Sources need review, abra os arquivos alterados e confira a definição. Informe um motivo e use Refresh source snapshot. Isso registra os hashes atuais e mantém o item pendente; aprove ou rejeite a revisão atualizada separadamente. Arquivos ausentes precisam ser corrigidos ou o item obsoleto rejeitado. Uma proposta contra uma revisão anterior deve ser rejeitada e substituída.",
+                  "en": "If Sources need review appears, open the changed files and check the definition. Enter a reason and choose Refresh source snapshot. This records current file hashes and keeps the item pending; approve or reject the refreshed revision separately. Missing files must be corrected or the outdated item rejected. A proposal against an older target revision must be rejected and replaced."
                 }
               ]
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "pt-BR": "Salvamento, sucesso e erros aparecem ao lado dos controles. Revisões com falha preservam o motivo informado e não aprovam nada. Os controles ficam desativados enquanto a revisão está em andamento. Alternar para Knowledge e voltar preserva o motivo; os filtros de Knowledge não ocultam a fila de aprovações. Atualizar o snapshot não altera a definição nem concede aprovação.",
+                "en": "Saving, success and errors appear beside the review controls. Failed reviews keep the entered reason and do not approve anything. Controls remain disabled while a review is pending. Switching to Knowledge and back preserves the reason; Knowledge search filters do not hide the approval queue. Refreshing a snapshot never edits the definition or grants approval."
+              }
             },
             {
               "type": "image",
               "src": "assets/knowledge-preview.png",
               "caption": {
-                "pt-BR": "Webview Knowledge de produção com registros isolados de teste; nenhuma aprovação de projeto foi realizada.",
-                "en": "Production Knowledge webview rendered with isolated test-fixture records; no project approval was performed."
+                "pt-BR": "Approvals renderizado pela webview de produção com exemplos isolados; nenhuma aprovação real do projeto foi realizada.",
+                "en": "Approvals rendered by the production webview with isolated example records; no real project approval was performed."
               },
               "alt": {
-                "pt-BR": "Definições Knowledge e proposta de revisão antes/depois com registros de pagamento de exemplo.",
-                "en": "Knowledge definitions and a before/after review proposal with example payment records."
+                "pt-BR": "A aba Approvals com contador de pendências, alterações antes/depois e controles de revisão.",
+                "en": "The Approvals tab with a pending count, before/after changes and review controls."
               }
             },
             {
               "type": "paragraph",
               "text": {
-                "pt-BR": "A aprovação pertence à interface Knowledge autenticada para revisão humana. Agentes não devem usar credenciais da interface nem apresentar observações geradas como requisitos aprovados. Propostas pendentes e definições aprovadas afetadas e obsoletas podem impedir a conclusão rastreada.",
-                "en": "Approval belongs to the authenticated human Knowledge UI. Agents must not use UI credentials or present generated observations as approved requirements. Pending proposals and stale affected approved definitions can block tracked completion."
+                "pt-BR": "A aprovação pertence à aba Approvals autenticada para revisão humana. Agentes não podem usar suas credenciais nem apresentar observações como requisitos aprovados. Propostas pendentes e definições aprovadas afetadas e obsoletas podem impedir a conclusão rastreada.",
+                "en": "Approval belongs to the authenticated human Approvals tab. Agents cannot use its credentials or present observations as approved requirements. Pending proposals and stale affected approved definitions can block tracked completion."
+              }
+            }
+          ]
+        },
+        {
+          "id": "knowledge-browser",
+          "title": {
+            "pt-BR": "Consulte Knowledge separadamente",
+            "en": "Browse Knowledge independently"
+          },
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "pt-BR": "Escolha Tools > Knowledge para consultar definições atuais e históricas, seus vínculos com fontes/testes e seu histórico.",
+                  "en": "Choose Tools > Knowledge to browse current and historical definitions, their source/test links and history."
+                },
+                {
+                  "pt-BR": "Expanda Find definitions & coverage e filtre por texto, caminho ou categoria. O inventário de arquivos continua disponível nesse navegador.",
+                  "en": "Expand Find definitions & coverage, then filter by text, path or category. File inventory stays available in this browser."
+                },
+                {
+                  "pt-BR": "Escolha Approvals para revisar pendências. Os filtros e a paginação de Knowledge não afetam essa fila; itens revisados saem de Approvals e continuam disponíveis em Knowledge.",
+                  "en": "Choose Approvals to review pending items. Knowledge filters and pagination do not affect that queue; reviewed items disappear from Approvals and remain discoverable in Knowledge."
+                }
+              ]
+            },
+            {
+              "type": "image",
+              "src": "assets/knowledge-browser.png",
+              "caption": {
+                "pt-BR": "Navegador Knowledge usando a interface de produção e registros isolados de teste.",
+                "en": "Knowledge browser using production UI and isolated fixture records."
+              },
+              "alt": {
+                "pt-BR": "Consulta ao conhecimento do projeto sem formulários de aprovação.",
+                "en": "Project knowledge browsing without approval forms."
               }
             }
           ]
@@ -1911,6 +2077,194 @@
               "text": {
                 "pt-BR": "A exportação exclui credenciais, conversas nativas e vetores numéricos de embeddings. Respostas grandes podem retornar identificadores de artefatos para paginação adicional. Uma exportação somente leitura não precisa de pedido de implementação.",
                 "en": "This export excludes credentials, native conversations and numeric embedding vectors. Large responses may return artifact handles for further paging. A read-only export needs no implementation request."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "documentation",
+      "title": {
+        "en": "Project documentation",
+        "pt-BR": "Documentação do projeto"
+      },
+      "sources": [
+        {
+          "path": "src/documentation/manager.ts"
+        },
+        {
+          "path": "src/documentation/reader.ts"
+        },
+        {
+          "path": "src/documentation/bridge.py"
+        },
+        {
+          "path": "src/contracts/tools.ts"
+        },
+        {
+          "path": "src/webview/documentation.ts"
+        },
+        {
+          "path": "src/webview/main.ts"
+        },
+        {
+          "path": "resources/documentation/PROVENANCE.json"
+        },
+        {
+          "path": "skills/contextory-documentation/SKILL.md"
+        },
+        {
+          "path": "tests/integration/documentation.test.ts"
+        },
+        {
+          "path": "tests/ui/documentation.spec.ts"
+        },
+        {
+          "path": "scripts/documentation-resources.mjs"
+        },
+        {
+          "path": "scripts/build.mjs"
+        },
+        {
+          "path": "scripts/licenses.mjs"
+        },
+        {
+          "path": "tests/documentation/embedded.test.mjs"
+        }
+      ],
+      "sections": [
+        {
+          "id": "browse",
+          "title": {
+            "en": "Find an explanation",
+            "pt-BR": "Encontre uma explicação"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Contextory includes project documentation as an optional capability. The software-documentation 1.0.1 runtime, its authoring/update/source-comment/integration playbooks and the complete Carbon 1.0.0 module ship in the extension and CLI. Local fonts, tokens, templates and references need no separate plugin installation. Reading explanations works without Python; generation uses Python 3.11+ configured by contextory.pythonExecutable.",
+                "pt-BR": "O Contextory inclui documentação de projetos como recurso opcional. O runtime software-documentation 1.0.1, seus guias de autoria/atualização/comentários/integração e o módulo Carbon 1.0.0 completo são distribuídos na extensão e CLI. Fontes, tokens, modelos e referências locais dispensam instalação de outro plugin. A consulta funciona sem Python; a geração usa Python 3.11+ configurado em contextory.pythonExecutable."
+              }
+            },
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "en": "Choose Tools > Documentation. Search for a feature or behavior, optionally filter by source path, and choose English or Portuguese.",
+                  "pt-BR": "Escolha Tools > Documentation. Busque uma funcionalidade ou comportamento, filtre opcionalmente pelo caminho de origem e escolha inglês ou português."
+                },
+                {
+                  "en": "Read the explanation, stable page/section ID, source links and freshness badge. A draft, an unknown baseline and a stale explanation still need review; documentation never grants approval to a requirement.",
+                  "pt-BR": "Leia a explicação, o ID estável da página/seção, os vínculos de origem e o estado de atualização. Rascunhos, baselines desconhecidos e explicações desatualizadas precisam de revisão; documentação nunca aprova um requisito."
+                },
+                {
+                  "en": "From Architecture, choose Explain this area for the current source scope. In a request, expand Brief & actions and choose Related documentation to find sections linked to the request or its descendant records. Reference codebases remain a separate read-only source scope.",
+                  "pt-BR": "Em Architecture, escolha Explain this area para a área de origem atual. Em um pedido, expanda Brief & actions e escolha Related documentation para encontrar seções vinculadas ao pedido ou a seus registros descendentes. Repositórios de referência permanecem em escopo separado de leitura."
+                }
+              ]
+            },
+            {
+              "type": "image",
+              "src": "assets/documentation-browser.png",
+              "caption": {
+                "en": "Production documentation browser with isolated fixture explanations and explicit stale-source state.",
+                "pt-BR": "Navegador de documentação de produção com explicações isoladas de teste e indicação explícita de origem desatualizada."
+              },
+              "alt": {
+                "en": "Documentation search, English and Portuguese selection, stale explanation and source/record links.",
+                "pt-BR": "Busca de documentação, seleção de inglês e português, explicação desatualizada e vínculos de origem/registros."
+              }
+            }
+          ]
+        },
+        {
+          "id": "author",
+          "title": {
+            "en": "Author and build with your agent",
+            "pt-BR": "Escreva e gere com seu agente"
+          },
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "en": "Ask the agent to use contextory-documentation. It reads current source, catalog and the relevant exported Contextory datasets with their project identity and approval/history provenance.",
+                  "pt-BR": "Peça ao agente para usar contextory-documentation. Ele consulta as fontes, o catálogo e os dados exportados relevantes com identidade do projeto e proveniência de aprovação/histórico."
+                },
+                {
+                  "en": "Map the project and author substantive paired English/pt-BR explanations in .documentation/project.json. The bundled init operation creates a draft, not finished documentation. Preserve existing content, translations, IDs, URLs and assets.",
+                  "pt-BR": "Mapeie o projeto e escreva explicações substantivas em inglês/pt-BR em .documentation/project.json. A inicialização incluída cria um rascunho, não documentação pronta. Preserve conteúdo, traduções, IDs, URLs e assets existentes."
+                },
+                {
+                  "en": "Use contextory_docs_run for map/init/validate/build/integrations/migrate/readme/Pages operations and poll the returned job. Generation runs on demand and cannot gate service startup. Mutating operations require the agent’s current specification lease.",
+                  "pt-BR": "Use contextory_docs_run para operações de mapa/inicialização/validação/geração/integrações/migração/README/Pages e consulte o job retornado. A geração acontece sob demanda e não bloqueia a inicialização do serviço. Mutações exigem o lease atual da especificação do agente."
+                },
+                {
+                  "en": "Review the generated responsive Carbon site, both locales, local search, examples, native source comments and coverage gaps. Consumer bundles include their own read-only documentation MCP and installer. Do not claim complete behavior coverage from file counts or a passed build.",
+                  "pt-BR": "Revise o site Carbon responsivo, ambos os idiomas, busca local, exemplos, comentários nativos e lacunas de cobertura. Bundles consumidores incluem MCP de documentação somente leitura e instalador próprios. Não deduza cobertura comportamental completa de contagens ou builds aprovados."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "The generator creates schema 2 Carbon sites, and retrieval also reads schema 1. Migration previews by default, creates a backup on apply and leaves migrated content in draft for review. Contextory’s own schema-1 site build remains separately pinned; this feature does not upgrade that corpus.",
+                "pt-BR": "O gerador cria sites Carbon com schema 2, e a consulta também lê schema 1. A migração gera prévia por padrão, cria backup ao aplicar e mantém o conteúdo em rascunho para revisão. O build do próprio site schema-1 do Contextory continua fixado separadamente; este recurso não atualiza esse corpus."
+              }
+            }
+          ]
+        },
+        {
+          "id": "maintenance",
+          "title": {
+            "en": "Connect explanations to changes",
+            "pt-BR": "Conecte explicações às mudanças"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "After comparing a section with current sources, the agent uses contextory_docs_link with its page/section IDs, current corpus fingerprint, local record IDs and a reason. Contextory retains citation hashes, record revisions, semantic fingerprints and an audit trail of before/after associations. It stores these observed links in the selected project’s ledger; it does not inject private ledger history into public HTML.",
+                "pt-BR": "Após comparar uma seção com as fontes atuais, o agente usa contextory_docs_link com IDs de página/seção, fingerprint atual do corpus, IDs de registros locais e motivo. O Contextory preserva hashes de citações, revisões de registros, fingerprints semânticos e histórico de associações antes/depois. Os vínculos observados ficam no ledger do projeto selecionado; histórico privado não é inserido no HTML público."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Changed text/citations, changed or missing cited files and meaningful changes to linked records mark a section stale. Lease renewal alone does not invalidate the explanation. Current-project code context includes bounded relevant explanations when its token budget permits. Source definitions, generated architecture, authored explanations, historical decisions and human-approved requirements retain different authority.",
+                "pt-BR": "Texto/citações alterados, arquivos citados alterados ou ausentes e mudanças significativas em registros vinculados marcam a seção como desatualizada. Renovar um lease não invalida a explicação. O contexto de código do projeto inclui explicações relevantes e limitadas quando o orçamento permite. Definições de origem, arquitetura gerada, explicações autorais, decisões históricas e requisitos aprovados preservam autoridades diferentes."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Expand Keep documentation current for source mapping or validation. A successful runtime job can return valid=false, shown as needs review. Large results are retained as JSON artifacts and can be paged through project export. Exact operation retries recover the same job; failed/interrupted mutations are never replayed automatically.",
+                "pt-BR": "Expanda Keep documentation current para mapear fontes ou validar. Um job executado pode retornar valid=false, exibido como needs review. Resultados grandes ficam em artefatos JSON consultáveis por páginas na exportação. Repetir a operação exata recupera o mesmo job; mutações interrompidas/com falha não são repetidas automaticamente."
+              }
+            }
+          ]
+        },
+        {
+          "id": "publish",
+          "title": {
+            "en": "Publish explicitly and verify",
+            "pt-BR": "Publique explicitamente e verifique"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Implementing documentation does not publish a connected project. With publication authorization, inspect pages_plan, select the intended remote, then run pages_publish with publish=true and the current lease. Verify pages_status against the actual live artifact. The bundled upstream publisher preserves orphan gh-pages history and rejects foreign branch replacement. GitHub CLI authentication/network/Pages availability remain environmental requirements.",
+                "pt-BR": "Implementar documentação não publica um projeto conectado. Com autorização de publicação, consulte pages_plan, selecione o remoto e execute pages_publish com publish=true e lease atual. Verifique pages_status contra o artefato publicado. O publicador incluído preserva o histórico órfão de gh-pages e recusa substituir branches alheias. Autenticação do GitHub CLI, rede e disponibilidade do Pages continuam requisitos do ambiente."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Missing Python affects generator jobs only. Configure its executable and start a new operation after inspecting any partial files. A failed or unavailable documentation corpus does not block source context or the service. Human approvals remain in Approvals, and references never grant writes into another project.",
+                "pt-BR": "Python ausente afeta apenas jobs de geração. Configure o executável e inicie nova operação após inspecionar arquivos parciais. Corpus indisponível ou inválido não bloqueia o contexto de origem nem o serviço. Aprovações humanas continuam em Approvals e referências não autorizam escrever em outro projeto."
               }
             }
           ]
@@ -3222,6 +3576,18 @@
         },
         {
           "path": "scripts/verify-background-startup.mjs"
+        },
+        {
+          "path": "src/knowledge/catalog.ts"
+        },
+        {
+          "path": "src/webview/catalog.ts"
+        },
+        {
+          "path": "tests/ui/catalog.spec.ts"
+        },
+        {
+          "path": "tests/integration/catalog.test.ts"
         }
       ],
       "sections": [
@@ -3384,6 +3750,16 @@
                 }
               ],
               "rows": [
+                [
+                  {
+                    "pt-BR": "Um item continua pendente em Approvals",
+                    "en": "An item remains pending in Approvals"
+                  },
+                  {
+                    "pt-BR": "Leia o erro ao lado do item. Para fontes alteradas, inspecione os arquivos vinculados, informe um motivo, atualize o snapshot e aprove a nova revisão. Referências ausentes ou alvo de proposta obsoleto exigem correção ou rejeição. Atualizar não aprova.",
+                    "en": "Read the inline error. For changed sources, inspect the linked files, enter a reason, refresh the source snapshot, then approve the new revision. Missing references or an outdated proposal target require correction or rejection. Refresh does not approve."
+                  }
+                ],
                 [
                   {
                     "pt-BR": "Fluxo Python falha",
@@ -4006,15 +4382,15 @@
         {
           "id": "current-version",
           "title": {
-            "pt-BR": "Versão documentada atual: 0.8.0",
-            "en": "Current documented version: 0.8.0"
+            "pt-BR": "Versão documentada atual: 0.9.0",
+            "en": "Current documented version: 0.9.0"
           },
           "blocks": [
             {
               "type": "paragraph",
               "text": {
-                "pt-BR": "A versão 0.8.0 introduz o console responsivo Work/Requests, progresso por evidências, alertas persistentes de Knowledge, recuperação automática, inicialização independente da barra lateral, 256 receitas e fingerprints completos por streaming. A versão 0.7.0 introduziu recuperação de hooks; 0.6.0 introduziu projetos separados e pedidos coordenados.",
-                "en": "Version 0.8.0 introduces the responsive Work/Requests console, evidence-based progress, persistent Knowledge review alerts, automatic service recovery, background startup independent of sidebar visibility, 256 check recipes and complete streamed source fingerprints. Version 0.7.0 introduced managed hook recovery; 0.6.0 introduced separate workspace projects and coordinated requests."
+                "en": "Version 0.9.0 adds a dedicated Approvals queue, recoverable source review and independent project documentation with bundled software-documentation and Carbon. Version 0.8.0 introduced the responsive work console, background startup, automatic recovery, 256 check recipes and complete streamed source fingerprints. Earlier releases remain preserved below.",
+                "pt-BR": "A versão 0.9.0 adiciona a fila Approvals, revisão recuperável de fontes e documentação independente com software-documentation e Carbon incluídos. A versão 0.8.0 introduziu o console responsivo, inicialização em segundo plano, recuperação automática, 256 receitas e fingerprints completos por streaming. As versões anteriores continuam preservadas abaixo."
               }
             },
             {
@@ -4081,8 +4457,8 @@
             {
               "type": "paragraph",
               "text": {
-                "pt-BR": "O Contextory 0.7.0 define 36 ferramentas. Os schemas Zod a seguir foram extraídos pelo analisador TypeScript do código salvo sem executar a aplicação. Eles preservam obrigatoriedade, opcionais, padrões e intervalos. tools/list do MCP em execução é autoritativo para a versão instalada. contextory_catalog_review é exclusivo da interface humana mesmo quando seu contrato está visível.",
-                "en": "Contextory 0.7.0 defines 36 tools. The following Zod schema excerpts were extracted with the TypeScript parser from the saved source without executing application code. They preserve required/optional/default/range semantics. The running MCP tools/list response is authoritative for the installed client version. contextory_catalog_review is human-UI-only even if its contract is visible."
+                "pt-BR": "O Contextory 0.9.0 define 39 ferramentas. Os schemas Zod a seguir foram extraídos pelo analisador TypeScript do código salvo sem executar a aplicação. Eles preservam obrigatoriedade, opcionais, padrões e intervalos. tools/list do MCP em execução é autoritativo para a versão instalada. contextory_catalog_review é exclusivo da interface humana mesmo quando seu contrato está visível.",
+                "en": "Contextory 0.9.0 defines 39 tools. The following Zod schema excerpts were extracted with the TypeScript parser from the saved source without executing application code. They preserve required/optional/default/range semantics. The running MCP tools/list response is authoritative for the installed client version. contextory_catalog_review is human-UI-only even if its contract is visible."
               }
             },
             {
@@ -4145,8 +4521,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:60",
-                "en": "Input schema · src/contracts/tools.ts:60"
+                "en": "Input schema · src/contracts/tools.ts:126",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:126"
               },
               "code": "// contextory_hooks_rebuild\nz.object({\n      operationId,\n      provider: z.enum([\"codex\", \"claude\", \"bob\"]),\n    })"
             }
@@ -4170,8 +4546,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:68",
-                "en": "Input schema · src/contracts/tools.ts:68"
+                "en": "Input schema · src/contracts/tools.ts:134",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:134"
               },
               "code": "// contextory_workspace_get\nz.object({ groupId: id.optional() })"
             }
@@ -4195,8 +4571,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:73",
-                "en": "Input schema · src/contracts/tools.ts:73"
+                "en": "Input schema · src/contracts/tools.ts:139",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:139"
               },
               "code": "// contextory_workspace_request_create\nz.object({\n      operationId,\n      projectIds: z.array(id).min(2).max(16),\n      title: z.string().trim().min(1).max(300),\n      description: text,\n    })"
             }
@@ -4220,8 +4596,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:83",
-                "en": "Input schema · src/contracts/tools.ts:83"
+                "en": "Input schema · src/contracts/tools.ts:149",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:149"
               },
               "code": "// contextory_version_get\nz.object({\n      releaseId: id.optional(),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(20),\n    })"
             }
@@ -4245,8 +4621,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:92",
-                "en": "Input schema · src/contracts/tools.ts:92"
+                "en": "Input schema · src/contracts/tools.ts:158",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:158"
               },
               "code": "// contextory_release_prepare\nz.object({\n      operationId,\n      bump: z.enum([\"auto\", \"patch\", \"minor\", \"major\"]).default(\"auto\"),\n      version: z.string().max(100).optional(),\n    })"
             }
@@ -4270,8 +4646,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:101",
-                "en": "Input schema · src/contracts/tools.ts:101"
+                "en": "Input schema · src/contracts/tools.ts:167",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:167"
               },
               "code": "// contextory_release_change\nz.object({\n      operationId,\n      id,\n      expectedRevision: z.number().int().positive(),\n      action: z.enum([\"apply\", \"publish\", \"recover\", \"cancel\"]),\n    })"
             }
@@ -4295,8 +4671,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:111",
-                "en": "Input schema · src/contracts/tools.ts:111"
+                "en": "Input schema · src/contracts/tools.ts:177",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:177"
               },
               "code": "// contextory_project_export\nz.object({\n      section: z\n        .enum([\n          \"overview\",\n          \"records\",\n          \"revisions\",\n          \"history\",\n          \"relationships\",\n          \"code_files\",\n          \"code_nodes\",\n          \"code_edges\",\n          \"code_imports\",\n          \"jobs\",\n          \"usage\",\n          \"artifacts\",\n        ])\n        .default(\"overview\"),\n      entityId: id.optional(),\n      artifact: z.string().min(1).max(200).optional(),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(20),\n    })"
             }
@@ -4320,10 +4696,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:137",
-                "en": "Input schema · src/contracts/tools.ts:137"
+                "en": "Input schema · src/contracts/tools.ts:203",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:203"
               },
-              "code": "// contextory_catalog_get\nz.object({\n      category: category.optional(),\n      path: z.string().max(2000).optional(),\n      query: z.string().max(4000).optional(),\n      inventory: z.boolean().default(false),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(20),\n    })"
+              "code": "// contextory_catalog_get\nz.object({\n      category: category.optional(),\n      path: z.string().max(2000).optional(),\n      query: z.string().max(4000).optional(),\n      inventory: z.boolean().default(false),\n      pendingOnly: z.boolean().default(false),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(20),\n    })"
             }
           ]
         },
@@ -4345,8 +4721,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:149",
-                "en": "Input schema · src/contracts/tools.ts:149"
+                "en": "Input schema · src/contracts/tools.ts:216",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:216"
               },
               "code": "// contextory_catalog_change\nz.object({\n      operationId,\n      ...lease,\n      action: z.enum([\"create\", \"revise\", \"retire\"]),\n      id: id.optional(),\n      expectedRevision,\n      content: catalogContent.optional(),\n      reason: text,\n      migrationId: id.optional(),\n    })"
             }
@@ -4370,10 +4746,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:163",
-                "en": "Input schema · src/contracts/tools.ts:163"
+                "en": "Input schema · src/contracts/tools.ts:230",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:230"
               },
-              "code": "// contextory_catalog_review\nz.object({\n      operationId,\n      id,\n      expectedRevision: z.number().int().positive(),\n      action: z.enum([\"approve\", \"reject\"]),\n      reason: text,\n    })"
+              "code": "// contextory_catalog_review\nz.object({\n      operationId,\n      id,\n      expectedRevision: z.number().int().positive(),\n      action: z.enum([\"approve\", \"reject\", \"refresh\"]),\n      reason: text.trim().min(1),\n    })"
             }
           ]
         },
@@ -4395,8 +4771,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:174",
-                "en": "Input schema · src/contracts/tools.ts:174"
+                "en": "Input schema · src/contracts/tools.ts:241",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:241"
               },
               "code": "// contextory_catalog_migrate\nz.object({\n      operationId,\n      ...lease,\n      migrationId: id.optional(),\n      limit: z.number().int().min(1).max(50).default(20),\n    })"
             }
@@ -4420,8 +4796,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:184",
-                "en": "Input schema · src/contracts/tools.ts:184"
+                "en": "Input schema · src/contracts/tools.ts:251",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:251"
               },
               "code": "// contextory_context_get\nz.object({ specId: id.optional() })"
             }
@@ -4445,8 +4821,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:189",
-                "en": "Input schema · src/contracts/tools.ts:189"
+                "en": "Input schema · src/contracts/tools.ts:256",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:256"
               },
               "code": "// contextory_entity_get\nz.object({\n      id,\n      revision: z.number().int().positive().optional(),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(20),\n    })"
             }
@@ -4470,8 +4846,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:199",
-                "en": "Input schema · src/contracts/tools.ts:199"
+                "en": "Input schema · src/contracts/tools.ts:266",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:266"
               },
               "code": "// contextory_history_get\nz.object({\n      entityId: id.optional(),\n      before: z.number().int().positive().optional(),\n      limit: z.number().int().min(1).max(100).default(40),\n    })"
             }
@@ -4495,8 +4871,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:208",
-                "en": "Input schema · src/contracts/tools.ts:208"
+                "en": "Input schema · src/contracts/tools.ts:275",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:275"
               },
               "code": "// contextory_request_change\nz.object({\n      operationId,\n      action: z.enum([\"create\", \"revise\"]),\n      id: id.optional(),\n      expectedRevision,\n      title: z.string().min(1).max(300),\n      description: text,\n      reason: text.optional(),\n    })"
             }
@@ -4520,8 +4896,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:221",
-                "en": "Input schema · src/contracts/tools.ts:221"
+                "en": "Input schema · src/contracts/tools.ts:288",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:288"
               },
               "code": "// contextory_spec_change\nz.object({\n      operationId,\n      action: z.enum([\n        \"milestone\",\n        \"create\",\n        \"revise\",\n        \"reopen\",\n        \"complete\",\n        \"block\",\n        \"cancel\",\n      ]),\n      id: id.optional(),\n      parentId: id.optional(),\n      expectedRevision,\n      title: z.string().min(1).max(300).optional(),\n      description: text.optional(),\n      criteria: z.array(z.string().min(1).max(2000)).min(1).max(50).optional(),\n      paths: z.array(z.string().max(2000)).max(100).optional(),\n      dependencies: z.array(id).max(50).optional(),\n      reason: text.optional(),\n    })"
             }
@@ -4545,8 +4921,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:246",
-                "en": "Input schema · src/contracts/tools.ts:246"
+                "en": "Input schema · src/contracts/tools.ts:313",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:313"
               },
               "code": "// contextory_session_attach\nz.object({ operationId, nativeSessionId: id.optional() })"
             }
@@ -4570,8 +4946,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:251",
-                "en": "Input schema · src/contracts/tools.ts:251"
+                "en": "Input schema · src/contracts/tools.ts:318",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:318"
               },
               "code": "// contextory_usage_get\nz.object({\n      entityId: id.optional(),\n      provider: z.enum([\"codex\", \"claude\", \"bob\"]).optional(),\n      nativeSessionId: z.string().min(1).max(200).optional(),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(20),\n    })"
             }
@@ -4595,8 +4971,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:262",
-                "en": "Input schema · src/contracts/tools.ts:262"
+                "en": "Input schema · src/contracts/tools.ts:329",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:329"
               },
               "code": "// contextory_spec_lease\nz.object({\n      operationId,\n      specId: id,\n      expectedRevision,\n      action: z.enum([\"claim\", \"renew\", \"release\"]),\n      sessionId: id,\n      leaseId: id.optional(),\n    })"
             }
@@ -4620,8 +4996,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:274",
-                "en": "Input schema · src/contracts/tools.ts:274"
+                "en": "Input schema · src/contracts/tools.ts:341",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:341"
               },
               "code": "// contextory_finding_record\nz.object({\n      operationId,\n      ...lease,\n      id: id.optional(),\n      expectedRevision,\n      title: z.string().min(1).max(300),\n      observation: text,\n      impact: text,\n      resolution: text.optional(),\n      status: z.enum([\"open\", \"resolved\", \"deferred\"]),\n      blocking: z.boolean().default(true),\n      sources: z.array(source).max(30).default([]),\n    })"
             }
@@ -4645,8 +5021,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:291",
-                "en": "Input schema · src/contracts/tools.ts:291"
+                "en": "Input schema · src/contracts/tools.ts:358",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:358"
               },
               "code": "// contextory_decision_record\nz.object({\n      operationId,\n      ...lease,\n      title: z.string().min(1).max(300),\n      choice: text,\n      rationale: text,\n      alternatives: z.string().max(12000).default(\"None material\"),\n      consequences: text,\n      supersedes: id.optional(),\n      sources: z.array(source).max(30).default([]),\n    })"
             }
@@ -4670,8 +5046,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:306",
-                "en": "Input schema · src/contracts/tools.ts:306"
+                "en": "Input schema · src/contracts/tools.ts:373",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:373"
               },
               "code": "// contextory_evidence_record\nz.object({\n      operationId,\n      ...lease,\n      title: z.string().min(1).max(300),\n      detail: text,\n      criteria: z.array(id).min(1).max(50),\n      result: z.enum([\"passed\", \"failed\", \"not_run\"]),\n      command: z.string().max(4000).optional(),\n    })"
             }
@@ -4695,8 +5071,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:319",
-                "en": "Input schema · src/contracts/tools.ts:319"
+                "en": "Input schema · src/contracts/tools.ts:386",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:386"
               },
               "code": "// contextory_check_run\nz.object({\n      operationId,\n      ...lease,\n      recipeId: id,\n      criteria: z.array(id).min(1).max(50),\n    })"
             }
@@ -4720,8 +5096,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:329",
-                "en": "Input schema · src/contracts/tools.ts:329"
+                "en": "Input schema · src/contracts/tools.ts:396",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:396"
               },
               "code": "// contextory_outcome_submit\nz.object({\n      operationId,\n      ...lease,\n      expectedRevision: z.number().int().positive(),\n      summary: text,\n      issuesSummary: text,\n      decisionsSummary: text,\n      limitations: text,\n      report: text,\n      changelog: z.string().min(1).max(2000),\n      catalog: z\n        .object({ recordIds: z.array(id).max(200), explanation: text })\n        .optional(),\n      criteria: z\n        .array(\n          z.object({\n            criterionId: id,\n            evidenceIds: z.array(id).min(1).max(30),\n          }),\n        )\n        .min(1)\n        .max(50),\n      commits: z\n        .array(z.string().regex(/^[a-f0-9]{40,64}$/))\n        .max(100)\n        .default([]),\n    })"
             }
@@ -4745,8 +5121,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:360",
-                "en": "Input schema · src/contracts/tools.ts:360"
+                "en": "Input schema · src/contracts/tools.ts:427",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:427"
               },
               "code": "// contextory_search\nz.object({\n      codebaseId: id.optional(),\n      query: z.string().min(1).max(4000),\n      mode: z.enum([\"lexical\", \"semantic\", \"hybrid\"]).default(\"hybrid\"),\n      limit: z.number().int().min(1).max(20).default(5),\n    })"
             }
@@ -4770,8 +5146,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:370",
-                "en": "Input schema · src/contracts/tools.ts:370"
+                "en": "Input schema · src/contracts/tools.ts:437",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:437"
               },
               "code": "// contextory_code_context_get\nz.object({\n      codebaseId: id.optional(),\n      query: z.string().min(1).max(4000),\n      paths: z.array(z.string().max(2000)).max(20).default([]),\n      specId: id.optional(),\n      budgetTokens: z.number().int().min(512).max(6000).default(3000),\n    })"
             }
@@ -4795,8 +5171,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:381",
-                "en": "Input schema · src/contracts/tools.ts:381"
+                "en": "Input schema · src/contracts/tools.ts:448",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:448"
               },
               "code": "// contextory_code_architecture_get\nz.object({\n      codebaseId: id.optional(),\n      refresh: z.boolean().default(true),\n    })"
             }
@@ -4820,8 +5196,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:389",
-                "en": "Input schema · src/contracts/tools.ts:389"
+                "en": "Input schema · src/contracts/tools.ts:456",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:456"
               },
               "code": "// contextory_code_path_get\nz.object({\n      codebaseId: id.optional(),\n      from: z.string().min(1).max(2500),\n      to: z.string().min(1).max(2500),\n      direction: z.enum([\"forward\", \"both\"]).default(\"both\"),\n      maxDepth: z.number().int().min(1).max(10).default(6),\n    })"
             }
@@ -4845,8 +5221,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:400",
-                "en": "Input schema · src/contracts/tools.ts:400"
+                "en": "Input schema · src/contracts/tools.ts:467",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:467"
               },
               "code": "// contextory_code_index_refresh\nz.object({\n      codebaseId: id.optional(),\n      graphifyPath: z.string().min(1).max(2000).optional(),\n    })"
             }
@@ -4870,8 +5246,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:408",
-                "en": "Input schema · src/contracts/tools.ts:408"
+                "en": "Input schema · src/contracts/tools.ts:475",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:475"
               },
               "code": "// contextory_codebase_list\nz.object({})"
             }
@@ -4895,8 +5271,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:413",
-                "en": "Input schema · src/contracts/tools.ts:413"
+                "en": "Input schema · src/contracts/tools.ts:480",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:480"
               },
               "code": "// contextory_codebase_change\nz\n      .object({\n        operationId,\n        action: z.enum([\"add\", \"remove\"]),\n        root: z.string().min(1).max(2000).optional(),\n        name: z.string().trim().min(1).max(100).optional(),\n        codebaseId: id.optional(),\n      })\n      .refine(\n        (p) => (p.action === \"add\" ? Boolean(p.root) : Boolean(p.codebaseId)),\n        \"Add requires root; remove requires codebaseId.\",\n      )"
             }
@@ -4920,8 +5296,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:429",
-                "en": "Input schema · src/contracts/tools.ts:429"
+                "en": "Input schema · src/contracts/tools.ts:496",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:496"
               },
               "code": "// contextory_relationship_change\nz.object({\n      operationId,\n      from: id,\n      to: id.optional(),\n      source: source.optional(),\n      kind: z.enum([\"implements\", \"resolves\", \"validated_by\", \"related_to\"]),\n      rationale: text,\n    })"
             }
@@ -4945,8 +5321,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:441",
-                "en": "Input schema · src/contracts/tools.ts:441"
+                "en": "Input schema · src/contracts/tools.ts:508",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:508"
               },
               "code": "// contextory_impact_get\nz.object({\n      codebaseId: id.optional(),\n      id: z.string().min(1).max(2500),\n      direction: z.enum([\"forward\", \"reverse\", \"both\"]).default(\"reverse\"),\n      depth: z.number().int().min(1).max(10).default(5),\n      limit: z.number().int().min(1).max(200).default(50),\n    })"
             }
@@ -4970,8 +5346,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:452",
-                "en": "Input schema · src/contracts/tools.ts:452"
+                "en": "Input schema · src/contracts/tools.ts:519",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:519"
               },
               "code": "// contextory_flow_trace\nz.object({\n      codebaseId: id.optional(),\n      root: z.object({\n        path: z.string().min(1).max(2000),\n        position: z\n          .object({\n            line: z.number().int().nonnegative(),\n            character: z.number().int().nonnegative(),\n          })\n          .optional(),\n        symbol: z.string().max(500).optional(),\n        start: z.enum([\"cursor\", \"function\"]).optional(),\n      }),\n      view: z.enum([\"calls\", \"flow\"]).default(\"calls\"),\n      direction: z.enum([\"outgoing\", \"incoming\"]).default(\"outgoing\"),\n      limits,\n    })"
             }
@@ -4995,8 +5371,8 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:473",
-                "en": "Input schema · src/contracts/tools.ts:473"
+                "en": "Input schema · src/contracts/tools.ts:540",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:540"
               },
               "code": "// contextory_flow_expand\nz.object({\n      codebaseId: id.optional(),\n      graphId: id,\n      snapshotId: id,\n      nodeId: id.optional(),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(30),\n      limits,\n    })"
             }
@@ -5020,10 +5396,244 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:486",
-                "en": "Input schema · src/contracts/tools.ts:486"
+                "en": "Input schema · src/contracts/tools.ts:553",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:553"
               },
               "code": "// contextory_report_export\nz.object({\n      format: z.enum([\"report\", \"changelog\", \"json\"]).default(\"report\"),\n      requestId: id,\n    })"
+            }
+          ]
+        },
+        {
+          "id": "contextory-docs-get",
+          "title": {
+            "en": "Read project documentation",
+            "pt-BR": "Consultar documentação de projeto"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Read paired explanations by query/path/record, source freshness, bundled guidance or a runtime job. Pagination remains explicit.",
+                "pt-BR": "Consulte explicações bilíngues por texto/caminho/registro, atualização das fontes, guias incluídos ou job de runtime. A paginação permanece explícita."
+              }
+            },
+            {
+              "type": "code",
+              "language": "typescript",
+              "caption": {
+                "en": "Input schema · src/contracts/tools.ts:60",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:60"
+              },
+              "code": "// contextory_docs_get\nz.object({\n      section: z\n        .enum([\"overview\", \"sections\", \"guidance\", \"job\"])\n        .default(\"overview\"),\n      query: z.string().max(4000).default(\"\"),\n      path: z.string().max(2000).optional(),\n      recordId: id.optional(),\n      pageId: id.optional(),\n      sectionId: id.optional(),\n      resource: z.string().max(2000).optional(),\n      jobId: id.optional(),\n      locale: z.enum([\"en\", \"pt-BR\"]).default(\"en\"),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(10),\n    })"
+            }
+          ]
+        },
+        {
+          "id": "contextory-docs-run",
+          "title": {
+            "en": "Run bundled documentation operations",
+            "pt-BR": "Executar operações de documentação incluídas"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Queue any upstream documentation operation on demand; mutating operations need a lease and Pages publication needs explicit authorization plus publish=true. Poll the durable job and inspect its result.",
+                "pt-BR": "Enfileire operações de documentação sob demanda; mutações exigem lease e publicar no Pages exige autorização explícita e publish=true. Consulte o job durável e inspecione seu resultado."
+              }
+            },
+            {
+              "type": "code",
+              "language": "typescript",
+              "caption": {
+                "en": "Input schema · src/contracts/tools.ts:79",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:79"
+              },
+              "code": "// contextory_docs_run\nz.object({\n      operationId,\n      action: z.enum([\n        \"map\",\n        \"init\",\n        \"validate\",\n        \"build\",\n        \"integrations\",\n        \"migrate\",\n        \"readme\",\n        \"pages_plan\",\n        \"pages_publish\",\n        \"pages_status\",\n      ]),\n      specId: id.optional(),\n      leaseId: id.optional(),\n      name: z.string().trim().min(1).max(300).optional(),\n      kind: z.enum([\"application\", \"library\", \"plugin\"]).optional(),\n      sourceRoots: z\n        .array(z.string().min(1).max(2000))\n        .min(1)\n        .max(30)\n        .optional(),\n      apply: z.boolean().default(false),\n      siteUrl: z.string().max(2000).optional(),\n      remote: z.string().max(300).optional(),\n      publish: z.boolean().default(false),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(1000).default(100),\n    })"
+            }
+          ]
+        },
+        {
+          "id": "contextory-docs-link",
+          "title": {
+            "en": "Associate a reviewed explanation",
+            "pt-BR": "Associar uma explicação revisada"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Record a source-hash-bound observed association to local records after review, preserving revisions and history; this does not approve requirements.",
+                "pt-BR": "Registre após revisão uma associação observada a registros locais vinculada a hashes de origem, preservando revisões/histórico; isso não aprova requisitos."
+              }
+            },
+            {
+              "type": "code",
+              "language": "typescript",
+              "caption": {
+                "en": "Input schema · src/contracts/tools.ts:113",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:113"
+              },
+              "code": "// contextory_docs_link\nz.object({\n      operationId,\n      ...lease,\n      pageId: id,\n      sectionId: id,\n      corpusFingerprint: z.string().length(64),\n      recordIds: z.array(id).max(30),\n      reason: text,\n    })"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "release-v0-9-0",
+      "title": {
+        "en": "Release v0.9.0",
+        "pt-BR": "Release v0.9.0"
+      },
+      "sources": [
+        {
+          "path": "package.json"
+        },
+        {
+          "path": "src/contracts/model.ts"
+        },
+        {
+          "path": "src/webview/catalog.ts"
+        },
+        {
+          "path": "src/webview/documentation.ts"
+        },
+        {
+          "path": "src/documentation/manager.ts"
+        },
+        {
+          "path": "src/documentation/reader.ts"
+        },
+        {
+          "path": "resources/documentation/PROVENANCE.json"
+        },
+        {
+          "path": "tests/integration/catalog.test.ts"
+        },
+        {
+          "path": "tests/integration/documentation.test.ts"
+        },
+        {
+          "path": "tests/ui/documentation.spec.ts"
+        }
+      ],
+      "sections": [
+        {
+          "id": "approvals",
+          "title": {
+            "en": "Review pending knowledge in Approvals",
+            "pt-BR": "Revise conhecimento pendente em Approvals"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Approvals is a primary destination beside Work and Requests, with a pending count. Alerts and Review now open the queue directly. It fetches observed baselines and pending proposals before pagination; Knowledge remains an independent browser for definitions, history and source coverage.",
+                "pt-BR": "Approvals é um destino principal ao lado de Work e Requests, com contador de pendências. Alertas e Review now abrem a fila diretamente. A consulta seleciona baselines observados e propostas pendentes antes da paginação; Knowledge continua um navegador independente para definições, histórico e cobertura."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "When sources changed, inspect them, enter a reason and refresh the source snapshot before approving the new revision. Refresh keeps the item pending. Inline errors explain missing/conflicting references; reasons survive navigation/failure and duplicate submissions are disabled. This does not grant agents human approval.",
+                "pt-BR": "Quando fontes mudarem, inspecione-as, informe um motivo e atualize o snapshot antes de aprovar a nova revisão. Atualizar mantém o item pendente. Erros locais explicam referências ausentes/conflitantes; motivos sobrevivem a navegação/falhas e envios duplicados são desabilitados. Isso não concede aprovação humana aos agentes."
+              }
+            }
+          ]
+        },
+        {
+          "id": "documentation",
+          "title": {
+            "en": "Independent project explanations and Carbon",
+            "pt-BR": "Explicações independentes e Carbon"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Tools > Documentation searches English/Portuguese explanations by topic, source path or tracked record. Architecture offers Explain this area; request actions find related documentation, including links on descendant specs. Current-project source context retrieves relevant excerpts even before a new specification has explicit associations.",
+                "pt-BR": "Tools > Documentation busca explicações em inglês/português por assunto, caminho ou registro rastreado. Architecture oferece Explain this area; ações do pedido encontram documentação relacionada, incluindo vínculos nas specs descendentes. O contexto de origem recupera trechos relevantes mesmo antes de uma nova especificação ter associações explícitas."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "The extension/CLI bundles software-documentation 1.0.1, its playbooks, the complete Carbon 1.0.0 module and local fonts/tokens/templates. No separate plugin is needed. Three Contextory tools provide reading/guidance/jobs, all upstream generator/consumer/Pages actions and audited observed associations. Text, source and meaningful record changes mark linked explanations stale.",
+                "pt-BR": "A extensão/CLI inclui software-documentation 1.0.1, seus guias, o módulo Carbon 1.0.0 completo e fontes/tokens/modelos locais. Nenhum plugin separado é necessário. Três ferramentas Contextory fornecem leitura/guias/jobs, ações de geração/consumidor/Pages e associações observadas auditadas. Mudanças no texto, nas fontes e no conteúdo de registros marcam explicações vinculadas como desatualizadas."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Reading works without Python. Generation runs only on demand with Python 3.11+ and a current lease for writes; it never blocks service startup. Existing schema-1 corpora can be read, and migration previews/backups preserve authored content before schema-2 Carbon generation. Publishing a connected project remains an explicitly authorized action.",
+                "pt-BR": "A consulta funciona sem Python. A geração ocorre sob demanda com Python 3.11+ e lease atual para mutações; nunca bloqueia a inicialização do serviço. Corpora schema 1 podem ser consultados, e prévias/backups preservam conteúdo antes da geração Carbon schema 2. Publicar um projeto conectado continua uma ação explicitamente autorizada."
+              }
+            },
+            {
+              "type": "link",
+              "href": "documentation",
+              "text": {
+                "en": "Read the documentation workflow",
+                "pt-BR": "Leia o fluxo de documentação"
+              }
+            }
+          ]
+        },
+        {
+          "id": "install",
+          "title": {
+            "en": "Install and reload integrations",
+            "pt-BR": "Instale e recarregue integrações"
+          },
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "en": "Download contextory-workspace-0.9.0.vsix and its .sha256 file; compare the SHA-256 before installing.",
+                  "pt-BR": "Baixe contextory-workspace-0.9.0.vsix e o arquivo .sha256; compare o SHA-256 antes de instalar."
+                },
+                {
+                  "en": "Use Extensions > Install from VSIX and reload VS Code or IBM Bob. Restart native integrations when prompted so the updated tools and managed skill are discovered; native trust stays in the client.",
+                  "pt-BR": "Use Extensions > Install from VSIX e recarregue o VS Code ou IBM Bob. Reinicie integrações nativas quando solicitado para descobrir as ferramentas e skill atualizadas; a confiança permanece no cliente."
+                },
+                {
+                  "en": "Open Approvals for pending human review, or Tools > Documentation to browse project explanations. Python 3.11+ is required only when running documentation operations.",
+                  "pt-BR": "Abra Approvals para revisão humana pendente ou Tools > Documentation para consultar explicações. Python 3.11+ só é necessário ao executar operações de documentação."
+                }
+              ]
+            },
+            {
+              "type": "link",
+              "href": "https://github.com/igormicadei/Contextory/releases/tag/v0.9.0",
+              "text": {
+                "en": "Download 0.9.0",
+                "pt-BR": "Baixar 0.9.0"
+              }
+            }
+          ]
+        },
+        {
+          "id": "validation",
+          "title": {
+            "en": "Qualification and scope",
+            "pt-BR": "Qualificação e escopo"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Release checks cover the production UI at narrow/sidebar and short/panel sizes, backend review boundaries, native MCP/registration, disposable documentation operations and offline Carbon pages in both locales at 1440/390/320 pixels. Bundled resources are verified against 469 upstream hashes. Public publication checks compare downloaded VSIX/checksum and the complete documentation manifest.",
+                "pt-BR": "As verificações cobrem a interface em barra lateral estreita e painel baixo, limites de revisão no backend, MCP/registro nativo, operações descartáveis e páginas Carbon offline nos dois idiomas em 1440/390/320 pixels. Recursos incluídos são verificados contra 469 hashes. A publicação compara VSIX/checksum baixados e o manifesto completo da documentação."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Node.js 24+ and trusted local Windows workspaces remain the qualified extension environment. Native hook trust, authenticated model conversations, other operating systems and remote workspaces retain their existing limits. Reference-project Contextory metadata reuse remains backlog work. Historical definitions, releases and approval state are preserved; generated explanations are not approved requirements.",
+                "pt-BR": "Node.js 24+ e workspaces locais confiáveis no Windows continuam o ambiente qualificado. Confiança de hooks, conversas autenticadas, outros sistemas e workspaces remotos preservam seus limites. Reutilizar metadados Contextory de projetos de referência permanece no backlog. Definições, releases e aprovações históricas são preservadas; explicações geradas não são requisitos aprovados."
+              }
             }
           ]
         }

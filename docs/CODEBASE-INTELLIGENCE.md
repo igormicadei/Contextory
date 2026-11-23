@@ -76,6 +76,14 @@ Refresh/import arguments
 
 Pass these arguments to contextory_code_index_refresh. The importer checks schema, bounded JSON, IDs, edge endpoints and included local source paths; failures preserve the previous import. Regenerate and re-import the entire graph when a cited source changes, disappears or is excluded. Graphify is optional and its provenance/accuracy limits remain visible.
 
+<a id="project-documentation-link"></a>
+
+## Project explanations
+
+Use Tools > Documentation to find explanations linked to current source and tracked work. The bundled documentation/Carbon capability requires no external plugin; generation runs on demand.
+
+[Read the project documentation guide](PROJECT-DOCUMENTATION.md)
+
 ## Sources
 
 - src/codebase/queries.ts

@@ -1,0 +1,143 @@
+<!-- @dsCard group="Web pages" viewport="1280x1000" name="Marketing homepage" subtitle="Utility bar, nav, fluid hero, feature grid, CTA band, dark footer" -->
+<html data-carbon-theme="white"><head><meta charset="utf-8"><title>IBM Carbon — Marketing homepage</title>
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>
+  body { margin: 0; }
+  .util {
+    display: flex; justify-content: flex-end; gap: var(--cds-spacing-06);
+    height: 32px; align-items: center; padding-inline: var(--cds-spacing-05);
+    background: var(--cds-layer-01);
+    font-size: var(--cds-label-01-font-size);
+    letter-spacing: var(--cds-label-01-letter-spacing);
+    color: var(--cds-text-secondary);
+  }
+  .util a { color: inherit; text-decoration: none; }
+  .nav {
+    display: flex; align-items: center; height: 48px;
+    padding-inline: var(--cds-spacing-05);
+    border-block-end: 1px solid var(--cds-border-subtle-01);
+    background: var(--cds-background);
+  }
+  .nav .mark { font-size: 20px; font-weight: 600; letter-spacing: -.03em; margin-inline-end: var(--cds-spacing-08); }
+  .nav a.item {
+    display: flex; align-items: center; height: 100%;
+    padding-inline: var(--cds-spacing-05);
+    color: var(--cds-text-secondary); text-decoration: none;
+    font-size: var(--cds-body-compact-01-font-size);
+    letter-spacing: var(--cds-body-compact-01-letter-spacing);
+  }
+  .nav a.item:hover { color: var(--cds-text-primary); background: var(--cds-background-hover); }
+  .wrap { max-inline-size: var(--cds-container-max); margin-inline: auto; padding-inline: var(--cds-spacing-05); }
+  .band { padding-block: var(--cds-spacing-11); }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--cds-spacing-05); }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--cds-spacing-05); }
+  .logos { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1px; background: var(--cds-border-subtle-01); }
+  .logo {
+    display: flex; align-items: center; justify-content: center;
+    min-block-size: 96px; background: var(--cds-background);
+    color: var(--cds-text-secondary);
+    font-size: var(--cds-body-compact-01-font-size);
+  }
+  @media (max-width: 1055px) { .grid4 { grid-template-columns: repeat(2, 1fr); } .logos { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 671px) { .grid3, .grid4 { grid-template-columns: 1fr; } .util { display: none; } }
+</style>
+</head>
+<body>
+<div class="util">
+  <a href="#">United States</a><a href="#">Contact</a><a href="#">Support</a><a href="#">Sign in</a>
+</div>
+<nav class="nav">
+  <span class="mark">IBM</span>
+  <a class="item" href="#">Products</a>
+  <a class="item" href="#">Solutions</a>
+  <a class="item" href="#">Consulting</a>
+  <a class="item" href="#">Learn</a>
+  <a class="item" href="#">Support</a>
+</nav>
+
+<div id="root"></div>
+
+<script type="text/babel">
+const { HeroBand, FeatureCard, CTABanner, Footer, Button, Tag } = window.IBMCarbonDesignSystem_8852ea;
+
+const arrow = <svg width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="m18 6-1.43 1.393L24.15 15H4v2h20.15l-7.58 7.573L18 26l10-10z"/></svg>;
+
+function Page() {
+  return (
+    <div>
+      <HeroBand
+        eyebrow="IBM watsonx"
+        title="Put AI to work across your business"
+        subtitle="An enterprise studio for AI builders — train, validate, tune and deploy foundation models with governance built in from day one."
+        primaryAction={<Button variant="primary" renderIcon={arrow}>Start building free</Button>}
+        secondaryAction={<Button variant="tertiary">Book a live demo</Button>}
+      />
+
+      {/* Alternate band on layer-01 — Carbon separates sections by surface change, not big gaps. */}
+      <section style={{ background: 'var(--cds-layer-01)' }}>
+        <div className="wrap band">
+          <h2 className="cds--type-fluid-heading-04" style={{ margin: 0, maxInlineSize: '32rem' }}>
+            Built for the way enterprises actually work
+          </h2>
+          <div className="grid3" style={{ marginBlockStart: 'var(--cds-spacing-09)' }}>
+            <FeatureCard title="Hybrid by default" body="Run the same workload on-premises, in your own cloud, or on IBM Cloud — without rewriting it." href="#" linkLabel="Explore hybrid cloud" />
+            <FeatureCard title="Governance you can audit" body="Track lineage, drift and approvals across every model, with an evidence trail regulators accept." href="#" linkLabel="See AI governance" />
+            <FeatureCard title="Open, not locked in" body="Built on open standards and open-source foundations, so your architecture stays yours." href="#" linkLabel="Read the approach" />
+          </div>
+        </div>
+      </section>
+
+      <section className="wrap band">
+        <p style={{ margin: 0, color: 'var(--cds-text-secondary)', fontSize: 'var(--cds-body-compact-01-font-size)', letterSpacing: '0.16px' }}>
+          Trusted by
+        </p>
+        <div className="logos" style={{ marginBlockStart: 'var(--cds-spacing-05)' }}>
+          {['Ferrari', 'Pfizer', 'Lufthansa', 'Banco Santander', 'Delta', 'Wimbledon'].map(n => (
+            <div className="logo" key={n}>{n}</div>
+          ))}
+        </div>
+      </section>
+
+      <section style={{ background: 'var(--cds-layer-01)' }}>
+        <div className="wrap band">
+          <div style={{ display: 'flex', gap: 'var(--cds-spacing-03)', marginBlockEnd: 'var(--cds-spacing-05)' }}>
+            <Tag type="blue">New</Tag><Tag type="teal">Product</Tag>
+          </div>
+          <h2 className="cds--type-fluid-heading-04" style={{ margin: 0, maxInlineSize: '32rem' }}>
+            Latest from IBM
+          </h2>
+          <div className="grid4" style={{ marginBlockStart: 'var(--cds-spacing-09)' }}>
+            <FeatureCard elevated eyebrow="Report" title="The 2026 Cost of a Data Breach" body="Global findings from 600 organizations." href="#" linkLabel="Download" />
+            <FeatureCard elevated eyebrow="Case study" title="How Ferrari models race strategy" body="Real-time telemetry at 300 km/h." href="#" linkLabel="Read the story" />
+            <FeatureCard elevated eyebrow="Guide" title="Migrating to hybrid cloud" body="A practical sequencing playbook." href="#" linkLabel="Get the guide" />
+            <FeatureCard elevated eyebrow="Event" title="TechXchange 2026" body="Three days, 900 technical sessions." href="#" linkLabel="Register" />
+          </div>
+        </div>
+      </section>
+
+      <CTABanner
+        title="Ready to start building?"
+        body="Create an account and deploy your first model in minutes. No credit card required."
+        actions={<Button variant="secondary" renderIcon={arrow}>Create an account</Button>}
+      />
+
+      <Footer
+        columns={[
+          { title: 'Products', links: [{ label: 'watsonx' }, { label: 'IBM Cloud' }, { label: 'Security' }, { label: 'Storage' }] },
+          { title: 'Learn', links: [{ label: 'Documentation' }, { label: 'Tutorials' }, { label: 'Community' }, { label: 'Training' }] },
+          { title: 'Company', links: [{ label: 'About IBM' }, { label: 'Careers' }, { label: 'Newsroom' }, { label: 'Investors' }] },
+          { title: 'Support', links: [{ label: 'Contact' }, { label: 'Status' }, { label: 'Partner portal' }] },
+        ]}
+        legalLinks={[{ label: 'Privacy' }, { label: 'Terms of use' }, { label: 'Accessibility' }, { label: 'Cookie preferences' }]}
+        copyright="© 2026 IBM"
+      />
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<Page />);
+</script>
+</body></html>

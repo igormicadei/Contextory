@@ -1,0 +1,81 @@
+<!-- @dsCard group="Components" viewport="980x820" name="Feedback" subtitle="Notifications, modal, tags, loading, accordion" -->
+<html data-carbon-theme="white"><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>
+body{margin:0;padding:24px;background:var(--cds-background);color:var(--cds-text-primary);font-family:var(--cds-font-sans)}
+.lbl{font-size:.75rem;letter-spacing:.32px;color:var(--cds-text-secondary);margin:0 0 10px}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;margin-bottom:24px}
+.col{display:flex;flex-direction:column;gap:16px;margin-bottom:24px}
+</style></head>
+<body><div id="root"></div>
+<script type="text/babel">
+const { InlineNotification, ToastNotification, Tag, Accordion, Tooltip, Loading, InlineLoading, ProgressBar, SkeletonText, Modal, Button } = window.IBMCarbonDesignSystem_8852ea;
+function App(){
+  const [open,setOpen]=React.useState(false);
+  return <div>
+  <p className="lbl">Inline notifications — the 3px bar carries the meaning</p>
+  <div className="col" style={{maxWidth:620}}>
+    <InlineNotification kind="error" title="Upload failed" subtitle="The file exceeds 10 MB." />
+    <InlineNotification kind="success" lowContrast title="Deployed" subtitle="Build 482 is live." />
+    <InlineNotification kind="warning" lowContrast title="Quota at 90%" subtitle="Consider upgrading." />
+  </div>
+
+  <p className="lbl">Toast</p>
+  <div className="row">
+    <ToastNotification kind="success" title="Deployed" subtitle="Build 482 is live." caption="just now" />
+    <ToastNotification kind="info" lowContrast title="Maintenance" subtitle="Scheduled for 02:00 UTC." caption="2 minutes ago" />
+  </div>
+
+  <p className="lbl">Tags — colour is category, not status</p>
+  <div className="row" style={{gap:8}}>
+    <Tag type="blue">Production</Tag><Tag type="teal">Staging</Tag><Tag type="purple">Internal</Tag>
+    <Tag type="gray">Archived</Tag><Tag type="red">Deprecated</Tag>
+    <Tag type="cyan" filter onClose={()=>{}}>region: eu-de</Tag>
+    <Tag type="outline">Outline</Tag>
+  </div>
+
+  <p className="lbl">Loading and progress</p>
+  <div className="row" style={{alignItems:'center',gap:32}}>
+    <Loading small />
+    <InlineLoading status="active" description="Saving…" />
+    <InlineLoading status="finished" description="Saved" />
+    <InlineLoading status="error" description="Couldn't save" />
+    <div style={{width:220}}><ProgressBar label="Uploading" value={62} helperText="62 of 100 MB" /></div>
+  </div>
+
+  <p className="lbl">Skeleton</p>
+  <div style={{maxWidth:420,marginBottom:24}}>
+    <SkeletonText heading width="55%" />
+    <SkeletonText paragraph lineCount={3} />
+  </div>
+
+  <div className="row" style={{alignItems:'center',gap:32}}>
+    <div>
+      <p className="lbl">Tooltip (hover or focus)</p>
+      <Tooltip label="Copy to clipboard"><Button variant="tertiary" size="md">Hover me</Button></Tooltip>
+    </div>
+    <div>
+      <p className="lbl">Modal</p>
+      <Button variant="danger" size="md" onClick={()=>setOpen(true)}>Delete instance</Button>
+    </div>
+  </div>
+
+  <p className="lbl">Accordion</p>
+  <div style={{maxWidth:620}}>
+    <Accordion items={[
+      {title:'What is Carbon?',content:<p style={{margin:0}}>IBM's open-source design system for products and digital experiences.</p>,open:true},
+      {title:'Which themes ship?',content:<p style={{margin:0}}>Four: white and g10 (light), g90 and g100 (dark).</p>},
+      {title:'Is IBM Plex free?',content:<p style={{margin:0}}>Yes — SIL Open Font License.</p>}]} />
+  </div>
+
+  <Modal open={open} modalHeading="Delete instance" modalLabel="db-prod-01" danger
+    primaryButtonText="Delete" secondaryButtonText="Cancel"
+    onRequestClose={()=>setOpen(false)} onRequestSubmit={()=>setOpen(false)}>
+    Deleting this instance permanently removes all of its data. This can't be undone.
+  </Modal>
+</div>;}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script></body></html>

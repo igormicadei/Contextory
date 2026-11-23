@@ -2,6 +2,7 @@
 * text=auto eol=lf
 /.documentation/legacy/** -text
 /scripts/documentation/vendor/** -text
+/resources/documentation/** -text -whitespace
 
 # Portable skill resources and their generated bundle use exact LF bytes.
 /skills/** text eol=lf

@@ -1,0 +1,59 @@
+<!-- @dsCard group="Components" viewport="980x720" name="Data" subtitle="Data table, tiles, structured list, code snippet" -->
+<html data-carbon-theme="white"><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>
+body{margin:0;padding:24px;background:var(--cds-background);color:var(--cds-text-primary);font-family:var(--cds-font-sans)}
+.lbl{font-size:.75rem;letter-spacing:.32px;color:var(--cds-text-secondary);margin:0 0 10px}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;margin-bottom:24px}
+.col{display:flex;flex-direction:column;gap:16px;margin-bottom:24px}
+</style></head>
+<body><div id="root"></div>
+<script type="text/babel">
+const { DataTable, Tile, StructuredList, CodeSnippet } = window.IBMCarbonDesignSystem_8852ea;
+const rows=[
+  {id:1,name:'db-prod-01',region:'us-south',status:'Active'},
+  {id:2,name:'db-stage-02',region:'eu-de',status:'Provisioning'},
+  {id:3,name:'db-dev-07',region:'jp-tok',status:'Stopped'}];
+
+function App(){
+  const [sel,setSel]=React.useState([1]);
+  return <div>
+  <p className="lbl">Data table — sortable, selectable</p>
+  <div style={{marginBottom:24}}>
+    <DataTable isSortable selectable selectedRows={sel}
+      onSelect={id=>setSel(s=>s.includes(id)?s.filter(x=>x!==id):[...s,id])}
+      title="Database instances" description="All instances in this resource group."
+      headers={[{key:'name',header:'Name'},{key:'region',header:'Region'},{key:'status',header:'Status'}]}
+      rows={rows} />
+  </div>
+
+  <p className="lbl">Tiles — base, clickable, selectable, expandable</p>
+  <div className="row">
+    <Tile style={{width:200}}>Base tile. Flat layer-01, square corners, no shadow.</Tile>
+    <Tile variant="clickable" href="#" style={{width:200}}>Clickable tile with a hairline border.</Tile>
+    <Tile variant="selectable" style={{width:200}} defaultSelected>Selectable tile</Tile>
+    <Tile variant="expandable" style={{width:220}} aboveTheFold={<strong>Summary</strong>}>
+      Hidden detail revealed on expand.
+    </Tile>
+  </div>
+
+  <div className="row" style={{alignItems:'flex-start'}}>
+    <div style={{flex:1,minWidth:320}}>
+      <p className="lbl">Structured list</p>
+      <StructuredList selection selectedIndex={1}
+        headers={['Plan','Price','Support']}
+        rows={[['Lite','Free','Community'],['Standard','$99/mo','Business hours'],['Premium','$499/mo','24/7']]} />
+    </div>
+    <div style={{flex:1,minWidth:320}}>
+      <p className="lbl">Code snippet</p>
+      <CodeSnippet>npm install @carbon/react</CodeSnippet>
+      <div style={{height:12}} />
+      <CodeSnippet type="multi">{'FROM node:20-alpine\nWORKDIR /app\nCOPY . .\nRUN npm ci --omit=dev\nCMD ["node","server.js"]'}</CodeSnippet>
+    </div>
+  </div>
+</div>;}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script></body></html>

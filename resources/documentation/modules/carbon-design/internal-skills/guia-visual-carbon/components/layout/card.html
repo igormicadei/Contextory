@@ -1,0 +1,44 @@
+<!-- @dsCard group="Components" viewport="900x480" name="Layout" subtitle="2x Grid, Column, Stack, AspectRatio" -->
+<html data-carbon-theme="white"><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>
+body{margin:0;padding:24px;background:var(--cds-background);color:var(--cds-text-primary);font-family:var(--cds-font-sans)}
+.lbl{font-size:.75rem;letter-spacing:.32px;color:var(--cds-text-secondary);margin:0 0 10px}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;margin-bottom:24px}
+.col{display:flex;flex-direction:column;gap:16px;margin-bottom:24px}
+</style></head>
+<body><div id="root"></div>
+<script type="text/babel">
+const { Grid, Column, Stack, AspectRatio, Tile } = window.IBMCarbonDesignSystem_8852ea;
+const box=t=><div style={{background:'var(--cds-layer-01)',padding:16,fontSize:'.875rem'}}>{t}</div>;
+
+function App(){return <div>
+  <p className="lbl">Grid — span values are per-breakpoint column counts</p>
+  <div style={{marginBottom:24}}>
+    <Grid>
+      <Column sm={4} md={4} lg={8}>{box('sm 4 · md 4 · lg 8')}</Column>
+      <Column sm={4} md={4} lg={8}>{box('sm 4 · md 4 · lg 8')}</Column>
+      <Column sm={4} md={8} lg={4}>{box('lg 4')}</Column>
+      <Column sm={4} md={4} lg={4}>{box('lg 4')}</Column>
+      <Column sm={4} md={4} lg={8}>{box('lg 8')}</Column>
+    </Grid>
+  </div>
+
+  <div className="row" style={{alignItems:'flex-start',gap:32}}>
+    <div style={{flex:1}}>
+      <p className="lbl">Stack — gap is a spacing STEP, not pixels</p>
+      <Stack gap={5}>{box('gap={5} → 1rem')}{box('stays on-grid')}{box('every time')}</Stack>
+    </div>
+    <div style={{flex:1}}>
+      <p className="lbl">AspectRatio</p>
+      <AspectRatio ratio="16x9">
+        <div style={{width:'100%',height:'100%',background:'var(--cds-blue-20)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'.875rem'}}>16x9</div>
+      </AspectRatio>
+    </div>
+  </div>
+</div>;}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script></body></html>

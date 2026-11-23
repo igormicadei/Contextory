@@ -1,0 +1,39 @@
+<!-- @dsCard group="Brand" viewport="900x420" name="Accessibility" subtitle="Focus, contrast, and never relying on colour alone" -->
+<html data-carbon-theme="white"><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
+<style>
+body{margin:0;padding:24px;background:var(--cds-background);color:var(--cds-text-primary);font-family:var(--cds-font-sans)}
+.h{font-size:.75rem;letter-spacing:.32px;color:var(--cds-text-secondary);margin:0 0 12px}
+.sw{display:flex;flex-direction:column;justify-content:flex-end;padding:6px;font-size:10px;line-height:1.2}
+
+</style></head>
+<body>
+<p class="h">Carbon targets WCAG 2.1 AA. Three rules do most of the work.</p>
+
+<div style="margin-bottom:18px">
+  <div class="h">1 — Focus is a 2px ring in the focus colour, drawn inside the element</div>
+  <div style="display:flex;gap:14px;align-items:center">
+    <button style="height:48px;padding:0 64px 0 16px;background:var(--cds-button-primary);color:var(--cds-text-on-color);border:none;font-family:var(--cds-font-sans);font-size:.875rem">Rest</button>
+    <button style="height:48px;padding:0 64px 0 16px;background:var(--cds-button-primary);color:var(--cds-text-on-color);border:none;outline:2px solid var(--cds-focus);outline-offset:-4px;font-family:var(--cds-font-sans);font-size:.875rem">Focused</button>
+  </div>
+</div>
+
+<div style="margin-bottom:18px">
+  <div class="h">2 — Status never rests on colour alone: shape and text carry it too</div>
+  <div style="display:flex;gap:10px;align-items:center;font-size:.875rem">
+    <span style="display:inline-flex;align-items:center;gap:6px;color:var(--cds-text-primary)">
+      <svg width="16" height="16" viewBox="0 0 32 32" style="fill:var(--cds-support-success)"><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm-2 19.6-5.3-5.3 1.4-1.4 3.9 3.9 8.5-8.5 1.4 1.4Z"/></svg> Passed
+    </span>
+    <span style="display:inline-flex;align-items:center;gap:6px;color:var(--cds-text-primary)">
+      <svg width="16" height="16" viewBox="0 0 32 32" style="fill:var(--cds-support-error)"><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2Zm-1.1 6h2.2v11h-2.2Zm1.1 17.2a1.6 1.6 0 1 1 1.6-1.6 1.6 1.6 0 0 1-1.6 1.6Z"/></svg> Failed
+    </span>
+  </div>
+</div>
+
+<div>
+  <div class="h">3 — Contrast is measured in grade steps</div>
+  <div style="font-size:.875rem;color:var(--cds-text-secondary);max-width:640px;line-height:1.5">
+    Two colours from the same family need a gap of at least 50 grades to pass AA for body text
+    (gray-100 on gray-10 = 90 steps, safe). Text at 24px+ or 19px bold can drop to a 40-step gap.
+  </div>
+</div>
+</body></html>

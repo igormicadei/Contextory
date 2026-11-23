@@ -16,6 +16,15 @@ notices.push(
   "",
 );
 const seen = new Set();
+notices.push(
+  "=".repeat(72),
+  "software-documentation 1.0.1 and carbon-design 1.0.0 - bundled project documentation capability",
+  "Origin/revision and exact resource hashes: dist/documentation/PROVENANCE.json",
+  "License: MIT; IBM Plex fonts: SIL Open Font License",
+  await readFile("resources/documentation/LICENSE", "utf8"),
+  await readFile("resources/documentation/runtime/assets/fonts/LICENSE.txt", "utf8"),
+  "",
+);
 for (const [path, entry] of Object.entries(lock.packages)) {
   if (!path || entry.dev || entry.optional) continue;
   const pkg = JSON.parse(await readFile(join(path, "package.json"), "utf8"));

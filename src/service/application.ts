@@ -35,6 +35,7 @@ import { ReferenceCodebases } from "../codebase/references";
 import { clients, clientIds } from "../providers/clients";
 import { HookRecovery } from "../providers/recovery";
 import { WorkspaceProjects } from "./workspace";
+import { DocumentationManager } from "../documentation/manager";
 import {
   completionNote,
   retrievalGuidance,
@@ -49,6 +50,7 @@ import {
 export class Application {
   readonly hooks: HookRecovery;
   readonly workspace: WorkspaceProjects;
+  readonly documentation: DocumentationManager;
   private readonly observations = new Set<string>();
   readonly releases: ReleaseManager;
   readonly workflow: Workflow;
@@ -74,6 +76,11 @@ export class Application {
     this.workspace = new WorkspaceProjects(this);
     this.releases = new ReleaseManager(ledger);
     this.workflow = new Workflow(ledger);
+    this.documentation = new DocumentationManager(
+      this.workflow,
+      join(dirname(workerPath), "documentation"),
+      storage,
+    );
     this.catalog = new Catalog(ledger, this.workflow);
     this.knowledge = new Knowledge(ledger, new Embeddings(embeddingDirectory));
     this.analysis = new AnalysisManager(ledger.root, workerPath);
@@ -326,6 +333,16 @@ export class Application {
       );
     }
     switch (key) {
+      case "contextory_docs_get":
+        return this.documentation.get(a as Input<typeof key>);
+      case "contextory_docs_run":
+        return this.documentation.run(
+          a as Input<typeof key>,
+          actor,
+          this.codebase.pythonExecutable,
+        );
+      case "contextory_docs_link":
+        return this.documentation.link(a as Input<typeof key>, actor);
       case "contextory_hooks_rebuild":
         return {
           ...(await this.hooks.rebuild(a as Input<typeof key>, actor)),
@@ -494,17 +511,46 @@ export class Application {
       }
       case "contextory_code_context_get": {
         const p = a as Input<typeof key>;
-        return this.codeQueries.context(
+        const documentation =
+          p.budgetTokens >= 1024
+            ? await this.documentationContext(
+                p.query,
+                p.paths[0],
+                p.specId,
+                Math.min(2400, p.budgetTokens),
+              )
+            : undefined;
+        const reserved = documentation
+          ? Math.ceil(
+              Buffer.byteLength(JSON.stringify(documentation), "utf8") / 3,
+            ) + 64
+          : 0;
+        const context = await this.codeQueries.context(
           p.query,
           p.paths,
           p.specId,
-          p.budgetTokens,
+          p.budgetTokens - reserved,
         );
+        return documentation
+          ? {
+              ...context,
+              budgetTokens: p.budgetTokens,
+              budgetBytes: p.budgetTokens * 3,
+              documentation,
+            }
+          : context;
       }
       case "contextory_code_architecture_get": {
         const p = a as Input<typeof key>;
         if (p.refresh) await this.codebase.fresh();
-        return this.codeQueries.architecture();
+        return {
+          ...this.codeQueries.architecture(),
+          documentation: {
+            tool: "contextory_docs_get",
+            section: "sections",
+            hint: "Filter by a source path to explain this area; source freshness and approved records remain distinct.",
+          },
+        };
       }
       case "contextory_code_path_get": {
         const p = a as Input<typeof key>;
@@ -791,7 +837,59 @@ export class Application {
           .run(String(row.id));
     return { files: files.length, chunks, partial: chunks >= 10000, codebase };
   }
+  private async documentationContext(
+    query: string,
+    path: string | undefined,
+    recordId: string | undefined,
+    budgetBytes: number,
+  ) {
+    try {
+      const p = tools.contextory_docs_get.schema.parse({
+        section: "sections",
+        query,
+        path,
+        limit: 2,
+      });
+      let result = await this.documentation.reader.get(p);
+      // A new specification has no documentation associations yet. Source/topic
+      // relevance must still recover the explanations it needs before editing.
+      if (!result.sections.length && recordId)
+        result = await this.documentation.reader.get(
+          tools.contextory_docs_get.schema.parse({
+            section: "sections",
+            recordId,
+            limit: 2,
+          }),
+        );
+      if (!result.sections.length) return undefined;
+      const output = {
+        state: result.state,
+        tool: "contextory_docs_get",
+        corpusFingerprint: result.corpusFingerprint,
+        note: "Authored explanations; inspect source freshness and record approval separately. Page docs_get for full content.",
+        sections: result.sections.map((s) => ({
+          ...s,
+          text: s.text.slice(0, 800),
+          truncated: s.truncated || s.text.length > 800,
+        })),
+      };
+      while (
+        Buffer.byteLength(JSON.stringify(output), "utf8") > budgetBytes &&
+        output.sections.length
+      ) {
+        const last = output.sections.at(-1)!;
+        if (last.text.length > 100) {
+          last.text = last.text.slice(0, Math.floor(last.text.length / 2));
+          last.truncated = true;
+        } else output.sections.pop();
+      }
+      return output.sections.length ? output : undefined;
+    } catch (error) {
+      return undefined;
+    }
+  }
   async close() {
+    await this.documentation.close();
     await this.releases.close();
     await this.references.close();
     await this.codebase.close();

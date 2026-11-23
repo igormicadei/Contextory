@@ -1,0 +1,151 @@
+<!-- @dsCard group="Application UI" viewport="1280x900" name="Product dashboard" subtitle="UI Shell, side nav, metric tiles, sortable data table, pagination" -->
+<html data-carbon-theme="g10"><head><meta charset="utf-8"><title>IBM Carbon — Product dashboard</title>
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>
+  /* g10 is Carbon's standard light PRODUCT theme: gray-10 page, white layers.
+     That inversion (page darker than its cards) is what separates product
+     surfaces from marketing surfaces, which use the white theme. */
+  body { margin: 0; background: var(--cds-background); }
+  .shell { display: flex; min-block-size: calc(100vh - 48px); }
+  .main { flex: 1; min-inline-size: 0; padding: var(--cds-spacing-06); }
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--cds-spacing-05); }
+  @media (max-width: 1055px) { .metrics { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 671px) { .metrics { grid-template-columns: 1fr; } .rail { display: none; } }
+</style>
+</head>
+<body><div id="root"></div>
+<script type="text/babel">
+const {
+  UIShellHeader, SideNav, Breadcrumb, Tabs, DataTable, Pagination,
+  Tile, Tag, Button, Search, OverflowMenu, InlineNotification, ProgressBar
+} = window.IBMCarbonDesignSystem_8852ea;
+
+const icon = d => <svg width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d={d} /></svg>;
+const searchIcon = <svg width="20" height="20" viewBox="0 0 32 32" fill="currentColor"><path d="M29 27.586 20.336 18.92a11.014 11.014 0 1 0-1.414 1.414L27.586 29ZM5 12a9 9 0 1 1 9 9 9.01 9.01 0 0 1-9-9Z"/></svg>;
+
+const ALL = [
+  { id: 1, name: 'db-prod-01',   plan: 'Premium',  region: 'us-south', status: 'Active',       cpu: 68 },
+  { id: 2, name: 'db-prod-02',   plan: 'Premium',  region: 'us-east',  status: 'Active',       cpu: 41 },
+  { id: 3, name: 'db-stage-01',  plan: 'Standard', region: 'eu-de',    status: 'Provisioning', cpu: 12 },
+  { id: 4, name: 'db-dev-07',    plan: 'Lite',     region: 'jp-tok',   status: 'Stopped',      cpu: 0  },
+  { id: 5, name: 'cache-prod-01',plan: 'Standard', region: 'us-south', status: 'Active',       cpu: 55 },
+  { id: 6, name: 'queue-prod-01',plan: 'Standard', region: 'eu-gb',    status: 'Degraded',     cpu: 91 },
+];
+
+const statusTag = s => {
+  const map = { Active: 'green', Provisioning: 'blue', Stopped: 'gray', Degraded: 'red' };
+  return <Tag type={map[s] || 'gray'} size="sm">{s}</Tag>;
+};
+
+function Metric({ label, value, delta, tone }) {
+  return (
+    <Tile>
+      <div style={{ color: 'var(--cds-text-secondary)', fontSize: 'var(--cds-label-01-font-size)', letterSpacing: '0.32px' }}>{label}</div>
+      <div className="cds--type-heading-04" style={{ marginBlockStart: 'var(--cds-spacing-03)', color: 'var(--cds-text-primary)' }}>{value}</div>
+      {delta && (
+        <div style={{ marginBlockStart: 'var(--cds-spacing-03)', fontSize: 'var(--cds-label-01-font-size)', color: tone === 'up' ? 'var(--cds-support-success)' : 'var(--cds-text-secondary)' }}>
+          {delta}
+        </div>
+      )}
+    </Tile>
+  );
+}
+
+function App() {
+  const [page, setPage] = React.useState(1);
+  const [pageSize, setPageSize] = React.useState(10);
+  const [sel, setSel] = React.useState([]);
+  const [tab, setTab] = React.useState(0);
+
+  const rows = ALL.map(r => ({ ...r, status: statusTag(r.status) }));
+
+  return (
+    <div>
+      <UIShellHeader
+        prefix="IBM" name="Cloud Databases"
+        navItems={[{ label: 'Resources', isActive: true }, { label: 'Catalog' }, { label: 'Docs' }, { label: 'Support' }]}
+        actions={[{ label: 'Search', icon: searchIcon }, { label: 'Notifications', icon: icon('M28 24v-6a12 12 0 1 0-24 0v6H2v2h28v-2ZM16 30a3 3 0 0 0 3-3h-6a3 3 0 0 0 3 3Z') }]}
+      />
+
+      <div className="shell">
+        <div className="rail" style={{ inlineSize: 256, flex: 'none', background: 'var(--cds-layer-01)' }}>
+          <SideNav items={[
+            { label: 'Overview', isActive: true },
+            { label: 'Databases', defaultExpanded: true, items: [{ label: 'Instances', isActive: true }, { label: 'Backups' }, { label: 'Connections' }] },
+            { label: 'Networking' },
+            { label: 'Access (IAM)' },
+            { label: 'Monitoring' },
+            { label: 'Billing' },
+          ]} />
+        </div>
+
+        <main className="main">
+          <Breadcrumb items={[{ label: 'Resource list', href: '#' }, { label: 'Databases', href: '#' }, 'Instances']} />
+
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 'var(--cds-spacing-05)', marginBlockStart: 'var(--cds-spacing-05)' }}>
+            <h1 className="cds--type-heading-04" style={{ margin: 0 }}>Database instances</h1>
+            <div style={{ display: 'flex', gap: 'var(--cds-spacing-04)' }}>
+              <Button variant="tertiary" size="md">Export</Button>
+              <Button variant="primary" size="md">Create instance</Button>
+            </div>
+          </div>
+
+          <div style={{ marginBlockStart: 'var(--cds-spacing-06)' }}>
+            <InlineNotification
+              kind="warning" lowContrast
+              title="queue-prod-01 is degraded."
+              subtitle="CPU has been above 90% for 20 minutes."
+              actionLabel="View metrics"
+            />
+          </div>
+
+          <div className="metrics" style={{ marginBlockStart: 'var(--cds-spacing-06)' }}>
+            <Metric label="Total instances" value="6" delta="+2 this month" tone="up" />
+            <Metric label="Active" value="3" />
+            <Metric label="Monthly spend" value="$1,284" delta="+8% vs. last month" tone="up" />
+            <Metric label="Avg. CPU" value="44%" />
+          </div>
+
+          <div style={{ marginBlockStart: 'var(--cds-spacing-07)' }}>
+            <Tabs tabs={['All instances', 'Production', 'Non-production', 'Archived']} selectedIndex={tab} onChange={({ selectedIndex }) => setTab(selectedIndex)} />
+          </div>
+
+          <div style={{ display: 'flex', gap: 'var(--cds-spacing-05)', alignItems: 'center', marginBlockStart: 'var(--cds-spacing-05)' }}>
+            <div style={{ flex: 1, maxInlineSize: 480 }}><Search size="md" labelText="Search instances" placeholder="Search instances" /></div>
+            <OverflowMenu items={[{ label: 'Refresh' }, { label: 'Manage columns' }, { label: 'Delete selected', isDelete: true }]} />
+          </div>
+
+          <div style={{ marginBlockStart: 'var(--cds-spacing-05)' }}>
+            <DataTable
+              isSortable selectable size="lg"
+              selectedRows={sel}
+              onSelect={id => setSel(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id])}
+              headers={[
+                { key: 'name', header: 'Name' },
+                { key: 'plan', header: 'Plan' },
+                { key: 'region', header: 'Region' },
+                { key: 'status', header: 'Status' },
+              ]}
+              rows={rows.slice((page - 1) * pageSize, page * pageSize)}
+            />
+            <Pagination
+              page={page} pageSize={pageSize} totalItems={ALL.length}
+              onChange={({ page, pageSize }) => { setPage(page); setPageSize(pageSize); }}
+            />
+          </div>
+
+          <div style={{ marginBlockStart: 'var(--cds-spacing-07)', maxInlineSize: 420 }}>
+            <ProgressBar label="Storage used" value={62} max={100} helperText="620 GB of 1 TB" />
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body></html>

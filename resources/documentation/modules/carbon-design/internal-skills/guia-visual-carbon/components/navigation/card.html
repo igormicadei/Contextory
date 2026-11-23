@@ -1,0 +1,62 @@
+<!-- @dsCard group="Components" viewport="980x720" name="Navigation" subtitle="Shell, side nav, tabs, breadcrumb, pagination" -->
+<html data-carbon-theme="white"><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>
+body{margin:0;padding:24px;background:var(--cds-background);color:var(--cds-text-primary);font-family:var(--cds-font-sans)}
+.lbl{font-size:.75rem;letter-spacing:.32px;color:var(--cds-text-secondary);margin:0 0 10px}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;margin-bottom:24px}
+.col{display:flex;flex-direction:column;gap:16px;margin-bottom:24px}
+</style></head>
+<body><div id="root"></div>
+<script type="text/babel">
+const { UIShellHeader, SideNav, Tabs, Breadcrumb, Pagination, OverflowMenu, ProgressIndicator, Link } = window.IBMCarbonDesignSystem_8852ea;
+function App(){return <div>
+  <p className="lbl">UI Shell header — always 48px, always dark</p>
+  <div style={{marginBottom:24,border:'1px solid var(--cds-border-subtle-01)'}}>
+    <UIShellHeader prefix="IBM" name="Cloud Pak"
+      navItems={[{label:'Catalog',isActive:true},{label:'Docs'},{label:'Support'}]}
+      actions={[{label:'Search',icon:<svg width="20" height="20" viewBox="0 0 32 32" fill="currentColor"><path d="M29 27.586 20.336 18.92a11.014 11.014 0 1 0-1.414 1.414L27.586 29ZM5 12a9 9 0 1 1 9 9 9.01 9.01 0 0 1-9-9Z"/></svg>}]} />
+  </div>
+
+  <div className="row" style={{alignItems:'stretch'}}>
+    <div style={{width:240,border:'1px solid var(--cds-border-subtle-01)'}}>
+      <p className="lbl" style={{padding:'10px 16px 0'}}>Side nav</p>
+      <SideNav items={[
+        {label:'Overview',isActive:true},
+        {label:'Storage',items:[{label:'Buckets'},{label:'Volumes',isActive:true}],defaultExpanded:true},
+        {label:'Networking'},{label:'Billing'}]} />
+    </div>
+
+    <div style={{flex:1,minWidth:380}}>
+      <p className="lbl">Breadcrumb</p>
+      <div style={{marginBottom:20}}>
+        <Breadcrumb items={[{label:'Home',href:'#'},{label:'Services',href:'#'},'Databases']} />
+      </div>
+
+      <p className="lbl">Tabs</p>
+      <div style={{marginBottom:20}}>
+        <Tabs tabs={['Overview','Usage','Billing','Archived']} defaultSelectedIndex={0} />
+      </div>
+
+      <p className="lbl">Progress indicator</p>
+      <div style={{marginBottom:20}}>
+        <ProgressIndicator steps={['Account','Plan','Confirm']} currentIndex={1} />
+      </div>
+
+      <p className="lbl">Overflow menu &amp; links</p>
+      <div className="row" style={{alignItems:'center'}}>
+        <OverflowMenu items={[{label:'Edit'},{label:'Duplicate'},{label:'Delete',isDelete:true}]} />
+        <Link href="#">Standalone link</Link>
+        <span style={{fontSize:'.875rem'}}>Body text with an <Link inline href="#">inline link</Link> inside.</span>
+      </div>
+    </div>
+  </div>
+
+  <p className="lbl">Pagination</p>
+  <Pagination page={1} pageSize={20} totalItems={482} onChange={()=>{}} />
+</div>;}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script></body></html>

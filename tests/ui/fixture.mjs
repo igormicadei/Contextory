@@ -316,6 +316,9 @@ const catalogBaseline = entity(
   "SPEC-demo",
   "observed",
 );
+const catalogScenario = new URLSearchParams(location.search).get("catalog");
+let catalogBaselineStale = catalogScenario === "stale";
+let failCatalogReview = catalogScenario === "changed-during-review";
 const catalogUi = {
   category: "ui",
   title: "Retry payment control",
@@ -391,6 +394,83 @@ window.acquireVsCodeApi = () => ({
   setState() {},
   postMessage(message) {
     window.contextoryMessages.push(message);
+    if (message.type === "tool" && message.name === "contextory_docs_get") {
+      const scenario = new URLSearchParams(location.search).get(
+        "documentation",
+      );
+      if (scenario === "error")
+        send({
+          type: "toolError",
+          requestId: message.requestId,
+          text: "Documentation corpus is malformed",
+        });
+      else if (message.arguments.section === "job")
+        send({
+          type: "toolResult",
+          requestId: message.requestId,
+          result: {
+            state: "passed",
+            data: {
+              action: "validate",
+              result: {
+                valid: false,
+                errors: ["Source changed; review the explanation"],
+              },
+            },
+          },
+        });
+      else {
+        const portuguese = message.arguments.locale === "pt-BR";
+        const sections =
+          scenario === "missing" || message.arguments.query === "no matches"
+            ? []
+            : [
+                {
+                  id: "docs:payments#retry",
+                  pageId: "payments",
+                  sectionId: "retry",
+                  pageTitle: "Payment behavior",
+                  title: portuguese ? "Repetir pagamentos" : "Retry a payment",
+                  text: portuguese
+                    ? "A repetição preserva a identidade do pagamento."
+                    : "Retries preserve the payment identity. <script>alert('unsafe')</script>",
+                  sources: [{ path: "src/payments.ts", line: 14 }],
+                  records: [
+                    {
+                      id: "SPEC-demo",
+                      title: "Retry failed payments",
+                      state: "implementing",
+                      kind: "spec",
+                      revision: 1,
+                    },
+                  ],
+                  freshness: { state: "stale", changed: ["src/payments.ts"] },
+                  provenance:
+                    "Authored explanation; source freshness and record approval are separate.",
+                  truncated: false,
+                },
+              ];
+        send({
+          type: "toolResult",
+          requestId: message.requestId,
+          result: {
+            state: scenario === "missing" ? "missing" : "available",
+            name: "Checkout",
+            schemaVersion: 2,
+            sections,
+            total: sections.length,
+            nextOffset: null,
+            note: "Page all sections; authored explanations need source review.",
+          },
+        });
+      }
+    }
+    if (message.type === "tool" && message.name === "contextory_docs_run")
+      send({
+        type: "toolResult",
+        requestId: message.requestId,
+        result: { jobId: "JOB-docs", state: "running" },
+      });
     queueMicrotask(() => {
       if (
         message.type === "tool" &&
@@ -480,8 +560,9 @@ window.acquireVsCodeApi = () => ({
         message.type === "tool" &&
         message.name === "contextory_catalog_get"
       ) {
-        const records = [catalogBaseline, catalogApproved].filter(
+        const records = [catalogApproved, catalogBaseline].filter(
           (r) =>
+            (!message.arguments.pendingOnly || r.state === "observed") &&
             (!message.arguments.category ||
               r.data.content.category === message.arguments.category) &&
             (!message.arguments.query ||
@@ -504,11 +585,25 @@ window.acquireVsCodeApi = () => ({
               ? []
               : records.map((r) => ({
                   ...r,
-                  freshness: { state: "current", changed: [] },
+                  freshness: {
+                    state:
+                      r.id === catalogBaseline.id && catalogBaselineStale
+                        ? "stale"
+                        : "current",
+                    changed:
+                      r.id === catalogBaseline.id && catalogBaselineStale
+                        ? ["src/payments.ts"]
+                        : [],
+                  },
                 })),
             proposals:
               catalogProposal.state === "pending" && !message.arguments.offset
-                ? [catalogProposal]
+                ? [
+                    {
+                      ...catalogProposal,
+                      freshness: { state: "current", changed: [] },
+                    },
+                  ]
                 : [],
             nextOffset: null,
             proposalsNextOffset: null,
@@ -528,6 +623,27 @@ window.acquireVsCodeApi = () => ({
         message.type === "tool" &&
         message.name === "contextory_catalog_review"
       ) {
+        if (failCatalogReview && message.arguments.id === catalogBaseline.id) {
+          failCatalogReview = false;
+          catalogBaselineStale = true;
+          send({
+            type: "toolError",
+            requestId: message.requestId,
+            code: "STALE_CATALOG",
+            text: "Sources changed during review. Review the changed files and refresh the source snapshot.",
+          });
+          return;
+        }
+        if (message.arguments.action === "refresh") {
+          catalogBaselineStale = false;
+          catalogBaseline.revision++;
+          send({
+            type: "toolResult",
+            requestId: message.requestId,
+            result: catalogBaseline,
+          });
+          return;
+        }
         if (message.arguments.id === catalogBaseline.id) {
           catalogBaseline.state =
             message.arguments.action === "approve" ? "approved" : "retired";
@@ -540,11 +656,26 @@ window.acquireVsCodeApi = () => ({
             catalogApproved.revision++;
           }
         }
-        send({
+        const resultMessage = {
           type: "toolResult",
           requestId: message.requestId,
           result: { reviewed: true },
-        });
+        };
+        dashboard.catalog = {
+          entries: 2,
+          approved: [catalogBaseline, catalogApproved].filter(
+            (r) => r.state === "approved",
+          ).length,
+          observed: catalogBaseline.state === "observed" ? 1 : 0,
+          retired: catalogBaseline.state === "retired" ? 1 : 0,
+          pendingChanges: catalogProposal.state === "pending" ? 1 : 0,
+        };
+        const reviewed = () => {
+          send(resultMessage);
+          send({ type: "restore", dashboard, automation });
+        };
+        if (catalogScenario === "slow") setTimeout(reviewed, 500);
+        else reviewed();
       }
       if (message.type === "ready" || message.type === "refresh")
         send({ type: "restore", dashboard, automation });

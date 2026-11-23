@@ -1,0 +1,42 @@
+<!-- @dsCard group="Components" viewport="1100x900" name="Marketing" subtitle="Hero, feature cards, CTA band, footer" -->
+<html data-carbon-theme="white"><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>
+body{margin:0;padding:24px;background:var(--cds-background);color:var(--cds-text-primary);font-family:var(--cds-font-sans)}
+.lbl{font-size:.75rem;letter-spacing:.32px;color:var(--cds-text-secondary);margin:0 0 10px}
+.row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;margin-bottom:24px}
+.col{display:flex;flex-direction:column;gap:16px;margin-bottom:24px}
+</style></head>
+<body><div id="root"></div>
+<script type="text/babel">
+const { HeroBand, FeatureCard, CTABanner, Footer, Button } = window.IBMCarbonDesignSystem_8852ea;
+function App(){return <div style={{margin:-24}}>
+  <HeroBand
+    eyebrow="IBM watsonx"
+    title="Put AI to work across your business"
+    subtitle="An enterprise studio for AI builders — train, validate, tune and deploy foundation models with governance built in."
+    primaryAction={<Button variant="primary">Start free</Button>}
+    secondaryAction={<Button variant="tertiary">Book a demo</Button>} />
+
+  <div style={{padding:'0 16px 48px',maxWidth:'99rem',margin:'0 auto',display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16}}>
+    <FeatureCard title="Hybrid cloud" body="Run workloads anywhere without rewriting them." href="#" />
+    <FeatureCard title="Data governance" body="Track lineage and enforce policy across every model." href="#" />
+    <FeatureCard title="Open innovation" body="Built on open standards, so nothing locks you in." href="#" />
+  </div>
+
+  <CTABanner title="Ready to start building?" body="Create an account and deploy your first model in minutes."
+    actions={<Button variant="secondary">Create account</Button>} />
+
+  <Footer
+    columns={[
+      {title:'Products',links:[{label:'watsonx'},{label:'Cloud'},{label:'Security'}]},
+      {title:'Learn',links:[{label:'Documentation'},{label:'Tutorials'},{label:'Community'}]},
+      {title:'Company',links:[{label:'About IBM'},{label:'Careers'},{label:'Newsroom'}]}]}
+    legalLinks={[{label:'Privacy'},{label:'Terms'},{label:'Accessibility'}]}
+    copyright="© 2026 IBM" />
+</div>;}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script></body></html>

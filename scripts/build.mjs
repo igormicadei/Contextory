@@ -3,6 +3,7 @@ import { mkdir, readdir, unlink, copyFile } from "node:fs/promises";
 import { resolve } from "node:path";
 await import("./package-skills.mjs");
 await mkdir("dist", { recursive: true });
+await import("./documentation-resources.mjs");
 await mkdir("artifacts", { recursive: true });
 const requireBanner = {
   js: "import { createRequire as contextoryRequire } from 'node:module'; import { fileURLToPath as contextoryFilePath } from 'node:url'; import { dirname as contextoryDirname } from 'node:path'; const require = contextoryRequire(import.meta.url); const __filename = contextoryFilePath(import.meta.url); const __dirname = contextoryDirname(__filename);",

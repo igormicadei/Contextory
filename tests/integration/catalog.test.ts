@@ -15,6 +15,295 @@ const content = {
   testGap: "No behavioral test exists yet.",
 };
 
+test("human source refresh preserves pending content/history and requires a separate current approval", async (t) => {
+  const f = await application(t),
+    work = await claimed(f.call);
+  const entry = (await f.call("contextory_catalog_change", {
+    operationId: operationId(),
+    specId: work.spec.id,
+    leaseId: work.leaseId,
+    action: "create",
+    content,
+    reason: "Observed baseline",
+  })) as Entity;
+  await writeFile(
+    join(f.root, "main.ts"),
+    "export function hello(){return 43;}\n",
+  );
+  const refresh = {
+    operationId: operationId(),
+    id: entry.id,
+    expectedRevision: 1,
+    action: "refresh",
+    reason: "Checked the current implementation",
+  };
+  await assert.rejects(f.call("contextory_catalog_review", refresh), {
+    code: "FORBIDDEN",
+  });
+  await assert.rejects(
+    f.call(
+      "contextory_catalog_review",
+      { ...refresh, operationId: operationId(), reason: "   " },
+      human,
+    ),
+    { code: "INVALID_ARGUMENT" },
+  );
+  await assert.rejects(
+    f.call(
+      "contextory_catalog_review",
+      { ...refresh, action: "approve", operationId: operationId() },
+      human,
+    ),
+    { code: "STALE_CATALOG" },
+  );
+  const updated = (await f.call(
+    "contextory_catalog_review",
+    refresh,
+    human,
+  )) as Entity;
+  assert.equal(updated.state, "observed");
+  assert.equal(updated.revision, 2);
+  assert.deepEqual(updated.data.content, entry.data.content);
+  assert.deepEqual(
+    f.ledger.get(entry.id, 1).data.fingerprints,
+    entry.data.fingerprints,
+  );
+  assert.equal(updated.data.review, undefined);
+  assert.equal((updated.data.sourceRefresh as { actor: string }).actor, "ui");
+  await writeFile(
+    join(f.root, "main.ts"),
+    "export function hello(){return 44;}\n",
+  );
+  assert.deepEqual(
+    await f.call("contextory_catalog_review", refresh, human),
+    updated,
+  );
+  await assert.rejects(
+    f.call(
+      "contextory_catalog_review",
+      { ...refresh, operationId: operationId() },
+      human,
+    ),
+    { code: "REVISION_CONFLICT" },
+  );
+  await assert.rejects(
+    f.call(
+      "contextory_catalog_review",
+      {
+        ...refresh,
+        operationId: operationId(),
+        expectedRevision: 2,
+        action: "approve",
+      },
+      human,
+    ),
+    { code: "STALE_CATALOG" },
+  );
+  await f.call(
+    "contextory_catalog_review",
+    { ...refresh, operationId: operationId(), expectedRevision: 2 },
+    human,
+  );
+  const approved = (await f.call(
+    "contextory_catalog_review",
+    {
+      ...refresh,
+      operationId: operationId(),
+      expectedRevision: 3,
+      action: "approve",
+    },
+    human,
+  )) as Entity;
+  assert.equal(approved.state, "approved");
+  await assert.rejects(
+    f.call(
+      "contextory_catalog_review",
+      { ...refresh, operationId: operationId(), expectedRevision: 4 },
+      human,
+    ),
+    { code: "INVALID_STATE" },
+  );
+});
+
+test("refresh cannot silently accept missing files or rebase a competing proposal", async (t) => {
+  const f = await application(t),
+    work = await claimed(f.call);
+  const entry = (await f.call("contextory_catalog_change", {
+    operationId: operationId(),
+    specId: work.spec.id,
+    leaseId: work.leaseId,
+    action: "create",
+    content,
+    reason: "Observed baseline",
+  })) as Entity;
+  const proposal = (await f.call("contextory_catalog_change", {
+    operationId: operationId(),
+    specId: work.spec.id,
+    leaseId: work.leaseId,
+    action: "revise",
+    id: entry.id,
+    expectedRevision: 1,
+    content: { ...content, description: "Updated greeting" },
+    reason: "Proposed update",
+  })) as Entity;
+  await writeFile(
+    join(f.root, "main.ts"),
+    "export function hello(){return 45;}\n",
+  );
+  const refresh = {
+    operationId: operationId(),
+    id: proposal.id,
+    expectedRevision: 1,
+    action: "refresh",
+    reason: "Checked implementation",
+  };
+  const refreshed = (await f.call(
+    "contextory_catalog_review",
+    refresh,
+    human,
+  )) as Entity;
+  assert.equal(refreshed.state, "pending");
+  assert.deepEqual(refreshed.data.before, proposal.data.before);
+  assert.deepEqual(refreshed.data.content, proposal.data.content);
+  assert.equal(f.ledger.get(entry.id).revision, 1);
+  await unlink(join(f.root, "main.ts"));
+  await assert.rejects(
+    f.call(
+      "contextory_catalog_review",
+      { ...refresh, operationId: operationId(), id: entry.id },
+      human,
+    ),
+  );
+  assert.equal(f.ledger.get(entry.id).revision, 1);
+  await writeFile(
+    join(f.root, "main.ts"),
+    "export function hello(){return 45;}\n",
+  );
+  await f.call(
+    "contextory_catalog_review",
+    { ...refresh, operationId: operationId(), id: entry.id },
+    human,
+  );
+  const page = (await f.call("contextory_catalog_get", {})) as {
+    proposals: { reviewBlocker?: string }[];
+  };
+  assert.match(page.proposals[0].reviewBlocker!, /definition changed/);
+  await assert.rejects(
+    f.call(
+      "contextory_catalog_review",
+      { ...refresh, operationId: operationId(), expectedRevision: 2 },
+      human,
+    ),
+    { code: "REVISION_CONFLICT" },
+  );
+  const rejected = (await f.call(
+    "contextory_catalog_review",
+    {
+      ...refresh,
+      operationId: operationId(),
+      expectedRevision: 2,
+      action: "reject",
+    },
+    human,
+  )) as { proposal: Entity };
+  assert.equal(rejected.proposal.state, "rejected");
+});
+
+test("pending baselines and proposal targets sort ahead of reviewed entries before filtering/pagination", async (t) => {
+  const f = await application(t),
+    work = await claimed(f.call);
+  const create = (title: string) =>
+    f.call("contextory_catalog_change", {
+      operationId: operationId(),
+      specId: work.spec.id,
+      leaseId: work.leaseId,
+      action: "create",
+      content: { ...content, title },
+      reason: "Baseline",
+    }) as Promise<Entity>;
+  const reviewed: Entity[] = [];
+  for (let i = 0; i < 5; i++) {
+    const entry = await create(`Shared greeting ${i}`);
+    reviewed.push(
+      (await f.call(
+        "contextory_catalog_review",
+        {
+          operationId: operationId(),
+          id: entry.id,
+          expectedRevision: 1,
+          action: i === 4 ? "reject" : "approve",
+          reason: "Checked",
+        },
+        human,
+      )) as Entity,
+    );
+  }
+  const pending = await create("Shared latest observation");
+  const proposal = (await f.call("contextory_catalog_change", {
+    operationId: operationId(),
+    specId: work.spec.id,
+    leaseId: work.leaseId,
+    action: "revise",
+    id: reviewed[2].id,
+    expectedRevision: reviewed[2].revision,
+    content,
+    reason: "Pending replacement",
+  })) as Entity;
+  type Page = {
+    records: Entity[];
+    proposals: Entity[];
+    nextOffset: number | null;
+  };
+  const first = (await f.call("contextory_catalog_get", {
+    query: "Shared",
+    limit: 2,
+  })) as Page;
+  assert.deepEqual(
+    new Set(first.records.map((r) => r.id)),
+    new Set([pending.id, reviewed[2].id]),
+  );
+  assert.equal(first.proposals[0].id, proposal.id);
+  const approvals = (await f.call("contextory_catalog_get", {
+    pendingOnly: true,
+    limit: 2,
+  })) as Page;
+  assert.deepEqual(
+    approvals.records.map((r) => r.id),
+    [pending.id],
+  );
+  assert.equal(approvals.proposals[0].id, proposal.id);
+  assert.equal(approvals.nextOffset, null);
+  const emptyFiltered = (await f.call("contextory_catalog_get", {
+    pendingOnly: true,
+    query: "Shared greeting 0",
+  })) as Page;
+  assert.equal(emptyFiltered.records.length, 0);
+  assert.equal(emptyFiltered.proposals.length, 0);
+  const second = (await f.call("contextory_catalog_get", {
+    query: "Shared",
+    limit: 2,
+    offset: 2,
+  })) as Page;
+  assert.ok(second.records.every((r) => r.state === "approved"));
+  await f.call(
+    "contextory_catalog_review",
+    {
+      operationId: operationId(),
+      id: pending.id,
+      expectedRevision: 1,
+      action: "approve",
+      reason: "Verified",
+    },
+    human,
+  );
+  const after = (await f.call("contextory_catalog_get", {
+    category: "feature",
+    limit: 10,
+  })) as Page;
+  assert.equal(after.records[0].id, reviewed[2].id);
+  assert.equal(after.records.at(-1)!.state, "retired");
+});
+
 test("outcomes require catalog accounting and completion detects definition revisions after submission", async (t) => {
   const f = await application(t),
     work = await claimed(f.call),

@@ -2062,6 +2062,35 @@ body[data-layout="horizontal"] main[data-screen="map"] {
   font-weight: 600;
   box-shadow: inset 0 -2px var(--accent);
 }
+.workspace-console .main-nav > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.approval-count {
+  min-width: 16px;
+  padding: 1px 4px;
+  border-radius: 8px;
+  background: var(--vscode-badge-background, var(--accent));
+  color: var(--vscode-badge-foreground, #fff);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 400px) {
+  .workspace-console .main-nav {
+    padding-inline: 8px;
+    gap: 1px;
+  }
+  .workspace-console .main-nav > button,
+  .workspace-console .workspace-tools > summary {
+    padding-inline: 7px;
+    font-size: 0.85rem;
+  }
+  .workspace-console .workspace-tools > summary {
+    gap: 3px;
+  }
+}
 .workspace-tools {
   position: relative;
   margin-left: auto;
@@ -2678,6 +2707,9 @@ body[data-layout="horizontal"] main[data-screen="map"] {
   body[data-layout="horizontal"] .workspace-console main[data-screen="catalog"],
   body[data-layout="horizontal"]
     .workspace-console
+    main[data-screen="approvals"],
+  body[data-layout="horizontal"]
+    .workspace-console
     main[data-screen="versions"],
   body[data-layout="horizontal"]
     .workspace-console
@@ -2784,7 +2816,25 @@ body[data-layout="horizontal"] .workspace-console .work-row > .badge {
 .catalog-search form {
   margin: 16px 0 0;
 }
+.catalog-review {
+  margin-block: 16px;
+}
+.catalog-source-warning {
+  border-left: 3px solid var(--vscode-editorWarning-foreground, #cca700);
+  padding: 10px 12px;
+  margin-block: 12px;
+}
+.catalog-feedback {
+  padding: 10px 12px;
+  overflow-wrap: anywhere;
+  border-left: 3px solid var(--vscode-focusBorder, #007fd4);
+}
+.catalog-feedback.error {
+  border-color: var(--vscode-errorForeground, #f48771);
+  color: var(--vscode-errorForeground, #f48771);
+}
 .workspace-console .catalog-view > .record,
+.workspace-console .approvals-view > .record,
 .workspace-console .versions-view .record {
   padding: 16px;
   background: var(--surface);
@@ -2831,3 +2881,10 @@ body[data-layout="horizontal"] .workspace-console .work-row > .badge {
     padding: 5px 8px;
   }
 }
+.documentation-view { max-width: 1100px; margin-inline: auto; min-width: 0; }
+.documentation-view form { margin-block: 12px 20px; }
+.docs-filters { display: flex; flex-wrap: wrap; gap: 12px; }
+.docs-filters > label { flex: 1 1 220px; min-width: 0; }
+.documentation-prose { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; max-width: 80ch; margin-block: 16px; }
+.documentation-maintenance { margin-block: 24px; }
+.documentation-section pre, .documentation-maintenance pre { overflow: auto; max-height: 260px; }

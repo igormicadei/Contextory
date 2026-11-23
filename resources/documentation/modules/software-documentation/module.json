@@ -1,0 +1,55 @@
+{
+  "id": "software-documentation",
+  "version": "1.0.1",
+  "description": "Document applications, libraries and plugins in Brazilian Portuguese and English, including source comments, Carbon-based sites, LLM exports and GitHub Pages.",
+  "requires": ["carbon-design"],
+  "optional": [],
+  "runtime": "documentation",
+  "skills": [
+    "document-software",
+    "update-software-docs",
+    "source-docstrings",
+    "documentation-integrations"
+  ],
+  "agents": [
+    "software-documenter"
+  ],
+  "tools": [
+    "docs_map",
+    "docs_init",
+    "docs_validate",
+    "docs_build",
+    "docs_integrations",
+    "docs_pages_plan",
+    "docs_pages_publish",
+    "docs_pages_status",
+    "docs_migrate",
+    "docs_readme"
+  ],
+  "hooks": [],
+  "scopes": [
+    "project",
+    "global"
+  ],
+  "clients": [
+    "codex",
+    "claude",
+    "bob"
+  ],
+  "usesTools": [
+    "docs_map",
+    "docs_init",
+    "docs_validate",
+    "docs_build",
+    "docs_integrations",
+    "docs_pages_plan",
+    "docs_pages_publish",
+    "docs_pages_status",
+    "docs_migrate",
+    "docs_readme"
+  ],
+  "requirements": {
+    "python": ">=3.11",
+    "standardLibrary": true
+  }
+}

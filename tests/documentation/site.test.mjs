@@ -47,33 +47,36 @@ test("default documentation works in both locales under a repository subpath", a
       errors.push(`${response.status()}: ${response.url()}`);
   });
 
-  await t.test("site root opens the default locale without a language chooser", async () => {
-    const landing = await readFile(resolve(root, "index.html"), "utf8");
-    assert.match(
-      landing,
-      /http-equiv=['"]refresh['"][^>]*url=en\/overview\.html/i,
-    );
-    assert.doesNotMatch(
-      landing,
-      /pt-BR\/overview\.html|Português \(Brasil\)|English/,
-    );
-    await page.goto(base);
-    await page.waitForURL(/\/Contextory\/en\/overview\.html$/);
-    assert.match(page.url(), /\/Contextory\/en\/overview\.html$/);
-    assert.equal(await page.locator("h1").textContent(), "Contextory");
-
-    const noScriptRoot = await browser.newPage({ javaScriptEnabled: false });
-    try {
-      await noScriptRoot.goto(base);
-      await noScriptRoot.waitForURL(/\/Contextory\/en\/overview\.html$/);
-      assert.equal(
-        await noScriptRoot.locator("h1").textContent(),
-        "Contextory",
+  await t.test(
+    "site root opens the default locale without a language chooser",
+    async () => {
+      const landing = await readFile(resolve(root, "index.html"), "utf8");
+      assert.match(
+        landing,
+        /http-equiv=['"]refresh['"][^>]*url=en\/overview\.html/i,
       );
-    } finally {
-      await noScriptRoot.close();
-    }
-  });
+      assert.doesNotMatch(
+        landing,
+        /pt-BR\/overview\.html|Português \(Brasil\)|English/,
+      );
+      await page.goto(base);
+      await page.waitForURL(/\/Contextory\/en\/overview\.html$/);
+      assert.match(page.url(), /\/Contextory\/en\/overview\.html$/);
+      assert.equal(await page.locator("h1").textContent(), "Contextory");
+
+      const noScriptRoot = await browser.newPage({ javaScriptEnabled: false });
+      try {
+        await noScriptRoot.goto(base);
+        await noScriptRoot.waitForURL(/\/Contextory\/en\/overview\.html$/);
+        assert.equal(
+          await noScriptRoot.locator("h1").textContent(),
+          "Contextory",
+        );
+      } finally {
+        await noScriptRoot.close();
+      }
+    },
+  );
 
   await t.test(
     "local search and language switch preserve working links",
@@ -115,7 +118,18 @@ test("default documentation works in both locales under a repository subpath", a
         assert.ok(await image.evaluate((node) => node.naturalWidth > 0));
       }
       await page.goto(base + "en/api.html");
-      assert.equal(await page.locator("h2[id^=contextory-]").count(), 36);
+      const contracts = JSON.parse(
+        await readFile(resolve(".documentation/tool-contracts.json"), "utf8"),
+      );
+      assert.equal(
+        await page.locator("h2[id^=contextory-]").count(),
+        contracts.tools.length,
+      );
+      for (const tool of contracts.tools)
+        assert.equal(
+          await page.locator("#" + tool.name.replaceAll("_", "-")).count(),
+          1,
+        );
     },
   );
 

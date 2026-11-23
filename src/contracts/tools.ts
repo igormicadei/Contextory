@@ -57,6 +57,72 @@ const limits = z
   })
   .optional();
 export const tools = {
+  contextory_docs_get: {
+    description:
+      "Read project documentation without Python or a separate plugin. sections returns bounded bilingual natural-language explanations with stable IDs, source freshness and associated Contextory records; filter by query/path/recordId/pageId. overview reports coverage and missing/stale content. guidance pages the bundled documentation/Carbon resources (resource selects a listed text path). job reads an on-demand runtime operation. Documentation is authored explanation, never inferred human approval. Carry project identity; references are not writable projects.",
+    schema: z.object({
+      section: z
+        .enum(["overview", "sections", "guidance", "job"])
+        .default("overview"),
+      query: z.string().max(4000).default(""),
+      path: z.string().max(2000).optional(),
+      recordId: id.optional(),
+      pageId: id.optional(),
+      sectionId: id.optional(),
+      resource: z.string().max(2000).optional(),
+      jobId: id.optional(),
+      locale: z.enum(["en", "pt-BR"]).default("en"),
+      offset: z.number().int().nonnegative().default(0),
+      limit: z.number().int().min(1).max(50).default(10),
+    }),
+  },
+  contextory_docs_run: {
+    description:
+      "Queue a bundled software-documentation operation in the selected project; poll docs_get section=job or entity_get. No external plugin installation is needed; Python 3.11+ (contextory.pythonExecutable) is required only when run. All upstream map/init/validate/build/integrations/migrate/readme/Pages operations are supported. Mutating operations require a current spec lease; migration/readme preview defaults apply=false. Pages publication additionally requires explicit user authorization and publish=true. Never run generation on startup or approve scaffolds automatically. Reuse exact operationId/input to recover the retained job; interrupted jobs are never replayed automatically.",
+    schema: z.object({
+      operationId,
+      action: z.enum([
+        "map",
+        "init",
+        "validate",
+        "build",
+        "integrations",
+        "migrate",
+        "readme",
+        "pages_plan",
+        "pages_publish",
+        "pages_status",
+      ]),
+      specId: id.optional(),
+      leaseId: id.optional(),
+      name: z.string().trim().min(1).max(300).optional(),
+      kind: z.enum(["application", "library", "plugin"]).optional(),
+      sourceRoots: z
+        .array(z.string().min(1).max(2000))
+        .min(1)
+        .max(30)
+        .optional(),
+      apply: z.boolean().default(false),
+      siteUrl: z.string().max(2000).optional(),
+      remote: z.string().max(300).optional(),
+      publish: z.boolean().default(false),
+      offset: z.number().int().nonnegative().default(0),
+      limit: z.number().int().min(1).max(1000).default(100),
+    }),
+  },
+  contextory_docs_link: {
+    description:
+      "Under a spec lease, associate an existing stable documentation page/section with local catalog/decision/spec/outcome records and capture its current source hashes. This records an observed maintenance baseline, not human approval or a documentation rewrite. Expected corpus fingerprint prevents linking obsolete text; preserve prior association history. Sources changing later mark the section stale. Inspect text/source first; do not refresh stale claims without review.",
+    schema: z.object({
+      operationId,
+      ...lease,
+      pageId: id,
+      sectionId: id,
+      corpusFingerprint: z.string().length(64),
+      recordIds: z.array(id).max(30),
+      reason: text,
+    }),
+  },
   contextory_hooks_rebuild: {
     description:
       "Explicitly rebuild Contextory's project hooks for codex, claude or bob and restore the packaged launcher. Preserves unrelated hooks, MCP configuration, portable skills and native trust. Use for missing/stale/duplicate managed hooks, not to bypass approval. Returns changed files and native trust/reload guidance; unchanged files do not prove hooks executed. Requires a reachable service; when unavailable use the editor's Contextory: Rebuild Agent Hooks command. Reuse the same operationId/input only to recover a retry; use a new operationId for a new repair. Respects projectId/workspaceId; cannot modify reference codebases or global hook approvals.",
@@ -136,12 +202,13 @@ export const tools = {
   },
   contextory_catalog_get: {
     description:
-      "Read the versioned file-purpose, rule, feature and UI catalog before changes. Filter by path/category/query; page all results. Returns pending proposals and source freshness. Test references are not execution evidence. inventory=true also pages authorized workspace files and exposes missing descriptions; no claim of complete behavioral coverage.",
+      "Read the versioned file-purpose, rule, feature and UI catalog before changes. Filter by path/category/query; page all results. pendingOnly=true restricts records to observed baselines before pagination and still returns matching pending proposals. Returns source freshness. Test references are not execution evidence. inventory=true also pages authorized workspace files and exposes missing descriptions; no claim of complete behavioral coverage.",
     schema: z.object({
       category: category.optional(),
       path: z.string().max(2000).optional(),
       query: z.string().max(4000).optional(),
       inventory: z.boolean().default(false),
+      pendingOnly: z.boolean().default(false),
       offset: z.number().int().nonnegative().default(0),
       limit: z.number().int().min(1).max(50).default(20),
     }),
@@ -162,13 +229,13 @@ export const tools = {
   },
   contextory_catalog_review: {
     description:
-      "Human UI only: approve an observed baseline or approve/reject an exact pending catalog change after reviewing its before/after definition and source freshness. Native agents cannot grant approval; original revisions and reviewer identity remain in history.",
+      "Human UI only: approve/reject an exact observed baseline or pending catalog change, or refresh its source snapshot after checking the current files. Refresh preserves definition content and pending state; it never approves. Native agents cannot review or refresh; original revisions and reviewer identity remain in history.",
     schema: z.object({
       operationId,
       id,
       expectedRevision: z.number().int().positive(),
-      action: z.enum(["approve", "reject"]),
-      reason: text,
+      action: z.enum(["approve", "reject", "refresh"]),
+      reason: text.trim().min(1),
     }),
   },
   contextory_catalog_migrate: {
@@ -526,6 +593,7 @@ export function toolDefinitions() {
     })(),
     annotations: {
       readOnlyHint: [
+        "contextory_docs_get",
         "contextory_workspace_get",
         "contextory_context_get",
         "contextory_version_get",
@@ -544,7 +612,8 @@ export function toolDefinitions() {
         "contextory_flow_expand",
       ].includes(name),
       destructiveHint: false,
-      openWorldHint: name === "contextory_release_change",
+      openWorldHint:
+        name === "contextory_release_change" || name === "contextory_docs_run",
     },
   }));
 }

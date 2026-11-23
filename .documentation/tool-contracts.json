@@ -4,184 +4,199 @@
   "shared": "const id = z.string().min(1).max(160);\nconst text = z.string().min(1).max(12000);\nconst operationId = z.string().min(8).max(160);\nconst expectedRevision = z.number().int().positive().optional();\nconst source = z.object({\n  path: z.string().min(1).max(2000),\n  line: z.number().int().nonnegative().optional(),\n  character: z.number().int().nonnegative().optional(),\n  symbol: z.string().max(500).optional(),\n});\nconst lease = { specId: id, leaseId: id };\nconst category = z.enum([\"file\", \"rule\", \"feature\", \"ui\"]);\nexport const catalogContent = z\n  .object({\n    category,\n    title: z.string().trim().min(1).max(300),\n    description: text,\n    sources: z.array(source).min(1).max(30),\n    tests: z.array(source).max(30).default([]),\n    testGap: z.string().trim().min(1).max(2000).optional(),\n    ui: z\n      .object({\n        location: text,\n        element: text,\n        trigger: text,\n        behavior: text,\n        states: text,\n      })\n      .optional(),\n  })\n  .superRefine((p, ctx) => {\n    if (p.category === \"file\" && p.sources.length !== 1)\n      ctx.addIssue({\n        code: \"custom\",\n        message: \"A file entry describes exactly one source file.\",\n      });\n    if (p.category === \"ui\" && !p.ui)\n      ctx.addIssue({\n        code: \"custom\",\n        message:\n          \"UI contracts need location, element, trigger, behavior and states.\",\n      });\n    if (p.category !== \"file\" && !p.tests.length && !p.testGap)\n      ctx.addIssue({\n        code: \"custom\",\n        message: \"Behavior needs test links or an explicit testGap.\",\n      });\n  });\nconst limits = z\n  .object({\n    callDepth: z.number().int().min(0).max(12).optional(),\n    nodes: z.number().int().min(5).max(500).optional(),\n    edges: z.number().int().min(5).max(1000).optional(),\n    targetsPerCall: z.number().int().min(1).max(30).optional(),\n    timeoutMs: z.number().int().min(100).max(10000).optional(),\n  })\n  .optional();\n",
   "tools": [
     {
+      "name": "contextory_docs_get",
+      "schema": "z.object({\n      section: z\n        .enum([\"overview\", \"sections\", \"guidance\", \"job\"])\n        .default(\"overview\"),\n      query: z.string().max(4000).default(\"\"),\n      path: z.string().max(2000).optional(),\n      recordId: id.optional(),\n      pageId: id.optional(),\n      sectionId: id.optional(),\n      resource: z.string().max(2000).optional(),\n      jobId: id.optional(),\n      locale: z.enum([\"en\", \"pt-BR\"]).default(\"en\"),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(10),\n    })",
+      "line": 60
+    },
+    {
+      "name": "contextory_docs_run",
+      "schema": "z.object({\n      operationId,\n      action: z.enum([\n        \"map\",\n        \"init\",\n        \"validate\",\n        \"build\",\n        \"integrations\",\n        \"migrate\",\n        \"readme\",\n        \"pages_plan\",\n        \"pages_publish\",\n        \"pages_status\",\n      ]),\n      specId: id.optional(),\n      leaseId: id.optional(),\n      name: z.string().trim().min(1).max(300).optional(),\n      kind: z.enum([\"application\", \"library\", \"plugin\"]).optional(),\n      sourceRoots: z\n        .array(z.string().min(1).max(2000))\n        .min(1)\n        .max(30)\n        .optional(),\n      apply: z.boolean().default(false),\n      siteUrl: z.string().max(2000).optional(),\n      remote: z.string().max(300).optional(),\n      publish: z.boolean().default(false),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(1000).default(100),\n    })",
+      "line": 79
+    },
+    {
+      "name": "contextory_docs_link",
+      "schema": "z.object({\n      operationId,\n      ...lease,\n      pageId: id,\n      sectionId: id,\n      corpusFingerprint: z.string().length(64),\n      recordIds: z.array(id).max(30),\n      reason: text,\n    })",
+      "line": 113
+    },
+    {
       "name": "contextory_hooks_rebuild",
-      "line": 60,
-      "schema": "z.object({\n      operationId,\n      provider: z.enum([\"codex\", \"claude\", \"bob\"]),\n    })"
+      "schema": "z.object({\n      operationId,\n      provider: z.enum([\"codex\", \"claude\", \"bob\"]),\n    })",
+      "line": 126
     },
     {
       "name": "contextory_workspace_get",
-      "line": 68,
-      "schema": "z.object({ groupId: id.optional() })"
+      "schema": "z.object({ groupId: id.optional() })",
+      "line": 134
     },
     {
       "name": "contextory_workspace_request_create",
-      "line": 73,
-      "schema": "z.object({\n      operationId,\n      projectIds: z.array(id).min(2).max(16),\n      title: z.string().trim().min(1).max(300),\n      description: text,\n    })"
+      "schema": "z.object({\n      operationId,\n      projectIds: z.array(id).min(2).max(16),\n      title: z.string().trim().min(1).max(300),\n      description: text,\n    })",
+      "line": 139
     },
     {
       "name": "contextory_version_get",
-      "line": 83,
-      "schema": "z.object({\n      releaseId: id.optional(),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(20),\n    })"
+      "schema": "z.object({\n      releaseId: id.optional(),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(20),\n    })",
+      "line": 149
     },
     {
       "name": "contextory_release_prepare",
-      "line": 92,
-      "schema": "z.object({\n      operationId,\n      bump: z.enum([\"auto\", \"patch\", \"minor\", \"major\"]).default(\"auto\"),\n      version: z.string().max(100).optional(),\n    })"
+      "schema": "z.object({\n      operationId,\n      bump: z.enum([\"auto\", \"patch\", \"minor\", \"major\"]).default(\"auto\"),\n      version: z.string().max(100).optional(),\n    })",
+      "line": 158
     },
     {
       "name": "contextory_release_change",
-      "line": 101,
-      "schema": "z.object({\n      operationId,\n      id,\n      expectedRevision: z.number().int().positive(),\n      action: z.enum([\"apply\", \"publish\", \"recover\", \"cancel\"]),\n    })"
+      "schema": "z.object({\n      operationId,\n      id,\n      expectedRevision: z.number().int().positive(),\n      action: z.enum([\"apply\", \"publish\", \"recover\", \"cancel\"]),\n    })",
+      "line": 167
     },
     {
       "name": "contextory_project_export",
-      "line": 111,
-      "schema": "z.object({\n      section: z\n        .enum([\n          \"overview\",\n          \"records\",\n          \"revisions\",\n          \"history\",\n          \"relationships\",\n          \"code_files\",\n          \"code_nodes\",\n          \"code_edges\",\n          \"code_imports\",\n          \"jobs\",\n          \"usage\",\n          \"artifacts\",\n        ])\n        .default(\"overview\"),\n      entityId: id.optional(),\n      artifact: z.string().min(1).max(200).optional(),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(20),\n    })"
+      "schema": "z.object({\n      section: z\n        .enum([\n          \"overview\",\n          \"records\",\n          \"revisions\",\n          \"history\",\n          \"relationships\",\n          \"code_files\",\n          \"code_nodes\",\n          \"code_edges\",\n          \"code_imports\",\n          \"jobs\",\n          \"usage\",\n          \"artifacts\",\n        ])\n        .default(\"overview\"),\n      entityId: id.optional(),\n      artifact: z.string().min(1).max(200).optional(),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(20),\n    })",
+      "line": 177
     },
     {
       "name": "contextory_catalog_get",
-      "line": 137,
-      "schema": "z.object({\n      category: category.optional(),\n      path: z.string().max(2000).optional(),\n      query: z.string().max(4000).optional(),\n      inventory: z.boolean().default(false),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(20),\n    })"
+      "schema": "z.object({\n      category: category.optional(),\n      path: z.string().max(2000).optional(),\n      query: z.string().max(4000).optional(),\n      inventory: z.boolean().default(false),\n      pendingOnly: z.boolean().default(false),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(20),\n    })",
+      "line": 203
     },
     {
       "name": "contextory_catalog_change",
-      "line": 149,
-      "schema": "z.object({\n      operationId,\n      ...lease,\n      action: z.enum([\"create\", \"revise\", \"retire\"]),\n      id: id.optional(),\n      expectedRevision,\n      content: catalogContent.optional(),\n      reason: text,\n      migrationId: id.optional(),\n    })"
+      "schema": "z.object({\n      operationId,\n      ...lease,\n      action: z.enum([\"create\", \"revise\", \"retire\"]),\n      id: id.optional(),\n      expectedRevision,\n      content: catalogContent.optional(),\n      reason: text,\n      migrationId: id.optional(),\n    })",
+      "line": 216
     },
     {
       "name": "contextory_catalog_review",
-      "line": 163,
-      "schema": "z.object({\n      operationId,\n      id,\n      expectedRevision: z.number().int().positive(),\n      action: z.enum([\"approve\", \"reject\"]),\n      reason: text,\n    })"
+      "schema": "z.object({\n      operationId,\n      id,\n      expectedRevision: z.number().int().positive(),\n      action: z.enum([\"approve\", \"reject\", \"refresh\"]),\n      reason: text.trim().min(1),\n    })",
+      "line": 230
     },
     {
       "name": "contextory_catalog_migrate",
-      "line": 174,
-      "schema": "z.object({\n      operationId,\n      ...lease,\n      migrationId: id.optional(),\n      limit: z.number().int().min(1).max(50).default(20),\n    })"
+      "schema": "z.object({\n      operationId,\n      ...lease,\n      migrationId: id.optional(),\n      limit: z.number().int().min(1).max(50).default(20),\n    })",
+      "line": 241
     },
     {
       "name": "contextory_context_get",
-      "line": 184,
-      "schema": "z.object({ specId: id.optional() })"
+      "schema": "z.object({ specId: id.optional() })",
+      "line": 251
     },
     {
       "name": "contextory_entity_get",
-      "line": 189,
-      "schema": "z.object({\n      id,\n      revision: z.number().int().positive().optional(),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(20),\n    })"
+      "schema": "z.object({\n      id,\n      revision: z.number().int().positive().optional(),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(20),\n    })",
+      "line": 256
     },
     {
       "name": "contextory_history_get",
-      "line": 199,
-      "schema": "z.object({\n      entityId: id.optional(),\n      before: z.number().int().positive().optional(),\n      limit: z.number().int().min(1).max(100).default(40),\n    })"
+      "schema": "z.object({\n      entityId: id.optional(),\n      before: z.number().int().positive().optional(),\n      limit: z.number().int().min(1).max(100).default(40),\n    })",
+      "line": 266
     },
     {
       "name": "contextory_request_change",
-      "line": 208,
-      "schema": "z.object({\n      operationId,\n      action: z.enum([\"create\", \"revise\"]),\n      id: id.optional(),\n      expectedRevision,\n      title: z.string().min(1).max(300),\n      description: text,\n      reason: text.optional(),\n    })"
+      "schema": "z.object({\n      operationId,\n      action: z.enum([\"create\", \"revise\"]),\n      id: id.optional(),\n      expectedRevision,\n      title: z.string().min(1).max(300),\n      description: text,\n      reason: text.optional(),\n    })",
+      "line": 275
     },
     {
       "name": "contextory_spec_change",
-      "line": 221,
-      "schema": "z.object({\n      operationId,\n      action: z.enum([\n        \"milestone\",\n        \"create\",\n        \"revise\",\n        \"reopen\",\n        \"complete\",\n        \"block\",\n        \"cancel\",\n      ]),\n      id: id.optional(),\n      parentId: id.optional(),\n      expectedRevision,\n      title: z.string().min(1).max(300).optional(),\n      description: text.optional(),\n      criteria: z.array(z.string().min(1).max(2000)).min(1).max(50).optional(),\n      paths: z.array(z.string().max(2000)).max(100).optional(),\n      dependencies: z.array(id).max(50).optional(),\n      reason: text.optional(),\n    })"
+      "schema": "z.object({\n      operationId,\n      action: z.enum([\n        \"milestone\",\n        \"create\",\n        \"revise\",\n        \"reopen\",\n        \"complete\",\n        \"block\",\n        \"cancel\",\n      ]),\n      id: id.optional(),\n      parentId: id.optional(),\n      expectedRevision,\n      title: z.string().min(1).max(300).optional(),\n      description: text.optional(),\n      criteria: z.array(z.string().min(1).max(2000)).min(1).max(50).optional(),\n      paths: z.array(z.string().max(2000)).max(100).optional(),\n      dependencies: z.array(id).max(50).optional(),\n      reason: text.optional(),\n    })",
+      "line": 288
     },
     {
       "name": "contextory_session_attach",
-      "line": 246,
-      "schema": "z.object({ operationId, nativeSessionId: id.optional() })"
+      "schema": "z.object({ operationId, nativeSessionId: id.optional() })",
+      "line": 313
     },
     {
       "name": "contextory_usage_get",
-      "line": 251,
-      "schema": "z.object({\n      entityId: id.optional(),\n      provider: z.enum([\"codex\", \"claude\", \"bob\"]).optional(),\n      nativeSessionId: z.string().min(1).max(200).optional(),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(20),\n    })"
+      "schema": "z.object({\n      entityId: id.optional(),\n      provider: z.enum([\"codex\", \"claude\", \"bob\"]).optional(),\n      nativeSessionId: z.string().min(1).max(200).optional(),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(20),\n    })",
+      "line": 318
     },
     {
       "name": "contextory_spec_lease",
-      "line": 262,
-      "schema": "z.object({\n      operationId,\n      specId: id,\n      expectedRevision,\n      action: z.enum([\"claim\", \"renew\", \"release\"]),\n      sessionId: id,\n      leaseId: id.optional(),\n    })"
+      "schema": "z.object({\n      operationId,\n      specId: id,\n      expectedRevision,\n      action: z.enum([\"claim\", \"renew\", \"release\"]),\n      sessionId: id,\n      leaseId: id.optional(),\n    })",
+      "line": 329
     },
     {
       "name": "contextory_finding_record",
-      "line": 274,
-      "schema": "z.object({\n      operationId,\n      ...lease,\n      id: id.optional(),\n      expectedRevision,\n      title: z.string().min(1).max(300),\n      observation: text,\n      impact: text,\n      resolution: text.optional(),\n      status: z.enum([\"open\", \"resolved\", \"deferred\"]),\n      blocking: z.boolean().default(true),\n      sources: z.array(source).max(30).default([]),\n    })"
+      "schema": "z.object({\n      operationId,\n      ...lease,\n      id: id.optional(),\n      expectedRevision,\n      title: z.string().min(1).max(300),\n      observation: text,\n      impact: text,\n      resolution: text.optional(),\n      status: z.enum([\"open\", \"resolved\", \"deferred\"]),\n      blocking: z.boolean().default(true),\n      sources: z.array(source).max(30).default([]),\n    })",
+      "line": 341
     },
     {
       "name": "contextory_decision_record",
-      "line": 291,
-      "schema": "z.object({\n      operationId,\n      ...lease,\n      title: z.string().min(1).max(300),\n      choice: text,\n      rationale: text,\n      alternatives: z.string().max(12000).default(\"None material\"),\n      consequences: text,\n      supersedes: id.optional(),\n      sources: z.array(source).max(30).default([]),\n    })"
+      "schema": "z.object({\n      operationId,\n      ...lease,\n      title: z.string().min(1).max(300),\n      choice: text,\n      rationale: text,\n      alternatives: z.string().max(12000).default(\"None material\"),\n      consequences: text,\n      supersedes: id.optional(),\n      sources: z.array(source).max(30).default([]),\n    })",
+      "line": 358
     },
     {
       "name": "contextory_evidence_record",
-      "line": 306,
-      "schema": "z.object({\n      operationId,\n      ...lease,\n      title: z.string().min(1).max(300),\n      detail: text,\n      criteria: z.array(id).min(1).max(50),\n      result: z.enum([\"passed\", \"failed\", \"not_run\"]),\n      command: z.string().max(4000).optional(),\n    })"
+      "schema": "z.object({\n      operationId,\n      ...lease,\n      title: z.string().min(1).max(300),\n      detail: text,\n      criteria: z.array(id).min(1).max(50),\n      result: z.enum([\"passed\", \"failed\", \"not_run\"]),\n      command: z.string().max(4000).optional(),\n    })",
+      "line": 373
     },
     {
       "name": "contextory_check_run",
-      "line": 319,
-      "schema": "z.object({\n      operationId,\n      ...lease,\n      recipeId: id,\n      criteria: z.array(id).min(1).max(50),\n    })"
+      "schema": "z.object({\n      operationId,\n      ...lease,\n      recipeId: id,\n      criteria: z.array(id).min(1).max(50),\n    })",
+      "line": 386
     },
     {
       "name": "contextory_outcome_submit",
-      "line": 329,
-      "schema": "z.object({\n      operationId,\n      ...lease,\n      expectedRevision: z.number().int().positive(),\n      summary: text,\n      issuesSummary: text,\n      decisionsSummary: text,\n      limitations: text,\n      report: text,\n      changelog: z.string().min(1).max(2000),\n      catalog: z\n        .object({ recordIds: z.array(id).max(200), explanation: text })\n        .optional(),\n      criteria: z\n        .array(\n          z.object({\n            criterionId: id,\n            evidenceIds: z.array(id).min(1).max(30),\n          }),\n        )\n        .min(1)\n        .max(50),\n      commits: z\n        .array(z.string().regex(/^[a-f0-9]{40,64}$/))\n        .max(100)\n        .default([]),\n    })"
+      "schema": "z.object({\n      operationId,\n      ...lease,\n      expectedRevision: z.number().int().positive(),\n      summary: text,\n      issuesSummary: text,\n      decisionsSummary: text,\n      limitations: text,\n      report: text,\n      changelog: z.string().min(1).max(2000),\n      catalog: z\n        .object({ recordIds: z.array(id).max(200), explanation: text })\n        .optional(),\n      criteria: z\n        .array(\n          z.object({\n            criterionId: id,\n            evidenceIds: z.array(id).min(1).max(30),\n          }),\n        )\n        .min(1)\n        .max(50),\n      commits: z\n        .array(z.string().regex(/^[a-f0-9]{40,64}$/))\n        .max(100)\n        .default([]),\n    })",
+      "line": 396
     },
     {
       "name": "contextory_search",
-      "line": 360,
-      "schema": "z.object({\n      codebaseId: id.optional(),\n      query: z.string().min(1).max(4000),\n      mode: z.enum([\"lexical\", \"semantic\", \"hybrid\"]).default(\"hybrid\"),\n      limit: z.number().int().min(1).max(20).default(5),\n    })"
+      "schema": "z.object({\n      codebaseId: id.optional(),\n      query: z.string().min(1).max(4000),\n      mode: z.enum([\"lexical\", \"semantic\", \"hybrid\"]).default(\"hybrid\"),\n      limit: z.number().int().min(1).max(20).default(5),\n    })",
+      "line": 427
     },
     {
       "name": "contextory_code_context_get",
-      "line": 370,
-      "schema": "z.object({\n      codebaseId: id.optional(),\n      query: z.string().min(1).max(4000),\n      paths: z.array(z.string().max(2000)).max(20).default([]),\n      specId: id.optional(),\n      budgetTokens: z.number().int().min(512).max(6000).default(3000),\n    })"
+      "schema": "z.object({\n      codebaseId: id.optional(),\n      query: z.string().min(1).max(4000),\n      paths: z.array(z.string().max(2000)).max(20).default([]),\n      specId: id.optional(),\n      budgetTokens: z.number().int().min(512).max(6000).default(3000),\n    })",
+      "line": 437
     },
     {
       "name": "contextory_code_architecture_get",
-      "line": 381,
-      "schema": "z.object({\n      codebaseId: id.optional(),\n      refresh: z.boolean().default(true),\n    })"
+      "schema": "z.object({\n      codebaseId: id.optional(),\n      refresh: z.boolean().default(true),\n    })",
+      "line": 448
     },
     {
       "name": "contextory_code_path_get",
-      "line": 389,
-      "schema": "z.object({\n      codebaseId: id.optional(),\n      from: z.string().min(1).max(2500),\n      to: z.string().min(1).max(2500),\n      direction: z.enum([\"forward\", \"both\"]).default(\"both\"),\n      maxDepth: z.number().int().min(1).max(10).default(6),\n    })"
+      "schema": "z.object({\n      codebaseId: id.optional(),\n      from: z.string().min(1).max(2500),\n      to: z.string().min(1).max(2500),\n      direction: z.enum([\"forward\", \"both\"]).default(\"both\"),\n      maxDepth: z.number().int().min(1).max(10).default(6),\n    })",
+      "line": 456
     },
     {
       "name": "contextory_code_index_refresh",
-      "line": 400,
-      "schema": "z.object({\n      codebaseId: id.optional(),\n      graphifyPath: z.string().min(1).max(2000).optional(),\n    })"
+      "schema": "z.object({\n      codebaseId: id.optional(),\n      graphifyPath: z.string().min(1).max(2000).optional(),\n    })",
+      "line": 467
     },
     {
       "name": "contextory_codebase_list",
-      "line": 408,
-      "schema": "z.object({})"
+      "schema": "z.object({})",
+      "line": 475
     },
     {
       "name": "contextory_codebase_change",
-      "line": 413,
-      "schema": "z\n      .object({\n        operationId,\n        action: z.enum([\"add\", \"remove\"]),\n        root: z.string().min(1).max(2000).optional(),\n        name: z.string().trim().min(1).max(100).optional(),\n        codebaseId: id.optional(),\n      })\n      .refine(\n        (p) => (p.action === \"add\" ? Boolean(p.root) : Boolean(p.codebaseId)),\n        \"Add requires root; remove requires codebaseId.\",\n      )"
+      "schema": "z\n      .object({\n        operationId,\n        action: z.enum([\"add\", \"remove\"]),\n        root: z.string().min(1).max(2000).optional(),\n        name: z.string().trim().min(1).max(100).optional(),\n        codebaseId: id.optional(),\n      })\n      .refine(\n        (p) => (p.action === \"add\" ? Boolean(p.root) : Boolean(p.codebaseId)),\n        \"Add requires root; remove requires codebaseId.\",\n      )",
+      "line": 480
     },
     {
       "name": "contextory_relationship_change",
-      "line": 429,
-      "schema": "z.object({\n      operationId,\n      from: id,\n      to: id.optional(),\n      source: source.optional(),\n      kind: z.enum([\"implements\", \"resolves\", \"validated_by\", \"related_to\"]),\n      rationale: text,\n    })"
+      "schema": "z.object({\n      operationId,\n      from: id,\n      to: id.optional(),\n      source: source.optional(),\n      kind: z.enum([\"implements\", \"resolves\", \"validated_by\", \"related_to\"]),\n      rationale: text,\n    })",
+      "line": 496
     },
     {
       "name": "contextory_impact_get",
-      "line": 441,
-      "schema": "z.object({\n      codebaseId: id.optional(),\n      id: z.string().min(1).max(2500),\n      direction: z.enum([\"forward\", \"reverse\", \"both\"]).default(\"reverse\"),\n      depth: z.number().int().min(1).max(10).default(5),\n      limit: z.number().int().min(1).max(200).default(50),\n    })"
+      "schema": "z.object({\n      codebaseId: id.optional(),\n      id: z.string().min(1).max(2500),\n      direction: z.enum([\"forward\", \"reverse\", \"both\"]).default(\"reverse\"),\n      depth: z.number().int().min(1).max(10).default(5),\n      limit: z.number().int().min(1).max(200).default(50),\n    })",
+      "line": 508
     },
     {
       "name": "contextory_flow_trace",
-      "line": 452,
-      "schema": "z.object({\n      codebaseId: id.optional(),\n      root: z.object({\n        path: z.string().min(1).max(2000),\n        position: z\n          .object({\n            line: z.number().int().nonnegative(),\n            character: z.number().int().nonnegative(),\n          })\n          .optional(),\n        symbol: z.string().max(500).optional(),\n        start: z.enum([\"cursor\", \"function\"]).optional(),\n      }),\n      view: z.enum([\"calls\", \"flow\"]).default(\"calls\"),\n      direction: z.enum([\"outgoing\", \"incoming\"]).default(\"outgoing\"),\n      limits,\n    })"
+      "schema": "z.object({\n      codebaseId: id.optional(),\n      root: z.object({\n        path: z.string().min(1).max(2000),\n        position: z\n          .object({\n            line: z.number().int().nonnegative(),\n            character: z.number().int().nonnegative(),\n          })\n          .optional(),\n        symbol: z.string().max(500).optional(),\n        start: z.enum([\"cursor\", \"function\"]).optional(),\n      }),\n      view: z.enum([\"calls\", \"flow\"]).default(\"calls\"),\n      direction: z.enum([\"outgoing\", \"incoming\"]).default(\"outgoing\"),\n      limits,\n    })",
+      "line": 519
     },
     {
       "name": "contextory_flow_expand",
-      "line": 473,
-      "schema": "z.object({\n      codebaseId: id.optional(),\n      graphId: id,\n      snapshotId: id,\n      nodeId: id.optional(),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(30),\n      limits,\n    })"
+      "schema": "z.object({\n      codebaseId: id.optional(),\n      graphId: id,\n      snapshotId: id,\n      nodeId: id.optional(),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(30),\n      limits,\n    })",
+      "line": 540
     },
     {
       "name": "contextory_report_export",
-      "line": 486,
-      "schema": "z.object({\n      format: z.enum([\"report\", \"changelog\", \"json\"]).default(\"report\"),\n      requestId: id,\n    })"
+      "schema": "z.object({\n      format: z.enum([\"report\", \"changelog\", \"json\"]).default(\"report\"),\n      requestId: id,\n    })",
+      "line": 553
     }
   ]
 }

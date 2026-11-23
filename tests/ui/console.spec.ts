@@ -1,5 +1,4 @@
 import { test, expect } from "@playwright/test";
-import { openTool } from "./navigation";
 
 test("review navigation leaves dedicated source workbenches in place", async ({
   page,
@@ -7,7 +6,7 @@ test("review navigation leaves dedicated source workbenches in place", async ({
   await page.goto("/flow.html");
   await page.evaluate(() =>
     window.postMessage(
-      { type: "navigate", screen: "catalog", projectId: "demo" },
+      { type: "navigate", screen: "approvals", projectId: "demo" },
       "*",
     ),
   );
@@ -15,7 +14,7 @@ test("review navigation leaves dedicated source workbenches in place", async ({
     page.getByRole("heading", { name: "Source flow", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Project knowledge", exact: true }),
+    page.getByRole("heading", { name: "Approvals", exact: true }),
   ).toHaveCount(0);
 });
 
@@ -23,7 +22,7 @@ test("review alerts are visible before opening tools and lead to concrete human 
   page,
 }) => {
   await page.goto("/sidebar.html");
-  await expect(page.locator(".main-nav > button")).toHaveCount(2);
+  await expect(page.locator(".main-nav > button")).toHaveCount(3);
   const alert = page.getByRole("button", { name: "Review pending knowledge" });
   await expect(alert).toContainText("2");
   await expect(page.locator(".workspace-tools")).not.toHaveAttribute("open");
@@ -120,9 +119,9 @@ for (const size of [
     await expect(
       page.getByRole("button", { name: "Review pending knowledge" }),
     ).toBeInViewport();
-    await openTool(page, "Knowledge");
+    await page.getByRole("button", { name: "Approvals", exact: true }).click();
     await expect(
-      page.getByRole("heading", { name: "Project knowledge" }),
+      page.getByRole("heading", { name: "Approvals" }),
     ).toBeVisible();
     expect(
       await page.evaluate(

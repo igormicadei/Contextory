@@ -1,0 +1,14 @@
+/* IBM Carbon Design System — Shape — corner radius and border widths
+   Generated from the @carbon/* v11 npm packages (Apache-2.0).
+   Values are authoritative, not transcribed. Regenerate rather than hand-editing. */
+
+/* Carbon's default corner radius is 0. Radius appears only where Carbon itself
+   specifies it: tags and tooltips (4px) and the toggle track (pill). */
+:root{
+  --cds-radius-none:0;
+  --cds-radius-sm:2px;
+  --cds-radius-md:4px;
+  --cds-radius-pill:9999px;
+  --cds-border-width:1px;
+  --cds-focus-width:2px;
+}

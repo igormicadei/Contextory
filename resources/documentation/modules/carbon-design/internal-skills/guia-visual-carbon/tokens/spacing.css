@@ -1,0 +1,50 @@
+/* IBM Carbon Design System — 2x Grid — spacing scale, fluid spacing, breakpoints, containers
+   Generated from the @carbon/* v11 npm packages (Apache-2.0).
+   Values are authoritative, not transcribed. Regenerate rather than hand-editing. */
+
+:root{
+  --cds-spacing-01:0.125rem;
+  --cds-spacing-02:0.25rem;
+  --cds-spacing-03:0.5rem;
+  --cds-spacing-04:0.75rem;
+  --cds-spacing-05:1rem;
+  --cds-spacing-06:1.5rem;
+  --cds-spacing-07:2rem;
+  --cds-spacing-08:2.5rem;
+  --cds-spacing-09:3rem;
+  --cds-spacing-10:4rem;
+  --cds-spacing-11:5rem;
+  --cds-spacing-12:6rem;
+  --cds-spacing-13:10rem;
+
+  /* Fluid spacing */
+  --cds-fluid-spacing-01:0;
+  --cds-fluid-spacing-02:2vw;
+  --cds-fluid-spacing-03:5vw;
+  --cds-fluid-spacing-04:10vw;
+
+  /* Breakpoint widths */
+  --cds-breakpoint-sm:20rem;
+  --cds-breakpoint-md:42rem;
+  --cds-breakpoint-lg:66rem;
+  --cds-breakpoint-xlg:82rem;
+  --cds-breakpoint-max:99rem;
+
+  /* Grid */
+  --cds-grid-gutter:2rem;
+  --cds-grid-gutter-condensed:0.0625rem;
+  --cds-grid-margin:1rem;
+  --cds-container-max:99rem;
+}
+
+/* Carbon grid tiers
+   sm   >= 20rem   4 columns, margin 0
+   md   >= 42rem   8 columns, margin 1rem
+   lg   >= 66rem   16 columns, margin 1rem
+   xlg  >= 82rem   16 columns, margin 1rem
+   max  >= 99rem   16 columns, margin 1.5rem
+*/
+
+.cds--grid{width:100%;max-width:var(--cds-container-max);margin-inline:auto;padding-inline:var(--cds-grid-margin);display:grid;grid-template-columns:repeat(4,1fr);column-gap:var(--cds-grid-gutter);}
+@media (min-width:42rem){.cds--grid{grid-template-columns:repeat(8,1fr);}}
+@media (min-width:66rem){.cds--grid{grid-template-columns:repeat(16,1fr);}}

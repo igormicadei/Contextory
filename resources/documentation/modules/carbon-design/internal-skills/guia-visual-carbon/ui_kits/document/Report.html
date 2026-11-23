@@ -1,0 +1,183 @@
+<!-- @dsCard group="Documents" viewport="900x1000" name="Report / whitepaper" subtitle="Print-ready A4 document — cover, TOC, body, tables, callouts" -->
+<html data-carbon-theme="white"><head><meta charset="utf-8"><title>IBM Carbon — Report template</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+  /* Print-first document layout. No React — plain markup so it converts cleanly
+     to PDF and pastes into Word/Docs while keeping the Carbon type scale. */
+  body { margin: 0; background: var(--cds-layer-01); }
+
+  .page {
+    inline-size: 210mm;
+    min-block-size: 297mm;
+    margin: 24px auto;
+    padding: 24mm 22mm;
+    background: var(--cds-background);
+    box-sizing: border-box;
+  }
+
+  /* Cover: the one place a document uses the blue band. */
+  .cover { padding: 0; display: flex; flex-direction: column; }
+  .cover .rule { block-size: 8px; background: var(--cds-button-primary); }
+  .cover .body { flex: 1; padding: 24mm 22mm; display: flex; flex-direction: column; }
+  .cover .meta { margin-block-start: auto; }
+
+  h1, h2, h3, h4 { color: var(--cds-text-primary); margin: 0; }
+  p  { color: var(--cds-text-primary); margin: 0 0 var(--cds-spacing-05); max-inline-size: 34em; }
+  .lead { color: var(--cds-text-secondary); font-size: 1.25rem; line-height: 1.4; font-weight: 300; }
+
+  h2 { margin-block: var(--cds-spacing-09) var(--cds-spacing-05); }
+  h3 { margin-block: var(--cds-spacing-07) var(--cds-spacing-04); }
+
+  .eyebrow {
+    color: var(--cds-text-secondary);
+    font-size: var(--cds-label-01-font-size);
+    letter-spacing: var(--cds-label-01-letter-spacing);
+    margin-block-end: var(--cds-spacing-03);
+  }
+
+  /* Section numbers sit in the left margin, engineered-looking and on-grid. */
+  .numbered { display: grid; grid-template-columns: 3rem 1fr; gap: var(--cds-spacing-05); align-items: baseline; }
+  .num { color: var(--cds-text-secondary); font-family: var(--cds-font-mono); font-size: .875rem; }
+
+  table { inline-size: 100%; border-collapse: collapse; margin-block: var(--cds-spacing-05); }
+  th, td {
+    text-align: start; padding: var(--cds-spacing-04) var(--cds-spacing-05);
+    border-block-end: 1px solid var(--cds-border-subtle-01);
+    font-size: var(--cds-body-01-font-size);
+    letter-spacing: var(--cds-body-01-letter-spacing);
+  }
+  th { background: var(--cds-layer-accent-01); font-weight: 600; }
+
+  /* Callout: 3px left bar, same signal language as an inline notification. */
+  .callout {
+    border-inline-start: 3px solid var(--cds-support-info);
+    background: var(--cds-layer-01);
+    padding: var(--cds-spacing-05) var(--cds-spacing-06);
+    margin-block: var(--cds-spacing-06);
+  }
+  .callout p:last-child { margin-block-end: 0; }
+
+  blockquote {
+    margin: var(--cds-spacing-07) 0;
+    padding-inline-start: var(--cds-spacing-06);
+    border-inline-start: 1px solid var(--cds-border-subtle-01);
+    font-family: var(--cds-font-serif);
+    font-size: 1.5rem; line-height: 1.334; font-weight: 300;
+    color: var(--cds-text-primary);
+  }
+
+  .toc a { display: flex; justify-content: space-between; gap: var(--cds-spacing-05);
+           padding: var(--cds-spacing-04) 0; border-block-end: 1px solid var(--cds-border-subtle-01);
+           color: var(--cds-text-primary); text-decoration: none;
+           font-size: var(--cds-body-01-font-size); }
+  .toc a span:last-child { color: var(--cds-text-secondary); font-family: var(--cds-font-mono); }
+
+  .foot {
+    display: flex; justify-content: space-between;
+    margin-block-start: var(--cds-spacing-09);
+    padding-block-start: var(--cds-spacing-04);
+    border-block-start: 1px solid var(--cds-border-subtle-01);
+    color: var(--cds-text-secondary);
+    font-size: var(--cds-label-01-font-size);
+    letter-spacing: var(--cds-label-01-letter-spacing);
+  }
+
+  @media print {
+    body { background: #fff; }
+    .page { margin: 0; box-shadow: none; page-break-after: always; inline-size: auto; min-block-size: auto; }
+    @page { size: A4; margin: 18mm; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================== cover -->
+<section class="page cover">
+  <div class="rule"></div>
+  <div class="body">
+    <div class="eyebrow">IBM Institute for Business Value · Research report</div>
+    <h1 class="cds--type-fluid-heading-05" style="max-inline-size:14em">
+      The enterprise AI governance gap
+    </h1>
+    <p class="lead" style="margin-block-start:var(--cds-spacing-06);max-inline-size:26em">
+      What 1,200 organizations learned about deploying foundation models
+      under real regulatory pressure.
+    </p>
+
+    <div class="meta">
+      <table style="margin:0">
+        <tr><td style="padding-inline-start:0;border:none;color:var(--cds-text-secondary)">Published</td><td style="border:none">July 2026</td></tr>
+        <tr><td style="padding-inline-start:0;border:none;color:var(--cds-text-secondary)">Authors</td><td style="border:none">Research team, IBM IBV</td></tr>
+        <tr><td style="padding-inline-start:0;border:none;color:var(--cds-text-secondary)">Pages</td><td style="border:none">24</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================== contents -->
+<section class="page">
+  <div class="eyebrow">Contents</div>
+  <h2 style="margin-block-start:0" class="cds--type-heading-04">What's inside</h2>
+  <nav class="toc" style="margin-block-start:var(--cds-spacing-07)">
+    <a href="#s1"><span>01 &nbsp; Executive summary</span><span>03</span></a>
+    <a href="#s2"><span>02 &nbsp; Where governance breaks down</span><span>06</span></a>
+    <a href="#s3"><span>03 &nbsp; What high performers do differently</span><span>11</span></a>
+    <a href="#s4"><span>04 &nbsp; A practical sequencing model</span><span>17</span></a>
+    <a href="#s5"><span>05 &nbsp; Methodology</span><span>22</span></a>
+  </nav>
+  <div class="foot"><span>IBM Institute for Business Value</span><span>02</span></div>
+</section>
+
+<!-- ============================================== body -->
+<section class="page" id="s1">
+  <div class="numbered">
+    <div class="num">01</div>
+    <div>
+      <div class="eyebrow">Executive summary</div>
+      <h2 style="margin-block-start:0" class="cds--type-heading-04">Most organizations can build a model. Far fewer can defend one.</h2>
+
+      <p>
+        Across 1,200 surveyed organizations, 78% had at least one foundation model in
+        production. Only 31% could produce a complete lineage record for that model when
+        asked — covering training data provenance, evaluation results, approval chain and
+        post-deployment drift.
+      </p>
+
+      <p>
+        That gap is not primarily technical. Organizations that closed it did not buy a
+        different model; they changed the sequence in which they built things, putting
+        evidence collection before scale rather than after it.
+      </p>
+
+      <div class="callout">
+        <p><strong>Key finding.</strong> Organizations that instrumented governance before
+        their second production model reached audit readiness 3.4× faster than those that
+        retrofitted it — and spent 22% less in total.</p>
+      </div>
+
+      <h3 class="cds--type-heading-03">Adoption against readiness</h3>
+      <table>
+        <thead>
+          <tr><th>Sector</th><th>In production</th><th>Full lineage</th><th>Gap</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Financial services</td><td>84%</td><td>47%</td><td>37 pts</td></tr>
+          <tr><td>Healthcare</td><td>71%</td><td>38%</td><td>33 pts</td></tr>
+          <tr><td>Manufacturing</td><td>80%</td><td>24%</td><td>56 pts</td></tr>
+          <tr><td>Public sector</td><td>62%</td><td>29%</td><td>33 pts</td></tr>
+          <tr><td>Retail</td><td>88%</td><td>19%</td><td>69 pts</td></tr>
+        </tbody>
+      </table>
+
+      <blockquote>
+        We could ship a model in six weeks. Proving what it had learned took nine months.
+      </blockquote>
+      <p style="color:var(--cds-text-secondary);font-size:var(--cds-label-01-font-size)">
+        — Chief Data Officer, European retail bank
+      </p>
+    </div>
+  </div>
+  <div class="foot"><span>The enterprise AI governance gap</span><span>03</span></div>
+</section>
+
+</body></html>

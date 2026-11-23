@@ -1,0 +1,28 @@
+<!-- @dsCard group="Layout" viewport="900x360" name="2x Grid" subtitle="16 columns at lg, 8 at md, 4 at sm" -->
+<html data-carbon-theme="white"><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
+<style>
+body{margin:0;padding:24px;background:var(--cds-background);color:var(--cds-text-primary);font-family:var(--cds-font-sans)}
+.h{font-size:.75rem;letter-spacing:.32px;color:var(--cds-text-secondary);margin:0 0 12px}
+.sw{display:flex;flex-direction:column;justify-content:flex-end;padding:6px;font-size:10px;line-height:1.2}
+
+</style></head>
+<body>
+<p class="h">Carbon's grid is a column count, not a pixel width. Content snaps to
+  columns; the gutter is 32px and the outer margin 16px.</p>
+<div style="margin-bottom:18px">
+  <div class="h" style="margin-bottom:6px">lg and up — 16 columns</div>
+  <div style="display:grid;grid-template-columns:repeat(16,1fr);gap:8px">
+    <div style="height:44px;background:var(--cds-blue-20)"></div><div style="height:44px;background:var(--cds-blue-20)"></div><div style="height:44px;background:var(--cds-blue-20)"></div><div style="height:44px;background:var(--cds-blue-20)"></div><div style="height:44px;background:var(--cds-blue-20)"></div><div style="height:44px;background:var(--cds-blue-20)"></div><div style="height:44px;background:var(--cds-blue-20)"></div><div style="height:44px;background:var(--cds-blue-20)"></div><div style="height:44px;background:var(--cds-blue-20)"></div><div style="height:44px;background:var(--cds-blue-20)"></div><div style="height:44px;background:var(--cds-blue-20)"></div><div style="height:44px;background:var(--cds-blue-20)"></div><div style="height:44px;background:var(--cds-blue-20)"></div><div style="height:44px;background:var(--cds-blue-20)"></div><div style="height:44px;background:var(--cds-blue-20)"></div><div style="height:44px;background:var(--cds-blue-20)"></div>
+  </div>
+</div><div style="margin-bottom:18px">
+  <div class="h" style="margin-bottom:6px">md — 8 columns</div>
+  <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:8px">
+    <div style="height:44px;background:var(--cds-blue-20)"></div><div style="height:44px;background:var(--cds-blue-20)"></div><div style="height:44px;background:var(--cds-blue-20)"></div><div style="height:44px;background:var(--cds-blue-20)"></div><div style="height:44px;background:var(--cds-blue-20)"></div><div style="height:44px;background:var(--cds-blue-20)"></div><div style="height:44px;background:var(--cds-blue-20)"></div><div style="height:44px;background:var(--cds-blue-20)"></div>
+  </div>
+</div><div style="margin-bottom:18px">
+  <div class="h" style="margin-bottom:6px">sm — 4 columns</div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+    <div style="height:44px;background:var(--cds-blue-20)"></div><div style="height:44px;background:var(--cds-blue-20)"></div><div style="height:44px;background:var(--cds-blue-20)"></div><div style="height:44px;background:var(--cds-blue-20)"></div>
+  </div>
+</div>
+</body></html>

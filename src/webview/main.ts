@@ -21,7 +21,14 @@ import {
   type ArchitectureState,
 } from "./architecture";
 import { flowView } from "./flow";
-import { catalogView, type CatalogPage } from "./catalog";
+import { documentationView, type DocumentationPage } from "./documentation";
+import {
+  approvalsView,
+  catalogView,
+  type ApprovalsPage,
+  type CatalogPage,
+  type CatalogFeedback,
+} from "./catalog";
 import {
   versionsView,
   type VersionsPage,
@@ -133,9 +140,28 @@ const usageBySpec = new Map<string, UsageSummary>();
 let notice = "";
 let busy = false;
 let catalogPage: CatalogPage | undefined;
+let documentationPage: DocumentationPage | undefined;
+let documentationOffset = 0;
+let documentationSequence = 0;
+let documentationRequestId = "";
+let documentationError = "";
+let documentationLoading = false;
+let documentationJob: Parameters<typeof documentationView>[5];
+let documentationJobId = "";
+let documentationJobRequest = "";
+let documentationPoll: ReturnType<typeof setTimeout> | undefined;
 let catalogOffset = 0;
 let catalogRequestId = "";
 let catalogSequence = 0;
+let approvalsPage: ApprovalsPage | undefined;
+let approvalsOffset = 0;
+let approvalsRequestId = "";
+const catalogStatuses: Record<string, CatalogFeedback> = {};
+const catalogReviews = new Map<
+  string,
+  { id: string; revision: number; action: string }
+>();
+let catalogReviewSequence = 0;
 let versionsPage: VersionsPage | undefined;
 let versionDetail: VersionDetail | undefined;
 let releasePlan: Entity | undefined;
@@ -178,8 +204,22 @@ function resetProject() {
   workspaceRequests.clear();
   requestProjects.clear();
   catalogPage = undefined;
+  documentationPage = undefined;
+  documentationOffset = 0;
+  documentationRequestId = "";
+  documentationError = "";
+  documentationLoading = false;
+  documentationJob = undefined;
+  documentationJobId = "";
+  documentationJobRequest = "";
+  clearTimeout(documentationPoll);
   catalogOffset = 0;
   catalogRequestId = "";
+  approvalsPage = undefined;
+  approvalsOffset = 0;
+  approvalsRequestId = "";
+  for (const id of Object.keys(catalogStatuses)) delete catalogStatuses[id];
+  catalogReviews.clear();
   versionsPage = undefined;
   versionDetail = undefined;
   releasePlan = undefined;
@@ -320,9 +360,11 @@ function requestProgress(request: Entity) {
 }
 function reviewCount() {
   const catalog =
-    screen === "catalog"
-      ? (catalogPage ?? dashboard?.catalog)
-      : (dashboard?.catalog ?? catalogPage);
+    screen === "approvals"
+      ? (approvalsPage ?? dashboard?.catalog)
+      : screen === "catalog"
+        ? (catalogPage ?? dashboard?.catalog)
+        : (dashboard?.catalog ?? catalogPage);
   return catalog
     ? catalog.observed + catalog.pendingChanges
     : (dashboard?.entities.filter(
@@ -376,7 +418,7 @@ function requestCard(r: Entity) {
     ${requestProgress(r)}
     ${workspaceRequestView(r)}
     <details class="request-brief" ${drafts.requestBriefOpen === "true" ? "open" : ""}><summary>Brief & actions</summary><p>${escape(r.data.description)}</p><small class="record-id">${r.id} · revision ${r.revision}</small>
-    <div class="request-actions">${button("report", "Export request report", `data-id="${r.id}"`, "small")}${button("history", "Request history", `data-id="${r.id}"`, "text-button")}</div></details>
+    <div class="request-actions">${button("report", "Export request report", `data-id="${r.id}"`, "small")}${button("history", "Request history", `data-id="${r.id}"`, "text-button")}${button("openDocumentation", "Related documentation", `data-id="${r.id}"`, "text-button")}</div></details>
     ${
       children(r.id, "milestone")
         .map(
@@ -535,6 +577,7 @@ function nativeDiagnostics() {
 }
 function workspaceNavigation() {
   const tools = [
+    ["documentation", "Documentation"],
     ["catalog", "Knowledge"],
     ["versions", "Versions"],
     ["history", "History"],
@@ -544,12 +587,15 @@ function workspaceNavigation() {
   return `<nav class="main-nav" aria-label="Contextory views">${[
     ["overview", "Work"],
     ["requests", "Requests"],
+    ["approvals", "Approvals"],
   ]
     .map(([id, label]) =>
       button(
         "navigate",
-        label,
-        `data-screen="${id}" aria-current="${screen === id ? "page" : "false"}"`,
+        id === "approvals" && reviewCount()
+          ? `${label}<span class="approval-count" aria-hidden="true">${reviewCount()}</span>`
+          : label,
+        `data-screen="${id}" aria-label="${label}" ${id === "approvals" ? `title="${reviewCount()} items awaiting review"` : ""} aria-current="${screen === id ? "page" : "false"}"`,
         screen === id ? "active" : "",
       ),
     )
@@ -559,7 +605,7 @@ function workspaceNavigation() {
 }
 function attentionStrip() {
   const count = reviewCount();
-  return `<div class="attention-strip">${count ? button("navigate", `<span class="review-count">${count}</span><span>Knowledge ${count === 1 ? "item needs" : "items need"} review</span><span aria-hidden="true">→</span>`, 'data-screen="catalog" aria-label="Review pending knowledge"', "review-alert") : ""}${serviceConnection.state === "reconnecting" ? `<div class="connection-alert" role="status"><strong>Reconnecting automatically</strong><span>${escape(serviceConnection.text)}</span>${dashboard ? "<small>Showing the last received workspace data.</small>" : ""}${button("refresh", "Retry now", "", "small")}</div>` : ""}${dashboard?.configurationError ? `<div class="configuration-alert" role="status"><span>${escape(dashboard.configurationError)}</span>${button("checkSettings", "Fix check settings", "", "small")}</div>` : ""}${automation?.reloadRequired ? `<div class="reload-alert"><span>Agent setup changed. Reload integrations to use it.</span>${button("restartAgents", "Restart extensions", 'title="Interrupts active extension tasks"', "small")}</div>` : ""}</div>`;
+  return `<div class="attention-strip">${count && screen !== "approvals" ? button("navigate", `<span class="review-count">${count}</span><span>Knowledge ${count === 1 ? "item needs" : "items need"} review</span><span aria-hidden="true">→</span>`, 'data-screen="approvals" aria-label="Review pending knowledge"', "review-alert") : ""}${serviceConnection.state === "reconnecting" ? `<div class="connection-alert" role="status"><strong>Reconnecting automatically</strong><span>${escape(serviceConnection.text)}</span>${dashboard ? "<small>Showing the last received workspace data.</small>" : ""}${button("refresh", "Retry now", "", "small")}</div>` : ""}${dashboard?.configurationError ? `<div class="configuration-alert" role="status"><span>${escape(dashboard.configurationError)}</span>${button("checkSettings", "Fix check settings", "", "small")}</div>` : ""}${automation?.reloadRequired ? `<div class="reload-alert"><span>Agent setup changed. Reload integrations to use it.</span>${button("restartAgents", "Restart extensions", 'title="Interrupts active extension tasks"', "small")}</div>` : ""}</div>`;
 }
 function map() {
   return flowView(graph, nodeId, drafts);
@@ -601,7 +647,7 @@ function render() {
   const workspacePath =
     document.body.dataset.workspacePath || dashboard?.root || workspaceName;
   app.classList.toggle("workspace-console", surface === "sidebar");
-  app.innerHTML = `<header class="app-header"><div class="brand"><span class="brand-mark" aria-hidden="true">${contextoryIcon}</span><div class="brand-copy"><strong>Contextory</strong><span class="workspace-name" aria-label="Workspace" title="${escape(workspacePath)}">${escape(workspaceName)}</span></div></div>${button("refresh", "&#8635;", 'aria-label="Refresh workspace" title="Refresh workspace"', "icon-button")}</header>${projectSelector()}${surface === "sidebar" ? workspaceNavigation() + attentionStrip() : ""}${notice ? `<div class="notice" role="status"><span>${escape(notice)}</span>${button("dismiss", "?", 'aria-label="Dismiss notification"', "icon-button")}</div>` : ""}${busy ? '<div class="loading-line" role="progressbar" aria-label="Contextory is working"></div>' : ""}<main>${projectPending ? empty("Switching project", "Loading this project's records...") : !dashboard && screen !== "map" && screen !== "relationships" ? empty(serviceConnection.state === "reconnecting" ? "Restoring your workspace" : "Your workspace, connected", "Contextory keeps trying automatically while the service starts. Your project records stay in place.", button("refresh", "Retry now", "", "primary")) : screen === "versions" ? versionsView(versionsPage, versionDetail, releasePlan, drafts, versionsOffset) : screen === "catalog" ? catalogView(catalogPage, drafts, catalogOffset) : screen === "architecture" ? architectureView(architecture, codeContext, drafts.codeQuery ?? "", architectureOnly, architectureState, dashboard?.references ?? [], architectureCodebase) : screen === "relationships" ? relationshipView(relationships) : screen === "requests" ? requestTree() : screen === "history" ? historyView() : screen === "map" ? map() : overview()}</main><footer>${surface === "sidebar" ? connections() : ""}<div class="workspace-status"><span class="status-dot ${serviceConnection.state === "connected" ? "online" : ""}"></span><span class="service-state" title="${escape(serviceConnection.checkedAt ? `Last connection check: ${new Date(serviceConnection.checkedAt).toLocaleString()}` : serviceConnection.text)}">${serviceConnection.state === "connected" ? "Service connected" : serviceConnection.state === "reconnecting" ? "Reconnecting?" : "Connecting?"}</span>${surface === "sidebar" ? rebuildHooksButton() + autoConnectSwitch() : '<span class="footer-label">Native conversation &middot; durable context</span>'}</div></footer>`;
+  app.innerHTML = `<header class="app-header"><div class="brand"><span class="brand-mark" aria-hidden="true">${contextoryIcon}</span><div class="brand-copy"><strong>Contextory</strong><span class="workspace-name" aria-label="Workspace" title="${escape(workspacePath)}">${escape(workspaceName)}</span></div></div>${button("refresh", "&#8635;", 'aria-label="Refresh workspace" title="Refresh workspace"', "icon-button")}</header>${projectSelector()}${surface === "sidebar" ? workspaceNavigation() + attentionStrip() : ""}${notice ? `<div class="notice" role="status"><span>${escape(notice)}</span>${button("dismiss", "?", 'aria-label="Dismiss notification"', "icon-button")}</div>` : ""}${busy ? '<div class="loading-line" role="progressbar" aria-label="Contextory is working"></div>' : ""}<main>${projectPending ? empty("Switching project", "Loading this project's records...") : !dashboard && screen !== "map" && screen !== "relationships" ? empty(serviceConnection.state === "reconnecting" ? "Restoring your workspace" : "Your workspace, connected", "Contextory keeps trying automatically while the service starts. Your project records stay in place.", button("refresh", "Retry now", "", "primary")) : screen === "documentation" ? documentationView(documentationPage, drafts, documentationOffset, documentationError, documentationLoading, documentationJob) : screen === "versions" ? versionsView(versionsPage, versionDetail, releasePlan, drafts, versionsOffset) : screen === "catalog" ? catalogView(catalogPage, drafts, catalogOffset) : screen === "approvals" ? approvalsView(approvalsPage, drafts, approvalsOffset, catalogStatuses) : screen === "architecture" ? architectureView(architecture, codeContext, drafts.codeQuery ?? "", architectureOnly, architectureState, dashboard?.references ?? [], architectureCodebase) : screen === "relationships" ? relationshipView(relationships) : screen === "requests" ? requestTree() : screen === "history" ? historyView() : screen === "map" ? map() : overview()}</main><footer>${surface === "sidebar" ? connections() : ""}<div class="workspace-status"><span class="status-dot ${serviceConnection.state === "connected" ? "online" : ""}"></span><span class="service-state" title="${escape(serviceConnection.checkedAt ? `Last connection check: ${new Date(serviceConnection.checkedAt).toLocaleString()}` : serviceConnection.text)}">${serviceConnection.state === "connected" ? "Service connected" : serviceConnection.state === "reconnecting" ? "Reconnecting?" : "Connecting?"}</span>${surface === "sidebar" ? rebuildHooksButton() + autoConnectSwitch() : '<span class="footer-label">Native conversation &middot; durable context</span>'}</div></footer>`;
   document.querySelector<HTMLElement>("main")!.dataset.screen = screen;
   for (const scroll of scrollAreas) {
     const replacement = document.querySelector<HTMLElement>(
@@ -670,19 +716,56 @@ function loadVersionDetail(id: string) {
     arguments: { releaseId: id, offset: versionDetailOffset, limit: 20 },
   });
 }
-function loadCatalog() {
-  catalogRequestId = `catalog:${++catalogSequence}`;
+function loadDocumentation() {
+  documentationLoading = true;
+  documentationError = "";
+  documentationRequestId = `documentation:${++documentationSequence}`;
+  send({
+    type: "tool",
+    name: "contextory_docs_get",
+    requestId: documentationRequestId,
+    arguments: {
+      section: "sections",
+      query: drafts.docsQuery ?? "",
+      path: drafts.docsPath || undefined,
+      recordId: drafts.docsRecord || undefined,
+      locale: drafts.docsLocale || "en",
+      offset: documentationOffset,
+      limit: 10,
+    },
+  });
+}
+function pollDocumentationJob() {
+  if (!documentationJobId) return;
+  documentationJobRequest = `documentation-job:${++documentationSequence}`;
+  send({
+    type: "tool",
+    name: "contextory_docs_get",
+    requestId: documentationJobRequest,
+    arguments: { section: "job", jobId: documentationJobId },
+  });
+}
+function loadCatalog(
+  target: "catalog" | "approvals" = screen === "approvals"
+    ? "approvals"
+    : "catalog",
+) {
+  const pending = target === "approvals";
+  const requestId = `${target}:${++catalogSequence}`;
+  if (pending) approvalsRequestId = requestId;
+  else catalogRequestId = requestId;
   send({
     type: "tool",
     name: "contextory_catalog_get",
-    requestId: catalogRequestId,
+    requestId,
     arguments: {
-      inventory: true,
-      offset: catalogOffset,
+      inventory: !pending,
+      pendingOnly: pending,
+      offset: pending ? approvalsOffset : catalogOffset,
       limit: 20,
-      query: drafts.catalogQuery || undefined,
-      path: drafts.catalogPath || undefined,
-      category: drafts.catalogCategory || undefined,
+      query: pending ? undefined : drafts.catalogQuery || undefined,
+      path: pending ? undefined : drafts.catalogPath || undefined,
+      category: pending ? undefined : drafts.catalogCategory || undefined,
     },
   });
 }
@@ -874,8 +957,9 @@ function action(element: Element) {
       if (screen === "history") loadHistory();
       if (screen === "architecture") loadArchitecture();
       if (screen === "requests") preparePanelSelection();
-      if (screen === "catalog") loadCatalog();
+      if (screen === "catalog" || screen === "approvals") loadCatalog();
       if (screen === "versions") loadVersions();
+      if (screen === "documentation") loadDocumentation();
       render();
       if (screen === "requests" && horizontalLayout()) revealSelection();
       break;
@@ -925,25 +1009,51 @@ function action(element: Element) {
       loadCatalog();
       break;
     case "catalogNext":
-      catalogOffset += 20;
+      if (screen === "approvals") approvalsOffset += 20;
+      else catalogOffset += 20;
       loadCatalog();
       break;
     case "catalogPrevious":
-      catalogOffset = Math.max(0, catalogOffset - 20);
+      if (screen === "approvals")
+        approvalsOffset = Math.max(0, approvalsOffset - 20);
+      else catalogOffset = Math.max(0, catalogOffset - 20);
       loadCatalog();
       break;
     case "catalogReview": {
+      if (!data.id || !data.review) break;
+      if (catalogStatuses[data.id]?.state === "pending") break;
       const reason = drafts[`catalogReason-${data.id}`]?.trim();
       if (!reason) {
-        notice =
-          "Enter a review reason before approving or rejecting this definition.";
+        const text =
+          "Enter a review reason before approving, rejecting or refreshing this definition.";
+        notice = text;
+        catalogStatuses[data.id] = {
+          state: "error",
+          text,
+          revision: Number(data.revision),
+        };
         render();
         break;
       }
+      const requestId = `catalog-review:${++catalogReviewSequence}`;
+      catalogReviews.set(requestId, {
+        id: data.id,
+        revision: Number(data.revision),
+        action: data.review,
+      });
+      catalogStatuses[data.id] = {
+        state: "pending",
+        text:
+          data.review === "refresh"
+            ? "Refreshing source snapshot…"
+            : "Saving your review…",
+        revision: Number(data.revision),
+      };
+      render();
       send({
         type: "tool",
         name: "contextory_catalog_review",
-        requestId: `catalog-review:${data.id}`,
+        requestId,
         arguments: {
           operationId: crypto.randomUUID(),
           id: data.id,
@@ -1034,6 +1144,55 @@ function action(element: Element) {
       architectureState.file = data.path!;
       architectureState.mode = "map";
       requestCode(data.path!, [data.path!]);
+      break;
+    case "openDocumentation":
+      if (surface !== "sidebar") {
+        send({ type: "documentationOpen", path: data.path });
+        break;
+      }
+      drafts.docsQuery = "";
+      drafts.docsPath = data.path ?? "";
+      drafts.docsRecord = data.id ?? "";
+      documentationOffset = 0;
+      screen = "documentation";
+      loadDocumentation();
+      render();
+      break;
+    case "docsRefresh":
+      loadDocumentation();
+      render();
+      break;
+    case "docsClearRecord":
+      drafts.docsRecord = "";
+      documentationOffset = 0;
+      loadDocumentation();
+      render();
+      break;
+    case "docsNext":
+      documentationOffset += 10;
+      loadDocumentation();
+      render();
+      break;
+    case "docsPrevious":
+      documentationOffset = Math.max(0, documentationOffset - 10);
+      loadDocumentation();
+      render();
+      break;
+    case "docsOperation":
+      if (
+        documentationJob &&
+        ["queued", "running"].includes(documentationJob.state)
+      )
+        break;
+      documentationJob = { state: "queued", data: { action: data.operation } };
+      documentationJobRequest = `documentation-start:${++documentationSequence}`;
+      send({
+        type: "tool",
+        name: "contextory_docs_run",
+        requestId: documentationJobRequest,
+        arguments: { operationId: crypto.randomUUID(), action: data.operation },
+      });
+      render();
       break;
     case "architectureSelect":
       rememberArchitecture();
@@ -1310,6 +1469,10 @@ app.addEventListener("submit", (event) => {
     catalogOffset = 0;
     loadCatalog();
   }
+  if (form.id === "documentation-form") {
+    documentationOffset = 0;
+    loadDocumentation();
+  }
   if (form.id === "release-form") {
     releaseActionPending = true;
     send({
@@ -1382,7 +1545,21 @@ window.addEventListener("message", (event) => {
     projectPending = false;
     expectedProjectId = "";
     const previousVersions = JSON.stringify(dashboard?.versioning);
+    const previousCatalog = JSON.stringify(dashboard?.catalog);
     indexDashboard(message.dashboard);
+    if (
+      screen === "documentation" &&
+      !documentationPage &&
+      !documentationLoading &&
+      !documentationError
+    )
+      loadDocumentation();
+    if (previousCatalog !== JSON.stringify(dashboard?.catalog)) {
+      if (screen === "approvals") loadCatalog("approvals");
+      else approvalsPage = undefined;
+      if (screen === "catalog") loadCatalog("catalog");
+      else catalogPage = undefined;
+    }
     serviceConnection = {
       ...serviceConnection,
       state: "connected",
@@ -1443,9 +1620,53 @@ window.addEventListener("message", (event) => {
     typeof message.screen === "string"
   ) {
     screen = message.screen;
-    if (screen === "catalog") loadCatalog();
+    if (screen === "catalog" || screen === "approvals") loadCatalog();
+    if (screen === "documentation") {
+      drafts.docsPath = message.path ?? "";
+      drafts.docsRecord = message.recordId ?? "";
+      drafts.docsQuery = "";
+      documentationOffset = 0;
+      loadDocumentation();
+    }
   }
   if (message.type === "busy") busy = message.value;
+  if (
+    message.requestId === documentationRequestId &&
+    ["toolResult", "toolError"].includes(message.type)
+  ) {
+    documentationLoading = false;
+    if (message.type === "toolResult") documentationPage = message.result;
+    else
+      documentationError =
+        message.error?.message ??
+        message.text ??
+        "Could not load documentation.";
+  }
+  if (
+    message.requestId === documentationJobRequest &&
+    ["toolResult", "toolError"].includes(message.type)
+  ) {
+    if (message.type === "toolError")
+      documentationJob = {
+        state: "failed",
+        data: {
+          error:
+            message.error?.message ??
+            message.text ??
+            "Documentation operation failed.",
+        },
+      };
+    else if (message.result.jobId) {
+      documentationJobId = message.result.jobId;
+      pollDocumentationJob();
+    } else {
+      documentationJob = message.result;
+      if (["queued", "running"].includes(message.result.state)) {
+        clearTimeout(documentationPoll);
+        documentationPoll = setTimeout(pollDocumentationJob, 1000);
+      }
+    }
+  }
   if (message.type === "toolResult" && message.requestId === versionsRequestId)
     versionsPage = message.result;
   if (
@@ -1470,9 +1691,51 @@ window.addEventListener("message", (event) => {
     catalogPage = message.result;
   if (
     message.type === "toolResult" &&
-    String(message.requestId).startsWith("catalog-review:")
-  )
-    loadCatalog();
+    message.requestId === approvalsRequestId
+  ) {
+    approvalsPage = message.result;
+    if (
+      approvalsPage &&
+      approvalsOffset &&
+      !approvalsPage.records.length &&
+      !approvalsPage.proposals.length
+    ) {
+      const remaining = Math.max(
+        approvalsPage.total,
+        approvalsPage.proposalsTotal ?? approvalsPage.pendingChanges,
+      );
+      approvalsOffset = remaining ? Math.floor((remaining - 1) / 20) * 20 : 0;
+      loadCatalog("approvals");
+    }
+  }
+  if (message.type === "toolResult" || message.type === "toolError") {
+    const review = catalogReviews.get(String(message.requestId));
+    if (review) {
+      catalogReviews.delete(String(message.requestId));
+      const failed = message.type === "toolError";
+      const text = failed
+        ? String(message.text || "The review could not be saved. Try again.")
+        : review.action === "refresh"
+          ? "Source snapshot refreshed. Check the definition, then approve or reject it."
+          : review.action === "approve"
+            ? `Approved ${review.id}.`
+            : `Rejected ${review.id}.`;
+      catalogStatuses[review.id] = {
+        state: failed ? "error" : "success",
+        text,
+        revision: review.revision,
+      };
+      if (!failed) {
+        notice = text;
+        if (review.action !== "refresh")
+          delete drafts[`catalogReason-${review.id}`];
+      }
+      // Preserve the reason and reconcile stale revisions without replaying a review.
+      catalogPage = undefined;
+      loadCatalog("approvals");
+      if (screen === "catalog") loadCatalog("catalog");
+    }
+  }
   if (
     message.type === "toolResult" &&
     message.requestId === architectureRequestId
@@ -1567,6 +1830,8 @@ app.addEventListener(
       drafts.toolsOpen = String(d.open);
     if (d.classList.contains("request-brief"))
       drafts.requestBriefOpen = String(d.open);
+    if (d.classList.contains("documentation-maintenance"))
+      drafts.docsMaintenanceOpen = String(d.open);
     if (d.dataset.milestone) {
       if (d.open) openMilestones.add(d.dataset.milestone);
       else openMilestones.delete(d.dataset.milestone);

@@ -1,0 +1,13 @@
+# 0.9.0 documentation and package review
+
+Reviewed on 2026-11-23 for the explicitly authorized extension release, tracked by REQ-6f67cf4a / SPEC-3dca104e.
+
+This release includes the completed recoverable knowledge-review fix, dedicated Approvals destination and independent project documentation capability. Current installation/API/history/discovery guidance and the paired English/pt-BR release page describe those changes. Existing release pages, stable IDs, translations, compatibility URLs and historical artifacts remain intact.
+
+Project documentation bundles software-documentation 1.0.1 and the complete Carbon 1.0.0 module, with 469 upstream resource hashes, local assets/fonts and licenses. The existing schema-1 renderer for Contextory's own website remains independently pinned at software-documentation 1.0.0. No vendor/runtime upgrade is applied to that site. Generation in connected projects is optional and requires Python 3.11+; reading does not depend on Python or another plugin installation.
+
+The implementation's current tracked evidence covered 55 UI tests, 29 native/headless/service/registration tests, five documentation/runtime/Carbon tests, TypeScript, skill synchronization and documentation/link validation. The broader backend suite returned 122 passing tests before the last targeted retrieval correction; final release evidence is recorded separately and must not be inferred from that historical run. Generated Carbon pages were exercised offline in both locales at 1440/390/320 pixels, including search, language switching, drawer focus/Escape and no-JavaScript navigation.
+
+The managed release workflow commits runtime/version changes and creates its immutable local tag before packaging. Any subsequent qualification commit contains documentation, checksums and package evidence; it must not change shipped application sources. Qualification verifies the application sources against the tag, exact upstream resource hashes, runtime/bridge/skill bytes, matching versions, private-file/bytecode exclusions and the unchanged public 0.8.0 asset. Public verification compares downloaded VSIX/checksum and the deployed full-site manifest. A pushed tag/branch alone is not publication evidence.
+
+Catalog records remain observations until human Approvals review. Native hook trust and authenticated agent conversations are not approved or automated by this release. Local Windows qualification does not establish other operating systems or remote workspace support. Reference-project metadata reuse remains separate backlog work. No installation into the user's live editor is part of this release.

@@ -1,6 +1,6 @@
 # Work console and connection recovery
 
-The work console starts with the current specification and a compact request queue. Open a request to see one plan at a time. Its brief and export/history actions expand on demand; choose a specification and use **Specification details** for its plan, issues, decisions, evidence, outcome, usage or history. **Tools** opens project knowledge, versions, history, source flow and architecture.
+The work console has **Work**, **Requests** and **Approvals** destinations. Work starts with the current specification and a compact request queue. Open a request to see one plan at a time. Its brief and export/history actions expand on demand; choose a specification and use **Specification details** for its plan, issues, decisions, evidence, outcome, usage or history. **Tools** opens the Knowledge browser, versions, history, source flow and architecture.
 
 The same view stacks in a narrow sidebar and splits work and details in a wide, shallow panel. Moving the view keeps the project, specification, drafts, expanded details and scroll positions. Native editor themes and keyboard controls remain active.
 
@@ -12,7 +12,11 @@ These are recorded facts, not a percentage of implementation time or a finish es
 
 ## Review knowledge
 
-A persistent review alert counts observed definitions and pending replacements or retirements. Click it to see concrete definitions, before/after changes, source/test gaps and the required review reason. Definition search and file coverage expand separately from the review queue.
+The **Approvals** tab shows a pending count and contains only observed definitions and pending replacements or retirements. A persistent review alert and the editor's **Review now** notification open this tab directly. Stale source snapshots can be refreshed explicitly after checking the linked files; approval remains a separate human action. Errors appear beside the item and preserve the review reason.
+
+**Tools > Knowledge** browses definitions, source/test references, history and file coverage. Its search filters and page are independent of Approvals, and it has no approval forms. Moving between the two views preserves review drafts. Reviewed items leave the approval queue; an empty queue shows that no approvals are pending.
+
+**Tools > Documentation** searches authored project explanations in English or Portuguese, with source freshness and related records. Architecture's **Explain this area** scopes it to the current source area; a request's **Related documentation** includes links on its descendants. The bundled documentation/Carbon runtime runs on demand through the existing Contextory connection. Reading needs no Python; generation requires Python 3.11+. See [Project documentation](PROJECT-DOCUMENTATION.md) for authoring, maintenance and explicit publication.
 
 The editor also shows a view badge and offers **Review now** when the pending set changes. Notifications are deduplicated per project and exact record revisions, including across extension restarts. Dismissing a notification leaves the review alert available. Agents cannot approve their own definitions.
 

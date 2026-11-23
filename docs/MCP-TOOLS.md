@@ -13,7 +13,7 @@
 
 ## Read the advertised contract
 
-Contextory 0.7.0 defines 36 tools. The following Zod schema excerpts were extracted with the TypeScript parser from the saved source without executing application code. They preserve required/optional/default/range semantics. The running MCP tools/list response is authoritative for the installed client version. contextory_catalog_review is human-UI-only even if its contract is visible.
+Contextory 0.9.0 defines 39 tools. The following Zod schema excerpts were extracted with the TypeScript parser from the saved source without executing application code. They preserve required/optional/default/range semantics. The running MCP tools/list response is authoritative for the installed client version. contextory_catalog_review is human-UI-only even if its contract is visible.
 
 Every tool additionally accepts optional projectId and workspaceId. Omitted/current project scope stays on that server’s project. Source tools additionally accept optional codebaseId where their schema/advertised contract permits it. Lines/characters in product tool source references are zero-based; documentation citation lines are one-based.
 
@@ -94,7 +94,7 @@ Read a record before editing. Existing records require current expectedRevision.
 
 Repair one provider’s managed hooks; requires a reachable service and preserves native trust.
 
-Input schema · src/contracts/tools.ts:60
+Input schema · src/contracts/tools.ts:126
 
 ```typescript
 // contextory_hooks_rebuild
@@ -110,7 +110,7 @@ z.object({
 
 Discover project/workspace identities and optional coordinated-request status.
 
-Input schema · src/contracts/tools.ts:68
+Input schema · src/contracts/tools.ts:134
 
 ```typescript
 // contextory_workspace_get
@@ -123,7 +123,7 @@ z.object({ groupId: id.optional() })
 
 Create linked local requests for selected projects with recoverable partial creation.
 
-Input schema · src/contracts/tools.ts:73
+Input schema · src/contracts/tools.ts:139
 
 ```typescript
 // contextory_workspace_request_create
@@ -141,7 +141,7 @@ z.object({
 
 Read repository-wide version state, commits and semantic records with independent pagination.
 
-Input schema · src/contracts/tools.ts:83
+Input schema · src/contracts/tools.ts:149
 
 ```typescript
 // contextory_version_get
@@ -158,7 +158,7 @@ z.object({
 
 Prepare a concrete release plan without source edits; no spec lease is needed.
 
-Input schema · src/contracts/tools.ts:92
+Input schema · src/contracts/tools.ts:158
 
 ```typescript
 // contextory_release_prepare
@@ -175,7 +175,7 @@ z.object({
 
 Apply, publish, recover or cancel an authorized release plan using its current revision.
 
-Input schema · src/contracts/tools.ts:101
+Input schema · src/contracts/tools.ts:167
 
 ```typescript
 // contextory_release_change
@@ -193,7 +193,7 @@ z.object({
 
 Page stored datasets for documentation, retaining sequence, snapshots and provenance.
 
-Input schema · src/contracts/tools.ts:111
+Input schema · src/contracts/tools.ts:177
 
 ```typescript
 // contextory_project_export
@@ -227,7 +227,7 @@ z.object({
 
 Read catalog definitions, pending proposals, source freshness and optional file inventory.
 
-Input schema · src/contracts/tools.ts:137
+Input schema · src/contracts/tools.ts:203
 
 ```typescript
 // contextory_catalog_get
@@ -236,6 +236,7 @@ z.object({
       path: z.string().max(2000).optional(),
       query: z.string().max(4000).optional(),
       inventory: z.boolean().default(false),
+      pendingOnly: z.boolean().default(false),
       offset: z.number().int().nonnegative().default(0),
       limit: z.number().int().min(1).max(50).default(20),
     })
@@ -247,7 +248,7 @@ z.object({
 
 Under a lease, create observations or propose exact definition replacements/retirements.
 
-Input schema · src/contracts/tools.ts:149
+Input schema · src/contracts/tools.ts:216
 
 ```typescript
 // contextory_catalog_change
@@ -269,7 +270,7 @@ z.object({
 
 Human UI only: approve or reject an exact definition/proposal revision; native agents cannot approve.
 
-Input schema · src/contracts/tools.ts:163
+Input schema · src/contracts/tools.ts:230
 
 ```typescript
 // contextory_catalog_review
@@ -277,8 +278,8 @@ z.object({
       operationId,
       id,
       expectedRevision: z.number().int().positive(),
-      action: z.enum(["approve", "reject"]),
-      reason: text,
+      action: z.enum(["approve", "reject", "refresh"]),
+      reason: text.trim().min(1),
     })
 ```
 
@@ -288,7 +289,7 @@ z.object({
 
 Bootstrap file descriptions in resumable batches; scanned candidates still need semantic review.
 
-Input schema · src/contracts/tools.ts:174
+Input schema · src/contracts/tools.ts:241
 
 ```typescript
 // contextory_catalog_migrate
@@ -306,7 +307,7 @@ z.object({
 
 Read workspace contracts, active work, check recipes and guidance before implementation.
 
-Input schema · src/contracts/tools.ts:184
+Input schema · src/contracts/tools.ts:251
 
 ```typescript
 // contextory_context_get
@@ -319,7 +320,7 @@ z.object({ specId: id.optional() })
 
 Read a current or immutable record revision, child page, job or artifact page.
 
-Input schema · src/contracts/tools.ts:189
+Input schema · src/contracts/tools.ts:256
 
 ```typescript
 // contextory_entity_get
@@ -337,7 +338,7 @@ z.object({
 
 Page audit history; pass nextBefore as before to continue.
 
-Input schema · src/contracts/tools.ts:199
+Input schema · src/contracts/tools.ts:266
 
 ```typescript
 // contextory_history_get
@@ -354,7 +355,7 @@ z.object({
 
 Create or revise an authorized implementation request while preserving original intent.
 
-Input schema · src/contracts/tools.ts:208
+Input schema · src/contracts/tools.ts:275
 
 ```typescript
 // contextory_request_change
@@ -375,7 +376,7 @@ z.object({
 
 Create milestones/specs, revise/reopen/block/cancel work or explicitly request verified completion.
 
-Input schema · src/contracts/tools.ts:221
+Input schema · src/contracts/tools.ts:288
 
 ```typescript
 // contextory_spec_change
@@ -408,7 +409,7 @@ z.object({
 
 Register an agent session; use the exact hook-supplied nativeSessionId or omit it.
 
-Input schema · src/contracts/tools.ts:246
+Input schema · src/contracts/tools.ts:313
 
 ```typescript
 // contextory_session_attach
@@ -421,7 +422,7 @@ z.object({ operationId, nativeSessionId: id.optional() })
 
 Read observed models/token metadata; unavailable counts stay unavailable.
 
-Input schema · src/contracts/tools.ts:251
+Input schema · src/contracts/tools.ts:318
 
 ```typescript
 // contextory_usage_get
@@ -440,7 +441,7 @@ z.object({
 
 Claim, renew or release one specification’s implementation lease with an attached session.
 
-Input schema · src/contracts/tools.ts:262
+Input schema · src/contracts/tools.ts:329
 
 ```typescript
 // contextory_spec_lease
@@ -460,7 +461,7 @@ z.object({
 
 Record an issue, impact and resolution; unresolved blocking findings prevent completion.
 
-Input schema · src/contracts/tools.ts:274
+Input schema · src/contracts/tools.ts:341
 
 ```typescript
 // contextory_finding_record
@@ -485,7 +486,7 @@ z.object({
 
 Record a choice, rationale, alternatives and consequences with sources.
 
-Input schema · src/contracts/tools.ts:291
+Input schema · src/contracts/tools.ts:358
 
 ```typescript
 // contextory_decision_record
@@ -508,7 +509,7 @@ z.object({
 
 Record reported external/manual evidence; it remains separate from independent checks.
 
-Input schema · src/contracts/tools.ts:306
+Input schema · src/contracts/tools.ts:373
 
 ```typescript
 // contextory_evidence_record
@@ -529,7 +530,7 @@ z.object({
 
 Run a configured recipe independently and return a job to poll.
 
-Input schema · src/contracts/tools.ts:319
+Input schema · src/contracts/tools.ts:386
 
 ```typescript
 // contextory_check_run
@@ -547,7 +548,7 @@ z.object({
 
 Submit criterion evidence and a durable report; a separate complete action is still required.
 
-Input schema · src/contracts/tools.ts:329
+Input schema · src/contracts/tools.ts:396
 
 ```typescript
 // contextory_outcome_submit
@@ -586,7 +587,7 @@ z.object({
 
 Search source and project memory using lexical, semantic or hybrid retrieval.
 
-Input schema · src/contracts/tools.ts:360
+Input schema · src/contracts/tools.ts:427
 
 ```typescript
 // contextory_search
@@ -604,7 +605,7 @@ z.object({
 
 Retrieve ranked current source/task context with paths and a bounded estimated-token budget.
 
-Input schema · src/contracts/tools.ts:370
+Input schema · src/contracts/tools.ts:437
 
 ```typescript
 // contextory_code_context_get
@@ -623,7 +624,7 @@ z.object({
 
 Read subsystems, dependencies, entry points and coverage; refresh defaults to true.
 
-Input schema · src/contracts/tools.ts:381
+Input schema · src/contracts/tools.ts:448
 
 ```typescript
 // contextory_code_architecture_get
@@ -639,7 +640,7 @@ z.object({
 
 Explain a bounded indexed path between two source/record roots.
 
-Input schema · src/contracts/tools.ts:389
+Input schema · src/contracts/tools.ts:456
 
 ```typescript
 // contextory_code_path_get
@@ -658,7 +659,7 @@ z.object({
 
 Refresh source projection or validate/import optional Graphify data.
 
-Input schema · src/contracts/tools.ts:400
+Input schema · src/contracts/tools.ts:467
 
 ```typescript
 // contextory_code_index_refresh
@@ -674,7 +675,7 @@ z.object({
 
 List the current project and its isolated read-only reference registrations.
 
-Input schema · src/contracts/tools.ts:408
+Input schema · src/contracts/tools.ts:475
 
 ```typescript
 // contextory_codebase_list
@@ -687,7 +688,7 @@ z.object({})
 
 Register or detach an authorized local reference; source files remain untouched.
 
-Input schema · src/contracts/tools.ts:413
+Input schema · src/contracts/tools.ts:480
 
 ```typescript
 // contextory_codebase_change
@@ -711,7 +712,7 @@ z
 
 Link project records or source locations with a typed relationship and rationale.
 
-Input schema · src/contracts/tools.ts:429
+Input schema · src/contracts/tools.ts:496
 
 ```typescript
 // contextory_relationship_change
@@ -731,7 +732,7 @@ z.object({
 
 Traverse source/record relationships with explicit direction, depth and size bounds.
 
-Input schema · src/contracts/tools.ts:441
+Input schema · src/contracts/tools.ts:508
 
 ```typescript
 // contextory_impact_get
@@ -750,7 +751,7 @@ z.object({
 
 Trace bounded calls/control flow from a symbol or source position.
 
-Input schema · src/contracts/tools.ts:452
+Input schema · src/contracts/tools.ts:519
 
 ```typescript
 // contextory_flow_trace
@@ -779,7 +780,7 @@ z.object({
 
 Page a stored graph or expand a frontier while validating its source snapshot.
 
-Input schema · src/contracts/tools.ts:473
+Input schema · src/contracts/tools.ts:540
 
 ```typescript
 // contextory_flow_expand
@@ -800,13 +801,103 @@ z.object({
 
 Export one request’s report, completed-work changelog or JSON through an artifact handle.
 
-Input schema · src/contracts/tools.ts:486
+Input schema · src/contracts/tools.ts:553
 
 ```typescript
 // contextory_report_export
 z.object({
       format: z.enum(["report", "changelog", "json"]).default("report"),
       requestId: id,
+    })
+```
+
+<a id="contextory-docs-get"></a>
+
+## Read project documentation
+
+Read paired explanations by query/path/record, source freshness, bundled guidance or a runtime job. Pagination remains explicit.
+
+Input schema · src/contracts/tools.ts:60
+
+```typescript
+// contextory_docs_get
+z.object({
+      section: z
+        .enum(["overview", "sections", "guidance", "job"])
+        .default("overview"),
+      query: z.string().max(4000).default(""),
+      path: z.string().max(2000).optional(),
+      recordId: id.optional(),
+      pageId: id.optional(),
+      sectionId: id.optional(),
+      resource: z.string().max(2000).optional(),
+      jobId: id.optional(),
+      locale: z.enum(["en", "pt-BR"]).default("en"),
+      offset: z.number().int().nonnegative().default(0),
+      limit: z.number().int().min(1).max(50).default(10),
+    })
+```
+
+<a id="contextory-docs-run"></a>
+
+## Run bundled documentation operations
+
+Queue any upstream documentation operation on demand; mutating operations need a lease and Pages publication needs explicit authorization plus publish=true. Poll the durable job and inspect its result.
+
+Input schema · src/contracts/tools.ts:79
+
+```typescript
+// contextory_docs_run
+z.object({
+      operationId,
+      action: z.enum([
+        "map",
+        "init",
+        "validate",
+        "build",
+        "integrations",
+        "migrate",
+        "readme",
+        "pages_plan",
+        "pages_publish",
+        "pages_status",
+      ]),
+      specId: id.optional(),
+      leaseId: id.optional(),
+      name: z.string().trim().min(1).max(300).optional(),
+      kind: z.enum(["application", "library", "plugin"]).optional(),
+      sourceRoots: z
+        .array(z.string().min(1).max(2000))
+        .min(1)
+        .max(30)
+        .optional(),
+      apply: z.boolean().default(false),
+      siteUrl: z.string().max(2000).optional(),
+      remote: z.string().max(300).optional(),
+      publish: z.boolean().default(false),
+      offset: z.number().int().nonnegative().default(0),
+      limit: z.number().int().min(1).max(1000).default(100),
+    })
+```
+
+<a id="contextory-docs-link"></a>
+
+## Associate a reviewed explanation
+
+Record a source-hash-bound observed association to local records after review, preserving revisions and history; this does not approve requirements.
+
+Input schema · src/contracts/tools.ts:113
+
+```typescript
+// contextory_docs_link
+z.object({
+      operationId,
+      ...lease,
+      pageId: id,
+      sectionId: id,
+      corpusFingerprint: z.string().length(64),
+      recordIds: z.array(id).max(30),
+      reason: text,
     })
 ```
 

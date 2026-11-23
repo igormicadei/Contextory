@@ -1,0 +1,121 @@
+/* IBM Carbon Design System — root stylesheet
+   Link this one file and you get fonts, palette, all four themes, component
+   tokens, type scale, 2x Grid spacing, motion and shape.
+
+   Theme switching:
+     <html data-carbon-theme="white">   light, white background   (default)
+     <html data-carbon-theme="g10">     light, gray-10 background
+     <html data-carbon-theme="g90">     dark,  gray-90 background
+     <html data-carbon-theme="g100">    dark,  gray-100 background
+   Any subtree can be scoped instead with .cds--white / .cds--g10 / .cds--g90 / .cds--g100.
+   With no explicit theme set, the OS colour-scheme preference is honoured. */
+
+@import 'tokens/fonts.css';
+@import 'tokens/palette.css';
+@import 'tokens/themes.css';
+@import 'tokens/components.css';
+@import 'tokens/typography.css';
+@import 'tokens/spacing.css';
+@import 'tokens/motion.css';
+@import 'tokens/shape.css';
+
+/* ---------------------------------------------------------------- base ---- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--cds-background);
+  color: var(--cds-text-primary);
+  font-family: var(--cds-font-sans);
+  font-size: var(--cds-body-01-font-size);
+  font-weight: var(--cds-body-01-font-weight);
+  line-height: var(--cds-body-01-line-height);
+  letter-spacing: var(--cds-body-01-letter-spacing);
+}
+
+a {
+  color: var(--cds-link-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--cds-link-primary-hover);
+  text-decoration: underline;
+}
+
+a:visited {
+  color: var(--cds-link-visited);
+}
+
+code,
+pre,
+kbd,
+samp {
+  font-family: var(--cds-font-mono);
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--cds-border-subtle-01);
+  margin: var(--cds-spacing-05) 0;
+}
+
+::selection {
+  background: var(--cds-highlight);
+}
+
+/* Carbon's focus treatment is a 2px solid ring in the focus colour, never a
+   colour-only change — it has to stay visible for keyboard and voice control. */
+:focus-visible {
+  outline: var(--cds-focus-width) solid var(--cds-focus);
+  outline-offset: -2px;
+}
+
+/* Visually hidden but still announced by screen readers. */
+.cds--visually-hidden {
+  position: absolute;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  margin: -1px;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------ helpers ---- */
+
+/* Page shell honouring the 2x Grid margins and max container width. */
+.cds--container {
+  width: 100%;
+  max-width: var(--cds-container-max);
+  margin-inline: auto;
+  padding-inline: var(--cds-spacing-05);
+}
+
+/* Carbon separates sections by surface change and 1px rules, not drop shadows. */
+.cds--layer-01 { background: var(--cds-layer-01); }
+.cds--layer-02 { background: var(--cds-layer-02); }
+.cds--layer-03 { background: var(--cds-layer-03); }
+
+.cds--rule { border-top: 1px solid var(--cds-border-subtle-01); }
+
+/* Carbon icons are stroke-consistent and inherit colour from their context. */
+.cds--icon {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  fill: currentColor;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.cds--icon--20 { width: 1.25rem; height: 1.25rem; }
+.cds--icon--24 { width: 1.5rem; height: 1.5rem; }
+.cds--icon--32 { width: 2rem; height: 2rem; }

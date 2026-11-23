@@ -1,6 +1,7 @@
 node_modules/**
 dist/*.map
 src/**
+resources/**
 tests/**
 docs-site/**
 .documentation/site/**
@@ -32,6 +33,8 @@ CLAUDE.md
 artifacts/**
 test-results/**
 playwright-report/**
-*.ts
+playwright.config.ts
 tsconfig.json
 package-lock.json
+dist/documentation/**/__pycache__/**
+dist/documentation/**/*.pyc

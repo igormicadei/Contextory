@@ -43,6 +43,9 @@ export async function activate(context: vscode.ExtensionContext) {
   let lastRelationships: RelationshipGraph | undefined;
   let relationshipRequest = 0;
   let pendingRecord: string | undefined;
+  let pendingDocumentation:
+    | { path: string; root: string | undefined }
+    | undefined;
   const projectClients = new Map<string, Promise<ServiceClient>>();
   const clientFolders = new Map<ServiceClient, vscode.WorkspaceFolder>();
   const failedClients = new Set<ServiceClient>();
@@ -268,7 +271,7 @@ export async function activate(context: vscode.ExtensionContext) {
         await vscode.commands.executeCommand("contextory.tasks.focus");
         post({
           type: "navigate",
-          screen: "catalog",
+          screen: "approvals",
           projectId: dashboard.projectId,
         });
       })
@@ -899,6 +902,19 @@ export async function activate(context: vscode.ExtensionContext) {
     )
       pendingRecord = undefined;
   };
+  const deliverDocumentation = async (webview?: vscode.Webview) => {
+    const pending = pendingDocumentation;
+    if (
+      pending &&
+      pending.root === selectedRoot &&
+      (await webview?.postMessage({
+        type: "navigate",
+        screen: "documentation",
+        path: pending.path,
+      }))
+    )
+      pendingDocumentation = undefined;
+  };
   const selectProjectRoot = async (path: string, recordId?: string) => {
     if (
       !vscode.workspace.workspaceFolders?.some(
@@ -907,6 +923,7 @@ export async function activate(context: vscode.ExtensionContext) {
     )
       throw new Error("The selected project is no longer in this workspace.");
     selectedRoot = path;
+    pendingDocumentation = undefined;
     lastGraph = undefined;
     lastRelationships = undefined;
     relationshipRequest++;
@@ -977,6 +994,15 @@ export async function activate(context: vscode.ExtensionContext) {
               graph: lastRelationships,
             });
           if (message.surface === "sidebar") await deliverRecord(sender);
+          if (message.surface === "sidebar") await deliverDocumentation(sender);
+          break;
+        case "documentationOpen":
+          pendingDocumentation = {
+            path: typeof message.path === "string" ? message.path : "",
+            root: selectedRoot,
+          };
+          await vscode.commands.executeCommand("contextory.tasks.focus");
+          await deliverDocumentation(view?.webview);
           break;
         case "refresh":
           await refresh();
@@ -1037,30 +1063,50 @@ export async function activate(context: vscode.ExtensionContext) {
             await connect(message.provider as Provider, true);
           break;
         case "tool": {
-          const client = await service();
-          const result = await client.call(
-            "tools/call",
-            {
-              name: message.name,
-              arguments: {
-                ...(message.arguments as object),
-                workspaceId: workspaceInfo?.id,
-              },
-            },
-            String(message.name).startsWith("contextory_release") ||
-              message.name === "contextory_version_get"
-              ? 300000
-              : 120000,
-          );
-          await sender?.postMessage({
-            type: "toolResult",
-            projectId: workspaceInfo?.projects.find(
+          let projectId = message.projectId;
+          try {
+            const client = await service();
+            projectId = workspaceInfo?.projects.find(
               (p) => p.root === client.root,
-            )?.id,
-            requestId: message.requestId,
-            result,
-          });
-          if (message.name !== "contextory_workspace_get") await refresh();
+            )?.id;
+            const result = await client.call(
+              "tools/call",
+              {
+                name: message.name,
+                arguments: {
+                  ...(message.arguments as object),
+                  workspaceId: workspaceInfo?.id,
+                },
+              },
+              String(message.name).startsWith("contextory_release") ||
+                message.name === "contextory_version_get"
+                ? 300000
+                : 120000,
+            );
+            await sender?.postMessage({
+              type: "toolResult",
+              projectId,
+              requestId: message.requestId,
+              result,
+            });
+          } catch (error) {
+            await sender?.postMessage({
+              type: "toolError",
+              projectId,
+              requestId: message.requestId,
+              code: (error as { code?: string }).code,
+              text:
+                error instanceof Error
+                  ? error.message
+                  : "Contextory operation failed.",
+            });
+            throw error;
+          }
+          if (
+            message.name !== "contextory_workspace_get" &&
+            message.name !== "contextory_docs_get"
+          )
+            await refresh();
           break;
         }
         case "trace":

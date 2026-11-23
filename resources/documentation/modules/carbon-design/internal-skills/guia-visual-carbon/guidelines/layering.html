@@ -1,0 +1,24 @@
+<!-- @dsCard group="Layout" viewport="900x320" name="Layering model" subtitle="Depth comes from surface change, never from shadow" -->
+<html data-carbon-theme="white"><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
+<style>
+body{margin:0;padding:24px;background:var(--cds-background);color:var(--cds-text-primary);font-family:var(--cds-font-sans)}
+.h{font-size:.75rem;letter-spacing:.32px;color:var(--cds-text-secondary);margin:0 0 12px}
+.sw{display:flex;flex-direction:column;justify-content:flex-end;padding:6px;font-size:10px;line-height:1.2}
+
+</style></head>
+<body>
+<p class="h">Carbon has no elevation scale for product UI. A container nested inside
+  another steps up the layer scale, so each surface reads as distinct without a drop shadow.</p>
+<div style="background:var(--cds-background);border:1px solid var(--cds-border-subtle-01);padding:18px">
+  <div style="font-size:11px;color:var(--cds-text-secondary);margin-bottom:8px">background</div>
+  <div style="background:var(--cds-layer-01);padding:18px">
+    <div style="font-size:11px;color:var(--cds-text-secondary);margin-bottom:8px">layer-01</div>
+    <div style="background:var(--cds-layer-02);padding:18px">
+      <div style="font-size:11px;color:var(--cds-text-secondary);margin-bottom:8px">layer-02</div>
+      <div style="background:var(--cds-layer-03);padding:18px">
+        <div style="font-size:11px;color:var(--cds-text-secondary)">layer-03</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

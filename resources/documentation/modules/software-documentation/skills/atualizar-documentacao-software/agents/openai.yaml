@@ -1,0 +1,4 @@
+interface:
+  display_name: "Atualizar documentação de software"
+  short_description: "Atualize ou migre a documentação do software"
+  default_prompt: "Use $atualizar-documentacao-software para atualizar ou migrar a documentação de uma aplicação, biblioteca ou plugin, preservando conteúdo e traduções, verificando mudanças nas fontes e reconstruindo o site e suas integrações."

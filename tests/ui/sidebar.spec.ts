@@ -194,7 +194,7 @@ test("native companion has no chat composer and creates a request", async ({
   await expect(page.locator("footer .connection .muted")).toHaveCount(0);
   await expect(page.locator(".intro")).toHaveCount(0);
   await expect(page.locator(".evidence-count")).toContainText("1 / 1");
-  await expect(page.locator(".main-nav > button")).toHaveCount(2);
+  await expect(page.locator(".main-nav > button")).toHaveCount(3);
   await expect(page.getByRole("tablist")).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: "Connect", exact: true }),

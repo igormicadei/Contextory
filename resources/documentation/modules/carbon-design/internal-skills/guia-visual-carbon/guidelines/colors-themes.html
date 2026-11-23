@@ -1,0 +1,102 @@
+<!-- @dsCard group="Color" viewport="900x300" name="The four themes" subtitle="white / g10 light, g90 / g100 dark — same tokens, different values" -->
+<html data-carbon-theme="white"><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
+<style>
+body{margin:0;padding:24px;background:var(--cds-background);color:var(--cds-text-primary);font-family:var(--cds-font-sans)}
+.h{font-size:.75rem;letter-spacing:.32px;color:var(--cds-text-secondary);margin:0 0 12px}
+.sw{display:flex;flex-direction:column;justify-content:flex-end;padding:6px;font-size:10px;line-height:1.2}
+
+</style></head>
+<body>
+<p class="h">Switch with &lt;html data-carbon-theme="g100"&gt; or scope a subtree with
+  class .cds--g100. Component code never changes.</p>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+<div class="cds--white" style="background:var(--cds-background);border:1px solid var(--cds-border-subtle-01);padding:16px">
+  <div style="font-size:.875rem;font-weight:600;color:var(--cds-text-primary);margin-bottom:10px">white</div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    <span style="width:20px;height:20px;flex:none;background:#ffffff;border:1px solid var(--cds-border-subtle-01)"></span>
+    <span style="font-size:10px;color:var(--cds-text-secondary)">background</span>
+  </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    <span style="width:20px;height:20px;flex:none;background:#f4f4f4;border:1px solid var(--cds-border-subtle-01)"></span>
+    <span style="font-size:10px;color:var(--cds-text-secondary)">layer-01</span>
+  </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    <span style="width:20px;height:20px;flex:none;background:#161616;border:1px solid var(--cds-border-subtle-01)"></span>
+    <span style="font-size:10px;color:var(--cds-text-secondary)">text-primary</span>
+  </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    <span style="width:20px;height:20px;flex:none;background:#0f62fe;border:1px solid var(--cds-border-subtle-01)"></span>
+    <span style="font-size:10px;color:var(--cds-text-secondary)">link-primary</span>
+  </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    <span style="width:20px;height:20px;flex:none;background:#da1e28;border:1px solid var(--cds-border-subtle-01)"></span>
+    <span style="font-size:10px;color:var(--cds-text-secondary)">support-error</span>
+  </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    <span style="width:20px;height:20px;flex:none;background:#c6c6c6;border:1px solid var(--cds-border-subtle-01)"></span>
+    <span style="font-size:10px;color:var(--cds-text-secondary)">border-subtle-01</span>
+  </div>
+</div>
+<div class="cds--g10" style="background:var(--cds-background);border:1px solid var(--cds-border-subtle-01);padding:16px">
+  <div style="font-size:.875rem;font-weight:600;color:var(--cds-text-primary);margin-bottom:10px">g10</div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    <span style="width:20px;height:20px;flex:none;background:#f4f4f4;border:1px solid var(--cds-border-subtle-01)"></span>
+    <span style="font-size:10px;color:var(--cds-text-secondary)">background</span>
+  </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    <span style="width:20px;height:20px;flex:none;background:#ffffff;border:1px solid var(--cds-border-subtle-01)"></span>
+    <span style="font-size:10px;color:var(--cds-text-secondary)">layer-01</span>
+  </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    <span style="width:20px;height:20px;flex:none;background:#161616;border:1px solid var(--cds-border-subtle-01)"></span>
+    <span style="font-size:10px;color:var(--cds-text-secondary)">text-primary</span>
+  </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    <span style="width:20px;height:20px;flex:none;background:#0f62fe;border:1px solid var(--cds-border-subtle-01)"></span>
+    <span style="font-size:10px;color:var(--cds-text-secondary)">link-primary</span>
+  </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    <span style="width:20px;height:20px;flex:none;background:#da1e28;border:1px solid var(--cds-border-subtle-01)"></span>
+    <span style="font-size:10px;color:var(--cds-text-secondary)">support-error</span>
+  </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    <span style="width:20px;height:20px;flex:none;background:#e0e0e0;border:1px solid var(--cds-border-subtle-01)"></span>
+    <span style="font-size:10px;color:var(--cds-text-secondary)">border-subtle-01</span>
+  </div>
+</div>
+<div class="cds--g90" style="background:var(--cds-background);border:1px solid var(--cds-border-subtle-01);padding:16px">
+  <div style="font-size:.875rem;font-weight:600;color:var(--cds-text-primary);margin-bottom:10px">g90</div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    <span style="width:20px;height:20px;flex:none;background:#262626;border:1px solid var(--cds-border-subtle-01)"></span>
+    <span style="font-size:10px;color:var(--cds-text-secondary)">background</span>
+  </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    <span style="width:20px;height:20px;flex:none;background:#393939;border:1px solid var(--cds-border-subtle-01)"></span>
+    <span style="font-size:10px;color:var(--cds-text-secondary)">layer-01</span>
+  </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    <span style="width:20px;height:20px;flex:none;background:#f4f4f4;border:1px solid var(--cds-border-subtle-01)"></span>
+    <span style="font-size:10px;color:var(--cds-text-secondary)">text-primary</span>
+  </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    <span style="width:20px;height:20px;flex:none;background:#78a9ff;border:1px solid var(--cds-border-subtle-01)"></span>
+    <span style="font-size:10px;color:var(--cds-text-secondary)">link-primary</span>
+  </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    <span style="width:20px;height:20px;flex:none;background:#ff8389;border:1px solid var(--cds-border-subtle-01)"></span>
+    <span style="font-size:10px;color:var(--cds-text-secondary)">support-error</span>
+  </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    <span style="width:20px;height:20px;flex:none;background:#6f6f6f;border:1px solid var(--cds-border-subtle-01)"></span>
+    <span style="font-size:10px;color:var(--cds-text-secondary)">border-subtle-01</span>
+  </div>
+</div>
+<div class="cds--g100" style="background:var(--cds-background);border:1px solid var(--cds-border-subtle-01);padding:16px">
+  <div style="font-size:.875rem;font-weight:600;color:var(--cds-text-primary);margin-bottom:10px">g100</div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    <span style="width:20px;height:20px;flex:none;background:#161616;border:1px solid var(--cds-border-subtle-01)"></span>
+    <span style="font-size:10px;color:var(--cds-text-secondary)">background</span>
+  </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    <span style="width:20px;height:20px;flex:none;background:#262626;border:1px solid var(--cds-border-subtle-01)"></span>
+    <span style="font-size:10px;color:var(--cds-text-secondary)">layer-01</span>
+  </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    <span style="width:20px;height:20px;flex:none;background:#f4f4f4;border:1px solid var(--cds-border-subtle-01)"></span>
+    <span style="font-size:10px;color:var(--cds-text-secondary)">text-primary</span>
+  </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    <span style="width:20px;height:20px;flex:none;background:#78a9ff;border:1px solid var(--cds-border-subtle-01)"></span>
+    <span style="font-size:10px;color:var(--cds-text-secondary)">link-primary</span>
+  </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    <span style="width:20px;height:20px;flex:none;background:#fa4d56;border:1px solid var(--cds-border-subtle-01)"></span>
+    <span style="font-size:10px;color:var(--cds-text-secondary)">support-error</span>
+  </div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+    <span style="width:20px;height:20px;flex:none;background:#525252;border:1px solid var(--cds-border-subtle-01)"></span>
+    <span style="font-size:10px;color:var(--cds-text-secondary)">border-subtle-01</span>
+  </div>
+</div>
+</div>
+</body></html>

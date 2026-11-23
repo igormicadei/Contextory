@@ -10,6 +10,13 @@
   },
   "contextory.checks": [
     {
+      "id": "embedded-documentation",
+      "name": "Bundled documentation runtime, provenance, source maintenance and Carbon site",
+      "executable": "node",
+      "args": ["--import", "tsx", "--test", "--test-concurrency=2", "tests/integration/documentation.test.ts", "tests/documentation/embedded.test.mjs"],
+      "timeoutMs": 180000
+    },
+    {
       "id": "codebase",
       "name": "Codebase graph and freshness integration",
       "executable": "node",
@@ -178,6 +185,22 @@
       "executable": "node",
       "args": ["scripts/verify-background-startup.mjs"],
       "timeoutMs": 300000
+    },
+    {
+      "id": "knowledge-review",
+      "name": "Knowledge review recovery, ordering and native role boundaries",
+      "executable": "node",
+      "args": [
+        "--import",
+        "tsx",
+        "--test",
+        "--test-concurrency=2",
+        "tests/integration/catalog.test.ts",
+        "tests/integration/service.test.ts",
+        "tests/integration/headless.test.ts",
+        "tests/integration/registration.test.ts"
+      ],
+      "timeoutMs": 180000
     }
   ]
 }
