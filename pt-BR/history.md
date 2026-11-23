@@ -1,8 +1,8 @@
 # Histórico de releases e documentos preservados
 
-## Versão documentada atual: 0.8.0
+## Versão documentada atual: 0.9.0
 
-A versão 0.8.0 introduz o console responsivo Work/Requests, progresso por evidências, alertas persistentes de Knowledge, recuperação automática, inicialização independente da barra lateral, 256 receitas e fingerprints completos por streaming. A versão 0.7.0 introduziu recuperação de hooks; 0.6.0 introduziu projetos separados e pedidos coordenados.
+A versão 0.9.0 adiciona a fila Approvals, revisão recuperável de fontes e documentação independente com software-documentation e Carbon incluídos. A versão 0.8.0 introduziu o console responsivo, inicialização em segundo plano, recuperação automática, 256 receitas e fingerprints completos por streaming. As versões anteriores continuam preservadas abaixo.
 
 [Instalar a release atual](install.md)
 

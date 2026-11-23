@@ -28,6 +28,7 @@ Rebuild hooks grava arquivos gerenciados imediatamente. Reparos com mudanças se
 
 | Sintoma | Ação |
 | --- | --- |
+| Um item continua pendente em Approvals | Leia o erro ao lado do item. Para fontes alteradas, inspecione os arquivos vinculados, informe um motivo, atualize o snapshot e aprove a nova revisão. Referências ausentes ou alvo de proposta obsoleto exigem correção ou rejeição. Atualizar não aprova. |
 | Fluxo Python falha | Confira Python 3.10+ e contextory.pythonExecutable; use caminho absoluto se necessário |
 | Raiz de código inesperada | Informe projectId/codebaseId explicitamente e foque o símbolo desejado antes do trace |
 | Busca de código parece obsoleta | Consulte novamente o código salvo; atualize índices vazios/com falha, confira exclusões e gere/reimporte Graphify obsoleto |
@@ -56,4 +57,8 @@ Inclua versão do Contextory, editor/versão, versões Node/Python, erro exato e
 - tests/ui/console.spec.ts
 - tests/integration/recipe-configuration.test.ts
 - scripts/verify-background-startup.mjs
+- src/knowledge/catalog.ts
+- src/webview/catalog.ts
+- tests/ui/catalog.spec.ts
+- tests/integration/catalog.test.ts
 

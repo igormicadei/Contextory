@@ -1,8 +1,8 @@
 # Contextory (pt-BR)
 
-Version: 0.8.0
-Source revision: fa0c7219010c865a2dcbfc114729b6cbfd739f1a
-Source fingerprint: 1b0bb953a62c645c5390deb1c975245811ec74c73b9e2eaaed70c49e8fe985df
+Version: 0.9.0
+Source revision: e24e15a95eaa0d8fe5bc41b9aa1f1de3676568f3
+Source fingerprint: 2f97dc7672e5c9153d3e6466e07c3045ccd76dc7bb8dfb708d2066117fc4069c
 
 # Contextory
 
@@ -10,7 +10,7 @@ Source fingerprint: 1b0bb953a62c645c5390deb1c975245811ec74c73b9e2eaaed70c49e8fe9
 
 O Contextory conecta pedidos, especificações, código, decisões e evidências de verificação em um registro local do projeto. Trabalhe no chat nativo do Codex, Claude Code ou IBM Bob e use o Contextory para recuperar o que foi pedido, o que mudou e por quê.
 
-Este guia descreve o Contextory 0.8.0, uma prévia qualificada no Windows com pastas locais confiáveis no VS Code e IBM Bob. A extensão precisa do Node.js 24+. Python 3.10+ é opcional para análise Python. Cada agente usa sua própria conta, modelo e conversa.
+Este guia descreve o Contextory 0.9.0, uma prévia qualificada no Windows com pastas locais confiáveis no VS Code e IBM Bob. A extensão precisa do Node.js 24+. Python 3.10+ é opcional para análise Python. Cada agente usa sua própria conta, modelo e conversa.
 
 [Instalar o Contextory](install.md)
 
@@ -38,6 +38,12 @@ Este guia descreve o Contextory 0.8.0, uma prévia qualificada no Windows com pa
 4. Confirme a conclusão explícita e exporte um relatório que explique o resultado final.
 
 [Escrever um resultado de implementação útil](outcomes.md)
+
+## Explicações do projeto
+
+Use Tools > Documentation para consultar explicações vinculadas às fontes e ao trabalho rastreado. A capacidade de documentação/Carbon incluída dispensa plugin externo; a geração acontece sob demanda.
+
+[Leia o guia de documentação de projetos](documentation.md)
 
 ## Fontes
 
@@ -76,19 +82,19 @@ python --version
 
 ## Instale o VSIX
 
-1. Baixe contextory-workspace-0.8.0.vsix e o arquivo .sha256 na release v0.8.0.
+1. Baixe contextory-workspace-0.9.0.vsix e o arquivo .sha256 na release v0.9.0.
 2. Compare o checksum do pacote baixado com o checksum da release.
 3. Em Extensions, abra o menu …, selecione Install from VSIX… e escolha o arquivo baixado. Recarregue se solicitado.
 4. Abra um projeto local confiável. O serviço e os agentes configurados iniciam em segundo plano; abra o Contextory quando quiser inspecionar o trabalho. O projeto inicial não contém pedidos.
 
-[Baixar a versão 0.8.0](https://github.com/igormicadei/Contextory/releases/tag/v0.8.0)
+[Baixar a versão 0.9.0](https://github.com/igormicadei/Contextory/releases/tag/v0.9.0)
 
 Verificar e instalar o pacote da release
 
 ```powershell
-(Get-FileHash -Algorithm SHA256 .\contextory-workspace-0.8.0.vsix).Hash.ToLowerInvariant()
-Get-Content .\contextory-workspace-0.8.0.sha256
-code --install-extension .\contextory-workspace-0.8.0.vsix
+(Get-FileHash -Algorithm SHA256 .\contextory-workspace-0.9.0.vsix).Hash.ToLowerInvariant()
+Get-Content .\contextory-workspace-0.9.0.sha256
+code --install-extension .\contextory-workspace-0.9.0.vsix
 ```
 
 Usuários finais não precisam de npm, Rust, servidor de banco de dados ou modelo de embeddings. Instale e autentique o agente nativo pela interface dele. Reinicie o editor após instalar o Node se o PATH ainda não tiver sido atualizado.
@@ -258,9 +264,9 @@ Explorador Architecture capturado do Contextory.
 
 Explorador de fluxo limitado do Contextory.
 
-## Revise Knowledge e Versions
+## Use Approvals, Knowledge e Versions
 
-1. Escolha o alerta persistente de revisão ou Tools > Knowledge. Revise primeiro a fila; expanda busca de definições e cobertura de arquivos quando necessário.
+1. Abra a aba Approvals ou o alerta para revisar pendências. A aba mostra um contador e não inclui definições já revisadas. Use Tools > Knowledge para buscar definições e consultar a cobertura das fontes.
 2. Para uma linha de base observada ou alteração pendente, leia a proposta exata e informe um motivo antes de Approve baseline, Approve change ou Reject. Apenas uma pessoa usa esses controles de revisão.
 3. Abra Tools > Versions para inspecionar versão, commits e planos de release. Revise versão, arquivos e changelog antes de aplicar; Publish é uma ação de release autorizada separadamente.
 
@@ -300,6 +306,8 @@ Redimensionar ou mover preserva seleção, rascunhos, detalhes expandidos e rola
 - tests/ui/console.spec.ts
 - tests/integration/recipe-configuration.test.ts
 - scripts/verify-background-startup.mjs
+- src/knowledge/catalog.ts
+- tests/integration/catalog.test.ts
 
 
 ---
@@ -308,7 +316,7 @@ Redimensionar ou mover preserva seleção, rascunhos, detalhes expandidos e rola
 
 ## Vários projetos no mesmo workspace
 
-Abra até 16 pastas locais confiáveis e não aninhadas. O seletor Project delimita Requests, Knowledge, History, Versions e Architecture. Registros, verificações, evidências, grafos de código, referências e releases pertencem a cada projeto de forma independente. Remover uma pasta a desconecta, preservando seu armazenamento.
+Abra até 16 pastas locais confiáveis e não aninhadas. O seletor Project delimita Requests, Approvals, Knowledge, History, Versions e Architecture. Registros, verificações, evidências, grafos de código, referências e releases pertencem a cada projeto de forma independente. Remover uma pasta a desconecta, preservando seu armazenamento.
 
 1. Em New request, selecione todos os projetos afetados. Cada projeto selecionado recebe seu próprio pedido local vinculado.
 2. Inspecione Across projects para conferir os ramos. Cada ramo precisa de marcos, especificações, lease, verificações e resultado concluído próprios.
@@ -361,6 +369,12 @@ As contagens não estimam cobrança ou cota. Tokens de cache e raciocínio são 
 4. Depois de um reparo sem alterações, inspecione a confiança nativa e os logs do serviço. Repetir reparos não aprova hooks. No Codex, aprovações de /hooks podem diferir entre caminhos C: e c:.
 
 O proxy mantém a descoberta disponível na inicialização atrasada e tenta aguardar prontidão por até cinco minutos, com esperas de até 15 segundos por chamada. Ele relê descritores após reinícios e nunca repete automaticamente uma mutação já enviada. Uma divergência de contrato exige a ação de recarga/reinício informada.
+
+## Explicações do projeto
+
+Use Tools > Documentation para consultar explicações vinculadas às fontes e ao trabalho rastreado. A capacidade de documentação/Carbon incluída dispensa plugin externo; a geração acontece sob demanda.
+
+[Leia o guia de documentação de projetos](documentation.md)
 
 ## Fontes
 
@@ -443,6 +457,12 @@ Argumentos de atualização/importação
 
 Passe esses argumentos a contextory_code_index_refresh. O importador confere schema, tamanho do JSON, IDs, destinos das arestas e caminhos locais incluídos; falhas preservam a importação anterior. Gere e importe novamente o grafo completo quando uma fonte citada mudar, desaparecer ou for excluída. O Graphify é opcional e seus limites de proveniência/precisão continuam visíveis.
 
+## Explicações do projeto
+
+Use Tools > Documentation para consultar explicações vinculadas às fontes e ao trabalho rastreado. A capacidade de documentação/Carbon incluída dispensa plugin externo; a geração acontece sob demanda.
+
+[Leia o guia de documentação de projetos](documentation.md)
+
 ## Fontes
 
 - src/codebase/queries.ts
@@ -470,19 +490,31 @@ Passe esses argumentos a contextory_code_index_refresh. O importador confere sch
 
 Leia contextory_catalog_get antes de alterações relacionadas e pagine definições, propostas e inventário de forma independente. Entradas geradas começam como observações. Um grafo descreve relações possíveis; ele não aprova regras nem infere o comportamento esperado da interface.
 
-## Revise uma revisão exata da definição
+## Revise itens pendentes em Approvals
 
 Um alerta persistente conta definições observadas e alterações pendentes. A view do editor também mostra um badge e oferece Review now quando mudam as revisões pendentes. Notificações são deduplicadas por projeto entre reinícios; dispensá-las mantém o alerta disponível.
 
-1. Abra Knowledge, escolha uma definição e inspecione fontes, testes, estado, revisão e atualização.
+1. Abra Approvals ao lado de Work e Requests ou use o alerta persistente. Essa aba contém apenas alterações pendentes e linhas de base observadas. Inspecione fontes, testes, estado, revisão e atualização. Use Tools > Knowledge separadamente para consultar todas as definições e a cobertura dos arquivos.
 2. Revise as observações iniciais ou o conteúdo antes/depois de substituições ou aposentadorias. Informe um motivo antes de aprovar ou rejeitar.
-3. Atualize candidatos obsoletos antes da aprovação. Propostas concorrentes devem corresponder à revisão atual exata. Rejeições mantêm a definição original e todas as revisões são preservadas.
+3. Se aparecer Sources need review, abra os arquivos alterados e confira a definição. Informe um motivo e use Refresh source snapshot. Isso registra os hashes atuais e mantém o item pendente; aprove ou rejeite a revisão atualizada separadamente. Arquivos ausentes precisam ser corrigidos ou o item obsoleto rejeitado. Uma proposta contra uma revisão anterior deve ser rejeitada e substituída.
 
-![Definições Knowledge e proposta de revisão antes/depois com registros de pagamento de exemplo.](../assets/knowledge-preview.png)
+Salvamento, sucesso e erros aparecem ao lado dos controles. Revisões com falha preservam o motivo informado e não aprovam nada. Os controles ficam desativados enquanto a revisão está em andamento. Alternar para Knowledge e voltar preserva o motivo; os filtros de Knowledge não ocultam a fila de aprovações. Atualizar o snapshot não altera a definição nem concede aprovação.
 
-Webview Knowledge de produção com registros isolados de teste; nenhuma aprovação de projeto foi realizada.
+![A aba Approvals com contador de pendências, alterações antes/depois e controles de revisão.](../assets/knowledge-preview.png)
 
-A aprovação pertence à interface Knowledge autenticada para revisão humana. Agentes não devem usar credenciais da interface nem apresentar observações geradas como requisitos aprovados. Propostas pendentes e definições aprovadas afetadas e obsoletas podem impedir a conclusão rastreada.
+Approvals renderizado pela webview de produção com exemplos isolados; nenhuma aprovação real do projeto foi realizada.
+
+A aprovação pertence à aba Approvals autenticada para revisão humana. Agentes não podem usar suas credenciais nem apresentar observações como requisitos aprovados. Propostas pendentes e definições aprovadas afetadas e obsoletas podem impedir a conclusão rastreada.
+
+## Consulte Knowledge separadamente
+
+1. Escolha Tools > Knowledge para consultar definições atuais e históricas, seus vínculos com fontes/testes e seu histórico.
+2. Expanda Find definitions & coverage e filtre por texto, caminho ou categoria. O inventário de arquivos continua disponível nesse navegador.
+3. Escolha Approvals para revisar pendências. Os filtros e a paginação de Knowledge não afetam essa fila; itens revisados saem de Approvals e continuam disponíveis em Knowledge.
+
+![Consulta ao conhecimento do projeto sem formulários de aprovação.](../assets/knowledge-browser.png)
+
+Navegador Knowledge usando a interface de produção e registros isolados de teste.
 
 ## Crie a linha de base de um projeto existente
 
@@ -516,6 +548,65 @@ A exportação exclui credenciais, conversas nativas e vetores numéricos de emb
 - tests/ui/console.spec.ts
 - tests/integration/recipe-configuration.test.ts
 - scripts/verify-background-startup.mjs
+- tests/ui/catalog.spec.ts
+- src/webview/main.ts
+
+
+---
+
+# Documentação do projeto
+
+## Encontre uma explicação
+
+O Contextory inclui documentação de projetos como recurso opcional. O runtime software-documentation 1.0.1, seus guias de autoria/atualização/comentários/integração e o módulo Carbon 1.0.0 completo são distribuídos na extensão e CLI. Fontes, tokens, modelos e referências locais dispensam instalação de outro plugin. A consulta funciona sem Python; a geração usa Python 3.11+ configurado em contextory.pythonExecutable.
+
+1. Escolha Tools > Documentation. Busque uma funcionalidade ou comportamento, filtre opcionalmente pelo caminho de origem e escolha inglês ou português.
+2. Leia a explicação, o ID estável da página/seção, os vínculos de origem e o estado de atualização. Rascunhos, baselines desconhecidos e explicações desatualizadas precisam de revisão; documentação nunca aprova um requisito.
+3. Em Architecture, escolha Explain this area para a área de origem atual. Em um pedido, expanda Brief & actions e escolha Related documentation para encontrar seções vinculadas ao pedido ou a seus registros descendentes. Repositórios de referência permanecem em escopo separado de leitura.
+
+![Busca de documentação, seleção de inglês e português, explicação desatualizada e vínculos de origem/registros.](../assets/documentation-browser.png)
+
+Navegador de documentação de produção com explicações isoladas de teste e indicação explícita de origem desatualizada.
+
+## Escreva e gere com seu agente
+
+1. Peça ao agente para usar contextory-documentation. Ele consulta as fontes, o catálogo e os dados exportados relevantes com identidade do projeto e proveniência de aprovação/histórico.
+2. Mapeie o projeto e escreva explicações substantivas em inglês/pt-BR em .documentation/project.json. A inicialização incluída cria um rascunho, não documentação pronta. Preserve conteúdo, traduções, IDs, URLs e assets existentes.
+3. Use contextory_docs_run para operações de mapa/inicialização/validação/geração/integrações/migração/README/Pages e consulte o job retornado. A geração acontece sob demanda e não bloqueia a inicialização do serviço. Mutações exigem o lease atual da especificação do agente.
+4. Revise o site Carbon responsivo, ambos os idiomas, busca local, exemplos, comentários nativos e lacunas de cobertura. Bundles consumidores incluem MCP de documentação somente leitura e instalador próprios. Não deduza cobertura comportamental completa de contagens ou builds aprovados.
+
+O gerador cria sites Carbon com schema 2, e a consulta também lê schema 1. A migração gera prévia por padrão, cria backup ao aplicar e mantém o conteúdo em rascunho para revisão. O build do próprio site schema-1 do Contextory continua fixado separadamente; este recurso não atualiza esse corpus.
+
+## Conecte explicações às mudanças
+
+Após comparar uma seção com as fontes atuais, o agente usa contextory_docs_link com IDs de página/seção, fingerprint atual do corpus, IDs de registros locais e motivo. O Contextory preserva hashes de citações, revisões de registros, fingerprints semânticos e histórico de associações antes/depois. Os vínculos observados ficam no ledger do projeto selecionado; histórico privado não é inserido no HTML público.
+
+Texto/citações alterados, arquivos citados alterados ou ausentes e mudanças significativas em registros vinculados marcam a seção como desatualizada. Renovar um lease não invalida a explicação. O contexto de código do projeto inclui explicações relevantes e limitadas quando o orçamento permite. Definições de origem, arquitetura gerada, explicações autorais, decisões históricas e requisitos aprovados preservam autoridades diferentes.
+
+Expanda Keep documentation current para mapear fontes ou validar. Um job executado pode retornar valid=false, exibido como needs review. Resultados grandes ficam em artefatos JSON consultáveis por páginas na exportação. Repetir a operação exata recupera o mesmo job; mutações interrompidas/com falha não são repetidas automaticamente.
+
+## Publique explicitamente e verifique
+
+Implementar documentação não publica um projeto conectado. Com autorização de publicação, consulte pages_plan, selecione o remoto e execute pages_publish com publish=true e lease atual. Verifique pages_status contra o artefato publicado. O publicador incluído preserva o histórico órfão de gh-pages e recusa substituir branches alheias. Autenticação do GitHub CLI, rede e disponibilidade do Pages continuam requisitos do ambiente.
+
+Python ausente afeta apenas jobs de geração. Configure o executável e inicie nova operação após inspecionar arquivos parciais. Corpus indisponível ou inválido não bloqueia o contexto de origem nem o serviço. Aprovações humanas continuam em Approvals e referências não autorizam escrever em outro projeto.
+
+## Fontes
+
+- src/documentation/manager.ts
+- src/documentation/reader.ts
+- src/documentation/bridge.py
+- src/contracts/tools.ts
+- src/webview/documentation.ts
+- src/webview/main.ts
+- resources/documentation/PROVENANCE.json
+- skills/contextory-documentation/SKILL.md
+- tests/integration/documentation.test.ts
+- tests/ui/documentation.spec.ts
+- scripts/documentation-resources.mjs
+- scripts/build.mjs
+- scripts/licenses.mjs
+- tests/documentation/embedded.test.mjs
 
 
 ---
@@ -908,6 +999,7 @@ Rebuild hooks grava arquivos gerenciados imediatamente. Reparos com mudanças se
 
 | Sintoma | Ação |
 | --- | --- |
+| Um item continua pendente em Approvals | Leia o erro ao lado do item. Para fontes alteradas, inspecione os arquivos vinculados, informe um motivo, atualize o snapshot e aprove a nova revisão. Referências ausentes ou alvo de proposta obsoleto exigem correção ou rejeição. Atualizar não aprova. |
 | Fluxo Python falha | Confira Python 3.10+ e contextory.pythonExecutable; use caminho absoluto se necessário |
 | Raiz de código inesperada | Informe projectId/codebaseId explicitamente e foque o símbolo desejado antes do trace |
 | Busca de código parece obsoleta | Consulte novamente o código salvo; atualize índices vazios/com falha, confira exclusões e gere/reimporte Graphify obsoleto |
@@ -936,6 +1028,10 @@ Inclua versão do Contextory, editor/versão, versões Node/Python, erro exato e
 - tests/ui/console.spec.ts
 - tests/integration/recipe-configuration.test.ts
 - scripts/verify-background-startup.mjs
+- src/knowledge/catalog.ts
+- src/webview/catalog.ts
+- tests/ui/catalog.spec.ts
+- tests/integration/catalog.test.ts
 
 
 ---
@@ -1092,9 +1188,9 @@ A reescrita anterior registrou serviço indisponível; a entrega 0.8.0 recuperou
 
 # Histórico de releases e documentos preservados
 
-## Versão documentada atual: 0.8.0
+## Versão documentada atual: 0.9.0
 
-A versão 0.8.0 introduz o console responsivo Work/Requests, progresso por evidências, alertas persistentes de Knowledge, recuperação automática, inicialização independente da barra lateral, 256 receitas e fingerprints completos por streaming. A versão 0.7.0 introduziu recuperação de hooks; 0.6.0 introduziu projetos separados e pedidos coordenados.
+A versão 0.9.0 adiciona a fila Approvals, revisão recuperável de fontes e documentação independente com software-documentation e Carbon incluídos. A versão 0.8.0 introduziu o console responsivo, inicialização em segundo plano, recuperação automática, 256 receitas e fingerprints completos por streaming. As versões anteriores continuam preservadas abaixo.
 
 [Instalar a release atual](install.md)
 
@@ -1118,7 +1214,7 @@ O changelog original, notas de release, planos, registros de validação e vers�
 
 ## Leia o contrato anunciado
 
-O Contextory 0.7.0 define 36 ferramentas. Os schemas Zod a seguir foram extraídos pelo analisador TypeScript do código salvo sem executar a aplicação. Eles preservam obrigatoriedade, opcionais, padrões e intervalos. tools/list do MCP em execução é autoritativo para a versão instalada. contextory_catalog_review é exclusivo da interface humana mesmo quando seu contrato está visível.
+O Contextory 0.9.0 define 39 ferramentas. Os schemas Zod a seguir foram extraídos pelo analisador TypeScript do código salvo sem executar a aplicação. Eles preservam obrigatoriedade, opcionais, padrões e intervalos. tools/list do MCP em execução é autoritativo para a versão instalada. contextory_catalog_review é exclusivo da interface humana mesmo quando seu contrato está visível.
 
 Toda ferramenta também aceita projectId e workspaceId opcionais. O escopo omitido/current permanece no projeto do servidor. Ferramentas de código também aceitam codebaseId opcional onde o schema/contrato anunciado permitir. Linhas/caracteres nas referências das ferramentas do produto começam em zero; linhas das citações da documentação começam em um.
 
@@ -1195,7 +1291,7 @@ Leia o registro antes de editar. Registros existentes exigem expectedRevision at
 
 Repara hooks gerenciados de um agente; exige serviço disponível e preserva confiança nativa.
 
-Schema de entrada · src/contracts/tools.ts:60
+Schema de entrada · src/contracts/tools.ts:126
 
 ```typescript
 // contextory_hooks_rebuild
@@ -1209,7 +1305,7 @@ z.object({
 
 Descobre identidades de projetos/workspaces e estado opcional de pedidos coordenados.
 
-Schema de entrada · src/contracts/tools.ts:68
+Schema de entrada · src/contracts/tools.ts:134
 
 ```typescript
 // contextory_workspace_get
@@ -1220,7 +1316,7 @@ z.object({ groupId: id.optional() })
 
 Cria pedidos locais vinculados nos projetos escolhidos com recuperação de criação parcial.
 
-Schema de entrada · src/contracts/tools.ts:73
+Schema de entrada · src/contracts/tools.ts:139
 
 ```typescript
 // contextory_workspace_request_create
@@ -1236,7 +1332,7 @@ z.object({
 
 Lê estado global de versões, commits e registros semânticos com paginação independente.
 
-Schema de entrada · src/contracts/tools.ts:83
+Schema de entrada · src/contracts/tools.ts:149
 
 ```typescript
 // contextory_version_get
@@ -1251,7 +1347,7 @@ z.object({
 
 Prepara um plano de release sem editar fontes; dispensa lease de especificação.
 
-Schema de entrada · src/contracts/tools.ts:92
+Schema de entrada · src/contracts/tools.ts:158
 
 ```typescript
 // contextory_release_prepare
@@ -1266,7 +1362,7 @@ z.object({
 
 Aplica, publica, recupera ou cancela um plano autorizado usando a revisão atual.
 
-Schema de entrada · src/contracts/tools.ts:101
+Schema de entrada · src/contracts/tools.ts:167
 
 ```typescript
 // contextory_release_change
@@ -1282,7 +1378,7 @@ z.object({
 
 Pagina dados armazenados para documentação preservando sequência, snapshots e proveniência.
 
-Schema de entrada · src/contracts/tools.ts:111
+Schema de entrada · src/contracts/tools.ts:177
 
 ```typescript
 // contextory_project_export
@@ -1314,7 +1410,7 @@ z.object({
 
 Lê definições, propostas pendentes, atualização das fontes e inventário opcional.
 
-Schema de entrada · src/contracts/tools.ts:137
+Schema de entrada · src/contracts/tools.ts:203
 
 ```typescript
 // contextory_catalog_get
@@ -1323,6 +1419,7 @@ z.object({
       path: z.string().max(2000).optional(),
       query: z.string().max(4000).optional(),
       inventory: z.boolean().default(false),
+      pendingOnly: z.boolean().default(false),
       offset: z.number().int().nonnegative().default(0),
       limit: z.number().int().min(1).max(50).default(20),
     })
@@ -1332,7 +1429,7 @@ z.object({
 
 Sob lease, cria observações ou propõe substituições/aposentadorias exatas de definições.
 
-Schema de entrada · src/contracts/tools.ts:149
+Schema de entrada · src/contracts/tools.ts:216
 
 ```typescript
 // contextory_catalog_change
@@ -1352,7 +1449,7 @@ z.object({
 
 Somente interface humana: aprova ou rejeita revisão exata de definição/proposta; agentes não aprovam.
 
-Schema de entrada · src/contracts/tools.ts:163
+Schema de entrada · src/contracts/tools.ts:230
 
 ```typescript
 // contextory_catalog_review
@@ -1360,8 +1457,8 @@ z.object({
       operationId,
       id,
       expectedRevision: z.number().int().positive(),
-      action: z.enum(["approve", "reject"]),
-      reason: text,
+      action: z.enum(["approve", "reject", "refresh"]),
+      reason: text.trim().min(1),
     })
 ```
 
@@ -1369,7 +1466,7 @@ z.object({
 
 Inicia descrições em lotes retomáveis; candidatos varridos ainda precisam de revisão semântica.
 
-Schema de entrada · src/contracts/tools.ts:174
+Schema de entrada · src/contracts/tools.ts:241
 
 ```typescript
 // contextory_catalog_migrate
@@ -1385,7 +1482,7 @@ z.object({
 
 Lê contratos, trabalho ativo, receitas e orientações antes da implementação.
 
-Schema de entrada · src/contracts/tools.ts:184
+Schema de entrada · src/contracts/tools.ts:251
 
 ```typescript
 // contextory_context_get
@@ -1396,7 +1493,7 @@ z.object({ specId: id.optional() })
 
 Lê revisão atual ou imutável, página de filhos, job ou página de artefato.
 
-Schema de entrada · src/contracts/tools.ts:189
+Schema de entrada · src/contracts/tools.ts:256
 
 ```typescript
 // contextory_entity_get
@@ -1412,7 +1509,7 @@ z.object({
 
 Pagina auditoria; usa nextBefore como before para continuar.
 
-Schema de entrada · src/contracts/tools.ts:199
+Schema de entrada · src/contracts/tools.ts:266
 
 ```typescript
 // contextory_history_get
@@ -1427,7 +1524,7 @@ z.object({
 
 Cria ou revisa um pedido autorizado preservando a intenção original.
 
-Schema de entrada · src/contracts/tools.ts:208
+Schema de entrada · src/contracts/tools.ts:275
 
 ```typescript
 // contextory_request_change
@@ -1446,7 +1543,7 @@ z.object({
 
 Cria marcos/especificações, revisa/reabre/bloqueia/cancela ou solicita conclusão verificada.
 
-Schema de entrada · src/contracts/tools.ts:221
+Schema de entrada · src/contracts/tools.ts:288
 
 ```typescript
 // contextory_spec_change
@@ -1477,7 +1574,7 @@ z.object({
 
 Registra sessão do agente; usa o nativeSessionId exato do hook ou o omite.
 
-Schema de entrada · src/contracts/tools.ts:246
+Schema de entrada · src/contracts/tools.ts:313
 
 ```typescript
 // contextory_session_attach
@@ -1488,7 +1585,7 @@ z.object({ operationId, nativeSessionId: id.optional() })
 
 Lê modelos/tokens observados; contagens ausentes continuam indisponíveis.
 
-Schema de entrada · src/contracts/tools.ts:251
+Schema de entrada · src/contracts/tools.ts:318
 
 ```typescript
 // contextory_usage_get
@@ -1505,7 +1602,7 @@ z.object({
 
 Obtém, renova ou libera o lease de implementação com uma sessão associada.
 
-Schema de entrada · src/contracts/tools.ts:262
+Schema de entrada · src/contracts/tools.ts:329
 
 ```typescript
 // contextory_spec_lease
@@ -1523,7 +1620,7 @@ z.object({
 
 Registra problema, impacto e resolução; bloqueios não resolvidos impedem a conclusão.
 
-Schema de entrada · src/contracts/tools.ts:274
+Schema de entrada · src/contracts/tools.ts:341
 
 ```typescript
 // contextory_finding_record
@@ -1546,7 +1643,7 @@ z.object({
 
 Registra escolha, justificativa, alternativas e consequências com fontes.
 
-Schema de entrada · src/contracts/tools.ts:291
+Schema de entrada · src/contracts/tools.ts:358
 
 ```typescript
 // contextory_decision_record
@@ -1567,7 +1664,7 @@ z.object({
 
 Registra evidência externa/manual relatada, separada de verificações independentes.
 
-Schema de entrada · src/contracts/tools.ts:306
+Schema de entrada · src/contracts/tools.ts:373
 
 ```typescript
 // contextory_evidence_record
@@ -1586,7 +1683,7 @@ z.object({
 
 Executa receita configurada de forma independente e retorna um job para acompanhamento.
 
-Schema de entrada · src/contracts/tools.ts:319
+Schema de entrada · src/contracts/tools.ts:386
 
 ```typescript
 // contextory_check_run
@@ -1602,7 +1699,7 @@ z.object({
 
 Envia evidências e relatório persistente; ainda é necessária a ação complete separada.
 
-Schema de entrada · src/contracts/tools.ts:329
+Schema de entrada · src/contracts/tools.ts:396
 
 ```typescript
 // contextory_outcome_submit
@@ -1639,7 +1736,7 @@ z.object({
 
 Busca código e memória do projeto por recuperação lexical, semântica ou híbrida.
 
-Schema de entrada · src/contracts/tools.ts:360
+Schema de entrada · src/contracts/tools.ts:427
 
 ```typescript
 // contextory_search
@@ -1655,7 +1752,7 @@ z.object({
 
 Recupera contexto atual de código/tarefa ordenado com caminhos e orçamento limitado.
 
-Schema de entrada · src/contracts/tools.ts:370
+Schema de entrada · src/contracts/tools.ts:437
 
 ```typescript
 // contextory_code_context_get
@@ -1672,7 +1769,7 @@ z.object({
 
 Lê subsistemas, dependências, entradas e cobertura; refresh usa true por padrão.
 
-Schema de entrada · src/contracts/tools.ts:381
+Schema de entrada · src/contracts/tools.ts:448
 
 ```typescript
 // contextory_code_architecture_get
@@ -1686,7 +1783,7 @@ z.object({
 
 Explica um caminho indexado limitado entre duas raízes de código/registros.
 
-Schema de entrada · src/contracts/tools.ts:389
+Schema de entrada · src/contracts/tools.ts:456
 
 ```typescript
 // contextory_code_path_get
@@ -1703,7 +1800,7 @@ z.object({
 
 Atualiza a projeção de código ou valida/importa dados opcionais Graphify.
 
-Schema de entrada · src/contracts/tools.ts:400
+Schema de entrada · src/contracts/tools.ts:467
 
 ```typescript
 // contextory_code_index_refresh
@@ -1717,7 +1814,7 @@ z.object({
 
 Lista o projeto atual e suas referências isoladas somente leitura.
 
-Schema de entrada · src/contracts/tools.ts:408
+Schema de entrada · src/contracts/tools.ts:475
 
 ```typescript
 // contextory_codebase_list
@@ -1728,7 +1825,7 @@ z.object({})
 
 Registra ou desconecta uma referência local autorizada; preserva as fontes.
 
-Schema de entrada · src/contracts/tools.ts:413
+Schema de entrada · src/contracts/tools.ts:480
 
 ```typescript
 // contextory_codebase_change
@@ -1750,7 +1847,7 @@ z
 
 Vincula registros ou locais de código com relação tipada e justificativa.
 
-Schema de entrada · src/contracts/tools.ts:429
+Schema de entrada · src/contracts/tools.ts:496
 
 ```typescript
 // contextory_relationship_change
@@ -1768,7 +1865,7 @@ z.object({
 
 Percorre relações de código/registros com direção, profundidade e tamanho limitados.
 
-Schema de entrada · src/contracts/tools.ts:441
+Schema de entrada · src/contracts/tools.ts:508
 
 ```typescript
 // contextory_impact_get
@@ -1785,7 +1882,7 @@ z.object({
 
 Traça chamadas/fluxo limitados a partir de símbolo ou posição.
 
-Schema de entrada · src/contracts/tools.ts:452
+Schema de entrada · src/contracts/tools.ts:519
 
 ```typescript
 // contextory_flow_trace
@@ -1812,7 +1909,7 @@ z.object({
 
 Pagina grafo armazenado ou expande fronteira validando o snapshot de código.
 
-Schema de entrada · src/contracts/tools.ts:473
+Schema de entrada · src/contracts/tools.ts:540
 
 ```typescript
 // contextory_flow_expand
@@ -1831,13 +1928,97 @@ z.object({
 
 Exporta relatório, changelog de trabalho concluído ou JSON de um pedido por artefato.
 
-Schema de entrada · src/contracts/tools.ts:486
+Schema de entrada · src/contracts/tools.ts:553
 
 ```typescript
 // contextory_report_export
 z.object({
       format: z.enum(["report", "changelog", "json"]).default("report"),
       requestId: id,
+    })
+```
+
+## Consultar documentação de projeto
+
+Consulte explicações bilíngues por texto/caminho/registro, atualização das fontes, guias incluídos ou job de runtime. A paginação permanece explícita.
+
+Schema de entrada · src/contracts/tools.ts:60
+
+```typescript
+// contextory_docs_get
+z.object({
+      section: z
+        .enum(["overview", "sections", "guidance", "job"])
+        .default("overview"),
+      query: z.string().max(4000).default(""),
+      path: z.string().max(2000).optional(),
+      recordId: id.optional(),
+      pageId: id.optional(),
+      sectionId: id.optional(),
+      resource: z.string().max(2000).optional(),
+      jobId: id.optional(),
+      locale: z.enum(["en", "pt-BR"]).default("en"),
+      offset: z.number().int().nonnegative().default(0),
+      limit: z.number().int().min(1).max(50).default(10),
+    })
+```
+
+## Executar operações de documentação incluídas
+
+Enfileire operações de documentação sob demanda; mutações exigem lease e publicar no Pages exige autorização explícita e publish=true. Consulte o job durável e inspecione seu resultado.
+
+Schema de entrada · src/contracts/tools.ts:79
+
+```typescript
+// contextory_docs_run
+z.object({
+      operationId,
+      action: z.enum([
+        "map",
+        "init",
+        "validate",
+        "build",
+        "integrations",
+        "migrate",
+        "readme",
+        "pages_plan",
+        "pages_publish",
+        "pages_status",
+      ]),
+      specId: id.optional(),
+      leaseId: id.optional(),
+      name: z.string().trim().min(1).max(300).optional(),
+      kind: z.enum(["application", "library", "plugin"]).optional(),
+      sourceRoots: z
+        .array(z.string().min(1).max(2000))
+        .min(1)
+        .max(30)
+        .optional(),
+      apply: z.boolean().default(false),
+      siteUrl: z.string().max(2000).optional(),
+      remote: z.string().max(300).optional(),
+      publish: z.boolean().default(false),
+      offset: z.number().int().nonnegative().default(0),
+      limit: z.number().int().min(1).max(1000).default(100),
+    })
+```
+
+## Associar uma explicação revisada
+
+Registre após revisão uma associação observada a registros locais vinculada a hashes de origem, preservando revisões/histórico; isso não aprova requisitos.
+
+Schema de entrada · src/contracts/tools.ts:113
+
+```typescript
+// contextory_docs_link
+z.object({
+      operationId,
+      ...lease,
+      pageId: id,
+      sectionId: id,
+      corpusFingerprint: z.string().length(64),
+      recordIds: z.array(id).max(30),
+      reason: text,
     })
 ```
 
@@ -1978,6 +2159,54 @@ Executa mapa/validação/build/export/preview sem publicar nem aprovar fontes.
 - src/contracts/tools.ts
 - src/service/application.ts
 - src/service/server.ts
+
+
+---
+
+# Release v0.9.0
+
+## Revise conhecimento pendente em Approvals
+
+Approvals é um destino principal ao lado de Work e Requests, com contador de pendências. Alertas e Review now abrem a fila diretamente. A consulta seleciona baselines observados e propostas pendentes antes da paginação; Knowledge continua um navegador independente para definições, histórico e cobertura.
+
+Quando fontes mudarem, inspecione-as, informe um motivo e atualize o snapshot antes de aprovar a nova revisão. Atualizar mantém o item pendente. Erros locais explicam referências ausentes/conflitantes; motivos sobrevivem a navegação/falhas e envios duplicados são desabilitados. Isso não concede aprovação humana aos agentes.
+
+## Explicações independentes e Carbon
+
+Tools > Documentation busca explicações em inglês/português por assunto, caminho ou registro rastreado. Architecture oferece Explain this area; ações do pedido encontram documentação relacionada, incluindo vínculos nas specs descendentes. O contexto de origem recupera trechos relevantes mesmo antes de uma nova especificação ter associações explícitas.
+
+A extensão/CLI inclui software-documentation 1.0.1, seus guias, o módulo Carbon 1.0.0 completo e fontes/tokens/modelos locais. Nenhum plugin separado é necessário. Três ferramentas Contextory fornecem leitura/guias/jobs, ações de geração/consumidor/Pages e associações observadas auditadas. Mudanças no texto, nas fontes e no conteúdo de registros marcam explicações vinculadas como desatualizadas.
+
+A consulta funciona sem Python. A geração ocorre sob demanda com Python 3.11+ e lease atual para mutações; nunca bloqueia a inicialização do serviço. Corpora schema 1 podem ser consultados, e prévias/backups preservam conteúdo antes da geração Carbon schema 2. Publicar um projeto conectado continua uma ação explicitamente autorizada.
+
+[Leia o fluxo de documentação](documentation.md)
+
+## Instale e recarregue integrações
+
+1. Baixe contextory-workspace-0.9.0.vsix e o arquivo .sha256; compare o SHA-256 antes de instalar.
+2. Use Extensions > Install from VSIX e recarregue o VS Code ou IBM Bob. Reinicie integrações nativas quando solicitado para descobrir as ferramentas e skill atualizadas; a confiança permanece no cliente.
+3. Abra Approvals para revisão humana pendente ou Tools > Documentation para consultar explicações. Python 3.11+ só é necessário ao executar operações de documentação.
+
+[Baixar 0.9.0](https://github.com/igormicadei/Contextory/releases/tag/v0.9.0)
+
+## Qualificação e escopo
+
+As verificações cobrem a interface em barra lateral estreita e painel baixo, limites de revisão no backend, MCP/registro nativo, operações descartáveis e páginas Carbon offline nos dois idiomas em 1440/390/320 pixels. Recursos incluídos são verificados contra 469 hashes. A publicação compara VSIX/checksum baixados e o manifesto completo da documentação.
+
+Node.js 24+ e workspaces locais confiáveis no Windows continuam o ambiente qualificado. Confiança de hooks, conversas autenticadas, outros sistemas e workspaces remotos preservam seus limites. Reutilizar metadados Contextory de projetos de referência permanece no backlog. Definições, releases e aprovações históricas são preservadas; explicações geradas não são requisitos aprovados.
+
+## Fontes
+
+- package.json
+- src/contracts/model.ts
+- src/webview/catalog.ts
+- src/webview/documentation.ts
+- src/documentation/manager.ts
+- src/documentation/reader.ts
+- resources/documentation/PROVENANCE.json
+- tests/integration/catalog.test.ts
+- tests/integration/documentation.test.ts
+- tests/ui/documentation.spec.ts
 
 
 ---
@@ -2440,9 +2669,9 @@ Static mapping does not prove runtime feature coverage. Review routes, commands,
 
 # Contextory (en)
 
-Version: 0.8.0
-Source revision: fa0c7219010c865a2dcbfc114729b6cbfd739f1a
-Source fingerprint: 1b0bb953a62c645c5390deb1c975245811ec74c73b9e2eaaed70c49e8fe985df
+Version: 0.9.0
+Source revision: e24e15a95eaa0d8fe5bc41b9aa1f1de3676568f3
+Source fingerprint: 2f97dc7672e5c9153d3e6466e07c3045ccd76dc7bb8dfb708d2066117fc4069c
 
 # Contextory
 
@@ -2450,7 +2679,7 @@ Source fingerprint: 1b0bb953a62c645c5390deb1c975245811ec74c73b9e2eaaed70c49e8fe9
 
 Contextory connects requests, specifications, source code, decisions and verification evidence in a local project ledger. Work in the native Codex, Claude Code or IBM Bob chat, then use Contextory to recover what was requested, what changed and why.
 
-This guide describes Contextory 0.8.0, a preview qualified on Windows with trusted local folders in VS Code and IBM Bob. The extension needs Node.js 24+. Python 3.10+ is optional for Python analysis. Your agent supplies its own account, model and conversation.
+This guide describes Contextory 0.9.0, a preview qualified on Windows with trusted local folders in VS Code and IBM Bob. The extension needs Node.js 24+. Python 3.10+ is optional for Python analysis. Your agent supplies its own account, model and conversation.
 
 [Install Contextory](install.md)
 
@@ -2478,6 +2707,12 @@ This guide describes Contextory 0.8.0, a preview qualified on Windows with trust
 4. Confirm explicit completion and export a report that explains the final result.
 
 [Write a useful implementation outcome](outcomes.md)
+
+## Project explanations
+
+Use Tools > Documentation to find explanations linked to current source and tracked work. The bundled documentation/Carbon capability requires no external plugin; generation runs on demand.
+
+[Read the project documentation guide](documentation.md)
 
 ## Sources
 
@@ -2516,19 +2751,19 @@ python --version
 
 ## Install the VSIX
 
-1. Download contextory-workspace-0.8.0.vsix and its .sha256 file from the v0.8.0 release.
+1. Download contextory-workspace-0.9.0.vsix and its .sha256 file from the v0.9.0 release.
 2. Compare the downloaded package checksum with the release checksum.
 3. In Extensions, open the … menu, select Install from VSIX… and choose the downloaded file. Reload if prompted.
 4. Open a trusted local project. The service and configured startup agents prepare in the background; open Contextory whenever you want to inspect work. The initial project has no requests.
 
-[Download version 0.8.0](https://github.com/igormicadei/Contextory/releases/tag/v0.8.0)
+[Download version 0.9.0](https://github.com/igormicadei/Contextory/releases/tag/v0.9.0)
 
 Verify and install the release package
 
 ```powershell
-(Get-FileHash -Algorithm SHA256 .\contextory-workspace-0.8.0.vsix).Hash.ToLowerInvariant()
-Get-Content .\contextory-workspace-0.8.0.sha256
-code --install-extension .\contextory-workspace-0.8.0.vsix
+(Get-FileHash -Algorithm SHA256 .\contextory-workspace-0.9.0.vsix).Hash.ToLowerInvariant()
+Get-Content .\contextory-workspace-0.9.0.sha256
+code --install-extension .\contextory-workspace-0.9.0.vsix
 ```
 
 End users do not need npm, Rust, a database server or an embedding model. Install and sign in to the native agent through its own interface. Restart the editor after installing Node if its PATH has not refreshed.
@@ -2698,9 +2933,9 @@ Architecture explorer captured from Contextory.
 
 Bounded source-flow explorer in Contextory.
 
-## Review Knowledge and Versions
+## Use Approvals, Knowledge and Versions
 
-1. Choose the persistent review alert, or Tools > Knowledge. Review the queue first; expand definition search and file coverage separately when needed.
+1. Open the Approvals tab or the review alert to review pending items. The tab shows a pending count and contains no already-reviewed definitions. Use Tools > Knowledge for definition search and source coverage.
 2. For an observed baseline or pending change, read the exact proposal and enter a review reason before Approve baseline, Approve change or Reject. Only a human uses these review controls.
 3. Open Tools > Versions to inspect the current version, commits and release plans. Review version, files and changelog before applying; Publish is a separately authorized release action.
 
@@ -2740,6 +2975,8 @@ Resizing or docking preserves selection, drafts, expanded details and scroll wit
 - tests/ui/console.spec.ts
 - tests/integration/recipe-configuration.test.ts
 - scripts/verify-background-startup.mjs
+- src/knowledge/catalog.ts
+- tests/integration/catalog.test.ts
 
 
 ---
@@ -2748,7 +2985,7 @@ Resizing or docking preserves selection, drafts, expanded details and scroll wit
 
 ## Multiple projects in one workspace
 
-Open up to 16 trusted local, non-nested folders. The Project selector scopes Requests, Knowledge, History, Versions and Architecture. Records, checks, evidence, source graphs, reference repositories and releases belong to each project independently. Removing a folder detaches it while retaining its storage.
+Open up to 16 trusted local, non-nested folders. The Project selector scopes Requests, Approvals, Knowledge, History, Versions and Architecture. Records, checks, evidence, source graphs, reference repositories and releases belong to each project independently. Removing a folder detaches it while retaining its storage.
 
 1. In New request, select every affected project. Each selected project receives its own linked local request.
 2. Inspect Across projects for branch status. Each branch needs its own milestones, specs, lease, checks and completed outcome.
@@ -2801,6 +3038,12 @@ Counts are not billing or quota estimates. Cached and reasoning tokens are subse
 4. After one unchanged repair, inspect native trust and service logs. Repeating repairs cannot approve hooks. On Codex, /hooks approvals can differ for C: and c: path casing.
 
 The proxy keeps discovery available during delayed startup and retries readiness for up to five minutes, with foreground waits bounded to 15 seconds. It rereads descriptors after restarts and never automatically replays a dispatched mutation. A contract mismatch needs the displayed reload/restart action.
+
+## Project explanations
+
+Use Tools > Documentation to find explanations linked to current source and tracked work. The bundled documentation/Carbon capability requires no external plugin; generation runs on demand.
+
+[Read the project documentation guide](documentation.md)
 
 ## Sources
 
@@ -2883,6 +3126,12 @@ Refresh/import arguments
 
 Pass these arguments to contextory_code_index_refresh. The importer checks schema, bounded JSON, IDs, edge endpoints and included local source paths; failures preserve the previous import. Regenerate and re-import the entire graph when a cited source changes, disappears or is excluded. Graphify is optional and its provenance/accuracy limits remain visible.
 
+## Project explanations
+
+Use Tools > Documentation to find explanations linked to current source and tracked work. The bundled documentation/Carbon capability requires no external plugin; generation runs on demand.
+
+[Read the project documentation guide](documentation.md)
+
 ## Sources
 
 - src/codebase/queries.ts
@@ -2910,19 +3159,31 @@ Pass these arguments to contextory_code_index_refresh. The importer checks schem
 
 Read contextory_catalog_get before related changes and page definitions, proposals and inventory independently. Generated entries begin as observations. A source graph describes possible relationships; it cannot approve a rule or infer intended interface behavior.
 
-## Review an exact definition revision
+## Review pending items in Approvals
 
 A persistent review alert counts observed definitions and pending changes. The editor view also has a badge and offers Review now when exact pending record revisions change. Notifications are deduplicated per project across restarts; dismissing one leaves the review alert available.
 
-1. Open Knowledge, choose a definition and inspect its sources, tests, state, revision and freshness.
+1. Open Approvals beside Work and Requests, or use the persistent review alert. This tab contains only pending changes and observed baselines. Inspect sources, tests, state, revision and freshness. Use Tools > Knowledge separately to browse all definitions and file coverage.
 2. Review baseline observations or the before/after content of a replacement or retirement. Enter a reason before approving or rejecting.
-3. Refresh stale candidates before approval. Competing proposals must match the exact current target revision. Rejections keep the original definition and all revisions remain retained.
+3. If Sources need review appears, open the changed files and check the definition. Enter a reason and choose Refresh source snapshot. This records current file hashes and keeps the item pending; approve or reject the refreshed revision separately. Missing files must be corrected or the outdated item rejected. A proposal against an older target revision must be rejected and replaced.
 
-![Knowledge definitions and a before/after review proposal with example payment records.](../assets/knowledge-preview.png)
+Saving, success and errors appear beside the review controls. Failed reviews keep the entered reason and do not approve anything. Controls remain disabled while a review is pending. Switching to Knowledge and back preserves the reason; Knowledge search filters do not hide the approval queue. Refreshing a snapshot never edits the definition or grants approval.
 
-Production Knowledge webview rendered with isolated test-fixture records; no project approval was performed.
+![The Approvals tab with a pending count, before/after changes and review controls.](../assets/knowledge-preview.png)
 
-Approval belongs to the authenticated human Knowledge UI. Agents must not use UI credentials or present generated observations as approved requirements. Pending proposals and stale affected approved definitions can block tracked completion.
+Approvals rendered by the production webview with isolated example records; no real project approval was performed.
+
+Approval belongs to the authenticated human Approvals tab. Agents cannot use its credentials or present observations as approved requirements. Pending proposals and stale affected approved definitions can block tracked completion.
+
+## Browse Knowledge independently
+
+1. Choose Tools > Knowledge to browse current and historical definitions, their source/test links and history.
+2. Expand Find definitions & coverage, then filter by text, path or category. File inventory stays available in this browser.
+3. Choose Approvals to review pending items. Knowledge filters and pagination do not affect that queue; reviewed items disappear from Approvals and remain discoverable in Knowledge.
+
+![Project knowledge browsing without approval forms.](../assets/knowledge-browser.png)
+
+Knowledge browser using production UI and isolated fixture records.
 
 ## Bootstrap an existing project
 
@@ -2956,6 +3217,65 @@ This export excludes credentials, native conversations and numeric embedding vec
 - tests/ui/console.spec.ts
 - tests/integration/recipe-configuration.test.ts
 - scripts/verify-background-startup.mjs
+- tests/ui/catalog.spec.ts
+- src/webview/main.ts
+
+
+---
+
+# Project documentation
+
+## Find an explanation
+
+Contextory includes project documentation as an optional capability. The software-documentation 1.0.1 runtime, its authoring/update/source-comment/integration playbooks and the complete Carbon 1.0.0 module ship in the extension and CLI. Local fonts, tokens, templates and references need no separate plugin installation. Reading explanations works without Python; generation uses Python 3.11+ configured by contextory.pythonExecutable.
+
+1. Choose Tools > Documentation. Search for a feature or behavior, optionally filter by source path, and choose English or Portuguese.
+2. Read the explanation, stable page/section ID, source links and freshness badge. A draft, an unknown baseline and a stale explanation still need review; documentation never grants approval to a requirement.
+3. From Architecture, choose Explain this area for the current source scope. In a request, expand Brief & actions and choose Related documentation to find sections linked to the request or its descendant records. Reference codebases remain a separate read-only source scope.
+
+![Documentation search, English and Portuguese selection, stale explanation and source/record links.](../assets/documentation-browser.png)
+
+Production documentation browser with isolated fixture explanations and explicit stale-source state.
+
+## Author and build with your agent
+
+1. Ask the agent to use contextory-documentation. It reads current source, catalog and the relevant exported Contextory datasets with their project identity and approval/history provenance.
+2. Map the project and author substantive paired English/pt-BR explanations in .documentation/project.json. The bundled init operation creates a draft, not finished documentation. Preserve existing content, translations, IDs, URLs and assets.
+3. Use contextory_docs_run for map/init/validate/build/integrations/migrate/readme/Pages operations and poll the returned job. Generation runs on demand and cannot gate service startup. Mutating operations require the agent’s current specification lease.
+4. Review the generated responsive Carbon site, both locales, local search, examples, native source comments and coverage gaps. Consumer bundles include their own read-only documentation MCP and installer. Do not claim complete behavior coverage from file counts or a passed build.
+
+The generator creates schema 2 Carbon sites, and retrieval also reads schema 1. Migration previews by default, creates a backup on apply and leaves migrated content in draft for review. Contextory’s own schema-1 site build remains separately pinned; this feature does not upgrade that corpus.
+
+## Connect explanations to changes
+
+After comparing a section with current sources, the agent uses contextory_docs_link with its page/section IDs, current corpus fingerprint, local record IDs and a reason. Contextory retains citation hashes, record revisions, semantic fingerprints and an audit trail of before/after associations. It stores these observed links in the selected project’s ledger; it does not inject private ledger history into public HTML.
+
+Changed text/citations, changed or missing cited files and meaningful changes to linked records mark a section stale. Lease renewal alone does not invalidate the explanation. Current-project code context includes bounded relevant explanations when its token budget permits. Source definitions, generated architecture, authored explanations, historical decisions and human-approved requirements retain different authority.
+
+Expand Keep documentation current for source mapping or validation. A successful runtime job can return valid=false, shown as needs review. Large results are retained as JSON artifacts and can be paged through project export. Exact operation retries recover the same job; failed/interrupted mutations are never replayed automatically.
+
+## Publish explicitly and verify
+
+Implementing documentation does not publish a connected project. With publication authorization, inspect pages_plan, select the intended remote, then run pages_publish with publish=true and the current lease. Verify pages_status against the actual live artifact. The bundled upstream publisher preserves orphan gh-pages history and rejects foreign branch replacement. GitHub CLI authentication/network/Pages availability remain environmental requirements.
+
+Missing Python affects generator jobs only. Configure its executable and start a new operation after inspecting any partial files. A failed or unavailable documentation corpus does not block source context or the service. Human approvals remain in Approvals, and references never grant writes into another project.
+
+## Sources
+
+- src/documentation/manager.ts
+- src/documentation/reader.ts
+- src/documentation/bridge.py
+- src/contracts/tools.ts
+- src/webview/documentation.ts
+- src/webview/main.ts
+- resources/documentation/PROVENANCE.json
+- skills/contextory-documentation/SKILL.md
+- tests/integration/documentation.test.ts
+- tests/ui/documentation.spec.ts
+- scripts/documentation-resources.mjs
+- scripts/build.mjs
+- scripts/licenses.mjs
+- tests/documentation/embedded.test.mjs
 
 
 ---
@@ -3348,6 +3668,7 @@ Rebuild hooks writes managed files immediately. Changed repairs follow contextor
 
 | Symptom | Action |
 | --- | --- |
+| An item remains pending in Approvals | Read the inline error. For changed sources, inspect the linked files, enter a reason, refresh the source snapshot, then approve the new revision. Missing references or an outdated proposal target require correction or rejection. Refresh does not approve. |
 | Python flow fails | Check Python 3.10+ and contextory.pythonExecutable; use an absolute executable path if needed |
 | Unexpected source root | Set projectId/codebaseId explicitly and focus the intended editor symbol before tracing |
 | Source search seems stale | Re-query saved source; refresh an empty/failed index, inspect exclusions and regenerate/re-import stale Graphify data |
@@ -3376,6 +3697,10 @@ Include Contextory version, editor/version, Node/Python versions, exact error te
 - tests/ui/console.spec.ts
 - tests/integration/recipe-configuration.test.ts
 - scripts/verify-background-startup.mjs
+- src/knowledge/catalog.ts
+- src/webview/catalog.ts
+- tests/ui/catalog.spec.ts
+- tests/integration/catalog.test.ts
 
 
 ---
@@ -3532,9 +3857,9 @@ The earlier documentation rewrite recorded an unavailable service; the 0.8.0 del
 
 # Release history and preserved documents
 
-## Current documented version: 0.8.0
+## Current documented version: 0.9.0
 
-Version 0.8.0 introduces the responsive Work/Requests console, evidence-based progress, persistent Knowledge review alerts, automatic service recovery, background startup independent of sidebar visibility, 256 check recipes and complete streamed source fingerprints. Version 0.7.0 introduced managed hook recovery; 0.6.0 introduced separate workspace projects and coordinated requests.
+Version 0.9.0 adds a dedicated Approvals queue, recoverable source review and independent project documentation with bundled software-documentation and Carbon. Version 0.8.0 introduced the responsive work console, background startup, automatic recovery, 256 check recipes and complete streamed source fingerprints. Earlier releases remain preserved below.
 
 [Install the current release](install.md)
 
@@ -3558,7 +3883,7 @@ The original changelog, release notes, implementation plans, validation records 
 
 ## Read the advertised contract
 
-Contextory 0.7.0 defines 36 tools. The following Zod schema excerpts were extracted with the TypeScript parser from the saved source without executing application code. They preserve required/optional/default/range semantics. The running MCP tools/list response is authoritative for the installed client version. contextory_catalog_review is human-UI-only even if its contract is visible.
+Contextory 0.9.0 defines 39 tools. The following Zod schema excerpts were extracted with the TypeScript parser from the saved source without executing application code. They preserve required/optional/default/range semantics. The running MCP tools/list response is authoritative for the installed client version. contextory_catalog_review is human-UI-only even if its contract is visible.
 
 Every tool additionally accepts optional projectId and workspaceId. Omitted/current project scope stays on that server’s project. Source tools additionally accept optional codebaseId where their schema/advertised contract permits it. Lines/characters in product tool source references are zero-based; documentation citation lines are one-based.
 
@@ -3635,7 +3960,7 @@ Read a record before editing. Existing records require current expectedRevision.
 
 Repair one provider’s managed hooks; requires a reachable service and preserves native trust.
 
-Input schema · src/contracts/tools.ts:60
+Input schema · src/contracts/tools.ts:126
 
 ```typescript
 // contextory_hooks_rebuild
@@ -3649,7 +3974,7 @@ z.object({
 
 Discover project/workspace identities and optional coordinated-request status.
 
-Input schema · src/contracts/tools.ts:68
+Input schema · src/contracts/tools.ts:134
 
 ```typescript
 // contextory_workspace_get
@@ -3660,7 +3985,7 @@ z.object({ groupId: id.optional() })
 
 Create linked local requests for selected projects with recoverable partial creation.
 
-Input schema · src/contracts/tools.ts:73
+Input schema · src/contracts/tools.ts:139
 
 ```typescript
 // contextory_workspace_request_create
@@ -3676,7 +4001,7 @@ z.object({
 
 Read repository-wide version state, commits and semantic records with independent pagination.
 
-Input schema · src/contracts/tools.ts:83
+Input schema · src/contracts/tools.ts:149
 
 ```typescript
 // contextory_version_get
@@ -3691,7 +4016,7 @@ z.object({
 
 Prepare a concrete release plan without source edits; no spec lease is needed.
 
-Input schema · src/contracts/tools.ts:92
+Input schema · src/contracts/tools.ts:158
 
 ```typescript
 // contextory_release_prepare
@@ -3706,7 +4031,7 @@ z.object({
 
 Apply, publish, recover or cancel an authorized release plan using its current revision.
 
-Input schema · src/contracts/tools.ts:101
+Input schema · src/contracts/tools.ts:167
 
 ```typescript
 // contextory_release_change
@@ -3722,7 +4047,7 @@ z.object({
 
 Page stored datasets for documentation, retaining sequence, snapshots and provenance.
 
-Input schema · src/contracts/tools.ts:111
+Input schema · src/contracts/tools.ts:177
 
 ```typescript
 // contextory_project_export
@@ -3754,7 +4079,7 @@ z.object({
 
 Read catalog definitions, pending proposals, source freshness and optional file inventory.
 
-Input schema · src/contracts/tools.ts:137
+Input schema · src/contracts/tools.ts:203
 
 ```typescript
 // contextory_catalog_get
@@ -3763,6 +4088,7 @@ z.object({
       path: z.string().max(2000).optional(),
       query: z.string().max(4000).optional(),
       inventory: z.boolean().default(false),
+      pendingOnly: z.boolean().default(false),
       offset: z.number().int().nonnegative().default(0),
       limit: z.number().int().min(1).max(50).default(20),
     })
@@ -3772,7 +4098,7 @@ z.object({
 
 Under a lease, create observations or propose exact definition replacements/retirements.
 
-Input schema · src/contracts/tools.ts:149
+Input schema · src/contracts/tools.ts:216
 
 ```typescript
 // contextory_catalog_change
@@ -3792,7 +4118,7 @@ z.object({
 
 Human UI only: approve or reject an exact definition/proposal revision; native agents cannot approve.
 
-Input schema · src/contracts/tools.ts:163
+Input schema · src/contracts/tools.ts:230
 
 ```typescript
 // contextory_catalog_review
@@ -3800,8 +4126,8 @@ z.object({
       operationId,
       id,
       expectedRevision: z.number().int().positive(),
-      action: z.enum(["approve", "reject"]),
-      reason: text,
+      action: z.enum(["approve", "reject", "refresh"]),
+      reason: text.trim().min(1),
     })
 ```
 
@@ -3809,7 +4135,7 @@ z.object({
 
 Bootstrap file descriptions in resumable batches; scanned candidates still need semantic review.
 
-Input schema · src/contracts/tools.ts:174
+Input schema · src/contracts/tools.ts:241
 
 ```typescript
 // contextory_catalog_migrate
@@ -3825,7 +4151,7 @@ z.object({
 
 Read workspace contracts, active work, check recipes and guidance before implementation.
 
-Input schema · src/contracts/tools.ts:184
+Input schema · src/contracts/tools.ts:251
 
 ```typescript
 // contextory_context_get
@@ -3836,7 +4162,7 @@ z.object({ specId: id.optional() })
 
 Read a current or immutable record revision, child page, job or artifact page.
 
-Input schema · src/contracts/tools.ts:189
+Input schema · src/contracts/tools.ts:256
 
 ```typescript
 // contextory_entity_get
@@ -3852,7 +4178,7 @@ z.object({
 
 Page audit history; pass nextBefore as before to continue.
 
-Input schema · src/contracts/tools.ts:199
+Input schema · src/contracts/tools.ts:266
 
 ```typescript
 // contextory_history_get
@@ -3867,7 +4193,7 @@ z.object({
 
 Create or revise an authorized implementation request while preserving original intent.
 
-Input schema · src/contracts/tools.ts:208
+Input schema · src/contracts/tools.ts:275
 
 ```typescript
 // contextory_request_change
@@ -3886,7 +4212,7 @@ z.object({
 
 Create milestones/specs, revise/reopen/block/cancel work or explicitly request verified completion.
 
-Input schema · src/contracts/tools.ts:221
+Input schema · src/contracts/tools.ts:288
 
 ```typescript
 // contextory_spec_change
@@ -3917,7 +4243,7 @@ z.object({
 
 Register an agent session; use the exact hook-supplied nativeSessionId or omit it.
 
-Input schema · src/contracts/tools.ts:246
+Input schema · src/contracts/tools.ts:313
 
 ```typescript
 // contextory_session_attach
@@ -3928,7 +4254,7 @@ z.object({ operationId, nativeSessionId: id.optional() })
 
 Read observed models/token metadata; unavailable counts stay unavailable.
 
-Input schema · src/contracts/tools.ts:251
+Input schema · src/contracts/tools.ts:318
 
 ```typescript
 // contextory_usage_get
@@ -3945,7 +4271,7 @@ z.object({
 
 Claim, renew or release one specification’s implementation lease with an attached session.
 
-Input schema · src/contracts/tools.ts:262
+Input schema · src/contracts/tools.ts:329
 
 ```typescript
 // contextory_spec_lease
@@ -3963,7 +4289,7 @@ z.object({
 
 Record an issue, impact and resolution; unresolved blocking findings prevent completion.
 
-Input schema · src/contracts/tools.ts:274
+Input schema · src/contracts/tools.ts:341
 
 ```typescript
 // contextory_finding_record
@@ -3986,7 +4312,7 @@ z.object({
 
 Record a choice, rationale, alternatives and consequences with sources.
 
-Input schema · src/contracts/tools.ts:291
+Input schema · src/contracts/tools.ts:358
 
 ```typescript
 // contextory_decision_record
@@ -4007,7 +4333,7 @@ z.object({
 
 Record reported external/manual evidence; it remains separate from independent checks.
 
-Input schema · src/contracts/tools.ts:306
+Input schema · src/contracts/tools.ts:373
 
 ```typescript
 // contextory_evidence_record
@@ -4026,7 +4352,7 @@ z.object({
 
 Run a configured recipe independently and return a job to poll.
 
-Input schema · src/contracts/tools.ts:319
+Input schema · src/contracts/tools.ts:386
 
 ```typescript
 // contextory_check_run
@@ -4042,7 +4368,7 @@ z.object({
 
 Submit criterion evidence and a durable report; a separate complete action is still required.
 
-Input schema · src/contracts/tools.ts:329
+Input schema · src/contracts/tools.ts:396
 
 ```typescript
 // contextory_outcome_submit
@@ -4079,7 +4405,7 @@ z.object({
 
 Search source and project memory using lexical, semantic or hybrid retrieval.
 
-Input schema · src/contracts/tools.ts:360
+Input schema · src/contracts/tools.ts:427
 
 ```typescript
 // contextory_search
@@ -4095,7 +4421,7 @@ z.object({
 
 Retrieve ranked current source/task context with paths and a bounded estimated-token budget.
 
-Input schema · src/contracts/tools.ts:370
+Input schema · src/contracts/tools.ts:437
 
 ```typescript
 // contextory_code_context_get
@@ -4112,7 +4438,7 @@ z.object({
 
 Read subsystems, dependencies, entry points and coverage; refresh defaults to true.
 
-Input schema · src/contracts/tools.ts:381
+Input schema · src/contracts/tools.ts:448
 
 ```typescript
 // contextory_code_architecture_get
@@ -4126,7 +4452,7 @@ z.object({
 
 Explain a bounded indexed path between two source/record roots.
 
-Input schema · src/contracts/tools.ts:389
+Input schema · src/contracts/tools.ts:456
 
 ```typescript
 // contextory_code_path_get
@@ -4143,7 +4469,7 @@ z.object({
 
 Refresh source projection or validate/import optional Graphify data.
 
-Input schema · src/contracts/tools.ts:400
+Input schema · src/contracts/tools.ts:467
 
 ```typescript
 // contextory_code_index_refresh
@@ -4157,7 +4483,7 @@ z.object({
 
 List the current project and its isolated read-only reference registrations.
 
-Input schema · src/contracts/tools.ts:408
+Input schema · src/contracts/tools.ts:475
 
 ```typescript
 // contextory_codebase_list
@@ -4168,7 +4494,7 @@ z.object({})
 
 Register or detach an authorized local reference; source files remain untouched.
 
-Input schema · src/contracts/tools.ts:413
+Input schema · src/contracts/tools.ts:480
 
 ```typescript
 // contextory_codebase_change
@@ -4190,7 +4516,7 @@ z
 
 Link project records or source locations with a typed relationship and rationale.
 
-Input schema · src/contracts/tools.ts:429
+Input schema · src/contracts/tools.ts:496
 
 ```typescript
 // contextory_relationship_change
@@ -4208,7 +4534,7 @@ z.object({
 
 Traverse source/record relationships with explicit direction, depth and size bounds.
 
-Input schema · src/contracts/tools.ts:441
+Input schema · src/contracts/tools.ts:508
 
 ```typescript
 // contextory_impact_get
@@ -4225,7 +4551,7 @@ z.object({
 
 Trace bounded calls/control flow from a symbol or source position.
 
-Input schema · src/contracts/tools.ts:452
+Input schema · src/contracts/tools.ts:519
 
 ```typescript
 // contextory_flow_trace
@@ -4252,7 +4578,7 @@ z.object({
 
 Page a stored graph or expand a frontier while validating its source snapshot.
 
-Input schema · src/contracts/tools.ts:473
+Input schema · src/contracts/tools.ts:540
 
 ```typescript
 // contextory_flow_expand
@@ -4271,13 +4597,97 @@ z.object({
 
 Export one request’s report, completed-work changelog or JSON through an artifact handle.
 
-Input schema · src/contracts/tools.ts:486
+Input schema · src/contracts/tools.ts:553
 
 ```typescript
 // contextory_report_export
 z.object({
       format: z.enum(["report", "changelog", "json"]).default("report"),
       requestId: id,
+    })
+```
+
+## Read project documentation
+
+Read paired explanations by query/path/record, source freshness, bundled guidance or a runtime job. Pagination remains explicit.
+
+Input schema · src/contracts/tools.ts:60
+
+```typescript
+// contextory_docs_get
+z.object({
+      section: z
+        .enum(["overview", "sections", "guidance", "job"])
+        .default("overview"),
+      query: z.string().max(4000).default(""),
+      path: z.string().max(2000).optional(),
+      recordId: id.optional(),
+      pageId: id.optional(),
+      sectionId: id.optional(),
+      resource: z.string().max(2000).optional(),
+      jobId: id.optional(),
+      locale: z.enum(["en", "pt-BR"]).default("en"),
+      offset: z.number().int().nonnegative().default(0),
+      limit: z.number().int().min(1).max(50).default(10),
+    })
+```
+
+## Run bundled documentation operations
+
+Queue any upstream documentation operation on demand; mutating operations need a lease and Pages publication needs explicit authorization plus publish=true. Poll the durable job and inspect its result.
+
+Input schema · src/contracts/tools.ts:79
+
+```typescript
+// contextory_docs_run
+z.object({
+      operationId,
+      action: z.enum([
+        "map",
+        "init",
+        "validate",
+        "build",
+        "integrations",
+        "migrate",
+        "readme",
+        "pages_plan",
+        "pages_publish",
+        "pages_status",
+      ]),
+      specId: id.optional(),
+      leaseId: id.optional(),
+      name: z.string().trim().min(1).max(300).optional(),
+      kind: z.enum(["application", "library", "plugin"]).optional(),
+      sourceRoots: z
+        .array(z.string().min(1).max(2000))
+        .min(1)
+        .max(30)
+        .optional(),
+      apply: z.boolean().default(false),
+      siteUrl: z.string().max(2000).optional(),
+      remote: z.string().max(300).optional(),
+      publish: z.boolean().default(false),
+      offset: z.number().int().nonnegative().default(0),
+      limit: z.number().int().min(1).max(1000).default(100),
+    })
+```
+
+## Associate a reviewed explanation
+
+Record a source-hash-bound observed association to local records after review, preserving revisions and history; this does not approve requirements.
+
+Input schema · src/contracts/tools.ts:113
+
+```typescript
+// contextory_docs_link
+z.object({
+      operationId,
+      ...lease,
+      pageId: id,
+      sectionId: id,
+      corpusFingerprint: z.string().length(64),
+      recordIds: z.array(id).max(30),
+      reason: text,
     })
 ```
 
@@ -4418,6 +4828,54 @@ Run mapping/validation/build/export/preview without publishing or approving sour
 - src/contracts/tools.ts
 - src/service/application.ts
 - src/service/server.ts
+
+
+---
+
+# Release v0.9.0
+
+## Review pending knowledge in Approvals
+
+Approvals is a primary destination beside Work and Requests, with a pending count. Alerts and Review now open the queue directly. It fetches observed baselines and pending proposals before pagination; Knowledge remains an independent browser for definitions, history and source coverage.
+
+When sources changed, inspect them, enter a reason and refresh the source snapshot before approving the new revision. Refresh keeps the item pending. Inline errors explain missing/conflicting references; reasons survive navigation/failure and duplicate submissions are disabled. This does not grant agents human approval.
+
+## Independent project explanations and Carbon
+
+Tools > Documentation searches English/Portuguese explanations by topic, source path or tracked record. Architecture offers Explain this area; request actions find related documentation, including links on descendant specs. Current-project source context retrieves relevant excerpts even before a new specification has explicit associations.
+
+The extension/CLI bundles software-documentation 1.0.1, its playbooks, the complete Carbon 1.0.0 module and local fonts/tokens/templates. No separate plugin is needed. Three Contextory tools provide reading/guidance/jobs, all upstream generator/consumer/Pages actions and audited observed associations. Text, source and meaningful record changes mark linked explanations stale.
+
+Reading works without Python. Generation runs only on demand with Python 3.11+ and a current lease for writes; it never blocks service startup. Existing schema-1 corpora can be read, and migration previews/backups preserve authored content before schema-2 Carbon generation. Publishing a connected project remains an explicitly authorized action.
+
+[Read the documentation workflow](documentation.md)
+
+## Install and reload integrations
+
+1. Download contextory-workspace-0.9.0.vsix and its .sha256 file; compare the SHA-256 before installing.
+2. Use Extensions > Install from VSIX and reload VS Code or IBM Bob. Restart native integrations when prompted so the updated tools and managed skill are discovered; native trust stays in the client.
+3. Open Approvals for pending human review, or Tools > Documentation to browse project explanations. Python 3.11+ is required only when running documentation operations.
+
+[Download 0.9.0](https://github.com/igormicadei/Contextory/releases/tag/v0.9.0)
+
+## Qualification and scope
+
+Release checks cover the production UI at narrow/sidebar and short/panel sizes, backend review boundaries, native MCP/registration, disposable documentation operations and offline Carbon pages in both locales at 1440/390/320 pixels. Bundled resources are verified against 469 upstream hashes. Public publication checks compare downloaded VSIX/checksum and the complete documentation manifest.
+
+Node.js 24+ and trusted local Windows workspaces remain the qualified extension environment. Native hook trust, authenticated model conversations, other operating systems and remote workspaces retain their existing limits. Reference-project Contextory metadata reuse remains backlog work. Historical definitions, releases and approval state are preserved; generated explanations are not approved requirements.
+
+## Sources
+
+- package.json
+- src/contracts/model.ts
+- src/webview/catalog.ts
+- src/webview/documentation.ts
+- src/documentation/manager.ts
+- src/documentation/reader.ts
+- resources/documentation/PROVENANCE.json
+- tests/integration/catalog.test.ts
+- tests/integration/documentation.test.ts
+- tests/ui/documentation.spec.ts
 
 
 ---

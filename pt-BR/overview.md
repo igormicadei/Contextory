@@ -4,7 +4,7 @@
 
 O Contextory conecta pedidos, especificações, código, decisões e evidências de verificação em um registro local do projeto. Trabalhe no chat nativo do Codex, Claude Code ou IBM Bob e use o Contextory para recuperar o que foi pedido, o que mudou e por quê.
 
-Este guia descreve o Contextory 0.8.0, uma prévia qualificada no Windows com pastas locais confiáveis no VS Code e IBM Bob. A extensão precisa do Node.js 24+. Python 3.10+ é opcional para análise Python. Cada agente usa sua própria conta, modelo e conversa.
+Este guia descreve o Contextory 0.9.0, uma prévia qualificada no Windows com pastas locais confiáveis no VS Code e IBM Bob. A extensão precisa do Node.js 24+. Python 3.10+ é opcional para análise Python. Cada agente usa sua própria conta, modelo e conversa.
 
 [Instalar o Contextory](install.md)
 
@@ -32,6 +32,12 @@ Este guia descreve o Contextory 0.8.0, uma prévia qualificada no Windows com pa
 4. Confirme a conclusão explícita e exporte um relatório que explique o resultado final.
 
 [Escrever um resultado de implementação útil](outcomes.md)
+
+## Explicações do projeto
+
+Use Tools > Documentation para consultar explicações vinculadas às fontes e ao trabalho rastreado. A capacidade de documentação/Carbon incluída dispensa plugin externo; a geração acontece sob demanda.
+
+[Leia o guia de documentação de projetos](documentation.md)
 
 ## Fontes
 

@@ -60,6 +60,12 @@ Argumentos de atualização/importação
 
 Passe esses argumentos a contextory_code_index_refresh. O importador confere schema, tamanho do JSON, IDs, destinos das arestas e caminhos locais incluídos; falhas preservam a importação anterior. Gere e importe novamente o grafo completo quando uma fonte citada mudar, desaparecer ou for excluída. O Graphify é opcional e seus limites de proveniência/precisão continuam visíveis.
 
+## Explicações do projeto
+
+Use Tools > Documentation para consultar explicações vinculadas às fontes e ao trabalho rastreado. A capacidade de documentação/Carbon incluída dispensa plugin externo; a geração acontece sob demanda.
+
+[Leia o guia de documentação de projetos](documentation.md)
+
 ## Fontes
 
 - src/codebase/queries.ts

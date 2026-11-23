@@ -2,7 +2,7 @@
 
 ## Vários projetos no mesmo workspace
 
-Abra até 16 pastas locais confiáveis e não aninhadas. O seletor Project delimita Requests, Knowledge, History, Versions e Architecture. Registros, verificações, evidências, grafos de código, referências e releases pertencem a cada projeto de forma independente. Remover uma pasta a desconecta, preservando seu armazenamento.
+Abra até 16 pastas locais confiáveis e não aninhadas. O seletor Project delimita Requests, Approvals, Knowledge, History, Versions e Architecture. Registros, verificações, evidências, grafos de código, referências e releases pertencem a cada projeto de forma independente. Remover uma pasta a desconecta, preservando seu armazenamento.
 
 1. Em New request, selecione todos os projetos afetados. Cada projeto selecionado recebe seu próprio pedido local vinculado.
 2. Inspecione Across projects para conferir os ramos. Cada ramo precisa de marcos, especificações, lease, verificações e resultado concluído próprios.
@@ -55,6 +55,12 @@ As contagens não estimam cobrança ou cota. Tokens de cache e raciocínio são 
 4. Depois de um reparo sem alterações, inspecione a confiança nativa e os logs do serviço. Repetir reparos não aprova hooks. No Codex, aprovações de /hooks podem diferir entre caminhos C: e c:.
 
 O proxy mantém a descoberta disponível na inicialização atrasada e tenta aguardar prontidão por até cinco minutos, com esperas de até 15 segundos por chamada. Ele relê descritores após reinícios e nunca repete automaticamente uma mutação já enviada. Uma divergência de contrato exige a ação de recarga/reinício informada.
+
+## Explicações do projeto
+
+Use Tools > Documentation para consultar explicações vinculadas às fontes e ao trabalho rastreado. A capacidade de documentação/Carbon incluída dispensa plugin externo; a geração acontece sob demanda.
+
+[Leia o guia de documentação de projetos](documentation.md)
 
 ## Fontes
 

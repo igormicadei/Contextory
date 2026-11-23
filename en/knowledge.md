@@ -11,19 +11,31 @@
 
 Read contextory_catalog_get before related changes and page definitions, proposals and inventory independently. Generated entries begin as observations. A source graph describes possible relationships; it cannot approve a rule or infer intended interface behavior.
 
-## Review an exact definition revision
+## Review pending items in Approvals
 
 A persistent review alert counts observed definitions and pending changes. The editor view also has a badge and offers Review now when exact pending record revisions change. Notifications are deduplicated per project across restarts; dismissing one leaves the review alert available.
 
-1. Open Knowledge, choose a definition and inspect its sources, tests, state, revision and freshness.
+1. Open Approvals beside Work and Requests, or use the persistent review alert. This tab contains only pending changes and observed baselines. Inspect sources, tests, state, revision and freshness. Use Tools > Knowledge separately to browse all definitions and file coverage.
 2. Review baseline observations or the before/after content of a replacement or retirement. Enter a reason before approving or rejecting.
-3. Refresh stale candidates before approval. Competing proposals must match the exact current target revision. Rejections keep the original definition and all revisions remain retained.
+3. If Sources need review appears, open the changed files and check the definition. Enter a reason and choose Refresh source snapshot. This records current file hashes and keeps the item pending; approve or reject the refreshed revision separately. Missing files must be corrected or the outdated item rejected. A proposal against an older target revision must be rejected and replaced.
 
-![Knowledge definitions and a before/after review proposal with example payment records.](../assets/knowledge-preview.png)
+Saving, success and errors appear beside the review controls. Failed reviews keep the entered reason and do not approve anything. Controls remain disabled while a review is pending. Switching to Knowledge and back preserves the reason; Knowledge search filters do not hide the approval queue. Refreshing a snapshot never edits the definition or grants approval.
 
-Production Knowledge webview rendered with isolated test-fixture records; no project approval was performed.
+![The Approvals tab with a pending count, before/after changes and review controls.](../assets/knowledge-preview.png)
 
-Approval belongs to the authenticated human Knowledge UI. Agents must not use UI credentials or present generated observations as approved requirements. Pending proposals and stale affected approved definitions can block tracked completion.
+Approvals rendered by the production webview with isolated example records; no real project approval was performed.
+
+Approval belongs to the authenticated human Approvals tab. Agents cannot use its credentials or present observations as approved requirements. Pending proposals and stale affected approved definitions can block tracked completion.
+
+## Browse Knowledge independently
+
+1. Choose Tools > Knowledge to browse current and historical definitions, their source/test links and history.
+2. Expand Find definitions & coverage, then filter by text, path or category. File inventory stays available in this browser.
+3. Choose Approvals to review pending items. Knowledge filters and pagination do not affect that queue; reviewed items disappear from Approvals and remain discoverable in Knowledge.
+
+![Project knowledge browsing without approval forms.](../assets/knowledge-browser.png)
+
+Knowledge browser using production UI and isolated fixture records.
 
 ## Bootstrap an existing project
 
@@ -57,4 +69,6 @@ This export excludes credentials, native conversations and numeric embedding vec
 - tests/ui/console.spec.ts
 - tests/integration/recipe-configuration.test.ts
 - scripts/verify-background-startup.mjs
+- tests/ui/catalog.spec.ts
+- src/webview/main.ts
 

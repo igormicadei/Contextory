@@ -19,19 +19,19 @@ python --version
 
 ## Install the VSIX
 
-1. Download contextory-workspace-0.8.0.vsix and its .sha256 file from the v0.8.0 release.
+1. Download contextory-workspace-0.9.0.vsix and its .sha256 file from the v0.9.0 release.
 2. Compare the downloaded package checksum with the release checksum.
 3. In Extensions, open the … menu, select Install from VSIX… and choose the downloaded file. Reload if prompted.
 4. Open a trusted local project. The service and configured startup agents prepare in the background; open Contextory whenever you want to inspect work. The initial project has no requests.
 
-[Download version 0.8.0](https://github.com/igormicadei/Contextory/releases/tag/v0.8.0)
+[Download version 0.9.0](https://github.com/igormicadei/Contextory/releases/tag/v0.9.0)
 
 Verify and install the release package
 
 ```powershell
-(Get-FileHash -Algorithm SHA256 .\contextory-workspace-0.8.0.vsix).Hash.ToLowerInvariant()
-Get-Content .\contextory-workspace-0.8.0.sha256
-code --install-extension .\contextory-workspace-0.8.0.vsix
+(Get-FileHash -Algorithm SHA256 .\contextory-workspace-0.9.0.vsix).Hash.ToLowerInvariant()
+Get-Content .\contextory-workspace-0.9.0.sha256
+code --install-extension .\contextory-workspace-0.9.0.vsix
 ```
 
 End users do not need npm, Rust, a database server or an embedding model. Install and sign in to the native agent through its own interface. Restart the editor after installing Node if its PATH has not refreshed.

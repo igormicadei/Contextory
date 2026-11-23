@@ -28,9 +28,9 @@ Explorador Architecture capturado do Contextory.
 
 Explorador de fluxo limitado do Contextory.
 
-## Revise Knowledge e Versions
+## Use Approvals, Knowledge e Versions
 
-1. Escolha o alerta persistente de revisão ou Tools > Knowledge. Revise primeiro a fila; expanda busca de definições e cobertura de arquivos quando necessário.
+1. Abra a aba Approvals ou o alerta para revisar pendências. A aba mostra um contador e não inclui definições já revisadas. Use Tools > Knowledge para buscar definições e consultar a cobertura das fontes.
 2. Para uma linha de base observada ou alteração pendente, leia a proposta exata e informe um motivo antes de Approve baseline, Approve change ou Reject. Apenas uma pessoa usa esses controles de revisão.
 3. Abra Tools > Versions para inspecionar versão, commits e planos de release. Revise versão, arquivos e changelog antes de aplicar; Publish é uma ação de release autorizada separadamente.
 
@@ -70,4 +70,6 @@ Redimensionar ou mover preserva seleção, rascunhos, detalhes expandidos e rola
 - tests/ui/console.spec.ts
 - tests/integration/recipe-configuration.test.ts
 - scripts/verify-background-startup.mjs
+- src/knowledge/catalog.ts
+- tests/integration/catalog.test.ts
 

@@ -2,7 +2,7 @@
 
 ## Multiple projects in one workspace
 
-Open up to 16 trusted local, non-nested folders. The Project selector scopes Requests, Knowledge, History, Versions and Architecture. Records, checks, evidence, source graphs, reference repositories and releases belong to each project independently. Removing a folder detaches it while retaining its storage.
+Open up to 16 trusted local, non-nested folders. The Project selector scopes Requests, Approvals, Knowledge, History, Versions and Architecture. Records, checks, evidence, source graphs, reference repositories and releases belong to each project independently. Removing a folder detaches it while retaining its storage.
 
 1. In New request, select every affected project. Each selected project receives its own linked local request.
 2. Inspect Across projects for branch status. Each branch needs its own milestones, specs, lease, checks and completed outcome.
@@ -55,6 +55,12 @@ Counts are not billing or quota estimates. Cached and reasoning tokens are subse
 4. After one unchanged repair, inspect native trust and service logs. Repeating repairs cannot approve hooks. On Codex, /hooks approvals can differ for C: and c: path casing.
 
 The proxy keeps discovery available during delayed startup and retries readiness for up to five minutes, with foreground waits bounded to 15 seconds. It rereads descriptors after restarts and never automatically replays a dispatched mutation. A contract mismatch needs the displayed reload/restart action.
+
+## Project explanations
+
+Use Tools > Documentation to find explanations linked to current source and tracked work. The bundled documentation/Carbon capability requires no external plugin; generation runs on demand.
+
+[Read the project documentation guide](documentation.md)
 
 ## Sources
 

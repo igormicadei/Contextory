@@ -1,5 +1,5 @@
 {
-  "version": "0.8.0",
+  "version": "0.9.0",
   "pages": [
     "changelog.html",
     "docs/CODEBASE-INTELLIGENCE-PLAN.html",
@@ -25,11 +25,13 @@
     "docs/releases/v0.6.0.html",
     "docs/releases/v0.7.0.html",
     "docs/releases/v0.8.0.html",
+    "docs/releases/v0.9.0.html",
     "en/adaptation.html",
     "en/advanced.html",
     "en/api.html",
     "en/architecture.html",
     "en/contributing.html",
+    "en/documentation.html",
     "en/edge-cases.html",
     "en/faq.html",
     "en/features.html",
@@ -52,6 +54,7 @@
     "en/release-v0-6-0.html",
     "en/release-v0-7-0.html",
     "en/release-v0-8-0.html",
+    "en/release-v0-9-0.html",
     "en/releases.html",
     "en/skill-contextory-codebase-references-retrieval.html",
     "en/skill-contextory-codebase-skill.html",
@@ -69,6 +72,7 @@
     "pt-BR/api.html",
     "pt-BR/architecture.html",
     "pt-BR/contributing.html",
+    "pt-BR/documentation.html",
     "pt-BR/edge-cases.html",
     "pt-BR/faq.html",
     "pt-BR/features.html",
@@ -91,6 +95,7 @@
     "pt-BR/release-v0-6-0.html",
     "pt-BR/release-v0-7-0.html",
     "pt-BR/release-v0-8-0.html",
+    "pt-BR/release-v0-9-0.html",
     "pt-BR/releases.html",
     "pt-BR/skill-contextory-codebase-references-retrieval.html",
     "pt-BR/skill-contextory-codebase-skill.html",
@@ -142,6 +147,7 @@
     "skills/contextory-workflow/SKILL.html": "skill-contextory-workflow-skill",
     "skills/contextory-workflow/references/completion.html": "skill-contextory-workflow-references-completion",
     "skills/contextory-codebase/references/retrieval.html": "skill-contextory-codebase-references-retrieval",
-    "docs/releases/v0.8.0.html": "release-v0-8-0"
+    "docs/releases/v0.8.0.html": "release-v0-8-0",
+    "docs/releases/v0.9.0.html": "release-v0-9-0"
   }
 }

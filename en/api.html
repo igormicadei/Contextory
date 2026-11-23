@@ -3,9 +3,9 @@
 <meta name='generator' content='Custom Agents Documentation'><title>MCP API reference · Contextory</title>
 <link rel='stylesheet' href='../assets/site.css'><link rel='alternate' hreflang='pt-BR' href='../pt-BR/api.html'>
 <link rel='alternate' type='text/markdown' href='api.md'><script defer src='../assets/site.js'></script></head>
-<body><a class='skip' href='#content'>Skip to content</a><header><button id='menu' aria-expanded='false' aria-controls='navigation'>Menu</button><a class='brand' href='overview.html'>Contextory<span> / 0.8.0</span></a><a class='locale' lang='pt-BR' href='../pt-BR/api.html'>Português (Brasil)</a></header>
-<nav id='navigation' aria-label='Navigation'><div class='nav-label'>Plugin</div><a  href='overview.html'>Contextory</a><a  href='install.html'>Installation and upgrades</a><a  href='quickstart.html'>Your first tracked change</a><a  href='features.html'>What Contextory provides</a><a  href='walkthroughs.html'>Interface walkthroughs</a><a  href='user-guide.html'>Daily user guide</a><a  href='advanced.html'>Code intelligence and advanced workflows</a><a  href='knowledge.html'>Governed project knowledge</a><a  href='releases.html'>Project versions and releases</a><a  href='adaptation.html'>Clients, CLI and integration</a><a  href='edge-cases.html'>Limits and compatibility</a><a  href='architecture.html'>Runtime architecture</a><a  href='reference.html'>Settings, commands and storage</a><a  href='faq.html'>Frequently asked questions</a><a  href='troubleshooting.html'>Troubleshooting and recovery</a><a  href='outcomes.html'>Write useful implementation outcomes</a><a  href='contributing.html'>Build, document and contribute</a><a  href='validation.html'>Validation and evidence boundaries</a><a  href='history.html'>Release history and preserved documents</a><a aria-current="page" href='api.html'>MCP API reference</a><a  href='release-v0-8-0.html'>Release v0.8.0</a><a  href='release-v0-7-0.html'>Release v0.7.0</a><a  href='release-v0-6-0.html'>Release v0.6.0</a><a  href='release-v0-5-1.html'>Release v0.5.1</a><a  href='release-v0-5-0.html'>Release v0.5.0</a><a  href='release-v0-4-0.html'>Release v0.4.0</a><a  href='release-v0-3-1.html'>Release v0.3.1</a><a  href='release-v0-3-0.html'>Release v0.3.0</a><a  href='release-v0-2-6.html'>Release v0.2.6</a><a  href='release-v0-2-5.html'>Release v0.2.5</a><a  href='release-v0-2-4.html'>Release v0.2.4</a><a  href='release-v0-2-3.html'>Release v0.2.3</a><a  href='skill-contextory-codebase-skill.html'>Source retrieval skill</a><a  href='skill-contextory-migrate-skill.html'>Knowledge migration skill</a><a  href='skill-contextory-workflow-skill.html'>Implementation workflow skill</a><a  href='skill-contextory-workflow-references-completion.html'>Completion and evidence reference</a><a  href='skill-contextory-codebase-references-retrieval.html'>Retrieval and coverage reference</a><a class='agent-link' href='llms-full.txt'>Agent version ↗</a></nav>
-<main id='content' tabindex='-1'><div class='eyebrow'>Contextory / MCP API reference</div><h1>MCP API reference</h1><div class='search'><label for='search'>Search documentation</label><input id='search' type='search' autocomplete='off' data-none='No results'><div id='search-status' role='status'></div><ul id='search-results'></ul></div><section aria-labelledby='contract'><h2 id='contract'>Read the advertised contract</h2><p>Contextory 0.7.0 defines 36 tools. The following Zod schema excerpts were extracted with the TypeScript parser from the saved source without executing application code. They preserve required/optional/default/range semantics. The running MCP tools/list response is authoritative for the installed client version. contextory_catalog_review is human-UI-only even if its contract is visible.</p><p>Every tool additionally accepts optional projectId and workspaceId. Omitted/current project scope stays on that server’s project. Source tools additionally accept optional codebaseId where their schema/advertised contract permits it. Lines/characters in product tool source references are zero-based; documentation citation lines are one-based.</p><figure class='code'><figcaption>Shared schema aliases</figcaption><pre><code>const id = z.string().min(1).max(160);
+<body><a class='skip' href='#content'>Skip to content</a><header><button id='menu' aria-expanded='false' aria-controls='navigation'>Menu</button><a class='brand' href='overview.html'>Contextory<span> / 0.9.0</span></a><a class='locale' lang='pt-BR' href='../pt-BR/api.html'>Português (Brasil)</a></header>
+<nav id='navigation' aria-label='Navigation'><div class='nav-label'>Plugin</div><a  href='overview.html'>Contextory</a><a  href='install.html'>Installation and upgrades</a><a  href='quickstart.html'>Your first tracked change</a><a  href='features.html'>What Contextory provides</a><a  href='walkthroughs.html'>Interface walkthroughs</a><a  href='user-guide.html'>Daily user guide</a><a  href='advanced.html'>Code intelligence and advanced workflows</a><a  href='knowledge.html'>Governed project knowledge</a><a  href='documentation.html'>Project documentation</a><a  href='releases.html'>Project versions and releases</a><a  href='adaptation.html'>Clients, CLI and integration</a><a  href='edge-cases.html'>Limits and compatibility</a><a  href='architecture.html'>Runtime architecture</a><a  href='reference.html'>Settings, commands and storage</a><a  href='faq.html'>Frequently asked questions</a><a  href='troubleshooting.html'>Troubleshooting and recovery</a><a  href='outcomes.html'>Write useful implementation outcomes</a><a  href='contributing.html'>Build, document and contribute</a><a  href='validation.html'>Validation and evidence boundaries</a><a  href='history.html'>Release history and preserved documents</a><a aria-current="page" href='api.html'>MCP API reference</a><a  href='release-v0-9-0.html'>Release v0.9.0</a><a  href='release-v0-8-0.html'>Release v0.8.0</a><a  href='release-v0-7-0.html'>Release v0.7.0</a><a  href='release-v0-6-0.html'>Release v0.6.0</a><a  href='release-v0-5-1.html'>Release v0.5.1</a><a  href='release-v0-5-0.html'>Release v0.5.0</a><a  href='release-v0-4-0.html'>Release v0.4.0</a><a  href='release-v0-3-1.html'>Release v0.3.1</a><a  href='release-v0-3-0.html'>Release v0.3.0</a><a  href='release-v0-2-6.html'>Release v0.2.6</a><a  href='release-v0-2-5.html'>Release v0.2.5</a><a  href='release-v0-2-4.html'>Release v0.2.4</a><a  href='release-v0-2-3.html'>Release v0.2.3</a><a  href='skill-contextory-codebase-skill.html'>Source retrieval skill</a><a  href='skill-contextory-migrate-skill.html'>Knowledge migration skill</a><a  href='skill-contextory-workflow-skill.html'>Implementation workflow skill</a><a  href='skill-contextory-workflow-references-completion.html'>Completion and evidence reference</a><a  href='skill-contextory-codebase-references-retrieval.html'>Retrieval and coverage reference</a><a class='agent-link' href='llms-full.txt'>Agent version ↗</a></nav>
+<main id='content' tabindex='-1'><div class='eyebrow'>Contextory / MCP API reference</div><h1>MCP API reference</h1><div class='search'><label for='search'>Search documentation</label><input id='search' type='search' autocomplete='off' data-none='No results'><div id='search-status' role='status'></div><ul id='search-results'></ul></div><section aria-labelledby='contract'><h2 id='contract'>Read the advertised contract</h2><p>Contextory 0.9.0 defines 39 tools. The following Zod schema excerpts were extracted with the TypeScript parser from the saved source without executing application code. They preserve required/optional/default/range semantics. The running MCP tools/list response is authoritative for the installed client version. contextory_catalog_review is human-UI-only even if its contract is visible.</p><p>Every tool additionally accepts optional projectId and workspaceId. Omitted/current project scope stays on that server’s project. Source tools additionally accept optional codebaseId where their schema/advertised contract permits it. Lines/characters in product tool source references are zero-based; documentation citation lines are one-based.</p><figure class='code'><figcaption>Shared schema aliases</figcaption><pre><code>const id = z.string().min(1).max(160);
 const text = z.string().min(1).max(12000);
 const operationId = z.string().min(8).max(160);
 const expectedRevision = z.number().int().positive().optional();
@@ -62,34 +62,34 @@ const limits = z
     timeoutMs: z.number().int().min(100).max(10000).optional(),
   })
   .optional();
-</code></pre></figure></section><section aria-labelledby='mutation-rules'><h2 id='mutation-rules'>Revisions, retries and completion</h2><p>Read a record before editing. Existing records require current expectedRevision. Use a fresh operationId (8–160 characters) for a new mutation; retry uncertain work only with its exact original input/ID. Implementation writes require the attached session’s active spec lease except documented setup/release operations. Native permissions still apply.</p><p><a href='outcomes.html'>Evidence and completion sequence</a></p></section><section aria-labelledby='contextory-hooks-rebuild'><h2 id='contextory-hooks-rebuild'>Hooks rebuild</h2><p>Repair one provider’s managed hooks; requires a reachable service and preserves native trust.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:60</figcaption><pre><code>// contextory_hooks_rebuild
+</code></pre></figure></section><section aria-labelledby='mutation-rules'><h2 id='mutation-rules'>Revisions, retries and completion</h2><p>Read a record before editing. Existing records require current expectedRevision. Use a fresh operationId (8–160 characters) for a new mutation; retry uncertain work only with its exact original input/ID. Implementation writes require the attached session’s active spec lease except documented setup/release operations. Native permissions still apply.</p><p><a href='outcomes.html'>Evidence and completion sequence</a></p></section><section aria-labelledby='contextory-hooks-rebuild'><h2 id='contextory-hooks-rebuild'>Hooks rebuild</h2><p>Repair one provider’s managed hooks; requires a reachable service and preserves native trust.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:126</figcaption><pre><code>// contextory_hooks_rebuild
 z.object({
       operationId,
       provider: z.enum([&quot;codex&quot;, &quot;claude&quot;, &quot;bob&quot;]),
-    })</code></pre></figure></section><section aria-labelledby='contextory-workspace-get'><h2 id='contextory-workspace-get'>Workspace get</h2><p>Discover project/workspace identities and optional coordinated-request status.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:68</figcaption><pre><code>// contextory_workspace_get
-z.object({ groupId: id.optional() })</code></pre></figure></section><section aria-labelledby='contextory-workspace-request-create'><h2 id='contextory-workspace-request-create'>Workspace request create</h2><p>Create linked local requests for selected projects with recoverable partial creation.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:73</figcaption><pre><code>// contextory_workspace_request_create
+    })</code></pre></figure></section><section aria-labelledby='contextory-workspace-get'><h2 id='contextory-workspace-get'>Workspace get</h2><p>Discover project/workspace identities and optional coordinated-request status.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:134</figcaption><pre><code>// contextory_workspace_get
+z.object({ groupId: id.optional() })</code></pre></figure></section><section aria-labelledby='contextory-workspace-request-create'><h2 id='contextory-workspace-request-create'>Workspace request create</h2><p>Create linked local requests for selected projects with recoverable partial creation.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:139</figcaption><pre><code>// contextory_workspace_request_create
 z.object({
       operationId,
       projectIds: z.array(id).min(2).max(16),
       title: z.string().trim().min(1).max(300),
       description: text,
-    })</code></pre></figure></section><section aria-labelledby='contextory-version-get'><h2 id='contextory-version-get'>Version get</h2><p>Read repository-wide version state, commits and semantic records with independent pagination.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:83</figcaption><pre><code>// contextory_version_get
+    })</code></pre></figure></section><section aria-labelledby='contextory-version-get'><h2 id='contextory-version-get'>Version get</h2><p>Read repository-wide version state, commits and semantic records with independent pagination.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:149</figcaption><pre><code>// contextory_version_get
 z.object({
       releaseId: id.optional(),
       offset: z.number().int().nonnegative().default(0),
       limit: z.number().int().min(1).max(50).default(20),
-    })</code></pre></figure></section><section aria-labelledby='contextory-release-prepare'><h2 id='contextory-release-prepare'>Release prepare</h2><p>Prepare a concrete release plan without source edits; no spec lease is needed.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:92</figcaption><pre><code>// contextory_release_prepare
+    })</code></pre></figure></section><section aria-labelledby='contextory-release-prepare'><h2 id='contextory-release-prepare'>Release prepare</h2><p>Prepare a concrete release plan without source edits; no spec lease is needed.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:158</figcaption><pre><code>// contextory_release_prepare
 z.object({
       operationId,
       bump: z.enum([&quot;auto&quot;, &quot;patch&quot;, &quot;minor&quot;, &quot;major&quot;]).default(&quot;auto&quot;),
       version: z.string().max(100).optional(),
-    })</code></pre></figure></section><section aria-labelledby='contextory-release-change'><h2 id='contextory-release-change'>Release change</h2><p>Apply, publish, recover or cancel an authorized release plan using its current revision.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:101</figcaption><pre><code>// contextory_release_change
+    })</code></pre></figure></section><section aria-labelledby='contextory-release-change'><h2 id='contextory-release-change'>Release change</h2><p>Apply, publish, recover or cancel an authorized release plan using its current revision.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:167</figcaption><pre><code>// contextory_release_change
 z.object({
       operationId,
       id,
       expectedRevision: z.number().int().positive(),
       action: z.enum([&quot;apply&quot;, &quot;publish&quot;, &quot;recover&quot;, &quot;cancel&quot;]),
-    })</code></pre></figure></section><section aria-labelledby='contextory-project-export'><h2 id='contextory-project-export'>Project export</h2><p>Page stored datasets for documentation, retaining sequence, snapshots and provenance.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:111</figcaption><pre><code>// contextory_project_export
+    })</code></pre></figure></section><section aria-labelledby='contextory-project-export'><h2 id='contextory-project-export'>Project export</h2><p>Page stored datasets for documentation, retaining sequence, snapshots and provenance.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:177</figcaption><pre><code>// contextory_project_export
 z.object({
       section: z
         .enum([
@@ -111,15 +111,16 @@ z.object({
       artifact: z.string().min(1).max(200).optional(),
       offset: z.number().int().nonnegative().default(0),
       limit: z.number().int().min(1).max(50).default(20),
-    })</code></pre></figure></section><section aria-labelledby='contextory-catalog-get'><h2 id='contextory-catalog-get'>Catalog get</h2><p>Read catalog definitions, pending proposals, source freshness and optional file inventory.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:137</figcaption><pre><code>// contextory_catalog_get
+    })</code></pre></figure></section><section aria-labelledby='contextory-catalog-get'><h2 id='contextory-catalog-get'>Catalog get</h2><p>Read catalog definitions, pending proposals, source freshness and optional file inventory.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:203</figcaption><pre><code>// contextory_catalog_get
 z.object({
       category: category.optional(),
       path: z.string().max(2000).optional(),
       query: z.string().max(4000).optional(),
       inventory: z.boolean().default(false),
+      pendingOnly: z.boolean().default(false),
       offset: z.number().int().nonnegative().default(0),
       limit: z.number().int().min(1).max(50).default(20),
-    })</code></pre></figure></section><section aria-labelledby='contextory-catalog-change'><h2 id='contextory-catalog-change'>Catalog change</h2><p>Under a lease, create observations or propose exact definition replacements/retirements.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:149</figcaption><pre><code>// contextory_catalog_change
+    })</code></pre></figure></section><section aria-labelledby='contextory-catalog-change'><h2 id='contextory-catalog-change'>Catalog change</h2><p>Under a lease, create observations or propose exact definition replacements/retirements.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:216</figcaption><pre><code>// contextory_catalog_change
 z.object({
       operationId,
       ...lease,
@@ -129,32 +130,32 @@ z.object({
       content: catalogContent.optional(),
       reason: text,
       migrationId: id.optional(),
-    })</code></pre></figure></section><section aria-labelledby='contextory-catalog-review'><h2 id='contextory-catalog-review'>Catalog review</h2><p>Human UI only: approve or reject an exact definition/proposal revision; native agents cannot approve.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:163</figcaption><pre><code>// contextory_catalog_review
+    })</code></pre></figure></section><section aria-labelledby='contextory-catalog-review'><h2 id='contextory-catalog-review'>Catalog review</h2><p>Human UI only: approve or reject an exact definition/proposal revision; native agents cannot approve.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:230</figcaption><pre><code>// contextory_catalog_review
 z.object({
       operationId,
       id,
       expectedRevision: z.number().int().positive(),
-      action: z.enum([&quot;approve&quot;, &quot;reject&quot;]),
-      reason: text,
-    })</code></pre></figure></section><section aria-labelledby='contextory-catalog-migrate'><h2 id='contextory-catalog-migrate'>Catalog migrate</h2><p>Bootstrap file descriptions in resumable batches; scanned candidates still need semantic review.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:174</figcaption><pre><code>// contextory_catalog_migrate
+      action: z.enum([&quot;approve&quot;, &quot;reject&quot;, &quot;refresh&quot;]),
+      reason: text.trim().min(1),
+    })</code></pre></figure></section><section aria-labelledby='contextory-catalog-migrate'><h2 id='contextory-catalog-migrate'>Catalog migrate</h2><p>Bootstrap file descriptions in resumable batches; scanned candidates still need semantic review.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:241</figcaption><pre><code>// contextory_catalog_migrate
 z.object({
       operationId,
       ...lease,
       migrationId: id.optional(),
       limit: z.number().int().min(1).max(50).default(20),
-    })</code></pre></figure></section><section aria-labelledby='contextory-context-get'><h2 id='contextory-context-get'>Context get</h2><p>Read workspace contracts, active work, check recipes and guidance before implementation.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:184</figcaption><pre><code>// contextory_context_get
-z.object({ specId: id.optional() })</code></pre></figure></section><section aria-labelledby='contextory-entity-get'><h2 id='contextory-entity-get'>Entity get</h2><p>Read a current or immutable record revision, child page, job or artifact page.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:189</figcaption><pre><code>// contextory_entity_get
+    })</code></pre></figure></section><section aria-labelledby='contextory-context-get'><h2 id='contextory-context-get'>Context get</h2><p>Read workspace contracts, active work, check recipes and guidance before implementation.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:251</figcaption><pre><code>// contextory_context_get
+z.object({ specId: id.optional() })</code></pre></figure></section><section aria-labelledby='contextory-entity-get'><h2 id='contextory-entity-get'>Entity get</h2><p>Read a current or immutable record revision, child page, job or artifact page.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:256</figcaption><pre><code>// contextory_entity_get
 z.object({
       id,
       revision: z.number().int().positive().optional(),
       offset: z.number().int().nonnegative().default(0),
       limit: z.number().int().min(1).max(50).default(20),
-    })</code></pre></figure></section><section aria-labelledby='contextory-history-get'><h2 id='contextory-history-get'>History get</h2><p>Page audit history; pass nextBefore as before to continue.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:199</figcaption><pre><code>// contextory_history_get
+    })</code></pre></figure></section><section aria-labelledby='contextory-history-get'><h2 id='contextory-history-get'>History get</h2><p>Page audit history; pass nextBefore as before to continue.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:266</figcaption><pre><code>// contextory_history_get
 z.object({
       entityId: id.optional(),
       before: z.number().int().positive().optional(),
       limit: z.number().int().min(1).max(100).default(40),
-    })</code></pre></figure></section><section aria-labelledby='contextory-request-change'><h2 id='contextory-request-change'>Request change</h2><p>Create or revise an authorized implementation request while preserving original intent.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:208</figcaption><pre><code>// contextory_request_change
+    })</code></pre></figure></section><section aria-labelledby='contextory-request-change'><h2 id='contextory-request-change'>Request change</h2><p>Create or revise an authorized implementation request while preserving original intent.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:275</figcaption><pre><code>// contextory_request_change
 z.object({
       operationId,
       action: z.enum([&quot;create&quot;, &quot;revise&quot;]),
@@ -163,7 +164,7 @@ z.object({
       title: z.string().min(1).max(300),
       description: text,
       reason: text.optional(),
-    })</code></pre></figure></section><section aria-labelledby='contextory-spec-change'><h2 id='contextory-spec-change'>Spec change</h2><p>Create milestones/specs, revise/reopen/block/cancel work or explicitly request verified completion.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:221</figcaption><pre><code>// contextory_spec_change
+    })</code></pre></figure></section><section aria-labelledby='contextory-spec-change'><h2 id='contextory-spec-change'>Spec change</h2><p>Create milestones/specs, revise/reopen/block/cancel work or explicitly request verified completion.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:288</figcaption><pre><code>// contextory_spec_change
 z.object({
       operationId,
       action: z.enum([
@@ -184,15 +185,15 @@ z.object({
       paths: z.array(z.string().max(2000)).max(100).optional(),
       dependencies: z.array(id).max(50).optional(),
       reason: text.optional(),
-    })</code></pre></figure></section><section aria-labelledby='contextory-session-attach'><h2 id='contextory-session-attach'>Session attach</h2><p>Register an agent session; use the exact hook-supplied nativeSessionId or omit it.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:246</figcaption><pre><code>// contextory_session_attach
-z.object({ operationId, nativeSessionId: id.optional() })</code></pre></figure></section><section aria-labelledby='contextory-usage-get'><h2 id='contextory-usage-get'>Usage get</h2><p>Read observed models/token metadata; unavailable counts stay unavailable.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:251</figcaption><pre><code>// contextory_usage_get
+    })</code></pre></figure></section><section aria-labelledby='contextory-session-attach'><h2 id='contextory-session-attach'>Session attach</h2><p>Register an agent session; use the exact hook-supplied nativeSessionId or omit it.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:313</figcaption><pre><code>// contextory_session_attach
+z.object({ operationId, nativeSessionId: id.optional() })</code></pre></figure></section><section aria-labelledby='contextory-usage-get'><h2 id='contextory-usage-get'>Usage get</h2><p>Read observed models/token metadata; unavailable counts stay unavailable.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:318</figcaption><pre><code>// contextory_usage_get
 z.object({
       entityId: id.optional(),
       provider: z.enum([&quot;codex&quot;, &quot;claude&quot;, &quot;bob&quot;]).optional(),
       nativeSessionId: z.string().min(1).max(200).optional(),
       offset: z.number().int().nonnegative().default(0),
       limit: z.number().int().min(1).max(50).default(20),
-    })</code></pre></figure></section><section aria-labelledby='contextory-spec-lease'><h2 id='contextory-spec-lease'>Spec lease</h2><p>Claim, renew or release one specification’s implementation lease with an attached session.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:262</figcaption><pre><code>// contextory_spec_lease
+    })</code></pre></figure></section><section aria-labelledby='contextory-spec-lease'><h2 id='contextory-spec-lease'>Spec lease</h2><p>Claim, renew or release one specification’s implementation lease with an attached session.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:329</figcaption><pre><code>// contextory_spec_lease
 z.object({
       operationId,
       specId: id,
@@ -200,7 +201,7 @@ z.object({
       action: z.enum([&quot;claim&quot;, &quot;renew&quot;, &quot;release&quot;]),
       sessionId: id,
       leaseId: id.optional(),
-    })</code></pre></figure></section><section aria-labelledby='contextory-finding-record'><h2 id='contextory-finding-record'>Finding record</h2><p>Record an issue, impact and resolution; unresolved blocking findings prevent completion.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:274</figcaption><pre><code>// contextory_finding_record
+    })</code></pre></figure></section><section aria-labelledby='contextory-finding-record'><h2 id='contextory-finding-record'>Finding record</h2><p>Record an issue, impact and resolution; unresolved blocking findings prevent completion.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:341</figcaption><pre><code>// contextory_finding_record
 z.object({
       operationId,
       ...lease,
@@ -213,7 +214,7 @@ z.object({
       status: z.enum([&quot;open&quot;, &quot;resolved&quot;, &quot;deferred&quot;]),
       blocking: z.boolean().default(true),
       sources: z.array(source).max(30).default([]),
-    })</code></pre></figure></section><section aria-labelledby='contextory-decision-record'><h2 id='contextory-decision-record'>Decision record</h2><p>Record a choice, rationale, alternatives and consequences with sources.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:291</figcaption><pre><code>// contextory_decision_record
+    })</code></pre></figure></section><section aria-labelledby='contextory-decision-record'><h2 id='contextory-decision-record'>Decision record</h2><p>Record a choice, rationale, alternatives and consequences with sources.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:358</figcaption><pre><code>// contextory_decision_record
 z.object({
       operationId,
       ...lease,
@@ -224,7 +225,7 @@ z.object({
       consequences: text,
       supersedes: id.optional(),
       sources: z.array(source).max(30).default([]),
-    })</code></pre></figure></section><section aria-labelledby='contextory-evidence-record'><h2 id='contextory-evidence-record'>Evidence record</h2><p>Record reported external/manual evidence; it remains separate from independent checks.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:306</figcaption><pre><code>// contextory_evidence_record
+    })</code></pre></figure></section><section aria-labelledby='contextory-evidence-record'><h2 id='contextory-evidence-record'>Evidence record</h2><p>Record reported external/manual evidence; it remains separate from independent checks.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:373</figcaption><pre><code>// contextory_evidence_record
 z.object({
       operationId,
       ...lease,
@@ -233,13 +234,13 @@ z.object({
       criteria: z.array(id).min(1).max(50),
       result: z.enum([&quot;passed&quot;, &quot;failed&quot;, &quot;not_run&quot;]),
       command: z.string().max(4000).optional(),
-    })</code></pre></figure></section><section aria-labelledby='contextory-check-run'><h2 id='contextory-check-run'>Check run</h2><p>Run a configured recipe independently and return a job to poll.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:319</figcaption><pre><code>// contextory_check_run
+    })</code></pre></figure></section><section aria-labelledby='contextory-check-run'><h2 id='contextory-check-run'>Check run</h2><p>Run a configured recipe independently and return a job to poll.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:386</figcaption><pre><code>// contextory_check_run
 z.object({
       operationId,
       ...lease,
       recipeId: id,
       criteria: z.array(id).min(1).max(50),
-    })</code></pre></figure></section><section aria-labelledby='contextory-outcome-submit'><h2 id='contextory-outcome-submit'>Outcome submit</h2><p>Submit criterion evidence and a durable report; a separate complete action is still required.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:329</figcaption><pre><code>// contextory_outcome_submit
+    })</code></pre></figure></section><section aria-labelledby='contextory-outcome-submit'><h2 id='contextory-outcome-submit'>Outcome submit</h2><p>Submit criterion evidence and a durable report; a separate complete action is still required.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:396</figcaption><pre><code>// contextory_outcome_submit
 z.object({
       operationId,
       ...lease,
@@ -266,36 +267,36 @@ z.object({
         .array(z.string().regex(/^[a-f0-9]{40,64}$/))
         .max(100)
         .default([]),
-    })</code></pre></figure></section><section aria-labelledby='contextory-search'><h2 id='contextory-search'>Search</h2><p>Search source and project memory using lexical, semantic or hybrid retrieval.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:360</figcaption><pre><code>// contextory_search
+    })</code></pre></figure></section><section aria-labelledby='contextory-search'><h2 id='contextory-search'>Search</h2><p>Search source and project memory using lexical, semantic or hybrid retrieval.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:427</figcaption><pre><code>// contextory_search
 z.object({
       codebaseId: id.optional(),
       query: z.string().min(1).max(4000),
       mode: z.enum([&quot;lexical&quot;, &quot;semantic&quot;, &quot;hybrid&quot;]).default(&quot;hybrid&quot;),
       limit: z.number().int().min(1).max(20).default(5),
-    })</code></pre></figure></section><section aria-labelledby='contextory-code-context-get'><h2 id='contextory-code-context-get'>Code context get</h2><p>Retrieve ranked current source/task context with paths and a bounded estimated-token budget.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:370</figcaption><pre><code>// contextory_code_context_get
+    })</code></pre></figure></section><section aria-labelledby='contextory-code-context-get'><h2 id='contextory-code-context-get'>Code context get</h2><p>Retrieve ranked current source/task context with paths and a bounded estimated-token budget.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:437</figcaption><pre><code>// contextory_code_context_get
 z.object({
       codebaseId: id.optional(),
       query: z.string().min(1).max(4000),
       paths: z.array(z.string().max(2000)).max(20).default([]),
       specId: id.optional(),
       budgetTokens: z.number().int().min(512).max(6000).default(3000),
-    })</code></pre></figure></section><section aria-labelledby='contextory-code-architecture-get'><h2 id='contextory-code-architecture-get'>Code architecture get</h2><p>Read subsystems, dependencies, entry points and coverage; refresh defaults to true.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:381</figcaption><pre><code>// contextory_code_architecture_get
+    })</code></pre></figure></section><section aria-labelledby='contextory-code-architecture-get'><h2 id='contextory-code-architecture-get'>Code architecture get</h2><p>Read subsystems, dependencies, entry points and coverage; refresh defaults to true.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:448</figcaption><pre><code>// contextory_code_architecture_get
 z.object({
       codebaseId: id.optional(),
       refresh: z.boolean().default(true),
-    })</code></pre></figure></section><section aria-labelledby='contextory-code-path-get'><h2 id='contextory-code-path-get'>Code path get</h2><p>Explain a bounded indexed path between two source/record roots.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:389</figcaption><pre><code>// contextory_code_path_get
+    })</code></pre></figure></section><section aria-labelledby='contextory-code-path-get'><h2 id='contextory-code-path-get'>Code path get</h2><p>Explain a bounded indexed path between two source/record roots.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:456</figcaption><pre><code>// contextory_code_path_get
 z.object({
       codebaseId: id.optional(),
       from: z.string().min(1).max(2500),
       to: z.string().min(1).max(2500),
       direction: z.enum([&quot;forward&quot;, &quot;both&quot;]).default(&quot;both&quot;),
       maxDepth: z.number().int().min(1).max(10).default(6),
-    })</code></pre></figure></section><section aria-labelledby='contextory-code-index-refresh'><h2 id='contextory-code-index-refresh'>Code index refresh</h2><p>Refresh source projection or validate/import optional Graphify data.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:400</figcaption><pre><code>// contextory_code_index_refresh
+    })</code></pre></figure></section><section aria-labelledby='contextory-code-index-refresh'><h2 id='contextory-code-index-refresh'>Code index refresh</h2><p>Refresh source projection or validate/import optional Graphify data.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:467</figcaption><pre><code>// contextory_code_index_refresh
 z.object({
       codebaseId: id.optional(),
       graphifyPath: z.string().min(1).max(2000).optional(),
-    })</code></pre></figure></section><section aria-labelledby='contextory-codebase-list'><h2 id='contextory-codebase-list'>Codebase list</h2><p>List the current project and its isolated read-only reference registrations.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:408</figcaption><pre><code>// contextory_codebase_list
-z.object({})</code></pre></figure></section><section aria-labelledby='contextory-codebase-change'><h2 id='contextory-codebase-change'>Codebase change</h2><p>Register or detach an authorized local reference; source files remain untouched.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:413</figcaption><pre><code>// contextory_codebase_change
+    })</code></pre></figure></section><section aria-labelledby='contextory-codebase-list'><h2 id='contextory-codebase-list'>Codebase list</h2><p>List the current project and its isolated read-only reference registrations.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:475</figcaption><pre><code>// contextory_codebase_list
+z.object({})</code></pre></figure></section><section aria-labelledby='contextory-codebase-change'><h2 id='contextory-codebase-change'>Codebase change</h2><p>Register or detach an authorized local reference; source files remain untouched.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:480</figcaption><pre><code>// contextory_codebase_change
 z
       .object({
         operationId,
@@ -307,7 +308,7 @@ z
       .refine(
         (p) =&gt; (p.action === &quot;add&quot; ? Boolean(p.root) : Boolean(p.codebaseId)),
         &quot;Add requires root; remove requires codebaseId.&quot;,
-      )</code></pre></figure></section><section aria-labelledby='contextory-relationship-change'><h2 id='contextory-relationship-change'>Relationship change</h2><p>Link project records or source locations with a typed relationship and rationale.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:429</figcaption><pre><code>// contextory_relationship_change
+      )</code></pre></figure></section><section aria-labelledby='contextory-relationship-change'><h2 id='contextory-relationship-change'>Relationship change</h2><p>Link project records or source locations with a typed relationship and rationale.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:496</figcaption><pre><code>// contextory_relationship_change
 z.object({
       operationId,
       from: id,
@@ -315,14 +316,14 @@ z.object({
       source: source.optional(),
       kind: z.enum([&quot;implements&quot;, &quot;resolves&quot;, &quot;validated_by&quot;, &quot;related_to&quot;]),
       rationale: text,
-    })</code></pre></figure></section><section aria-labelledby='contextory-impact-get'><h2 id='contextory-impact-get'>Impact get</h2><p>Traverse source/record relationships with explicit direction, depth and size bounds.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:441</figcaption><pre><code>// contextory_impact_get
+    })</code></pre></figure></section><section aria-labelledby='contextory-impact-get'><h2 id='contextory-impact-get'>Impact get</h2><p>Traverse source/record relationships with explicit direction, depth and size bounds.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:508</figcaption><pre><code>// contextory_impact_get
 z.object({
       codebaseId: id.optional(),
       id: z.string().min(1).max(2500),
       direction: z.enum([&quot;forward&quot;, &quot;reverse&quot;, &quot;both&quot;]).default(&quot;reverse&quot;),
       depth: z.number().int().min(1).max(10).default(5),
       limit: z.number().int().min(1).max(200).default(50),
-    })</code></pre></figure></section><section aria-labelledby='contextory-flow-trace'><h2 id='contextory-flow-trace'>Flow trace</h2><p>Trace bounded calls/control flow from a symbol or source position.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:452</figcaption><pre><code>// contextory_flow_trace
+    })</code></pre></figure></section><section aria-labelledby='contextory-flow-trace'><h2 id='contextory-flow-trace'>Flow trace</h2><p>Trace bounded calls/control flow from a symbol or source position.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:519</figcaption><pre><code>// contextory_flow_trace
 z.object({
       codebaseId: id.optional(),
       root: z.object({
@@ -339,7 +340,7 @@ z.object({
       view: z.enum([&quot;calls&quot;, &quot;flow&quot;]).default(&quot;calls&quot;),
       direction: z.enum([&quot;outgoing&quot;, &quot;incoming&quot;]).default(&quot;outgoing&quot;),
       limits,
-    })</code></pre></figure></section><section aria-labelledby='contextory-flow-expand'><h2 id='contextory-flow-expand'>Flow expand</h2><p>Page a stored graph or expand a frontier while validating its source snapshot.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:473</figcaption><pre><code>// contextory_flow_expand
+    })</code></pre></figure></section><section aria-labelledby='contextory-flow-expand'><h2 id='contextory-flow-expand'>Flow expand</h2><p>Page a stored graph or expand a frontier while validating its source snapshot.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:540</figcaption><pre><code>// contextory_flow_expand
 z.object({
       codebaseId: id.optional(),
       graphId: id,
@@ -348,8 +349,62 @@ z.object({
       offset: z.number().int().nonnegative().default(0),
       limit: z.number().int().min(1).max(50).default(30),
       limits,
-    })</code></pre></figure></section><section aria-labelledby='contextory-report-export'><h2 id='contextory-report-export'>Report export</h2><p>Export one request’s report, completed-work changelog or JSON through an artifact handle.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:486</figcaption><pre><code>// contextory_report_export
+    })</code></pre></figure></section><section aria-labelledby='contextory-report-export'><h2 id='contextory-report-export'>Report export</h2><p>Export one request’s report, completed-work changelog or JSON through an artifact handle.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:553</figcaption><pre><code>// contextory_report_export
 z.object({
       format: z.enum([&quot;report&quot;, &quot;changelog&quot;, &quot;json&quot;]).default(&quot;report&quot;),
       requestId: id,
-    })</code></pre></figure></section><section aria-labelledby='source-api'><h2 id='source-api'>Modules, classes, methods and functions</h2><h3>scripts/documentation/build.py:1 — &lt;module&gt;</h3><figure class='code'><figcaption>Signature and location</figcaption><pre><code>scripts/documentation/build.py</code></pre></figure><p>Build guides with the documentation skill&#x27;s unchanged runtime and default layouts.</p><h3>scripts/documentation/build.py:26 — Links</h3><figure class='code'><figcaption>Signature and location</figcaption><pre><code>class Links(HTMLParser)</code></pre></figure><p>Collect local destinations and anchors to verify generated HTML.</p><h3>scripts/documentation/build.py:32 — Links.__init__</h3><figure class='code'><figcaption>Signature and location</figcaption><pre><code>__init__(self)</code></pre></figure><p>Initialize per-page collections.</p><h3>scripts/documentation/build.py:38 — Links.handle_starttag</h3><figure class='code'><figcaption>Signature and location</figcaption><pre><code>handle_starttag(self, tag, attrs)</code></pre></figure><p>Record links and IDs without running scripts.</p><h3>scripts/documentation/build.py:50 — write_managed</h3><figure class='code'><figcaption>Signature and location</figcaption><pre><code>write_managed(site, relative, content)</code></pre></figure><p>Write an artifact inside the site and return its byte hash.</p><h3>scripts/documentation/build.py:62 — verify_vendor</h3><figure class='code'><figcaption>Signature and location</figcaption><pre><code>verify_vendor()</code></pre></figure><p>Refuse changes to the runtime and default layouts copied from the skill.</p><h3>scripts/documentation/build.py:73 — root_landing</h3><figure class='code'><figcaption>Signature and location</figcaption><pre><code>root_landing(name)</code></pre></figure><p>Send the site root to the default guide without presenting a language choice.</p><h3>scripts/documentation/build.py:91 — compatibility</h3><figure class='code'><figcaption>Signature and location</figcaption><pre><code>compatibility()</code></pre></figure><p>Preserve legacy URLs and files without changing the default Carbon shell.</p><h3>scripts/documentation/build.py:128 — check_links</h3><figure class='code'><figcaption>Signature and location</figcaption><pre><code>check_links()</code></pre></figure><p>Check pages, images, exports and local anchors in the completed site.</p><h3>scripts/documentation/build.py:159 — export_markdown</h3><figure class='code'><figcaption>Signature and location</figcaption><pre><code>export_markdown()</code></pre></figure><p>Update only explicitly managed guides while preserving originals in the archive.</p><h3>scripts/documentation/build.py:174 — export_markdown.repository_link</h3><figure class='code'><figcaption>Signature and location</figcaption><pre><code>repository_link(match)</code></pre></figure><p>Adjust export links for the guide&#x27;s repository location.</p><h3>scripts/documentation/build.py:198 — consumer_bundle</h3><figure class='code'><figcaption>Signature and location</figcaption><pre><code>consumer_bundle()</code></pre></figure><p>Generate the query bundle and include the distributed runtime&#x27;s MIT license.</p><h3>scripts/documentation/build.py:221 — main</h3><figure class='code'><figcaption>Signature and location</figcaption><pre><code>main()</code></pre></figure><p>Run mapping/validation/build/export/preview without publishing or approving sources.</p></section><footer><strong>Sources</strong><p>src/contracts/tools.ts, src/service/application.ts, src/service/server.ts</p><a href='api.md'>Markdown ↗</a> · <a href='../llms.txt'>llms.txt ↗</a><p>Coverage: 1 files · 13 symbols</p></footer></main><aside class='toc' aria-label='On this page'><strong>On this page</strong><a href='#contract'>Read the advertised contract</a><a href='#mutation-rules'>Revisions, retries and completion</a><a href='#contextory-hooks-rebuild'>Hooks rebuild</a><a href='#contextory-workspace-get'>Workspace get</a><a href='#contextory-workspace-request-create'>Workspace request create</a><a href='#contextory-version-get'>Version get</a><a href='#contextory-release-prepare'>Release prepare</a><a href='#contextory-release-change'>Release change</a><a href='#contextory-project-export'>Project export</a><a href='#contextory-catalog-get'>Catalog get</a><a href='#contextory-catalog-change'>Catalog change</a><a href='#contextory-catalog-review'>Catalog review</a><a href='#contextory-catalog-migrate'>Catalog migrate</a><a href='#contextory-context-get'>Context get</a><a href='#contextory-entity-get'>Entity get</a><a href='#contextory-history-get'>History get</a><a href='#contextory-request-change'>Request change</a><a href='#contextory-spec-change'>Spec change</a><a href='#contextory-session-attach'>Session attach</a><a href='#contextory-usage-get'>Usage get</a><a href='#contextory-spec-lease'>Spec lease</a><a href='#contextory-finding-record'>Finding record</a><a href='#contextory-decision-record'>Decision record</a><a href='#contextory-evidence-record'>Evidence record</a><a href='#contextory-check-run'>Check run</a><a href='#contextory-outcome-submit'>Outcome submit</a><a href='#contextory-search'>Search</a><a href='#contextory-code-context-get'>Code context get</a><a href='#contextory-code-architecture-get'>Code architecture get</a><a href='#contextory-code-path-get'>Code path get</a><a href='#contextory-code-index-refresh'>Code index refresh</a><a href='#contextory-codebase-list'>Codebase list</a><a href='#contextory-codebase-change'>Codebase change</a><a href='#contextory-relationship-change'>Relationship change</a><a href='#contextory-impact-get'>Impact get</a><a href='#contextory-flow-trace'>Flow trace</a><a href='#contextory-flow-expand'>Flow expand</a><a href='#contextory-report-export'>Report export</a><a href='#source-api'>Modules, classes, methods and functions</a></aside></body></html>
+    })</code></pre></figure></section><section aria-labelledby='contextory-docs-get'><h2 id='contextory-docs-get'>Read project documentation</h2><p>Read paired explanations by query/path/record, source freshness, bundled guidance or a runtime job. Pagination remains explicit.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:60</figcaption><pre><code>// contextory_docs_get
+z.object({
+      section: z
+        .enum([&quot;overview&quot;, &quot;sections&quot;, &quot;guidance&quot;, &quot;job&quot;])
+        .default(&quot;overview&quot;),
+      query: z.string().max(4000).default(&quot;&quot;),
+      path: z.string().max(2000).optional(),
+      recordId: id.optional(),
+      pageId: id.optional(),
+      sectionId: id.optional(),
+      resource: z.string().max(2000).optional(),
+      jobId: id.optional(),
+      locale: z.enum([&quot;en&quot;, &quot;pt-BR&quot;]).default(&quot;en&quot;),
+      offset: z.number().int().nonnegative().default(0),
+      limit: z.number().int().min(1).max(50).default(10),
+    })</code></pre></figure></section><section aria-labelledby='contextory-docs-run'><h2 id='contextory-docs-run'>Run bundled documentation operations</h2><p>Queue any upstream documentation operation on demand; mutating operations need a lease and Pages publication needs explicit authorization plus publish=true. Poll the durable job and inspect its result.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:79</figcaption><pre><code>// contextory_docs_run
+z.object({
+      operationId,
+      action: z.enum([
+        &quot;map&quot;,
+        &quot;init&quot;,
+        &quot;validate&quot;,
+        &quot;build&quot;,
+        &quot;integrations&quot;,
+        &quot;migrate&quot;,
+        &quot;readme&quot;,
+        &quot;pages_plan&quot;,
+        &quot;pages_publish&quot;,
+        &quot;pages_status&quot;,
+      ]),
+      specId: id.optional(),
+      leaseId: id.optional(),
+      name: z.string().trim().min(1).max(300).optional(),
+      kind: z.enum([&quot;application&quot;, &quot;library&quot;, &quot;plugin&quot;]).optional(),
+      sourceRoots: z
+        .array(z.string().min(1).max(2000))
+        .min(1)
+        .max(30)
+        .optional(),
+      apply: z.boolean().default(false),
+      siteUrl: z.string().max(2000).optional(),
+      remote: z.string().max(300).optional(),
+      publish: z.boolean().default(false),
+      offset: z.number().int().nonnegative().default(0),
+      limit: z.number().int().min(1).max(1000).default(100),
+    })</code></pre></figure></section><section aria-labelledby='contextory-docs-link'><h2 id='contextory-docs-link'>Associate a reviewed explanation</h2><p>Record a source-hash-bound observed association to local records after review, preserving revisions and history; this does not approve requirements.</p><figure class='code'><figcaption>Input schema · src/contracts/tools.ts:113</figcaption><pre><code>// contextory_docs_link
+z.object({
+      operationId,
+      ...lease,
+      pageId: id,
+      sectionId: id,
+      corpusFingerprint: z.string().length(64),
+      recordIds: z.array(id).max(30),
+      reason: text,
+    })</code></pre></figure></section><section aria-labelledby='source-api'><h2 id='source-api'>Modules, classes, methods and functions</h2><h3>scripts/documentation/build.py:1 — &lt;module&gt;</h3><figure class='code'><figcaption>Signature and location</figcaption><pre><code>scripts/documentation/build.py</code></pre></figure><p>Build guides with the documentation skill&#x27;s unchanged runtime and default layouts.</p><h3>scripts/documentation/build.py:26 — Links</h3><figure class='code'><figcaption>Signature and location</figcaption><pre><code>class Links(HTMLParser)</code></pre></figure><p>Collect local destinations and anchors to verify generated HTML.</p><h3>scripts/documentation/build.py:32 — Links.__init__</h3><figure class='code'><figcaption>Signature and location</figcaption><pre><code>__init__(self)</code></pre></figure><p>Initialize per-page collections.</p><h3>scripts/documentation/build.py:38 — Links.handle_starttag</h3><figure class='code'><figcaption>Signature and location</figcaption><pre><code>handle_starttag(self, tag, attrs)</code></pre></figure><p>Record links and IDs without running scripts.</p><h3>scripts/documentation/build.py:50 — write_managed</h3><figure class='code'><figcaption>Signature and location</figcaption><pre><code>write_managed(site, relative, content)</code></pre></figure><p>Write an artifact inside the site and return its byte hash.</p><h3>scripts/documentation/build.py:62 — verify_vendor</h3><figure class='code'><figcaption>Signature and location</figcaption><pre><code>verify_vendor()</code></pre></figure><p>Refuse changes to the runtime and default layouts copied from the skill.</p><h3>scripts/documentation/build.py:73 — root_landing</h3><figure class='code'><figcaption>Signature and location</figcaption><pre><code>root_landing(name)</code></pre></figure><p>Send the site root to the default guide without presenting a language choice.</p><h3>scripts/documentation/build.py:91 — compatibility</h3><figure class='code'><figcaption>Signature and location</figcaption><pre><code>compatibility()</code></pre></figure><p>Preserve legacy URLs and files without changing the default Carbon shell.</p><h3>scripts/documentation/build.py:128 — check_links</h3><figure class='code'><figcaption>Signature and location</figcaption><pre><code>check_links()</code></pre></figure><p>Check pages, images, exports and local anchors in the completed site.</p><h3>scripts/documentation/build.py:159 — export_markdown</h3><figure class='code'><figcaption>Signature and location</figcaption><pre><code>export_markdown()</code></pre></figure><p>Update only explicitly managed guides while preserving originals in the archive.</p><h3>scripts/documentation/build.py:174 — export_markdown.repository_link</h3><figure class='code'><figcaption>Signature and location</figcaption><pre><code>repository_link(match)</code></pre></figure><p>Adjust export links for the guide&#x27;s repository location.</p><h3>scripts/documentation/build.py:198 — consumer_bundle</h3><figure class='code'><figcaption>Signature and location</figcaption><pre><code>consumer_bundle()</code></pre></figure><p>Generate the query bundle and include the distributed runtime&#x27;s MIT license.</p><h3>scripts/documentation/build.py:221 — main</h3><figure class='code'><figcaption>Signature and location</figcaption><pre><code>main()</code></pre></figure><p>Run mapping/validation/build/export/preview without publishing or approving sources.</p></section><footer><strong>Sources</strong><p>src/contracts/tools.ts, src/service/application.ts, src/service/server.ts</p><a href='api.md'>Markdown ↗</a> · <a href='../llms.txt'>llms.txt ↗</a><p>Coverage: 1 files · 13 symbols</p></footer></main><aside class='toc' aria-label='On this page'><strong>On this page</strong><a href='#contract'>Read the advertised contract</a><a href='#mutation-rules'>Revisions, retries and completion</a><a href='#contextory-hooks-rebuild'>Hooks rebuild</a><a href='#contextory-workspace-get'>Workspace get</a><a href='#contextory-workspace-request-create'>Workspace request create</a><a href='#contextory-version-get'>Version get</a><a href='#contextory-release-prepare'>Release prepare</a><a href='#contextory-release-change'>Release change</a><a href='#contextory-project-export'>Project export</a><a href='#contextory-catalog-get'>Catalog get</a><a href='#contextory-catalog-change'>Catalog change</a><a href='#contextory-catalog-review'>Catalog review</a><a href='#contextory-catalog-migrate'>Catalog migrate</a><a href='#contextory-context-get'>Context get</a><a href='#contextory-entity-get'>Entity get</a><a href='#contextory-history-get'>History get</a><a href='#contextory-request-change'>Request change</a><a href='#contextory-spec-change'>Spec change</a><a href='#contextory-session-attach'>Session attach</a><a href='#contextory-usage-get'>Usage get</a><a href='#contextory-spec-lease'>Spec lease</a><a href='#contextory-finding-record'>Finding record</a><a href='#contextory-decision-record'>Decision record</a><a href='#contextory-evidence-record'>Evidence record</a><a href='#contextory-check-run'>Check run</a><a href='#contextory-outcome-submit'>Outcome submit</a><a href='#contextory-search'>Search</a><a href='#contextory-code-context-get'>Code context get</a><a href='#contextory-code-architecture-get'>Code architecture get</a><a href='#contextory-code-path-get'>Code path get</a><a href='#contextory-code-index-refresh'>Code index refresh</a><a href='#contextory-codebase-list'>Codebase list</a><a href='#contextory-codebase-change'>Codebase change</a><a href='#contextory-relationship-change'>Relationship change</a><a href='#contextory-impact-get'>Impact get</a><a href='#contextory-flow-trace'>Flow trace</a><a href='#contextory-flow-expand'>Flow expand</a><a href='#contextory-report-export'>Report export</a><a href='#contextory-docs-get'>Read project documentation</a><a href='#contextory-docs-run'>Run bundled documentation operations</a><a href='#contextory-docs-link'>Associate a reviewed explanation</a><a href='#source-api'>Modules, classes, methods and functions</a></aside></body></html>

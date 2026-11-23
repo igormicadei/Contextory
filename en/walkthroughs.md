@@ -28,9 +28,9 @@ Architecture explorer captured from Contextory.
 
 Bounded source-flow explorer in Contextory.
 
-## Review Knowledge and Versions
+## Use Approvals, Knowledge and Versions
 
-1. Choose the persistent review alert, or Tools > Knowledge. Review the queue first; expand definition search and file coverage separately when needed.
+1. Open the Approvals tab or the review alert to review pending items. The tab shows a pending count and contains no already-reviewed definitions. Use Tools > Knowledge for definition search and source coverage.
 2. For an observed baseline or pending change, read the exact proposal and enter a review reason before Approve baseline, Approve change or Reject. Only a human uses these review controls.
 3. Open Tools > Versions to inspect the current version, commits and release plans. Review version, files and changelog before applying; Publish is a separately authorized release action.
 
@@ -70,4 +70,6 @@ Resizing or docking preserves selection, drafts, expanded details and scroll wit
 - tests/ui/console.spec.ts
 - tests/integration/recipe-configuration.test.ts
 - scripts/verify-background-startup.mjs
+- src/knowledge/catalog.ts
+- tests/integration/catalog.test.ts
 

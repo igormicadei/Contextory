@@ -1,6 +1,6 @@
 # Contextory
 
-> plugin · 0.8.0
+> plugin · 0.9.0
 
 ## pt-BR
 
@@ -12,6 +12,7 @@
 - [Guia do usuário](pt-BR/user-guide.md)
 - [Inteligência de código e fluxos avançados](pt-BR/advanced.md)
 - [Conhecimento de projeto com governança](pt-BR/knowledge.md)
+- [Documentação do projeto](pt-BR/documentation.md)
 - [Versões e releases do projeto](pt-BR/releases.md)
 - [Clientes, CLI e integração](pt-BR/adaptation.md)
 - [Limites e compatibilidade](pt-BR/edge-cases.md)
@@ -24,6 +25,7 @@
 - [Validação e limites das evidências](pt-BR/validation.md)
 - [Histórico de releases e documentos preservados](pt-BR/history.md)
 - [Referência da API MCP](pt-BR/api.md)
+- [Release v0.9.0](pt-BR/release-v0-9-0.md)
 - [Release v0.8.0](pt-BR/release-v0-8-0.md)
 - [Release v0.7.0](pt-BR/release-v0-7-0.md)
 - [Release v0.6.0](pt-BR/release-v0-6-0.md)
@@ -51,6 +53,7 @@
 - [Daily user guide](en/user-guide.md)
 - [Code intelligence and advanced workflows](en/advanced.md)
 - [Governed project knowledge](en/knowledge.md)
+- [Project documentation](en/documentation.md)
 - [Project versions and releases](en/releases.md)
 - [Clients, CLI and integration](en/adaptation.md)
 - [Limits and compatibility](en/edge-cases.md)
@@ -63,6 +66,7 @@
 - [Validation and evidence boundaries](en/validation.md)
 - [Release history and preserved documents](en/history.md)
 - [MCP API reference](en/api.md)
+- [Release v0.9.0](en/release-v0-9-0.md)
 - [Release v0.8.0](en/release-v0-8-0.md)
 - [Release v0.7.0](en/release-v0-7-0.md)
 - [Release v0.6.0](en/release-v0-6-0.md)

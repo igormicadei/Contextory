@@ -11,19 +11,31 @@
 
 Leia contextory_catalog_get antes de alterações relacionadas e pagine definições, propostas e inventário de forma independente. Entradas geradas começam como observações. Um grafo descreve relações possíveis; ele não aprova regras nem infere o comportamento esperado da interface.
 
-## Revise uma revisão exata da definição
+## Revise itens pendentes em Approvals
 
 Um alerta persistente conta definições observadas e alterações pendentes. A view do editor também mostra um badge e oferece Review now quando mudam as revisões pendentes. Notificações são deduplicadas por projeto entre reinícios; dispensá-las mantém o alerta disponível.
 
-1. Abra Knowledge, escolha uma definição e inspecione fontes, testes, estado, revisão e atualização.
+1. Abra Approvals ao lado de Work e Requests ou use o alerta persistente. Essa aba contém apenas alterações pendentes e linhas de base observadas. Inspecione fontes, testes, estado, revisão e atualização. Use Tools > Knowledge separadamente para consultar todas as definições e a cobertura dos arquivos.
 2. Revise as observações iniciais ou o conteúdo antes/depois de substituições ou aposentadorias. Informe um motivo antes de aprovar ou rejeitar.
-3. Atualize candidatos obsoletos antes da aprovação. Propostas concorrentes devem corresponder à revisão atual exata. Rejeições mantêm a definição original e todas as revisões são preservadas.
+3. Se aparecer Sources need review, abra os arquivos alterados e confira a definição. Informe um motivo e use Refresh source snapshot. Isso registra os hashes atuais e mantém o item pendente; aprove ou rejeite a revisão atualizada separadamente. Arquivos ausentes precisam ser corrigidos ou o item obsoleto rejeitado. Uma proposta contra uma revisão anterior deve ser rejeitada e substituída.
 
-![Definições Knowledge e proposta de revisão antes/depois com registros de pagamento de exemplo.](../assets/knowledge-preview.png)
+Salvamento, sucesso e erros aparecem ao lado dos controles. Revisões com falha preservam o motivo informado e não aprovam nada. Os controles ficam desativados enquanto a revisão está em andamento. Alternar para Knowledge e voltar preserva o motivo; os filtros de Knowledge não ocultam a fila de aprovações. Atualizar o snapshot não altera a definição nem concede aprovação.
 
-Webview Knowledge de produção com registros isolados de teste; nenhuma aprovação de projeto foi realizada.
+![A aba Approvals com contador de pendências, alterações antes/depois e controles de revisão.](../assets/knowledge-preview.png)
 
-A aprovação pertence à interface Knowledge autenticada para revisão humana. Agentes não devem usar credenciais da interface nem apresentar observações geradas como requisitos aprovados. Propostas pendentes e definições aprovadas afetadas e obsoletas podem impedir a conclusão rastreada.
+Approvals renderizado pela webview de produção com exemplos isolados; nenhuma aprovação real do projeto foi realizada.
+
+A aprovação pertence à aba Approvals autenticada para revisão humana. Agentes não podem usar suas credenciais nem apresentar observações como requisitos aprovados. Propostas pendentes e definições aprovadas afetadas e obsoletas podem impedir a conclusão rastreada.
+
+## Consulte Knowledge separadamente
+
+1. Escolha Tools > Knowledge para consultar definições atuais e históricas, seus vínculos com fontes/testes e seu histórico.
+2. Expanda Find definitions & coverage e filtre por texto, caminho ou categoria. O inventário de arquivos continua disponível nesse navegador.
+3. Escolha Approvals para revisar pendências. Os filtros e a paginação de Knowledge não afetam essa fila; itens revisados saem de Approvals e continuam disponíveis em Knowledge.
+
+![Consulta ao conhecimento do projeto sem formulários de aprovação.](../assets/knowledge-browser.png)
+
+Navegador Knowledge usando a interface de produção e registros isolados de teste.
 
 ## Crie a linha de base de um projeto existente
 
@@ -57,4 +69,6 @@ A exportação exclui credenciais, conversas nativas e vetores numéricos de emb
 - tests/ui/console.spec.ts
 - tests/integration/recipe-configuration.test.ts
 - scripts/verify-background-startup.mjs
+- tests/ui/catalog.spec.ts
+- src/webview/main.ts
 

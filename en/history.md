@@ -1,8 +1,8 @@
 # Release history and preserved documents
 
-## Current documented version: 0.8.0
+## Current documented version: 0.9.0
 
-Version 0.8.0 introduces the responsive Work/Requests console, evidence-based progress, persistent Knowledge review alerts, automatic service recovery, background startup independent of sidebar visibility, 256 check recipes and complete streamed source fingerprints. Version 0.7.0 introduced managed hook recovery; 0.6.0 introduced separate workspace projects and coordinated requests.
+Version 0.9.0 adds a dedicated Approvals queue, recoverable source review and independent project documentation with bundled software-documentation and Carbon. Version 0.8.0 introduced the responsive work console, background startup, automatic recovery, 256 check recipes and complete streamed source fingerprints. Earlier releases remain preserved below.
 
 [Install the current release](install.md)
 
