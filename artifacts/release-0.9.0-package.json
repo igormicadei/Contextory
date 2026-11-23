@@ -1,0 +1,40 @@
+{
+  "version": "0.9.0",
+  "file": "contextory-workspace-0.9.0.vsix",
+  "sha256": "98d6762a4c9eb20454954774067e13d74e3a15df1f917625ae6681c4442c1f9e",
+  "tag": "20532605db858792c9152353f9d5abff95e9fe63",
+  "runtimeSourcesMatchTag": true,
+  "runtimeMatchesBuild": true,
+  "versionsAgree": true,
+  "upstreamResourceHashesVerified": 469,
+  "bridgeAndSkillMatchSource": true,
+  "privateFilesAndBytecodeExcluded": true,
+  "historical080Unchanged": true,
+  "hostQualification": {
+    "host": "Visual Studio Code",
+    "vscode": "1.147.0",
+    "passed": true,
+    "checks": [
+      "automatic background activation with Explorer visible; no extension.activate or Contextory UI action",
+      "all detected inactive agent extensions and Bob host configured automatically before opening Contextory; no chosen default or native session required",
+      "workspace pause/resume persists without removing or rewriting existing agent configuration",
+      "isolated Node 24 workspace service",
+      "architecture workbench, source context/path tools and generic MCP export with portable skills",
+      "sidebar view opens",
+      "host to service workflow mutation",
+      "native model/usage query with explicit unavailable counters",
+      "all three native provider configurations generated in disposable workspace",
+      "editor hook rebuild restores missing Codex hooks without changing MCP configuration",
+      "worker source flow with branches and call targets",
+      "unsaved buffer overlay survives UI to service boundary",
+      "isolated reference architecture and source flow ignore current editor overlays; detach preserves source",
+      "Python AST flow from remembered editor cursor; sidebar tracing creates no extra editor tab",
+      "Python agent-tool flow without an editor language provider",
+      "dedicated relationship workbench tab with request titles, descriptions and source files",
+      "request-scoped report opens from service artifact",
+      "persistent SQLite ledger",
+      "33 recipes accepted and invalid configuration preserves connection and last valid recipes",
+      "automatic reconnect after actual service process loss retains project ledger and request"
+    ]
+  }
+}
