@@ -34,6 +34,7 @@ import {
   restoreMapViewports,
 } from "./explorer";
 import { clients, clientIds } from "../providers/clients";
+import { specProgress } from "./progress";
 import contextoryIcon from "../../media/contextory.svg";
 import type { UsageSummary } from "../contracts/usage";
 declare function acquireVsCodeApi(): {
@@ -120,6 +121,13 @@ let historyScope = "";
 let historyLoaded = false;
 const openMilestones = new Set<string>();
 let selected = "";
+let focusedRequest = "";
+let serviceConnection = {
+  state: "connecting",
+  text: "Connecting to your workspace",
+  checkedAt: "",
+  nextRetryAt: 0,
+};
 let detailTab = "contract";
 const usageBySpec = new Map<string, UsageSummary>();
 let notice = "";
@@ -154,6 +162,7 @@ function resetProject() {
   childrenById.clear();
   searchableRequests.clear();
   selected = "";
+  focusedRequest = "";
   detailTab = "contract";
   hits = [];
   notice = "";
@@ -288,7 +297,7 @@ function connections() {
         : c?.configured
           ? `Retry ${name} connection`
           : `Connect ${name}`;
-      return `<button class="connection" data-action="${online ? "disconnect" : "connect"}" data-provider="${provider}" aria-label="${label}" title="${name}: ${online ? "MCP observed in this service. Click to disconnect." : c?.configured ? "Configured; waiting for native traffic in this service. Click to retry connection setup." : "Disconnected. Click to connect."}"><strong>${name}</strong><span class="status-dot ${online ? "online" : ""}" role="img" aria-label="${online ? "Connected" : "Not connected"}"></span></button>`;
+      return `<button class="connection" data-action="${online ? "disconnect" : "connect"}" data-provider="${provider}" aria-label="${label}" title="${name}: ${online ? "MCP observed in this service. Click to disconnect." : c?.configured ? "Configured; waiting for native traffic in this service. Click to retry connection setup." : "Disconnected. Click to connect."}"><strong>${name}</strong><span class="status-dot ${online ? "online" : ""}" role="img" aria-label="${online ? "MCP observed" : "Waiting for MCP traffic"}"></span></button>`;
     })
     .join("")}</div>`;
 }
@@ -307,7 +316,42 @@ function rebuildHooksButton() {
 function requestProgress(request: Entity) {
   const specs = requestSpecs(request.id);
   const done = specs.filter((s) => s.state === "completed").length;
-  return `<small class="muted">${done} / ${specs.length} specs complete</small><progress class="request-progress" max="${Math.max(1, specs.length)}" value="${done}" aria-label="${escape(request.title)} progress" aria-valuetext="${specs.length ? `${done} of ${specs.length} specifications completed` : "No specifications defined yet"}"></progress>`;
+  return `<small class="muted">${done} / ${specs.length} specs complete${specs.some((s) => s.state === "implementing") ? " · Work in progress" : ""}</small>`;
+}
+function reviewCount() {
+  const catalog =
+    screen === "catalog"
+      ? (catalogPage ?? dashboard?.catalog)
+      : (dashboard?.catalog ?? catalogPage);
+  return catalog
+    ? catalog.observed + catalog.pendingChanges
+    : (dashboard?.entities.filter(
+        (e) =>
+          (e.kind === "knowledge" && e.state === "observed") ||
+          (e.kind === "knowledge_change" && e.state === "pending"),
+      ).length ?? 0);
+}
+function timeSince(time: string) {
+  const seconds = Math.max(
+    0,
+    Math.floor((Date.now() - new Date(time).getTime()) / 1000),
+  );
+  return seconds < 60
+    ? "just now"
+    : seconds < 3600
+      ? `${Math.floor(seconds / 60)}m ago`
+      : seconds < 86400
+        ? `${Math.floor(seconds / 3600)}h ago`
+        : `${Math.floor(seconds / 86400)}d ago`;
+}
+function workStatus(spec: Entity, compact = false) {
+  const progress = specProgress(
+    spec,
+    dashboard?.entities ?? [],
+    dashboard?.checks,
+  );
+  const startedAt = dashboard?.attemptStartedAt?.[spec.id];
+  return `<section class="work-status ${compact ? "compact" : ""}" aria-label="Specification progress"><div class="phase-line"><span class="phase-dot ${progress.blockers.length ? "blocked" : ""}"></span><strong>${escape(progress.phase)}</strong>${startedAt ? `<time datetime="${escape(startedAt)}" title="This attempt started ${escape(new Date(startedAt).toLocaleString())}">Started ${timeSince(startedAt)}</time>` : ""}</div><p class="evidence-count"><strong>${progress.covered} / ${progress.criteria.length}</strong> criteria with passing checks</p><div class="criterion-segments" aria-hidden="true">${progress.criteria.map((c) => `<span class="${c.status}"></span>`).join("")}</div>${compact ? "" : `<ul class="criterion-checklist">${progress.criteria.map((c) => `<li class="${c.status}"><span aria-hidden="true">${c.status === "check" ? "✓" : c.status === "reported" ? "◒" : "○"}</span><div>${escape(c.text)}<small>${c.status === "check" ? "Passing independent check recorded" : c.status === "reported" ? "Agent reported · independent check pending" : "Evidence pending"}</small></div></li>`).join("")}</ul>`}${progress.running.length ? `<div class="running-checks"><strong>Checking now</strong>${progress.running.map((c) => `<p>${escape(c.name)}</p>`).join("")}</div>` : ""}${progress.blockers.map((b) => `<p class="work-blocker"><strong>Needs attention:</strong> ${escape(b.title)}</p>`).join("")}${progress.latest ? `<p class="latest-work"><span>Latest update · <time datetime="${escape(progress.latest.updatedAt)}">${timeSince(progress.latest.updatedAt)}</time></span>${escape(progress.latest.title)}</p>` : '<p class="muted latest-work">Waiting for the agent’s next work record.</p>'}${compact ? "" : '<p class="progress-note">Recorded evidence, not a time estimate. Source freshness and completion are checked separately.</p>'}</section>`;
 }
 function activity(events: Audit[], full = false) {
   return `<ol class="activity">${events.map((e) => `<li><span class="activity-dot"></span><div><strong>${escape(e.title ?? e.type.replaceAll(".", " "))}</strong>${e.context?.length ? `<div class="history-links">${e.context.map((c) => button("select", escape(c.title), `data-id="${escape(c.id)}" title="${escape(c.kind)} ${escape(c.id)}"`, "text-button")).join('<span aria-hidden="true"> / </span>')}</div>` : `<span class="muted">${escape(e.entityId)}</span>`}<span class="muted">${escape(e.actor)}${full ? ` \u00b7 event ${e.sequence}` : ""}</span></div><time datetime="${e.time}">${new Date(e.time).toLocaleString([], full ? {} : { hour: "2-digit", minute: "2-digit" })}</time></li>`).join("") || '<li class="muted">No project activity yet.</li>'}</ol>`;
@@ -319,21 +363,20 @@ function overview() {
   const open = requests.filter(
     (r) => !["completed", "cancelled"].includes(requestState(r)),
   );
-  return `<div class="overview-layout">
-    <div class="metrics" aria-label="Workspace progress"><div><strong>${open.length}</strong><span>open requests</span></div><div><strong>${specs.filter((e) => e.state === "implementing").length}</strong><span>in progress</span></div><div><strong>${specs.filter((e) => e.state === "completed").length}<small> / ${specs.length}</small></strong><span>completed specs</span></div></div>
-    <section class="overview-work"><div class="section-heading"><h2 id="work-heading">Current work</h2>${button("navigate", "View requests \u2197", 'data-screen="requests"', "text-button")}</div>
-      <div class="work-list" data-scroll="work" role="region" aria-labelledby="work-heading" tabindex="0">${open.map((r) => `<button class="work-row" data-action="select" data-id="${r.id}"><div><span class="record-id">${r.id}</span>${projectBadge()}<strong>${escape(r.title)}</strong>${requestProgress(r)}</div>${badge(requestState(r))}<span aria-hidden="true">&#8250;</span></button>`).join("") || '<p class="muted">No open requests. Describe a change in native chat, or create a request.</p>'}</div>
-    </section>
-    <section class="overview-activity"><div class="section-heading"><h2 id="activity-heading">Recent activity</h2>${button("navigate", "Full history \u2197", 'data-screen="history"', "text-button")}</div><div class="activity-list" data-scroll="activity" role="region" aria-labelledby="activity-heading" tabindex="0">${activity(dashboard?.events.slice(0, 3) ?? [])}</div></section>
-  </div>`;
+  const current =
+    specs.find((s) => s.state === "implementing") ??
+    specs.find((s) => s.state === "blocked") ??
+    specs.find((s) => s.state === "submitted");
+  return `<div class="workbench"><section class="focus-work" data-scroll="focus" aria-label="Current specification" tabindex="0"><div class="section-heading"><span class="eyebrow">Happening now</span>${current ? badge(current.state) : ""}</div>${current ? `<p class="focus-request">${escape(requestOf(current.id)?.title)}</p><h1>${escape(current.title)}</h1>${workStatus(current, true)}${button("select", "Open work details →", `data-id="${current.id}"`, "primary")}` : `<h1>Room for your next idea.</h1><p>Describe a change in your native conversation, or create a request to plan the work.</p>${button("newRequest", "+ New request", "", "primary")}`}</section><section class="overview-work"><div class="section-heading"><div><span class="eyebrow">Work queue</span><h2 id="work-heading">${open.length} open requests</h2></div>${button("navigate", "All requests", 'data-screen="requests"', "text-button")}</div><div class="work-list" data-scroll="work" role="region" aria-labelledby="work-heading" tabindex="0">${open.map((r) => `<button class="work-row" data-action="select" data-id="${r.id}"><div><strong>${escape(r.title)}</strong>${requestProgress(r)}</div>${badge(requestState(r))}<span aria-hidden="true">›</span></button>`).join("") || '<p class="muted">Your queue is clear.</p>'}</div></section></div>`;
 }
 function requestCard(r: Entity) {
   const inline = !horizontalLayout();
   return `<article class="request-card ${requestOf(selected)?.id === r.id ? "selected-request" : ""}" id="record-${r.id}">
-    <div class="section-heading"><div class="request-title"><span class="record-id">${r.id}</span>${projectBadge()}<h2>${escape(r.title)}</h2></div>${badge(requestState(r))}</div>
-    <p>${escape(r.data.description)}</p>
+    <div class="section-heading"><div class="request-title"><span class="eyebrow">Request</span>${(workspace?.projects.length ?? 0) > 1 ? projectBadge() : ""}<h2>${escape(r.title)}</h2></div>${badge(requestState(r))}</div>
+    ${requestProgress(r)}
     ${workspaceRequestView(r)}
-    <div class="request-actions">${button("report", "Export request report", `data-id="${r.id}"`, "small")}${button("history", "Request history", `data-id="${r.id}"`, "text-button")}</div>
+    <details class="request-brief" ${drafts.requestBriefOpen === "true" ? "open" : ""}><summary>Brief & actions</summary><p>${escape(r.data.description)}</p><small class="record-id">${r.id} · revision ${r.revision}</small>
+    <div class="request-actions">${button("report", "Export request report", `data-id="${r.id}"`, "small")}${button("history", "Request history", `data-id="${r.id}"`, "text-button")}</div></details>
     ${
       children(r.id, "milestone")
         .map(
@@ -346,7 +389,7 @@ function requestCard(r: Entity) {
         children(m.id, "spec")
           .map(
             (s) =>
-              `<button class="spec-row ${selected === s.id ? "selected" : ""}" aria-expanded="${selected === s.id}" ${selected === s.id ? `aria-controls="detail-${s.id}"` : ""} data-action="toggleSpec" data-id="${s.id}"><span class="spec-indicator ${s.state}"></span><div><strong>${escape(s.title)}</strong><small>${s.id} &middot; revision ${s.revision}</small>${projectBadge()}</div>${badge(s.state)}</button>${inline && selected === s.id ? specDetails(s) : ""}`,
+              `<button class="spec-row ${selected === s.id ? "selected" : ""}" aria-expanded="${selected === s.id}" ${selected === s.id ? `aria-controls="detail-${s.id}"` : ""} data-action="toggleSpec" data-id="${s.id}"><span class="spec-indicator ${s.state}"></span><div><strong>${escape(s.title)}</strong><small>${specProgress(s, dashboard?.entities ?? [], dashboard?.checks).phase}</small>${(workspace?.projects.length ?? 0) > 1 ? projectBadge() : ""}</div>${badge(s.state)}</button>${inline && selected === s.id ? specDetails(s) : ""}`,
           )
           .join("") || '<p class="muted">Waiting for specifications.</p>'
       }
@@ -380,6 +423,14 @@ function requestTree() {
       hits.some((h) => requestOf(h.id)?.id === r.id)
     );
   });
+  const currentRequest =
+    matching.find((r) => r.id === focusedRequest) ??
+    matching.find((r) => r.id === requestOf(selected)?.id) ??
+    matching.find((r) => requestState(r) === "implementing") ??
+    matching[0];
+  const picker = matching.length
+    ? `<label class="request-picker">Request<select name="requestSelection">${matching.map((r) => `<option value="${r.id}" ${r.id === currentRequest?.id ? "selected" : ""}>${escape(r.title)} · ${escape(requestState(r))}</option>`).join("")}</select></label>`
+    : "";
   const visibleSpec = matching.some((r) => r.id === requestOf(selected)?.id)
     ? entitiesById.get(selected)
     : undefined;
@@ -391,7 +442,7 @@ function requestTree() {
         )
       : !matching.length
         ? '<p class="muted">No matching requests.</p>'
-        : matching.map(requestCard).join("")
+        : picker + (currentRequest ? requestCard(currentRequest) : "")
   }</div>${horizontalLayout() ? `<aside class="request-inspector" data-scroll="inspector" aria-label="Specification inspector" tabindex="0">${requestInspector(visibleSpec)}</aside>` : ""}</div></div>`;
 }
 function loadHistory(append = false) {
@@ -474,7 +525,41 @@ function specDetails(s: Entity) {
         : value.toLocaleString();
     body = `<div class="section-heading"><h3>Agent models and usage</h3>${button("refreshUsage", "Refresh usage", "", "small")}</div>${usage ? `<p>${usage.attempts} native request attempts observed; ${usage.measuredAttempts} with token counts.</p>${usage.groups.map((g) => `<article class="record"><h3>${escape(g.provider)} &middot; ${escape(g.model ?? "Model unavailable")}</h3><p>Input: ${count(g.tokens.inputTokens)} &middot; Output: ${count(g.tokens.outputTokens)} &middot; Total: ${count(g.tokens.totalTokens)}</p><p class="muted">Cached input (included in input): ${count(g.tokens.cachedInputTokens)}<br>Reasoning (included in output): ${count(g.tokens.reasoningTokens)}</p></article>`).join("") || '<p class="muted">No native model or usage records linked to this specification.</p>'}${usage.groupsTruncated ? '<p class="muted">Only the first 100 model groups are shown. Filter with contextory_usage_get.</p>' : ""}<p class="muted">${escape(usage.note)}</p>` : '<p class="muted">Loading native usage records...</p>'}`;
   }
-  return `<section id="detail-${s.id}" class="spec-detail" aria-label="${escape(s.title)} details"><div class="section-heading">${projectBadge()}<span class="record-id">${s.id} &middot; revision ${s.revision}</span>${badge(s.state)}</div><div class="detail-tabs" role="tablist" aria-label="Specification details">${["contract", "issues", "decisions", "evidence", "outcome", "usage", "history"].map((tab) => `<button id="tab-${tab}" role="tab" aria-selected="${detailTab === tab}" data-action="detailTab" data-tab="${tab}">${tab[0].toUpperCase() + tab.slice(1)}</button>`).join("")}</div><div role="tabpanel" aria-labelledby="tab-${detailTab}">${body}</div><div class="detail-actions">${button("impact", "Explore relationships", `data-id="${s.id}"`)}${s.state === "submitted" ? button("complete", "Check completion", `data-id="${s.id}" data-revision="${s.revision}"`, "primary") : ""}</div></section>`;
+  return `<section id="detail-${s.id}" class="spec-detail" aria-label="${escape(s.title)} details"><div class="section-heading"><span class="record-id">${s.id}</span>${projectBadge()}${badge(s.state)}</div><label class="spec-section">Specification details<select id="detailSection" name="detailSection" aria-label="Specification details">${["contract", "issues", "decisions", "evidence", "outcome", "usage", "history"].map((tab) => `<option value="${tab}" ${detailTab === tab ? "selected" : ""}>${tab === "contract" ? "Plan & progress" : tab[0].toUpperCase() + tab.slice(1)}</option>`).join("")}</select></label>${detailTab === "contract" ? workStatus(s) : ""}<div class="spec-section-body">${body}</div><div class="detail-actions">${button("impact", "Explore relationships", `data-id="${s.id}"`)}${s.state === "submitted" ? button("complete", "Check completion", `data-id="${s.id}" data-revision="${s.revision}"`, "primary") : ""}</div></section>`;
+}
+function nativeDiagnostics() {
+  const configured = dashboard?.connections.filter((c) => c.configured) ?? [];
+  return configured.length
+    ? `<section class="native-diagnostics"><strong>Native observations</strong>${configured.map((c) => `<p><b>${escape(clients[c.provider].label)}</b><span>MCP: ${c.mcpCurrent ? "observed in this service" : "waiting for native traffic"}</span>${c.provider !== "generic" ? `<span>Hooks: ${c.hookCurrent ? "observed in this service" : "waiting for a trusted native event"}</span>` : ""}</p>`).join("")}<small>These are observations, not a live probe of the agent. Contextory checks its own service every 20 seconds.</small><p class="tools-help">Hook files update immediately. If Codex has not loaded them, review /hooks in that session and resume it after restarting extensions. Native trust stays with Codex.</p></section>`
+    : "";
+}
+function workspaceNavigation() {
+  const tools = [
+    ["catalog", "Knowledge"],
+    ["versions", "Versions"],
+    ["history", "History"],
+    ["map", "Code map"],
+    ["architecture", "Architecture"],
+  ];
+  return `<nav class="main-nav" aria-label="Contextory views">${[
+    ["overview", "Work"],
+    ["requests", "Requests"],
+  ]
+    .map(([id, label]) =>
+      button(
+        "navigate",
+        label,
+        `data-screen="${id}" aria-current="${screen === id ? "page" : "false"}"`,
+        screen === id ? "active" : "",
+      ),
+    )
+    .join(
+      "",
+    )}<details class="workspace-tools" ${drafts.toolsOpen === "true" ? "open" : ""}><summary>Tools <span aria-hidden="true">⌄</span></summary><div class="tools-menu">${tools.map(([id, label]) => button("navigate", label, `data-screen="${id}" aria-current="${screen === id ? "page" : "false"}"`)).join("")}<hr>${nativeDiagnostics()}${button("checkConnections", "Check connections")}${button("restartAgents", "Restart agent extensions", 'title="Restarts the Extension Host and interrupts active extension tasks"')}</div></details></nav>`;
+}
+function attentionStrip() {
+  const count = reviewCount();
+  return `<div class="attention-strip">${count ? button("navigate", `<span class="review-count">${count}</span><span>Knowledge ${count === 1 ? "item needs" : "items need"} review</span><span aria-hidden="true">→</span>`, 'data-screen="catalog" aria-label="Review pending knowledge"', "review-alert") : ""}${serviceConnection.state === "reconnecting" ? `<div class="connection-alert" role="status"><strong>Reconnecting automatically</strong><span>${escape(serviceConnection.text)}</span>${dashboard ? "<small>Showing the last received workspace data.</small>" : ""}${button("refresh", "Retry now", "", "small")}</div>` : ""}${dashboard?.configurationError ? `<div class="configuration-alert" role="status"><span>${escape(dashboard.configurationError)}</span>${button("checkSettings", "Fix check settings", "", "small")}</div>` : ""}${automation?.reloadRequired ? `<div class="reload-alert"><span>Agent setup changed. Reload integrations to use it.</span>${button("restartAgents", "Restart extensions", 'title="Interrupts active extension tasks"', "small")}</div>` : ""}</div>`;
 }
 function map() {
   return flowView(graph, nodeId, drafts);
@@ -515,22 +600,8 @@ function render() {
     "No workspace open";
   const workspacePath =
     document.body.dataset.workspacePath || dashboard?.root || workspaceName;
-  app.innerHTML = `<header class="app-header"><div class="brand"><span class="brand-mark" aria-hidden="true">${contextoryIcon}</span><div class="brand-copy"><strong>Contextory</strong><span class="workspace-name" aria-label="Workspace" title="${escape(workspacePath)}">${escape(workspaceName)}</span></div></div>${button("refresh", "↻", 'aria-label="Refresh workspace" title="Refresh workspace"', "icon-button")}</header>${projectSelector()}<nav class="main-nav ${surface !== "sidebar" ? "hidden" : ""}" aria-label="Contextory views">${[
-    ["overview", "Overview"],
-    ["requests", "Requests"],
-    ["catalog", "Knowledge"],
-    ["versions", "Versions"],
-    ["history", "History"],
-    ["map", "Code map"],
-    ["architecture", "Architecture"],
-  ]
-    .map(
-      ([id, label]) =>
-        `<button data-action="navigate" data-screen="${id}" class="${screen === id ? "active" : ""}" aria-current="${screen === id ? "page" : "false"}">${label}</button>`,
-    )
-    .join(
-      "",
-    )}</nav>${notice ? `<div class="notice" role="status"><span>${escape(notice)}</span>${button("dismiss", "×", 'aria-label="Dismiss notification"', "icon-button")}</div>` : ""}${busy ? '<div class="loading-line" role="progressbar" aria-label="Contextory is working"></div>' : ""}<main>${projectPending ? empty("Switching project", "Loading this project's records...") : !dashboard && screen !== "map" && screen !== "relationships" ? empty("Open your workspace", "Contextory connects your native agents to shared project records. Open a trusted folder, then refresh.", button("refresh", "Refresh", "", "primary")) : screen === "versions" ? versionsView(versionsPage, versionDetail, releasePlan, drafts, versionsOffset) : screen === "catalog" ? catalogView(catalogPage, drafts, catalogOffset) : screen === "architecture" ? architectureView(architecture, codeContext, drafts.codeQuery ?? "", architectureOnly, architectureState, dashboard?.references ?? [], architectureCodebase) : screen === "relationships" ? relationshipView(relationships) : screen === "requests" ? requestTree() : screen === "history" ? historyView() : screen === "map" ? map() : overview()}</main><footer>${surface === "sidebar" ? connections() : ""}<div class="workspace-status"><span class="status-dot ${dashboard ? "online" : ""}"></span><span>${dashboard ? escape(dashboard.root.split(/[\\/]/).pop()) : "Open a workspace"}</span>${surface === "sidebar" ? rebuildHooksButton() + autoConnectSwitch() : '<span class="footer-label">Native conversation &middot; durable context</span>'}</div></footer>`;
+  app.classList.toggle("workspace-console", surface === "sidebar");
+  app.innerHTML = `<header class="app-header"><div class="brand"><span class="brand-mark" aria-hidden="true">${contextoryIcon}</span><div class="brand-copy"><strong>Contextory</strong><span class="workspace-name" aria-label="Workspace" title="${escape(workspacePath)}">${escape(workspaceName)}</span></div></div>${button("refresh", "&#8635;", 'aria-label="Refresh workspace" title="Refresh workspace"', "icon-button")}</header>${projectSelector()}${surface === "sidebar" ? workspaceNavigation() + attentionStrip() : ""}${notice ? `<div class="notice" role="status"><span>${escape(notice)}</span>${button("dismiss", "?", 'aria-label="Dismiss notification"', "icon-button")}</div>` : ""}${busy ? '<div class="loading-line" role="progressbar" aria-label="Contextory is working"></div>' : ""}<main>${projectPending ? empty("Switching project", "Loading this project's records...") : !dashboard && screen !== "map" && screen !== "relationships" ? empty(serviceConnection.state === "reconnecting" ? "Restoring your workspace" : "Your workspace, connected", "Contextory keeps trying automatically while the service starts. Your project records stay in place.", button("refresh", "Retry now", "", "primary")) : screen === "versions" ? versionsView(versionsPage, versionDetail, releasePlan, drafts, versionsOffset) : screen === "catalog" ? catalogView(catalogPage, drafts, catalogOffset) : screen === "architecture" ? architectureView(architecture, codeContext, drafts.codeQuery ?? "", architectureOnly, architectureState, dashboard?.references ?? [], architectureCodebase) : screen === "relationships" ? relationshipView(relationships) : screen === "requests" ? requestTree() : screen === "history" ? historyView() : screen === "map" ? map() : overview()}</main><footer>${surface === "sidebar" ? connections() : ""}<div class="workspace-status"><span class="status-dot ${serviceConnection.state === "connected" ? "online" : ""}"></span><span class="service-state" title="${escape(serviceConnection.checkedAt ? `Last connection check: ${new Date(serviceConnection.checkedAt).toLocaleString()}` : serviceConnection.text)}">${serviceConnection.state === "connected" ? "Service connected" : serviceConnection.state === "reconnecting" ? "Reconnecting?" : "Connecting?"}</span>${surface === "sidebar" ? rebuildHooksButton() + autoConnectSwitch() : '<span class="footer-label">Native conversation &middot; durable context</span>'}</div></footer>`;
   document.querySelector<HTMLElement>("main")!.dataset.screen = screen;
   for (const scroll of scrollAreas) {
     const replacement = document.querySelector<HTMLElement>(
@@ -726,6 +797,7 @@ function selectRecord(id: string) {
     openMilestones.add(owner.parentId);
   if (e?.kind === "milestone") openMilestones.add(e.id);
   const r = requestOf(id);
+  focusedRequest = r?.id ?? focusedRequest;
   if (e?.kind === "request")
     children(e.id, "milestone").forEach((m) => openMilestones.add(m.id));
   drafts.query = "";
@@ -742,6 +814,11 @@ function selectRecord(id: string) {
 function action(element: Element) {
   const data = (element as HTMLElement).dataset;
   switch (data.action) {
+    case "restartAgents":
+    case "checkConnections":
+    case "checkSettings":
+      send({ type: data.action });
+      break;
     case "projectBranch":
       chooseProject(data.projectId!, data.recordId);
       break;
@@ -792,6 +869,7 @@ function action(element: Element) {
       break;
     }
     case "navigate":
+      drafts.toolsOpen = "false";
       screen = data.screen!;
       if (screen === "history") loadHistory();
       if (screen === "architecture") loadArchitecture();
@@ -1154,6 +1232,23 @@ app.addEventListener("input", (event) => {
 });
 app.addEventListener("change", (event) => {
   const input = event.target as HTMLInputElement;
+  if (input.name === "detailSection") {
+    detailTab = input.value;
+    if (detailTab === "usage") loadUsage();
+    render();
+    return;
+  }
+  if (input.name === "requestSelection") {
+    focusedRequest = input.value;
+    selected = "";
+    openMilestones.clear();
+    children(focusedRequest, "milestone").forEach((m) =>
+      openMilestones.add(m.id),
+    );
+    preparePanelSelection(focusedRequest);
+    render();
+    return;
+  }
   if (input.name === "workspaceProject") {
     chooseProject(input.value);
     return;
@@ -1197,7 +1292,7 @@ app.addEventListener("submit", (event) => {
       name: coordinated
         ? "contextory_workspace_request_create"
         : "contextory_request_change",
-      ...(coordinated ? { requestId: "workspace-create:new" } : {}),
+      requestId: coordinated ? "workspace-create:new" : "request-create:new",
       arguments: {
         operationId: crypto.randomUUID(),
         ...(!coordinated ? { action: "create" } : {}),
@@ -1251,6 +1346,11 @@ function loadUsage() {
 }
 window.addEventListener("message", (event) => {
   const message = event.data;
+  if (message.type === "serviceConnection") {
+    serviceConnection = { ...serviceConnection, ...message };
+    render();
+    return;
+  }
   if (message.type === "projectChanging") {
     expectedProjectId = message.targetProjectId ?? expectedProjectId;
     projectPending = true;
@@ -1283,12 +1383,25 @@ window.addEventListener("message", (event) => {
     expectedProjectId = "";
     const previousVersions = JSON.stringify(dashboard?.versioning);
     indexDashboard(message.dashboard);
+    serviceConnection = {
+      ...serviceConnection,
+      state: "connected",
+      checkedAt: new Date().toISOString(),
+    };
     loadWorkspaceRequests();
     if (
       screen === "versions" &&
       previousVersions !== JSON.stringify(dashboard?.versioning)
     )
       loadVersions();
+  }
+  if (
+    message.type === "toolResult" &&
+    message.requestId === "request-create:new" &&
+    message.result?.id
+  ) {
+    focusedRequest = message.result.id;
+    selected = "";
   }
   if (
     message.type === "toolResult" &&
@@ -1323,6 +1436,14 @@ window.addEventListener("message", (event) => {
       architectureState.loading = false;
       architectureState.error = message.text;
     }
+  }
+  if (
+    surface === "sidebar" &&
+    message.type === "navigate" &&
+    typeof message.screen === "string"
+  ) {
+    screen = message.screen;
+    if (screen === "catalog") loadCatalog();
   }
   if (message.type === "busy") busy = message.value;
   if (message.type === "toolResult" && message.requestId === versionsRequestId)
@@ -1440,6 +1561,12 @@ app.addEventListener(
   "toggle",
   (event) => {
     const d = event.target as HTMLDetailsElement;
+    if (d.classList.contains("catalog-search"))
+      drafts.catalogSearchOpen = String(d.open);
+    if (d.classList.contains("workspace-tools"))
+      drafts.toolsOpen = String(d.open);
+    if (d.classList.contains("request-brief"))
+      drafts.requestBriefOpen = String(d.open);
     if (d.dataset.milestone) {
       if (d.open) openMilestones.add(d.dataset.milestone);
       else openMilestones.delete(d.dataset.milestone);

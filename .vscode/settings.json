@@ -158,6 +158,25 @@
         "tests/integration/registration.test.ts"
       ],
       "timeoutMs": 180000
+    },
+    {
+      "id": "source-snapshot",
+      "name": "Complete streamed source fingerprints and runner outcomes",
+      "executable": "node",
+      "args": [
+        "--import",
+        "tsx",
+        "--test",
+        "tests/integration/source-snapshot.test.ts"
+      ],
+      "timeoutMs": 120000
+    },
+    {
+      "id": "background-startup",
+      "name": "Actual hidden-sidebar automatic activation, readiness recovery and paused startup",
+      "executable": "node",
+      "args": ["scripts/verify-background-startup.mjs"],
+      "timeoutMs": 300000
     }
   ]
 }

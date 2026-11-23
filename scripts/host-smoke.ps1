@@ -1,4 +1,4 @@
-param([string]$Executable, [string]$HostName = 'vscode', [string]$ExtensionPath, [switch]$StartPaused, [switch]$MultiRoot)
+param([string]$Executable, [string]$HostName = 'vscode', [string]$ExtensionPath, [switch]$StartPaused, [switch]$MultiRoot, [switch]$DelayedStartup, [string]$ReportDirectory)
 $ErrorActionPreference = 'Stop'
 $taskRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
 if (-not $ExtensionPath) { $ExtensionPath = $taskRoot }
@@ -18,8 +18,14 @@ $taskNode = (Get-Command node).Source
 if ($StartPaused) {
   @{ 'contextory.nodeExecutable' = $taskNode; 'contextory.autoConnect' = $false; 'files.autoSave' = 'off'; 'contextory.restartAfterSetup' = 'never' } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $taskWorkspace '.vscode\settings.json') -Encoding UTF8
 }
+if ($DelayedStartup) {
+  if ($StartPaused -or $MultiRoot) { throw 'DelayedStartup is a separate single-project scenario.' }
+  @{ 'contextory.nodeExecutable' = 'contextory-unavailable-node'; 'files.autoSave' = 'off'; 'contextory.restartAfterSetup' = 'never' } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $taskWorkspace '.vscode\settings.json') -Encoding UTF8
+  @{ 'security.workspace.trust.enabled' = $false; 'extensions.autoUpdate' = $false; 'update.mode' = 'none'; 'workbench.startupEditor' = 'none'; 'contextory.nodeExecutable' = 'contextory-unavailable-node' } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $taskDirectory 'user\User\settings.json') -Encoding UTF8
+}
 'function start(ok:boolean){if(ok){next()}else{fallback()}} function next(){} function fallback(){}' | Set-Content -LiteralPath (Join-Path $taskWorkspace 'main.ts') -Encoding UTF8
-$taskReport = Join-Path $taskRoot ('artifacts\host-' + $HostName + '.json')
+if (-not $ReportDirectory) { $ReportDirectory = Join-Path $taskRoot 'artifacts' }
+$taskReport = Join-Path $ReportDirectory ('host-' + $HostName + '.json')
 $taskTest = Join-Path $taskRoot 'tests\host\smoke.cjs'
 if ($MultiRoot) {
   $taskSecond = Join-Path $taskDirectory 'second'
@@ -30,7 +36,7 @@ if ($MultiRoot) {
   @{ folders = @(@{ path = $taskWorkspace; name = 'Alpha' }, @{ path = $taskSecond; name = 'Beta' }); settings = @{ 'contextory.nodeExecutable' = $taskNode; 'contextory.restartAfterSetup' = 'never' } } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $taskWorkspaceFile -Encoding UTF8
   $taskWorkspace = $taskWorkspaceFile
   $taskTest = Join-Path $taskRoot 'tests\host\workspace.cjs'
-  $taskReport = Join-Path $taskRoot ('artifacts\host-' + $HostName + '-multi-root.json')
+  $taskReport = Join-Path $ReportDirectory ('host-' + $HostName + '-multi-root.json')
 }
 $taskArguments = @('--new-window', '--skip-welcome', '--skip-release-notes', '--disable-extensions', '--disable-updates', '--disable-gpu', '--no-sandbox',
   '--user-data-dir', ('"' + (Join-Path $taskDirectory 'user') + '"'), '--extensions-dir', ('"' + (Join-Path $taskDirectory 'extensions') + '"'),
@@ -38,12 +44,16 @@ $taskArguments = @('--new-window', '--skip-welcome', '--skip-release-notes', '--
 $taskArguments += @('--extensionDevelopmentPath="' + (Join-Path $taskRoot 'tests\host\agents\codex') + '"', '--extensionDevelopmentPath="' + (Join-Path $taskRoot 'tests\host\agents\claude') + '"')
 $taskEnvironment = @{}
 try {
-  foreach ($taskVariable in (Get-ChildItem Env: | Where-Object { $_.Name -like 'VSCODE_*' -or $_.Name -eq 'ELECTRON_RUN_AS_NODE' -or $_.Name -eq 'CONTEXTORY_SMOKE_REPORT' })) { $taskEnvironment[$taskVariable.Name] = $taskVariable.Value; [Environment]::SetEnvironmentVariable($taskVariable.Name, $null, 'Process') }
+  foreach ($taskVariable in (Get-ChildItem Env: | Where-Object { $_.Name -like 'VSCODE_*' -or $_.Name -eq 'ELECTRON_RUN_AS_NODE' -or $_.Name -in @('CONTEXTORY_SMOKE_REPORT', 'CONTEXTORY_SMOKE_NODE', 'CONTEXTORY_SMOKE_DELAYED') })) { $taskEnvironment[$taskVariable.Name] = $taskVariable.Value; [Environment]::SetEnvironmentVariable($taskVariable.Name, $null, 'Process') }
   $env:CONTEXTORY_SMOKE_REPORT = $taskReport
+  $env:CONTEXTORY_SMOKE_NODE = $taskNode
+  $env:CONTEXTORY_SMOKE_DELAYED = $(if ($DelayedStartup) { '1' } else { '0' })
   $taskStarted = [DateTime]::UtcNow
   $taskProcess = Start-Process -FilePath $Executable -ArgumentList $taskArguments -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $taskDirectory 'stdout.log') -RedirectStandardError (Join-Path $taskDirectory 'stderr.log')
 } finally {
   [Environment]::SetEnvironmentVariable('CONTEXTORY_SMOKE_REPORT', $null, 'Process')
+  [Environment]::SetEnvironmentVariable('CONTEXTORY_SMOKE_NODE', $null, 'Process')
+  [Environment]::SetEnvironmentVariable('CONTEXTORY_SMOKE_DELAYED', $null, 'Process')
   foreach ($taskVariableName in $taskEnvironment.Keys) { [Environment]::SetEnvironmentVariable($taskVariableName, $taskEnvironment[$taskVariableName], 'Process') }
 }
 while (-not $taskProcess.WaitForExit(500)) {

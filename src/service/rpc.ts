@@ -22,7 +22,7 @@ export async function rpc<T = unknown>(
   descriptorPath: string,
   method: string,
   params: unknown = {},
-  timeoutMs = 30000,
+  timeoutMs = method === "tools/call" ? 120000 : 30000,
 ): Promise<T> {
   let d: Descriptor;
   try {
@@ -42,6 +42,13 @@ export async function rpc<T = unknown>(
     body: JSON.stringify({ method, params }),
     signal: AbortSignal.timeout(timeoutMs),
     redirect: "error",
+  }).catch((error: Error) => {
+    throw new ContextoryError(
+      error.name === "TimeoutError" ? "REQUEST_TIMEOUT" : "SERVICE_UNAVAILABLE",
+      error.name === "TimeoutError"
+        ? "The Contextory operation exceeded its request timeout. The service may still be working; check connection status before retrying. The operation was not replayed."
+        : "Contextory service connection was interrupted. The editor reconnects automatically; retry the requested operation after it recovers.",
+    );
   });
   if (!response.ok)
     throw new ContextoryError(

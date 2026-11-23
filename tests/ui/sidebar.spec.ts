@@ -1,3 +1,4 @@
+import { openTool } from "./navigation";
 import { test, expect } from "@playwright/test";
 
 test("hook rebuild action follows the selected project and is disabled while busy", async ({
@@ -188,21 +189,19 @@ test("native companion has no chat composer and creates a request", async ({
     page.getByRole("button", { name: "Disconnect Codex", exact: true }),
   ).toBeVisible();
   await expect(page.locator(".work-row")).toHaveCount(8);
-  await expect(page.locator(".activity li")).toHaveCount(3);
+  await expect(page.locator(".activity li")).toHaveCount(0);
   await expect(page.locator("footer .connections .connection")).toHaveCount(3);
   await expect(page.locator("footer .connection .muted")).toHaveCount(0);
   await expect(page.locator(".intro")).toHaveCount(0);
-  const progress = page.getByRole("progressbar", {
-    name: "Make checkout reliable progress",
-  });
-  await expect(progress).toHaveAttribute("value", "1");
-  await expect(progress).toHaveAttribute("max", "2");
+  await expect(page.locator(".evidence-count")).toContainText("1 / 1");
+  await expect(page.locator(".main-nav > button")).toHaveCount(2);
+  await expect(page.getByRole("tablist")).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: "Connect", exact: true }),
   ).toHaveCount(0);
-  await expect(
-    page.getByRole("button", { name: "Knowledge", exact: true }),
-  ).toHaveCount(1);
+  await expect(page.locator('.tools-menu [data-screen="catalog"]')).toHaveCount(
+    1,
+  );
   await expect(page.locator("textarea")).toHaveCount(0);
   await page.getByRole("button", { name: "Requests", exact: true }).click();
   await page.getByRole("button", { name: "+ New request" }).click();
@@ -229,22 +228,28 @@ test("spec explanations, keyboard tabs, evidence origins and escaped content", a
     .click();
   await expect(card.locator(".spec-detail")).toHaveCount(1);
   await expect(page.locator("main > .spec-detail")).toHaveCount(0);
-  await page.getByRole("tab", { name: "Issues", exact: true }).click();
+  await page
+    .getByLabel("Specification details", { exact: true })
+    .selectOption("issues");
   await expect(
     page.getByText("Reuse the original key for every attempt."),
   ).toBeVisible();
   await page
-    .getByRole("tab", { name: "Issues", exact: true })
-    .press("ArrowRight");
+    .getByLabel("Specification details", { exact: true })
+    .press("ArrowDown");
   await expect(
-    page.getByRole("tab", { name: "Decisions", exact: true }),
+    page.getByLabel("Specification details", { exact: true }),
   ).toBeFocused();
   await expect(
     page.getByText("Retries must refer to the same transaction."),
   ).toBeVisible();
-  await page.getByRole("tab", { name: "Evidence", exact: true }).click();
+  await page
+    .getByLabel("Specification details", { exact: true })
+    .selectOption("evidence");
   await expect(page.getByText(/Independent Contextory check/)).toBeVisible();
-  await page.getByRole("tab", { name: "Outcome", exact: true }).click();
+  await page
+    .getByLabel("Specification details", { exact: true })
+    .selectOption("outcome");
   await expect(
     page.getByText("Preserved transaction identity across retries."),
   ).toBeVisible();
@@ -265,7 +270,9 @@ test("spec usage displays observed counters, keeps missing counts distinct and e
   await page
     .getByRole("button", { name: /Retry temporary payment failures/ })
     .click();
-  await page.getByRole("tab", { name: "Usage", exact: true }).click();
+  await page
+    .getByLabel("Specification details", { exact: true })
+    .selectOption("usage");
   await expect(
     page.getByText("3 native request attempts observed; 2 with token counts."),
   ).toBeVisible();
@@ -316,7 +323,7 @@ test("search and bounded source diagram support navigation and expansion", async
   await expect(
     page.getByRole("heading", { name: "Make checkout reliable" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Code map", exact: true }).click();
+  await openTool(page, "Code map");
   await page.getByRole("button", { name: "Trace current symbol" }).click();
   await expect(
     page.getByRole("group", { name: "Possible source flow" }),
@@ -343,7 +350,7 @@ test("full history pages beyond recent events and navigates to linked specs", as
   page,
 }) => {
   await page.goto("/sidebar.html");
-  await page.getByRole("button", { name: "History", exact: true }).click();
+  await openTool(page, "History");
   await expect(page.locator(".activity li")).toHaveCount(40);
   await page
     .locator("main")
@@ -362,6 +369,7 @@ test("full history pages beyond recent events and navigates to linked specs", as
     .getByRole("button", { name: "Retry temporary payment failures" })
     .click();
   await expect(page.locator("#record-REQ-demo .spec-detail")).toBeVisible();
+  await page.locator("#record-REQ-demo .request-brief summary").click();
   await page
     .locator("#record-REQ-demo")
     .getByRole("button", { name: "Export request report" })
@@ -449,8 +457,8 @@ test("relationship workbench view explains records, sources and links back to th
     .getByRole("button", { name: "Preserve payment identity", exact: true })
     .click();
   await expect(
-    page.getByRole("tab", { name: "Decisions", exact: true }),
-  ).toHaveAttribute("aria-selected", "true");
+    page.getByLabel("Specification details", { exact: true }),
+  ).toHaveValue("decisions");
   await expect(
     page.getByText("Retries must refer to the same transaction."),
   ).toBeVisible();

@@ -115,6 +115,15 @@ export interface Connection {
   hookCurrent?: boolean;
 }
 export interface Dashboard {
+  catalog?: {
+    observed: number;
+    pendingChanges: number;
+    approved: number;
+    entries: number;
+  };
+  checks?: { id: string; specId: string; name: string; state: string }[];
+  attemptStartedAt?: Record<string, string>;
+  configurationError?: string;
   workspace?: WorkspaceInfo;
   versioning?: import("../releases/manager").VersionStatus;
   references?: CodebaseInfo[];
@@ -156,6 +165,7 @@ export interface WorkspaceRequestStatus extends WorkspaceRequest {
   }[];
 }
 export interface AgentAutomation {
+  reloadRequired?: boolean;
   enabled: boolean;
   detected: Provider[];
   host: string;

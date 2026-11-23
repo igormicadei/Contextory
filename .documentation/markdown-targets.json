@@ -7,5 +7,6 @@
   "docs/NATIVE-AGENT-ARCHITECTURE.md": "architecture",
   "docs/DEVELOPMENT.md": "contributing",
   "docs/SPEC-OUTCOME-TEMPLATE.md": "outcomes",
-  "docs/VALIDATION.md": "validation"
+  "docs/VALIDATION.md": "validation",
+  "docs/releases/v0.8.0.md": "release-v0-8-0"
 }

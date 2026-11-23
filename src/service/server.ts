@@ -141,10 +141,15 @@ export async function startService(options: ServiceOptions) {
         notify({ type: "editor.trace", id, input });
       });
     const parseRecipes = (value: unknown): CheckRecipe[] => {
-      if (!Array.isArray(value) || value.length > 30)
+      if (!Array.isArray(value))
         throw new ContextoryError(
           "INVALID_CHECKS",
-          "Configure at most 30 check recipes.",
+          "contextory.checks must be an array of check recipes.",
+        );
+      if (value.length > 256)
+        throw new ContextoryError(
+          "INVALID_CHECKS",
+          `Configure at most 256 check recipes (received ${value.length}).`,
         );
       const ids = new Set<string>();
       return value.map((r) => {

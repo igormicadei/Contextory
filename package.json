@@ -187,6 +187,7 @@
         },
         "contextory.checks": {
           "type": "array",
+          "maxItems": 256,
           "default": [],
           "scope": "resource",
           "description": "Independent check recipes runnable by connected native agents. Commands execute trusted workspace code. Use executable and argument arrays, without shell fragments.",

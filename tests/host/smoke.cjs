@@ -17,12 +17,50 @@ exports.run = async function () {
     );
     assert.ok(extension);
     result.extensionPath = extension.extensionPath;
-    const api = await extension.activate();
+    await vscode.commands.executeCommand("workbench.view.explorer");
+    const activationDeadline = Date.now() + 30000;
+    while (!extension.isActive && Date.now() < activationDeadline)
+      await new Promise((resolve) => setTimeout(resolve, 50));
     assert.ok(extension.isActive);
-    result.checks.push("extension activation");
+    const api = extension.exports;
+    assert.ok(
+      api,
+      "Background activation must export its API without opening Contextory",
+    );
+    result.checks.push(
+      "automatic background activation with Explorer visible; no extension.activate or Contextory UI action",
+    );
     await api.ready;
     const root = vscode.workspace.workspaceFolders[0].uri.fsPath;
     const config = vscode.workspace.getConfiguration("contextory");
+    if (process.env.CONTEXTORY_SMOKE_DELAYED === "1") {
+      assert.equal(
+        config.get("nodeExecutable"),
+        "contextory-unavailable-node",
+        "The delayed scenario must actually start with an unavailable runtime",
+      );
+      assert.ok(process.env.CONTEXTORY_SMOKE_NODE);
+      assert.ok(!fs.existsSync(path.join(root, ".codex/config.toml")));
+      await config.update(
+        "nodeExecutable",
+        process.env.CONTEXTORY_SMOKE_NODE,
+        vscode.ConfigurationTarget.Global,
+      );
+      const startupDeadline = Date.now() + 30000;
+      while (
+        (!fs.existsSync(path.join(root, ".codex/config.toml")) ||
+          !fs.existsSync(path.join(root, ".mcp.json"))) &&
+        Date.now() < startupDeadline
+      )
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      assert.ok(
+        fs.existsSync(path.join(root, ".codex/config.toml")),
+        "Repairing startup prerequisites must connect in the background without a command or view opening",
+      );
+      result.checks.push(
+        "startup runtime readiness failure recovers after configuration repair while Explorer stays visible",
+      );
+    }
     assert.equal(config.get("startupAgent"), "auto");
     if (!config.get("autoConnect")) {
       for (const file of [".codex/config.toml", ".mcp.json", ".bob/mcp.json"])
@@ -340,6 +378,80 @@ exports.run = async function () {
     const storage = await api.storage();
     assert.ok(fs.existsSync(path.join(storage, "project.sqlite3")));
     result.checks.push("persistent SQLite ledger");
+    const originalChecks = config.get("checks", []);
+    const manyChecks = Array.from({ length: 33 }, (_, i) => ({
+      id: `recovery-check-${i}`,
+      name: `Recovery check ${i}`,
+      executable: process.execPath,
+      args: ["--version"],
+    }));
+    await config.update(
+      "checks",
+      manyChecks,
+      vscode.ConfigurationTarget.Workspace,
+    );
+    const deadline = Date.now() + 15000;
+    while (
+      (await api.tool("contextory_context_get", {})).recipes.length !== 33
+    ) {
+      assert.ok(
+        Date.now() < deadline,
+        "33 check recipes should configure in the editor",
+      );
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    const beforeInvalid = await api.health();
+    await config.update(
+      "checks",
+      [manyChecks[0], manyChecks[0]],
+      vscode.ConfigurationTarget.Workspace,
+    );
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    await api.refresh();
+    assert.equal((await api.health()).instance, beforeInvalid.instance);
+    assert.equal(
+      (await api.tool("contextory_context_get", {})).recipes.length,
+      33,
+    );
+    await config.update(
+      "checks",
+      originalChecks,
+      vscode.ConfigurationTarget.Workspace,
+    );
+    result.checks.push(
+      "33 recipes accepted and invalid configuration preserves connection and last valid recipes",
+    );
+    const oldHealth = await api.health();
+    const lock = JSON.parse(
+      fs.readFileSync(path.join(storage, "service.lock"), "utf8"),
+    );
+    assert.equal(
+      fs.realpathSync(lock.root).toLowerCase(),
+      fs.realpathSync(root).toLowerCase(),
+    );
+    process.kill(lock.pid);
+    const recoveryDeadline = Date.now() + 30000;
+    while (true) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      try {
+        const descriptor = JSON.parse(
+          fs.readFileSync(path.join(storage, "ui.json"), "utf8"),
+        );
+        if (descriptor.instance !== oldHealth.instance) break;
+      } catch {}
+      assert.ok(
+        Date.now() < recoveryDeadline,
+        "editor should restart the stopped service without refresh or another user action",
+      );
+    }
+    assert.notEqual((await api.health()).instance, oldHealth.instance);
+    const retained = await api.tool("contextory_entity_get", {
+      id: request.id,
+    });
+    assert.equal(retained.entity.title, request.title);
+    result.checks.push(
+      "automatic reconnect after actual service process loss retains project ledger and request",
+    );
     result.passed = true;
   } catch (error) {
     result.error = error instanceof Error ? error.stack : String(error);

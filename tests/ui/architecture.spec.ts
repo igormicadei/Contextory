@@ -1,3 +1,4 @@
+import { openTool } from "./navigation";
 import { test, expect } from "@playwright/test";
 
 test("architecture query, provenance notices, source navigation and refresh work", async ({
@@ -215,7 +216,7 @@ test("architecture stays usable at narrow widths, in light theme and with no que
   page,
 }) => {
   await page.goto("/sidebar.html?theme=light");
-  await page.getByRole("button", { name: "Architecture", exact: true }).click();
+  await openTool(page, "Architecture");
   await page.setViewportSize({ width: 320, height: 900 });
   await expect(page.getByRole("searchbox")).toBeInViewport();
   await page.getByRole("searchbox").fill("missing");

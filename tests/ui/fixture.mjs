@@ -12,6 +12,8 @@ const entity = (id, kind, title, data, parentId, state = "active") => ({
 });
 const dashboard = {
   references: [],
+  catalog: { observed: 1, pendingChanges: 1, approved: 1, entries: 2 },
+  checks: [],
   root: "C:/Projects/Checkout",
   projectId: "demo",
   sequence: 7,
@@ -791,6 +793,11 @@ window.acquireVsCodeApi = () => ({
             description: message.arguments.description,
           }),
         );
+        send({
+          type: "toolResult",
+          requestId: message.requestId,
+          result: { id: "REQ-created" },
+        });
         send({ type: "restore", dashboard });
       }
       if (message.type === "connect") {

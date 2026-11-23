@@ -43,7 +43,7 @@ Existing screenshots are application captures with example records. The document
 
 ## Keep remaining gaps explicit
 
-Contextory’s connected service was unavailable for request recovery, catalog review and project export. No tracked completion or catalog update was fabricated. Dynamic/static-analysis gaps, native trust, large-repository behavior and remote/other-OS support require their own evidence. A local documentation build does not establish live deployment; verify the Pages build and the served artifact separately.
+The earlier documentation rewrite recorded an unavailable service; the 0.8.0 delivery recovered the original project ledger and uses tracked release checks. Catalog entries remain observations until human review. Native trust, authenticated agent chats, dynamic/static-analysis gaps, remote workspaces and other operating systems retain their own qualification limits.
 
 ## Sources
 
@@ -54,3 +54,10 @@ Contextory’s connected service was unavailable for request recovery, catalog r
 - tests/ui/catalog.spec.ts
 - artifacts/host-release-070-vscode.json
 - artifacts/host-release-070-bob.json
+- src/extension.ts
+- src/service/reconnect.ts
+- src/service/rpc.ts
+- src/webview/progress.ts
+- tests/ui/console.spec.ts
+- tests/integration/recipe-configuration.test.ts
+- scripts/verify-background-startup.mjs
