@@ -400,8 +400,8 @@
       },
       {
         "path": "scripts/verify-release.mjs",
-        "sha256": "0b5c9e583d57420c06b12b234b2ff64bd77d70317bc05376b9a24e023bbd3752",
-        "bytes": 4586,
+        "sha256": "b106152b063ec17478bfc28012792a073e7a7784f8568a83578ccea431dedc26",
+        "bytes": 4746,
         "reason": "cited outside source ownership roots"
       },
       {

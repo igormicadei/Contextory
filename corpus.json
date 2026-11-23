@@ -6249,8 +6249,8 @@
     }
   ],
   "hasUserInterface": true,
-  "sourceRevision": "c49da721555aef703916e35fd1106179eab4b16f",
-  "sourceFingerprint": "9246c1ae2927631338cfa3a2382d779981ce3b732ee084e9f39e967be361ba2a",
+  "sourceRevision": "f01ab6db85fa402a2052d8ec42f2af7b71497f3b",
+  "sourceFingerprint": "1b0bb953a62c645c5390deb1c975245811ec74c73b9e2eaaed70c49e8fe985df",
   "sources": [
     {
       "path": "scripts/documentation/build.py",
@@ -6771,8 +6771,8 @@
       },
       {
         "path": "scripts/verify-release.mjs",
-        "sha256": "0b5c9e583d57420c06b12b234b2ff64bd77d70317bc05376b9a24e023bbd3752",
-        "bytes": 4586,
+        "sha256": "b106152b063ec17478bfc28012792a073e7a7784f8568a83578ccea431dedc26",
+        "bytes": 4746,
         "reason": "cited outside source ownership roots"
       },
       {
