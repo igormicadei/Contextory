@@ -1,5 +1,64 @@
 # Changelog
 
+## 0.9.0 (2026-11-23)
+
+### Commits
+
+- c49da721555aef703916e35fd1106179eab4b16f: chore: qualify 0.8.0 documentation and package checksum
+- f01ab6db85fa402a2052d8ec42f2af7b71497f3b: test: bound independent qualification concurrency
+- fa0c7219010c865a2dcbfc114729b6cbfd739f1a: fix: verify release history without downloading generated diffs
+- 3831ffc687a2f524c4579bb67ab413d7bd179c53: feat: add dedicated approvals and bundled project documentation
+
+### Project decisions, features and rules recorded in this interval
+
+These ledger entries are associated by recording interval, not verified commit inclusion. Refer to their immutable revisions for provenance.
+
+- DEC-10af3b33@1 (decision, active): Publish a minor release using immutable managed tag and separate qualification artifacts
+- DEC-19979107@1 (decision, active): Ship independent project documentation as on-demand Contextory capability
+- DEC-e930433f@1 (decision, active): Release 0.8.0 through managed versioning and immutable package assets
+- DEC-fb475648@1 (decision, active): Keep source refresh separate from human approval
+- ISS-355a3b31@2 (finding, resolved): Unbounded parallel qualification contends with local Git hooks and source workers
+- ISS-4cba0496@1 (finding, resolved): Preserve all Carbon resources while excluding generated Python caches
+- ISS-d71b3bfb@1 (finding, resolved): Stale source guards make approval appear inert without an inline recovery path
+- ISS-e997df6c@1 (finding, deferred): GitHub Actions billing lock requires verified branch-based documentation deployment
+- ISS-f322adb2@1 (finding, resolved): Large generated Pages diffs exceeded the publication verifier output buffer
+- ISS-feaa6069@1 (finding, resolved): New specifications need relevant explanations before associations exist
+- KN-2e0a3855@1 (knowledge, observed): Published release verification
+- KN-3a434696@1 (knowledge, observed): Project documentation reader
+- KN-456a5f5a@1 (knowledge, observed): Isolated documentation runtime bridge
+- KN-55b13738@1 (knowledge, observed): Independent documentation and Carbon runtime linked to project changes
+- KN-77e7df33@1 (knowledge, observed): Project explanations in Documentation with contextual entry points
+- KN-85279736@1 (knowledge, observed): Knowledge catalog review and source freshness
+- KN-8a572b8d@1 (knowledge, observed): Human source refresh without implicit knowledge approval
+- KN-91fdf5da@1 (knowledge, observed): Verified documentation resource packaging
+- KN-ad8c24fe@1 (knowledge, observed): Portable project documentation workflow
+- KN-aeece84e@1 (knowledge, observed): Documentation and Carbon provenance manifest
+- KN-b9c6303e@1 (knowledge, observed): Version 0.8.0 package checksum
+- KN-beae20ae@1 (knowledge, observed): New specifications retrieve relevant explanations before record linking
+- KN-c131d930@1 (knowledge, observed): Project documentation presentation
+- KN-c3298ff0@1 (knowledge, observed): Primary Approvals queue separate from Knowledge browsing
+- KN-cbcd54c3@1 (knowledge, observed): Catalog pending-only query before pagination
+- KN-d2cc8346@1 (knowledge, observed): Recoverable knowledge review with pending items first
+- KN-ed5920b1@1 (knowledge, observed): Workspace independent qualification recipes
+- KN-fab5cebc@1 (knowledge, observed): Project knowledge review presentation
+- KN-fb79a7d6@1 (knowledge, observed): Bundled documentation operations and guidance
+- OUT-0c60d049@1 (outcome, submitted): Implemented recoverable human knowledge review with inline feedback, retained reasons and pending-first ordering across filtered pages; built a local fix VSIX.
+- OUT-55da400d@1 (outcome, submitted): Released Contextory 0.8.0: committed and merged PR \#1, applied and published the managed annotated tag, built and qualified the exact final VSIX/checksum, pushed clean main and deployed verified bilin
+- OUT-620ccd5b@1 (outcome, submitted): Implemented independent project documentation with bundled software-documentation/Carbon, source/change retrieval and responsive project UI.
+- OUT-a5098670@1 (outcome, submitted): Added primary Approvals queue beside Work/Requests and separated Knowledge browsing.
+- REQ-01b544c5@3 (request, active): Backlog: reference knowledge reuse and integrated project explanations
+- REQ-3acdd56f@2 (request, completed): Separate pending approvals into a primary navigation tab
+- REQ-6f67cf4a@1 (request, active): Release Contextory 0.9.0 with Approvals and independent project documentation
+- REQ-8a41affa@2 (request, completed): Release Contextory 0.8.0
+- REQ-acf7362f@2 (request, completed): Make knowledge review actionable and show pending items first
+- REQ-d917534f@2 (request, completed): Embed portable project documentation with bundled Carbon guidance and runtime
+- SPEC-3dca104e@2 (spec, implementing): Publish the qualified Contextory 0.9.0 extension and documentation
+- SPEC-5be921a8@5 (spec, completed): Add primary Approvals tab and separate the knowledge browser
+- SPEC-a39f227c@6 (spec, completed): Bundle documentation and Carbon, connect retrieval, maintenance and project UI
+- SPEC-d5b72c6e@6 (spec, completed): Qualify and publish Contextory 0.8.0
+- SPEC-f128b036@4 (spec, completed): Recover stale review and order pending knowledge first
+
+
 ## 0.8.0 (2026-11-23)
 
 ### Commits

@@ -1,4 +1,4 @@
-export const version = "0.8.0";
+export const version = "0.9.0";
 export type Provider = import("../providers/clients").ClientId;
 export type Kind =
   | "request"

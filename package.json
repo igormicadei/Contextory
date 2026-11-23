@@ -2,7 +2,7 @@
   "name": "contextory-workspace",
   "displayName": "Contextory - Requests & Agent Context",
   "description": "Manage requests, milestones and specs. Give native agents shared context through decisions, evidence, workspace search and code flow.",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "publisher": "contextory-local",
   "icon": "media/contextory-icon.png",
   "private": true,
