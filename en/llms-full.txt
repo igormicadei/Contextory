@@ -1,7 +1,7 @@
 # Contextory (en)
 
 Version: 0.8.0
-Source revision: f01ab6db85fa402a2052d8ec42f2af7b71497f3b
+Source revision: fa0c7219010c865a2dcbfc114729b6cbfd739f1a
 Source fingerprint: 1b0bb953a62c645c5390deb1c975245811ec74c73b9e2eaaed70c49e8fe985df
 
 # Contextory
