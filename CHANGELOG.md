@@ -1,5 +1,67 @@
 # Changelog
 
+## 0.8.0 (2026-11-23)
+
+### Commits
+
+- 295e455fb4c085d798a5d56b5a8388df7cbc9142: chore: record v0.7.0 package qualification
+- a7f2d02d4483dad662b18faaaafb7493c874332d: docs: rewrite bilingual documentation with default Carbon layouts
+- 1d2035e3a76b0c1b945f10d30808b6822f332f98: docs: record verified Pages deployment
+- 63e0eee9f865626da3fb6d8e45b386d2f51adf09: docs: remove language chooser from site root
+- 24ebfa922c3eea8cd974a1cc5671dbea1bc1cc4d: docs: record landing page deployment
+- 80f3d9979182ff9db828363889c201d960f1d03f: feat: deliver resilient background connections and responsive work console
+- 7ea7e8e5e9596633d11523b63f0f56a7cce03f43: Merge pull request \#1: resilient connections and responsive work console
+
+### Project decisions, features and rules recorded in this interval
+
+These ledger entries are associated by recording interval, not verified commit inclusion. Refer to their immutable revisions for provenance.
+
+- DEC-7b89b856@1 (decision, active): Release additive hook recovery as 0.7.0 with immutable tag and verified assets
+- DEC-845108e8@1 (decision, active): Show work movement with recorded evidence instead of completion-time estimates
+- DEC-fb1276cc@1 (decision, active): Recover service connectivity without replaying operations or claiming control of native hook trust
+- ISS-4bdf8ea7@1 (finding, resolved): Later startup readiness errors could remain idle until a view-triggered refresh
+- ISS-542ba298@1 (finding, resolved): Recipe validation and lost event streams abort the editor connection without automatic recovery
+- ISS-83e4e414@1 (finding, deferred): GitHub billing lock prevents the source documentation workflow from starting
+- ISS-d872a061@1 (finding, resolved): Slow source requests were reported as unavailable service and the editor used a shorter tool budget than native MCP
+- KN-07312e93@1 (knowledge, observed): Focused workspace console in sidebar and horizontal panel
+- KN-256312d9@1 (knowledge, observed): Large source files remain covered by independent verification
+- KN-3d9c6b50@1 (knowledge, observed): Persistent pending knowledge review attention and deduplicated editor alerts
+- KN-403dd825@1 (knowledge, observed): Version 0.7.0 discovery and upgrade documentation
+- KN-63e3ce90@1 (knowledge, observed): Version 0.7.0 extracted VS Code qualification
+- KN-71fd416e@1 (knowledge, observed): Within-spec recorded progress and provenance
+- KN-787dd5ed@1 (knowledge, observed): Native hook reload is distinct from service health and managed-file repair
+- KN-803cc5e9@1 (knowledge, observed): Review notification navigation is confined to the workspace console
+- KN-9a6d5517@1 (knowledge, observed): Later failed checks revoke earlier passing progress for their recipe
+- KN-a0ed7942@1 (knowledge, observed): Version 0.7.0 hook recovery release notes
+- KN-a2fee8b0@1 (knowledge, observed): Isolated editor startup scenario launcher
+- KN-aecdbe22@1 (knowledge, observed): Canonical bilingual documentation corpus
+- KN-b084b3bc@1 (knowledge, observed): Version 0.7.0 extracted IBM Bob qualification
+- KN-b16ee319@1 (knowledge, observed): src/verification/workspace.ts
+- KN-ba31325c@1 (knowledge, observed): Timeout-aware service diagnostics and usable panel work actions
+- KN-c26043ab@1 (knowledge, observed): Background startup qualification entry point
+- KN-cdbd1f84@1 (knowledge, observed): Recorded specification progress projection
+- KN-e58031b2@1 (knowledge, observed): Automatic editor service recovery and independent recipe validation
+- KN-e63e7f8e@1 (knowledge, observed): Version 0.7.0 package qualification
+- KN-ecaa943d@1 (knowledge, observed): Connection-only retry supervisor
+- KN-fbae0c2b@1 (knowledge, observed): Project release version adapters
+- KN-fd09867e@1 (knowledge, observed): Visibility-independent background startup and readiness recovery
+- OUT-040e5b52@1 (outcome, submitted): Complete source snapshots now stream every byte of large files and reject changes during reads. The corrected maintained extension was rebuilt and installed locally.
+- OUT-27059df4@1 (outcome, submitted): Replaced the crowded tabbed interface with a responsive work console, added visible knowledge review attention and recorded within-spec progress, and fixed service recovery, recipe validation and time
+- OUT-556074b7@1 (outcome, submitted): Released Contextory 0.7.0 with managed hook recovery. Committed and pushed feature/version/qualification changes, published the immutable annotated tag and matching VSIX/checksum, qualified the extrac
+- OUT-7559b6aa@1 (outcome, submitted): Startup and readiness recovery run without opening Contextory, qualified by real automatic activation with Explorer visible.
+- REQ-01b544c5@2 (request, active): Backlog: reference knowledge reuse and integrated project explanations
+- REQ-2df55580@2 (request, completed): Start Contextory and native setup without opening the sidebar
+- REQ-2fc0b255@2 (request, completed): Release Contextory 0.7.0 with managed hook recovery
+- REQ-4020f3b8@2 (request, completed): Recover connections and redesign the Contextory work interface
+- REQ-85d0bedb@2 (request, completed): Corrigir snapshots de fontes grandes e desbloquear a entrega PreVendas
+- REQ-8a41affa@1 (request, active): Release Contextory 0.8.0
+- SPEC-57d76984@8 (spec, completed): Hash integral de arquivos grandes sem carregar o arquivo inteiro
+- SPEC-c43028b8@5 (spec, completed): Recover services and deliver a responsive work console with review alerts and evidence-based progress
+- SPEC-d38608ef@4 (spec, completed): Publish the qualified hook recovery release
+- SPEC-d5b72c6e@2 (spec, implementing): Qualify and publish Contextory 0.8.0
+- SPEC-ed669f61@4 (spec, completed): Keep startup and readiness recovery independent of the Contextory view
+
+
 ## 0.7.0 (2026-11-21)
 
 ### Commits
