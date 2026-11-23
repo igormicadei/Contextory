@@ -38,4 +38,5 @@ Registros semânticos associados entre limites de releases continuam sendo assoc
 - src/releases/config.ts
 - src/webview/versions.ts
 - tests/integration/releases.test.ts
+- contextory.release.json
 

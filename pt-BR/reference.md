@@ -10,7 +10,7 @@
 | contextory.nodeExecutable | node | Executável Node.js 24+ com escopo de máquina |
 | contextory.pythonExecutable | python | Executável Python 3.10+ com escopo de máquina para análise |
 | contextory.flowDepth | 5 | Profundidade de chamadas, 0–12 |
-| contextory.checks | [] | Receitas nomeadas com executável/lista de argumentos para verificações independentes |
+| contextory.checks | [] | Até 256 receitas nomeadas com executável/argumentos; mudanças inválidas preservam a conexão e a última lista válida |
 
 ## Comandos do editor
 
@@ -34,7 +34,7 @@ O modo independente usa <root>/.contextory-local/service por padrão, salvo --st
 
 O corpus bilíngue origina páginas humanas, Markdown e exportações LLM. Suas raízes de propriedade abrangem scripts do gerador; fontes e testes do Contextory são evidências de apoio com hashes. Docstrings de funções/classes da aplicação não foram reescritas. Assim, o apêndice de símbolos documenta o gerador, enquanto a página de API MCP documenta os contratos públicos do produto.
 
-A recuperação de workspace/catálogo/exportação do Contextory estava indisponível durante esta reescrita: SERVICE_UNAVAILABLE — Open Contextory in the connected workspace and retry. Foi usada inspeção do código atual. Não se afirma conclusão de spec rastreada nem aprovação humana do catálogo. Consulte o registro de revisão para verificações e limites exatos.
+A reescrita histórica usou inspeção local durante a indisponibilidade do Contextory. A entrega 0.8.0 recuperou o serviço e inspecionou código e trabalho rastreado atuais. Definições observadas não são requisitos aprovados por pessoas. Consulte o registro de revisão para escopo e limites.
 
 ## Fontes
 
@@ -130,4 +130,9 @@ A recuperação de workspace/catálogo/exportação do Contextory estava indispo
 - scripts/licenses.mjs
 - scripts/verify-release.mjs
 - scripts/documentation/vendor/PROVENANCE.json
+- src/service/reconnect.ts
+- src/webview/progress.ts
+- tests/ui/console.spec.ts
+- tests/integration/recipe-configuration.test.ts
+- scripts/verify-background-startup.mjs
 

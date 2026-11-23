@@ -18,10 +18,13 @@
 
 Pedidos no Panel horizontal do editor.
 
+O snapshot assina o conteúdo completo dos arquivos do manifesto, usando leitura em blocos de 1 MiB. Arquivos maiores que 20 MiB continuam incluídos; não é necessário remover fixtures para executar checks. Se tamanho, datas de modificação/metadados, identidade ou tipo de um arquivo mudar durante a leitura, a captura é recusada com STALE_SOURCE. A comparação de snapshots antes e depois do comando e a exigência de evidência independente continuam ativas.
+
 ## Fontes
 
 - src/contracts/tools.ts
 - src/core/workflow.ts
 - src/core/report.ts
 - tests/core/workflow.test.ts
+- src/verification/workspace.ts
 

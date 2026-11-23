@@ -13,6 +13,8 @@ Read contextory_catalog_get before related changes and page definitions, proposa
 
 ## Review an exact definition revision
 
+A persistent review alert counts observed definitions and pending changes. The editor view also has a badge and offers Review now when exact pending record revisions change. Notifications are deduplicated per project across restarts; dismissing one leaves the review alert available.
+
 1. Open Knowledge, choose a definition and inspect its sources, tests, state, revision and freshness.
 2. Review baseline observations or the before/after content of a replacement or retirement. Enter a reason before approving or rejecting.
 3. Refresh stale candidates before approval. Competing proposals must match the exact current target revision. Rejections keep the original definition and all revisions remain retained.
@@ -48,4 +50,11 @@ This export excludes credentials, native conversations and numeric embedding vec
 - src/knowledge/export.ts
 - src/webview/catalog.ts
 - tests/integration/catalog.test.ts
+- src/extension.ts
+- src/service/reconnect.ts
+- src/service/rpc.ts
+- src/webview/progress.ts
+- tests/ui/console.spec.ts
+- tests/integration/recipe-configuration.test.ts
+- scripts/verify-background-startup.mjs
 

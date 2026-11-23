@@ -10,7 +10,7 @@
 | contextory.nodeExecutable | node | Machine-level Node.js 24+ executable |
 | contextory.pythonExecutable | python | Machine-level Python 3.10+ executable for analysis |
 | contextory.flowDepth | 5 | Call-hop depth, 0–12 |
-| contextory.checks | [] | Named executable/argument-array recipes for independent checks |
+| contextory.checks | [] | Up to 256 named executable/argument-array recipes; invalid changes retain the connection and last valid list |
 
 ## Editor commands
 
@@ -34,7 +34,7 @@ Standalone mode defaults to <root>/.contextory-local/service unless --storage or
 
 The bilingual corpus is the source of the human pages, Markdown and LLM exports. Its ownership roots cover the documentation build scripts; Contextory source and tests are cited as hash-bound supporting evidence. Application function/class docstrings were not rewritten. The generated source-symbol appendix therefore documents the build tooling, while the MCP API page documents the product’s public tool contracts.
 
-Contextory workspace/catalog/export retrieval was unavailable during this rewrite: SERVICE_UNAVAILABLE — Open Contextory in the connected workspace and retry. Current source inspection was used instead. No tracked spec or human catalog approval is claimed. See the review record for precise checks and limitations.
+The historical documentation rewrite used native inspection while Contextory was unavailable. The 0.8.0 delivery recovered the original service ledger and inspected current source and tracked work. Observed catalog definitions are not human-approved requirements. See the review record for scope and evidence limits.
 
 ## Sources
 
@@ -130,4 +130,9 @@ Contextory workspace/catalog/export retrieval was unavailable during this rewrit
 - scripts/licenses.mjs
 - scripts/verify-release.mjs
 - scripts/documentation/vendor/PROVENANCE.json
+- src/service/reconnect.ts
+- src/webview/progress.ts
+- tests/ui/console.spec.ts
+- tests/integration/recipe-configuration.test.ts
+- scripts/verify-background-startup.mjs
 

@@ -1,6 +1,6 @@
 # Contextory
 
-> plugin · 0.7.0
+> plugin · 0.8.0
 
 ## pt-BR
 
@@ -24,6 +24,7 @@
 - [Validação e limites das evidências](pt-BR/validation.md)
 - [Histórico de releases e documentos preservados](pt-BR/history.md)
 - [Referência da API MCP](pt-BR/api.md)
+- [Release v0.8.0](pt-BR/release-v0-8-0.md)
 - [Release v0.7.0](pt-BR/release-v0-7-0.md)
 - [Release v0.6.0](pt-BR/release-v0-6-0.md)
 - [Release v0.5.1](pt-BR/release-v0-5-1.md)
@@ -62,6 +63,7 @@
 - [Validation and evidence boundaries](en/validation.md)
 - [Release history and preserved documents](en/history.md)
 - [MCP API reference](en/api.md)
+- [Release v0.8.0](en/release-v0-8-0.md)
 - [Release v0.7.0](en/release-v0-7-0.md)
 - [Release v0.6.0](en/release-v0-6-0.md)
 - [Release v0.5.1](en/release-v0-5-1.md)

@@ -13,6 +13,8 @@ Leia contextory_catalog_get antes de alterações relacionadas e pagine definiç
 
 ## Revise uma revisão exata da definição
 
+Um alerta persistente conta definições observadas e alterações pendentes. A view do editor também mostra um badge e oferece Review now quando mudam as revisões pendentes. Notificações são deduplicadas por projeto entre reinícios; dispensá-las mantém o alerta disponível.
+
 1. Abra Knowledge, escolha uma definição e inspecione fontes, testes, estado, revisão e atualização.
 2. Revise as observações iniciais ou o conteúdo antes/depois de substituições ou aposentadorias. Informe um motivo antes de aprovar ou rejeitar.
 3. Atualize candidatos obsoletos antes da aprovação. Propostas concorrentes devem corresponder à revisão atual exata. Rejeições mantêm a definição original e todas as revisões são preservadas.
@@ -48,4 +50,11 @@ A exportação exclui credenciais, conversas nativas e vetores numéricos de emb
 - src/knowledge/export.ts
 - src/webview/catalog.ts
 - tests/integration/catalog.test.ts
+- src/extension.ts
+- src/service/reconnect.ts
+- src/service/rpc.ts
+- src/webview/progress.ts
+- tests/ui/console.spec.ts
+- tests/integration/recipe-configuration.test.ts
+- scripts/verify-background-startup.mjs
 

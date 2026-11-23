@@ -1,11 +1,11 @@
 # Guias da interface
 
-## Overview e Requests
+## Work e Requests
 
-1. Abra o Contextory e selecione o Project responsável. Overview mostra pedidos abertos, progresso das especificações e as três atividades mais recentes; um workspace vazio convida à criação de um pedido.
-2. Abra Requests e selecione + New request. Preencha Title e What should change?, escolha os projetos afetados se necessário e selecione Create request.
-3. Expanda um marco e selecione sua especificação. Inspecione Contract, Issues, Decisions, Evidence, Outcome, Usage e History. Search history também busca explicações dos registros descendentes.
-4. Use Explore relationships para abrir registros e locais de código vinculados. Exporte um relatório quando precisar transferir o contexto.
+1. Abra o Contextory e selecione o Project responsável. Work mostra a especificação atual, evidências registradas por critério, verificações em execução, bloqueios e o último registro relevante. Um projeto vazio oferece um novo pedido.
+2. Escolha Requests e + New request. Preencha Title e What should change?, selecione os projetos afetados quando necessário e use Create request. Abra um pedido para inspecionar seu plano; expanda o resumo e as ações quando precisar.
+3. Expanda um marco, selecione sua especificação e abra Specification details para plano, problemas, decisões, evidências, resultado, uso ou histórico. As contagens descrevem verificações registradas; elas não estimam o tempo restante.
+4. Use Tools para Knowledge, Versions, History, Code map e Architecture. Exportações e relações continuam disponíveis no pedido ou especificação selecionados.
 
 ![Lista de pedidos ao lado da especificação selecionada.](../assets/panel-requests.png)
 
@@ -15,7 +15,7 @@ Durante a troca de projeto, a interface mostra Switching project e ignora respos
 
 ## Inspecione arquitetura e fluxo de código
 
-1. Abra Architecture ou execute Contextory: Explore Architecture. Selecione um subsistema, arquivo e símbolo no mapa, árvore e inspetor coordenados.
+1. Abra Tools > Architecture ou execute Contextory: Explore Architecture. Selecione subsistema, arquivo e símbolo no mapa, árvore e inspetor coordenados.
 2. Use Explore connections e os filtros de relação/direção. As linhas de Matrix dependem das colunas; o marcador recíproco identifica dependências diretas nas duas direções.
 3. Para fluxo detalhado, posicione o cursor em uma função e execute Contextory: Trace Flow from Here ou use Code map. Selecione uma etapa para inspecionar chamadas, desvios e código.
 4. Use zoom, Fit, arraste o fundo e os botões de código. Se não houver conexões indexadas, escolha outro escopo ou Refresh code index e revise os avisos de cobertura.
@@ -30,9 +30,9 @@ Explorador de fluxo limitado do Contextory.
 
 ## Revise Knowledge e Versions
 
-1. Abra Knowledge. Filtre entradas por categoria, texto ou caminho e inspecione a definição, testes e atualização.
+1. Escolha o alerta persistente de revisão ou Tools > Knowledge. Revise primeiro a fila; expanda busca de definições e cobertura de arquivos quando necessário.
 2. Para uma linha de base observada ou alteração pendente, leia a proposta exata e informe um motivo antes de Approve baseline, Approve change ou Reject. Apenas uma pessoa usa esses controles de revisão.
-3. Abra Versions para inspecionar a versão atual, commits e planos de release. Revise versão, arquivos e changelog antes de aplicar um plano. Publish é uma ação separada que exige autorização de release.
+3. Abra Tools > Versions para inspecionar versão, commits e planos de release. Revise versão, arquivos e changelog antes de aplicar; Publish é uma ação de release autorizada separadamente.
 
 ![Versões do projeto e detalhes de releases no Panel do editor.](../assets/panel-versions.png)
 
@@ -44,7 +44,7 @@ Versions capturado da aplicação.
 
 ## Histórico, layout e uso do teclado
 
-1. Abra History ou Full history em Overview. Filtre por pedido, marco ou especificação e use Load older activity para consultar eventos anteriores.
+1. Abra Tools > History ou o histórico do pedido/especificação selecionados. Filtre o escopo e use Load older activity para consultar eventos anteriores.
 2. Para usar o layout horizontal, mova Workspace Tasks para o Panel do editor e redimensione. Em áreas largas e baixas, a lista de pedidos aparece ao lado do inspetor da especificação.
 3. Use Tab para alcançar controles, Enter ou Espaço para ativar nós dos mapas, setas nos diagramas com foco e Ctrl+roda para zoom. A interface acompanha o tema e as cores de alto contraste do editor.
 
@@ -52,7 +52,7 @@ Versions capturado da aplicação.
 
 Histórico do projeto no Panel do editor.
 
-Redimensionar ou mudar a posição preserva seleção e rascunhos dentro do mesmo projeto. Estados inicial/carregando/erro/desabilitado dependem do projeto selecionado e do serviço disponível. As imagens publicadas são capturas reais existentes da aplicação, com registros de exemplo; não foram recapturadas em um chat nativo autenticado durante esta reescrita.
+Redimensionar ou mover preserva seleção, rascunhos, detalhes expandidos e rolagem no mesmo projeto. Barras laterais estreitas empilham trabalho e detalhes; painéis largos e baixos os separam. Carregamento, erros e dados da última atualização ficam explícitos. As capturas mostram a webview de produção com exemplos isolados, não um chat nativo autenticado.
 
 ## Fontes
 
@@ -63,4 +63,11 @@ Redimensionar ou mudar a posição preserva seleção e rascunhos dentro do mesm
 - src/webview/versions.ts
 - tests/ui/sidebar.spec.ts
 - tests/ui/catalog.spec.ts
+- src/extension.ts
+- src/service/reconnect.ts
+- src/service/rpc.ts
+- src/webview/progress.ts
+- tests/ui/console.spec.ts
+- tests/integration/recipe-configuration.test.ts
+- scripts/verify-background-startup.mjs
 

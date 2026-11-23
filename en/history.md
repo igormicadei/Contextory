@@ -1,8 +1,8 @@
 # Release history and preserved documents
 
-## Current documented version: 0.7.0
+## Current documented version: 0.8.0
 
-Version 0.7.0 adds explicit hook recovery in the footer, Command Palette and MCP; it preserves unrelated configuration and native approvals. Bounded Windows file-replacement retries improve startup recovery. The 0.6.0 line introduced separate workspace projects and coordinated cross-project requests; 0.5.0 added governed Knowledge, project releases and documentation export.
+Version 0.8.0 introduces the responsive Work/Requests console, evidence-based progress, persistent Knowledge review alerts, automatic service recovery, background startup independent of sidebar visibility, 256 check recipes and complete streamed source fingerprints. Version 0.7.0 introduced managed hook recovery; 0.6.0 introduced separate workspace projects and coordinated requests.
 
 [Install the current release](install.md)
 

@@ -14,6 +14,16 @@
 
 [Guia de recuperação de conexões e hooks](user-guide.md)
 
+## Recuperação automática e limites de requisição
+
+O editor verifica o serviço a cada 20 segundos, com limite de cinco segundos. Perda do fluxo, inclusive encerramento normal, dispara reconexão após 1, 2, 4, 8, 16 e no máximo 30 segundos. A interface identifica dados retidos e oferece Retry now. A recuperação não repete mutações com falha.
+
+REQUEST_TIMEOUT indica que a operação excedeu seu limite; não comprova SERVICE_UNAVAILABLE. Ferramentas comuns permitem 120 segundos e releases têm limite separado de cinco minutos. Se a resposta de uma mutação for incerta, recupere com o ID de operação e a entrada originais exatos.
+
+Para o antigo erro Configure at most 30 check recipes, atualize para 0.8.0: até 256 receitas são aceitas. Corrija IDs duplicados ou receitas inválidas em Fix check settings. Erros de configuração preservam o serviço e suas últimas receitas válidas.
+
+Rebuild hooks grava arquivos gerenciados imediatamente. Reparos com mudanças seguem contextory.restartAfterSetup: prompt, automatic ou never. A extensão Codex inspecionada não expõe comando público para atualizar hooks; o Contextory não concede confiança nativa nem garante recarga imediata em chat ativo. Revise /hooks na sessão, preserve maiúsculas/minúsculas do caminho e reabra o chat após reiniciar extensões quando necessário.
+
 ## Recupere resultados de código e conclusão
 
 | Sintoma | Ação |
@@ -39,4 +49,11 @@ Inclua versão do Contextory, editor/versão, versões Node/Python, erro exato e
 - src/service/server.ts
 - src/core/workflow.ts
 - tests/core/readiness.test.ts
+- src/extension.ts
+- src/service/reconnect.ts
+- src/service/rpc.ts
+- src/webview/progress.ts
+- tests/ui/console.spec.ts
+- tests/integration/recipe-configuration.test.ts
+- scripts/verify-background-startup.mjs
 

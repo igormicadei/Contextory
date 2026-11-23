@@ -38,4 +38,5 @@ Semantic records associated between release cutoffs remain interval associations
 - src/releases/config.ts
 - src/webview/versions.ts
 - tests/integration/releases.test.ts
+- contextory.release.json
 

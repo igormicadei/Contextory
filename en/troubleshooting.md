@@ -14,6 +14,16 @@
 
 [Connection and hook recovery walkthrough](user-guide.md)
 
+## Automatic recovery and request timeouts
+
+The editor probes service health every 20 seconds with a five-second timeout. Lost streams, including clean closure, trigger reconnection after 1, 2, 4, 8, 16 and at most 30 seconds. The view labels retained data and offers Retry now. Recovery never replays failed mutations.
+
+REQUEST_TIMEOUT means an operation exceeded its request budget; it does not establish SERVICE_UNAVAILABLE. Ordinary tools allow 120 seconds and release operations have their separate five-minute budget. For an uncertain mutation response, recover with the exact original operation ID and input.
+
+For the former Configure at most 30 check recipes error, upgrade to 0.8.0: up to 256 recipes are supported. Fix duplicate IDs or malformed recipes through Fix check settings. Configuration errors retain the service and its last valid recipes.
+
+Rebuild hooks writes managed files immediately. Changed repairs follow contextory.restartAfterSetup: prompt, automatic or never. The installed Codex extension exposes no public hook-refresh command; Contextory cannot grant native trust or guarantee immediate reload inside a running chat. Review /hooks in that session, keep workspace path casing consistent and reopen the chat after restarting extensions when required.
+
 ## Recover source results and completion
 
 | Symptom | Action |
@@ -39,4 +49,11 @@ Include Contextory version, editor/version, Node/Python versions, exact error te
 - src/service/server.ts
 - src/core/workflow.ts
 - tests/core/readiness.test.ts
+- src/extension.ts
+- src/service/reconnect.ts
+- src/service/rpc.ts
+- src/webview/progress.ts
+- tests/ui/console.spec.ts
+- tests/integration/recipe-configuration.test.ts
+- scripts/verify-background-startup.mjs
 

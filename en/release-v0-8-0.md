@@ -1,0 +1,32 @@
+# Release v0.8.0
+
+## Work console and reliable connections
+
+Work and Requests focus the interface on the current specification and one request plan. Tools exposes project exploration on demand. The same view adapts to a narrow vertical sidebar and a wide horizontal panel while preserving selection, drafts and scroll.
+
+Progress shows criterion evidence, running checks, blockers and latest work instead of a time estimate. Persistent review alerts, a view badge and deduplicated notifications expose Knowledge awaiting human review.
+
+Service recovery detects failed heartbeats and closed event streams, retries automatically with bounded backoff and distinguishes request timeouts. Startup no longer depends on opening the Contextory view. Up to 256 recipes are supported; invalid settings retain the connection and last valid recipes.
+
+Changed hook repairs follow the configured reload policy while native trust remains client-owned. Source snapshots stream complete files in 1 MiB chunks, including files over 20 MiB, and reject files changed during hashing.
+
+[Install 0.8.0](install.md)
+
+[Download VSIX and checksum](https://github.com/igormicadei/Contextory/releases/tag/v0.8.0)
+
+## Qualification and boundaries
+
+The implementation passed 115 backend/core/integration/analysis tests and 43 browser tests. Isolated VS Code 1.147.0 profiles verify actual automatic activation with Explorer visible, repaired runtime readiness and paused startup. The test never calls extension.activate(). A packaged host check also exercised 33 recipes, invalid configuration retention and service restart recovery. Final release assets and Pages are checked separately at publication.
+
+Native hook approval and notification dismissal remain human UI checks. Reference metadata reuse and embedded project documentation remain backlog candidates; the feasibility assessment does not ship those integrations.
+
+## Sources
+
+- src/extension.ts
+- src/service/reconnect.ts
+- src/webview/progress.ts
+- src/verification/workspace.ts
+- tests/ui/console.spec.ts
+- tests/integration/recipe-configuration.test.ts
+- scripts/verify-background-startup.mjs
+

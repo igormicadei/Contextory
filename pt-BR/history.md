@@ -1,8 +1,8 @@
 # Histórico de releases e documentos preservados
 
-## Versão documentada atual: 0.7.0
+## Versão documentada atual: 0.8.0
 
-A versão 0.7.0 adiciona recuperação explícita de hooks no rodapé, Command Palette e MCP, preservando configurações alheias e aprovações nativas. Novas tentativas limitadas de substituição de arquivos no Windows melhoram a recuperação. A linha 0.6.0 introduziu projetos separados e pedidos coordenados entre projetos; 0.5.0 adicionou Knowledge com governança, releases do projeto e exportação de documentação.
+A versão 0.8.0 introduz o console responsivo Work/Requests, progresso por evidências, alertas persistentes de Knowledge, recuperação automática, inicialização independente da barra lateral, 256 receitas e fingerprints completos por streaming. A versão 0.7.0 introduziu recuperação de hooks; 0.6.0 introduziu projetos separados e pedidos coordenados.
 
 [Instalar a release atual](install.md)
 

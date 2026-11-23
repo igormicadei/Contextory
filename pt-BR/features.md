@@ -34,4 +34,11 @@ Explorador Architecture capturado do Contextory.
 - src/knowledge/catalog.ts
 - src/releases/manager.ts
 - src/codebase/queries.ts
+- src/extension.ts
+- src/service/reconnect.ts
+- src/service/rpc.ts
+- src/webview/progress.ts
+- tests/ui/console.spec.ts
+- tests/integration/recipe-configuration.test.ts
+- scripts/verify-background-startup.mjs
 

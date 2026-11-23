@@ -1,8 +1,8 @@
 # Contextory (en)
 
-Version: 0.7.0
-Source revision: 63e0eee9f865626da3fb6d8e45b386d2f51adf09
-Source fingerprint: e0accfdbc75bf479055e37e7cc99f8c2c45c2a3dbec37a3e003d3e7791e2d7eb
+Version: 0.8.0
+Source revision: c49da721555aef703916e35fd1106179eab4b16f
+Source fingerprint: 9246c1ae2927631338cfa3a2382d779981ce3b732ee084e9f39e967be361ba2a
 
 # Contextory
 
@@ -10,7 +10,7 @@ Source fingerprint: e0accfdbc75bf479055e37e7cc99f8c2c45c2a3dbec37a3e003d3e7791e2
 
 Contextory connects requests, specifications, source code, decisions and verification evidence in a local project ledger. Work in the native Codex, Claude Code or IBM Bob chat, then use Contextory to recover what was requested, what changed and why.
 
-This guide describes Contextory 0.7.0, a preview qualified on Windows with trusted local folders in VS Code and IBM Bob. The extension needs Node.js 24+. Python 3.10+ is optional for Python analysis. Your agent supplies its own account, model and conversation.
+This guide describes Contextory 0.8.0, a preview qualified on Windows with trusted local folders in VS Code and IBM Bob. The extension needs Node.js 24+. Python 3.10+ is optional for Python analysis. Your agent supplies its own account, model and conversation.
 
 [Install Contextory](install.md)
 
@@ -45,6 +45,12 @@ This guide describes Contextory 0.7.0, a preview qualified on Windows with trust
 - src/extension.ts
 - src/service/server.ts
 - src/providers/clients.ts
+- src/service/reconnect.ts
+- src/service/rpc.ts
+- src/webview/progress.ts
+- tests/ui/console.spec.ts
+- tests/integration/recipe-configuration.test.ts
+- scripts/verify-background-startup.mjs
 
 
 ---
@@ -70,19 +76,19 @@ python --version
 
 ## Install the VSIX
 
-1. Download contextory-workspace-0.7.0.vsix and its .sha256 file from the v0.7.0 release.
+1. Download contextory-workspace-0.8.0.vsix and its .sha256 file from the v0.8.0 release.
 2. Compare the downloaded package checksum with the release checksum.
 3. In Extensions, open the … menu, select Install from VSIX… and choose the downloaded file. Reload if prompted.
-4. Open a trusted local project and choose Contextory in the activity bar. The initial workspace has no requests.
+4. Open a trusted local project. The service and configured startup agents prepare in the background; open Contextory whenever you want to inspect work. The initial project has no requests.
 
-[Download version 0.7.0](https://github.com/igormicadei/Contextory/releases/tag/v0.7.0)
+[Download version 0.8.0](https://github.com/igormicadei/Contextory/releases/tag/v0.8.0)
 
 Verify and install the release package
 
 ```powershell
-(Get-FileHash -Algorithm SHA256 .\contextory-workspace-0.7.0.vsix).Hash.ToLowerInvariant()
-Get-Content .\contextory-workspace-0.7.0.sha256
-code --install-extension .\contextory-workspace-0.7.0.vsix
+(Get-FileHash -Algorithm SHA256 .\contextory-workspace-0.8.0.vsix).Hash.ToLowerInvariant()
+Get-Content .\contextory-workspace-0.8.0.sha256
+code --install-extension .\contextory-workspace-0.8.0.vsix
 ```
 
 End users do not need npm, Rust, a database server or an embedding model. Install and sign in to the native agent through its own interface. Restart the editor after installing Node if its PATH has not refreshed.
@@ -110,7 +116,7 @@ End users do not need npm, Rust, a database server or an embedding model. Instal
 
 ## Connect your native agent
 
-1. Open the trusted project. Contextory prepares every detected supported native agent when Auto-connect is on.
+1. Open the trusted project. Contextory starts the service and prepares detected supported agents when Auto-connect is on, without needing to display its sidebar.
 2. For manual setup, click the agent footer control or run Contextory: Connect Native Codex, Contextory: Connect Native Claude Code or Contextory: Connect Native IBM Bob.
 3. Review the generated workspace configuration and approve MCP/hooks through the native client. Reload or reopen that session when requested.
 4. Ask the agent to call contextory_workspace_get and contextory_context_get. A green footer light records observed MCP traffic in the current service.
@@ -164,6 +170,13 @@ Requests in a horizontal editor Panel.
 - src/agents/instructions.ts
 - package.json
 - tests/core/workflow.test.ts
+- src/extension.ts
+- src/service/reconnect.ts
+- src/service/rpc.ts
+- src/webview/progress.ts
+- tests/ui/console.spec.ts
+- tests/integration/recipe-configuration.test.ts
+- scripts/verify-background-startup.mjs
 
 
 ---
@@ -204,18 +217,25 @@ Architecture explorer captured from Contextory.
 - src/knowledge/catalog.ts
 - src/releases/manager.ts
 - src/codebase/queries.ts
+- src/extension.ts
+- src/service/reconnect.ts
+- src/service/rpc.ts
+- src/webview/progress.ts
+- tests/ui/console.spec.ts
+- tests/integration/recipe-configuration.test.ts
+- scripts/verify-background-startup.mjs
 
 
 ---
 
 # Interface walkthroughs
 
-## Overview and Requests
+## Work and Requests
 
-1. Open Contextory and select the owning Project. Overview shows open requests, spec progress and the three most recent activities; an empty workspace invites you to create a request.
-2. Open Requests and choose + New request. Enter Title and What should change?, select affected projects if needed, then choose Create request.
-3. Expand a milestone and select its spec. Inspect Contract, Issues, Decisions, Evidence, Outcome, Usage and History. Search history also searches descendant explanations.
-4. Use Explore relationships to open linked records and source locations. Export a report when you need a durable handoff.
+1. Open Contextory and select the owning Project. Work shows the current specification, recorded criterion evidence, running checks, blockers and latest meaningful work. An empty project offers a new request.
+2. Choose Requests and + New request. Enter Title and What should change?, select affected projects when needed, then Create request. Open one request to inspect its plan; expand its brief and actions only when needed.
+3. Expand a milestone, select its spec and open Specification details for the plan, issues, decisions, evidence, outcome, usage or history. The evidence counts describe recorded verification; they do not estimate time remaining.
+4. Use Tools for Knowledge, Versions, History, Code map and Architecture. Request exports and relationship links remain available in the selected request or specification.
 
 ![Request list beside the selected specification.](../assets/panel-requests.png)
 
@@ -225,7 +245,7 @@ While a project switches, the UI shows Switching project and ignores replies fro
 
 ## Inspect architecture and source flow
 
-1. Open Architecture or run Contextory: Explore Architecture. Select a subsystem, file and symbol in the coordinated map, tree and inspector.
+1. Open Tools > Architecture or run Contextory: Explore Architecture. Select a subsystem, file and symbol in the coordinated map, tree and inspector.
 2. Use Explore connections and the relationship/direction filters. Matrix rows depend on columns; a reciprocal marker identifies direct dependencies in both directions.
 3. For detailed flow, place the editor cursor in a source function and run Contextory: Trace Flow from Here, or use Code map. Select a step to inspect calls, branches and source.
 4. Use zoom, Fit, background drag and source buttons. If no indexed connections appear, choose another scope or Refresh code index and review coverage notices.
@@ -240,9 +260,9 @@ Bounded source-flow explorer in Contextory.
 
 ## Review Knowledge and Versions
 
-1. Open Knowledge. Filter entries by category, text or source path and inspect the definition, tests and freshness.
+1. Choose the persistent review alert, or Tools > Knowledge. Review the queue first; expand definition search and file coverage separately when needed.
 2. For an observed baseline or pending change, read the exact proposal and enter a review reason before Approve baseline, Approve change or Reject. Only a human uses these review controls.
-3. Open Versions to inspect current version, commits and release plans. Review version/file/changelog edits before applying a plan. Publish is a separate action that needs release authorization.
+3. Open Tools > Versions to inspect the current version, commits and release plans. Review version, files and changelog before applying; Publish is a separately authorized release action.
 
 ![Project versions and release details in the editor Panel.](../assets/panel-versions.png)
 
@@ -254,7 +274,7 @@ Versions captured from the application.
 
 ## History, layout and keyboard use
 
-1. Open History or Full history from Overview. Filter to a request, milestone or spec, then use Load older activity to page earlier events.
+1. Open Tools > History, or the selected request/specification history. Filter its scope and use Load older activity to page earlier events.
 2. To use the horizontal layout, move Workspace Tasks to the editor Panel and resize it. Wide, short views place the request list beside the specification inspector.
 3. Use Tab to reach controls, Enter or Space to activate map nodes, arrow keys on focused canvases and Ctrl+wheel to zoom. The interface follows the current editor theme and high-contrast colors.
 
@@ -262,7 +282,7 @@ Versions captured from the application.
 
 Project history in the editor Panel.
 
-Resizing or docking preserves selection and drafts within the same project. Initial/loading/error/disabled states remain tied to the selected project and available service. Published screenshots are genuine existing application captures, with example records; they were not recaptured in an authenticated native chat during this rewrite.
+Resizing or docking preserves selection, drafts, expanded details and scroll within the same project. Narrow sidebars stack work and details; wide, shallow panels split them. Loading, errors and retained last-received data stay explicit. Screenshots show the production webview with isolated example records, not an authenticated native-agent chat.
 
 ## Sources
 
@@ -273,6 +293,13 @@ Resizing or docking preserves selection and drafts within the same project. Init
 - src/webview/versions.ts
 - tests/ui/sidebar.spec.ts
 - tests/ui/catalog.spec.ts
+- src/extension.ts
+- src/service/reconnect.ts
+- src/service/rpc.ts
+- src/webview/progress.ts
+- tests/ui/console.spec.ts
+- tests/integration/recipe-configuration.test.ts
+- scripts/verify-background-startup.mjs
 
 
 ---
@@ -292,6 +319,8 @@ Open up to 16 trusted local, non-nested folders. The Project selector scopes Req
 Requests in a horizontal editor Panel.
 
 ## Prepare connections at startup
+
+Service startup and native bridge preparation run when the extension activates, even while Explorer or another sidebar is visible. Trust, folder, installed-agent and repaired runtime changes enter the same recovery path. Auto-connect pauses remain respected.
 
 Auto-connect defaults to on and contextory.startupAgent defaults to auto, preparing all detected supported agents. Use the footer Auto-connect switch to pause automatic setup. Existing connections, sessions and records remain available. A manually disconnected provider stays opted out until reconnected.
 
@@ -316,9 +345,11 @@ Example workspace recipe
 
 Use executable plus argument arrays for real project checks. The agent invokes a configured recipe, polls its job and maps independently produced evidence to each current criterion. Source, contract or attempt changes can invalidate older evidence.
 
+Configure up to 256 recipes. Invalid settings show Fix check settings while keeping the service connection and last valid recipe list. A fresh service has no valid recipes until configuration succeeds.
+
 ## Read model and usage records
 
-The Usage tab and contextory_usage_get show observed metadata. Codex can report per-request token counts, Claude provides model metadata, and Bob’s documented hooks currently supply neither. Missing counts remain unavailable. Session/lease correlation is exact; unassigned observations remain unassigned.
+The Usage section in Specification details and contextory_usage_get show observed metadata. Codex can report per-request token counts, Claude provides model metadata, and Bob’s documented hooks currently supply neither. Missing counts remain unavailable. Session/lease correlation is exact; unassigned observations remain unassigned.
 
 Counts are not billing or quota estimates. Cached and reasoning tokens are subsets. Contextory does not read or mirror native conversations to calculate usage.
 
@@ -339,6 +370,13 @@ The proxy keeps discovery available during delayed startup and retries readiness
 - src/service/workspace.ts
 - src/core/usage.ts
 - tests/ui/workspace.spec.ts
+- src/extension.ts
+- src/service/reconnect.ts
+- src/service/rpc.ts
+- src/webview/progress.ts
+- tests/ui/console.spec.ts
+- tests/integration/recipe-configuration.test.ts
+- scripts/verify-background-startup.mjs
 
 
 ---
@@ -434,6 +472,8 @@ Read contextory_catalog_get before related changes and page definitions, proposa
 
 ## Review an exact definition revision
 
+A persistent review alert counts observed definitions and pending changes. The editor view also has a badge and offers Review now when exact pending record revisions change. Notifications are deduplicated per project across restarts; dismissing one leaves the review alert available.
+
 1. Open Knowledge, choose a definition and inspect its sources, tests, state, revision and freshness.
 2. Review baseline observations or the before/after content of a replacement or retirement. Enter a reason before approving or rejecting.
 3. Refresh stale candidates before approval. Competing proposals must match the exact current target revision. Rejections keep the original definition and all revisions remain retained.
@@ -469,6 +509,13 @@ This export excludes credentials, native conversations and numeric embedding vec
 - src/knowledge/export.ts
 - src/webview/catalog.ts
 - tests/integration/catalog.test.ts
+- src/extension.ts
+- src/service/reconnect.ts
+- src/service/rpc.ts
+- src/webview/progress.ts
+- tests/ui/console.spec.ts
+- tests/integration/recipe-configuration.test.ts
+- scripts/verify-background-startup.mjs
 
 
 ---
@@ -513,6 +560,7 @@ Semantic records associated between release cutoffs remain interval associations
 - src/releases/config.ts
 - src/webview/versions.ts
 - tests/integration/releases.test.ts
+- contextory.release.json
 
 
 ---
@@ -660,7 +708,7 @@ Contextory stores concise project explanations and observed metadata rather than
 | contextory.nodeExecutable | node | Machine-level Node.js 24+ executable |
 | contextory.pythonExecutable | python | Machine-level Python 3.10+ executable for analysis |
 | contextory.flowDepth | 5 | Call-hop depth, 0–12 |
-| contextory.checks | [] | Named executable/argument-array recipes for independent checks |
+| contextory.checks | [] | Up to 256 named executable/argument-array recipes; invalid changes retain the connection and last valid list |
 
 ## Editor commands
 
@@ -684,7 +732,7 @@ Standalone mode defaults to <root>/.contextory-local/service unless --storage or
 
 The bilingual corpus is the source of the human pages, Markdown and LLM exports. Its ownership roots cover the documentation build scripts; Contextory source and tests are cited as hash-bound supporting evidence. Application function/class docstrings were not rewritten. The generated source-symbol appendix therefore documents the build tooling, while the MCP API page documents the product’s public tool contracts.
 
-Contextory workspace/catalog/export retrieval was unavailable during this rewrite: SERVICE_UNAVAILABLE — Open Contextory in the connected workspace and retry. Current source inspection was used instead. No tracked spec or human catalog approval is claimed. See the review record for precise checks and limitations.
+The historical documentation rewrite used native inspection while Contextory was unavailable. The 0.8.0 delivery recovered the original service ledger and inspected current source and tracked work. Observed catalog definitions are not human-approved requirements. See the review record for scope and evidence limits.
 
 ## Sources
 
@@ -780,6 +828,11 @@ Contextory workspace/catalog/export retrieval was unavailable during this rewrit
 - scripts/licenses.mjs
 - scripts/verify-release.mjs
 - scripts/documentation/vendor/PROVENANCE.json
+- src/service/reconnect.ts
+- src/webview/progress.ts
+- tests/ui/console.spec.ts
+- tests/integration/recipe-configuration.test.ts
+- scripts/verify-background-startup.mjs
 
 
 ---
@@ -841,6 +894,16 @@ No. Static extraction and test references indicate possible relationships. Verif
 
 [Connection and hook recovery walkthrough](user-guide.md)
 
+## Automatic recovery and request timeouts
+
+The editor probes service health every 20 seconds with a five-second timeout. Lost streams, including clean closure, trigger reconnection after 1, 2, 4, 8, 16 and at most 30 seconds. The view labels retained data and offers Retry now. Recovery never replays failed mutations.
+
+REQUEST_TIMEOUT means an operation exceeded its request budget; it does not establish SERVICE_UNAVAILABLE. Ordinary tools allow 120 seconds and release operations have their separate five-minute budget. For an uncertain mutation response, recover with the exact original operation ID and input.
+
+For the former Configure at most 30 check recipes error, upgrade to 0.8.0: up to 256 recipes are supported. Fix duplicate IDs or malformed recipes through Fix check settings. Configuration errors retain the service and its last valid recipes.
+
+Rebuild hooks writes managed files immediately. Changed repairs follow contextory.restartAfterSetup: prompt, automatic or never. The installed Codex extension exposes no public hook-refresh command; Contextory cannot grant native trust or guarantee immediate reload inside a running chat. Review /hooks in that session, keep workspace path casing consistent and reopen the chat after restarting extensions when required.
+
 ## Recover source results and completion
 
 | Symptom | Action |
@@ -866,6 +929,13 @@ Include Contextory version, editor/version, Node/Python versions, exact error te
 - src/service/server.ts
 - src/core/workflow.ts
 - tests/core/readiness.test.ts
+- src/extension.ts
+- src/service/reconnect.ts
+- src/service/rpc.ts
+- src/webview/progress.ts
+- tests/ui/console.spec.ts
+- tests/integration/recipe-configuration.test.ts
+- scripts/verify-background-startup.mjs
 
 
 ---
@@ -890,12 +960,15 @@ Include Contextory version, editor/version, Node/Python versions, exact error te
 
 Requests in a horizontal editor Panel.
 
+The snapshot hashes the complete contents of manifest files using 1 MiB read chunks. Files larger than 20 MiB remain included; fixtures do not need to be removed to run checks. If a file changes size, modification/metadata timestamps, identity or type during the read, capture is rejected with STALE_SOURCE. Before/after command snapshot comparison and independent-evidence requirements remain active.
+
 ## Sources
 
 - src/contracts/tools.ts
 - src/core/workflow.ts
 - src/core/report.ts
 - tests/core/workflow.test.ts
+- src/verification/workspace.ts
 
 
 ---
@@ -995,7 +1068,7 @@ Existing screenshots are application captures with example records. The document
 
 ## Keep remaining gaps explicit
 
-Contextory’s connected service was unavailable for request recovery, catalog review and project export. No tracked completion or catalog update was fabricated. Dynamic/static-analysis gaps, native trust, large-repository behavior and remote/other-OS support require their own evidence. A local documentation build does not establish live deployment; verify the Pages build and the served artifact separately.
+The earlier documentation rewrite recorded an unavailable service; the 0.8.0 delivery recovered the original project ledger and uses tracked release checks. Catalog entries remain observations until human review. Native trust, authenticated agent chats, dynamic/static-analysis gaps, remote workspaces and other operating systems retain their own qualification limits.
 
 ## Sources
 
@@ -1006,15 +1079,22 @@ Contextory’s connected service was unavailable for request recovery, catalog r
 - tests/ui/catalog.spec.ts
 - artifacts/host-release-070-vscode.json
 - artifacts/host-release-070-bob.json
+- src/extension.ts
+- src/service/reconnect.ts
+- src/service/rpc.ts
+- src/webview/progress.ts
+- tests/ui/console.spec.ts
+- tests/integration/recipe-configuration.test.ts
+- scripts/verify-background-startup.mjs
 
 
 ---
 
 # Release history and preserved documents
 
-## Current documented version: 0.7.0
+## Current documented version: 0.8.0
 
-Version 0.7.0 adds explicit hook recovery in the footer, Command Palette and MCP; it preserves unrelated configuration and native approvals. Bounded Windows file-replacement retries improve startup recovery. The 0.6.0 line introduced separate workspace projects and coordinated cross-project requests; 0.5.0 added governed Knowledge, project releases and documentation export.
+Version 0.8.0 introduces the responsive Work/Requests console, evidence-based progress, persistent Knowledge review alerts, automatic service recovery, background startup independent of sidebar visibility, 256 check recipes and complete streamed source fingerprints. Version 0.7.0 introduced managed hook recovery; 0.6.0 introduced separate workspace projects and coordinated requests.
 
 [Install the current release](install.md)
 
@@ -1898,6 +1978,41 @@ Run mapping/validation/build/export/preview without publishing or approving sour
 - src/contracts/tools.ts
 - src/service/application.ts
 - src/service/server.ts
+
+
+---
+
+# Release v0.8.0
+
+## Work console and reliable connections
+
+Work and Requests focus the interface on the current specification and one request plan. Tools exposes project exploration on demand. The same view adapts to a narrow vertical sidebar and a wide horizontal panel while preserving selection, drafts and scroll.
+
+Progress shows criterion evidence, running checks, blockers and latest work instead of a time estimate. Persistent review alerts, a view badge and deduplicated notifications expose Knowledge awaiting human review.
+
+Service recovery detects failed heartbeats and closed event streams, retries automatically with bounded backoff and distinguishes request timeouts. Startup no longer depends on opening the Contextory view. Up to 256 recipes are supported; invalid settings retain the connection and last valid recipes.
+
+Changed hook repairs follow the configured reload policy while native trust remains client-owned. Source snapshots stream complete files in 1 MiB chunks, including files over 20 MiB, and reject files changed during hashing.
+
+[Install 0.8.0](install.md)
+
+[Download VSIX and checksum](https://github.com/igormicadei/Contextory/releases/tag/v0.8.0)
+
+## Qualification and boundaries
+
+The implementation passed 115 backend/core/integration/analysis tests and 43 browser tests. Isolated VS Code 1.147.0 profiles verify actual automatic activation with Explorer visible, repaired runtime readiness and paused startup. The test never calls extension.activate(). A packaged host check also exercised 33 recipes, invalid configuration retention and service restart recovery. Final release assets and Pages are checked separately at publication.
+
+Native hook approval and notification dismissal remain human UI checks. Reference metadata reuse and embedded project documentation remain backlog candidates; the feasibility assessment does not ship those integrations.
+
+## Sources
+
+- src/extension.ts
+- src/service/reconnect.ts
+- src/webview/progress.ts
+- src/verification/workspace.ts
+- tests/ui/console.spec.ts
+- tests/integration/recipe-configuration.test.ts
+- scripts/verify-background-startup.mjs
 
 
 ---

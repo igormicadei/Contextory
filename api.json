@@ -214,14 +214,14 @@
       },
       {
         "path": ".documentation/markdown-targets.json",
-        "sha256": "4e0ec513d32670df855678de34e18ba82b84468ced92cff04bb348c3ce2d8b22",
-        "bytes": 385,
+        "sha256": "2648a0f287a72f7d8415194fe2dbf4a78f7f9af554af9ad3b509347bfa053744",
+        "bytes": 432,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": ".documentation/redirects.json",
-        "sha256": "71054442283f314c6e00242095c5e4fba63162f1df40faffe0f1ddc58a121a97",
-        "bytes": 1551,
+        "sha256": "1809aae2ca5229793d2be0d236145e5de5ff0b1fa6ea24660bdf127ce8a9d413",
+        "bytes": 1600,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -250,32 +250,32 @@
       },
       {
         "path": "CHANGELOG.md",
-        "sha256": "322b00845ef8945e883413ca995f234b446ac0fdb8d4f2c096276c4f603a2283",
-        "bytes": 27541,
+        "sha256": "36ea2b3c0424480d498431355ca320db4ff763ba625ba801d668cb2c85af40e6",
+        "bytes": 33291,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "artifacts/architecture-dark.png",
-        "sha256": "6e25548d70e3cbe1d694ac2ab8a44d2555afac827503f7a28e0e5ce497fe65e4",
-        "bytes": 31582,
+        "sha256": "58302c850f73dfa1940f6e41c351b71b6aa8215b96fe23508ea234a187de5813",
+        "bytes": 32644,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "artifacts/architecture-explorer.png",
-        "sha256": "cdb5a1bf40c7b4223cdbf145b0dacd907665af6e7b01b41052e4e417f7154fd4",
-        "bytes": 49923,
+        "sha256": "d30475dd4073f6ff9923acc43dda52f1cc082cd02ad71b6d0730a08007f3964e",
+        "bytes": 50343,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "artifacts/architecture-light-320.png",
-        "sha256": "b6c67fc3d3fff3a7ee0f42e85bd2f2631f2e592ad087382a45faf8360d390158",
-        "bytes": 32346,
+        "sha256": "5ea44115c9686534a7431bfb762a534f80e6ab53e58f18aa458935604a215357",
+        "bytes": 32333,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "artifacts/code-map-explorer.png",
-        "sha256": "4b5fc991fa72bf2c8429ef288a87e5d99b8b421cccc8e41512909e1597382c3d",
-        "bytes": 68352,
+        "sha256": "493692e8f42529b57192cea96bb6eb376f2666230443d3f62aa595ec39b0967b",
+        "bytes": 68689,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -333,6 +333,12 @@
         "reason": "cited outside source ownership roots"
       },
       {
+        "path": "contextory.release.json",
+        "sha256": "22b43dbfc0fd89c9b30da38cc4b52026fd141d62a69ba59200e0f0ba7810919f",
+        "bytes": 525,
+        "reason": "cited outside source ownership roots"
+      },
+      {
         "path": "media/contextory-icon.png",
         "sha256": "5087019f159f18e1f7b4678cffc94f594a09df8465a31d2803cb872d5c8ca243",
         "bytes": 9079,
@@ -352,8 +358,8 @@
       },
       {
         "path": "package.json",
-        "sha256": "342e91ade2a1e1eba5e3ae95b928534ffa25069ed229f0eda4172c654948b25d",
-        "bytes": 10314,
+        "sha256": "22c9133efac74984faea6a88183dd56bbaafff768a1361373d8d2aa3b1afe1bc",
+        "bytes": 10341,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -384,6 +390,12 @@
         "path": "scripts/package-vsix.mjs",
         "sha256": "ecdc08098852f6a52d7c66533ee4e58b0a3f037728dc55ba8a0062c83519f618",
         "bytes": 974,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "scripts/verify-background-startup.mjs",
+        "sha256": "5fa38ca874cfb0a862fe270ced65d6fc947516c732e2003667f6e18e04c79a69",
+        "bytes": 2303,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -526,8 +538,8 @@
       },
       {
         "path": "src/contracts/model.ts",
-        "sha256": "bf69eeb95238672ec78223c4bbbb48dc31e7dce5e352c12cda0fbf6e8b1f5c82",
-        "bytes": 5386,
+        "sha256": "fe193236633eb2baaec05f0419ed7b269cc932e5f9959823a84a613d588aa671",
+        "bytes": 5676,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -574,8 +586,8 @@
       },
       {
         "path": "src/extension.ts",
-        "sha256": "f59a9c66e05fbafff64231e5eb3f20b4e9fdf58cf7eaf1ff745f6fee2b44b83c",
-        "bytes": 44951,
+        "sha256": "087753e052c9273e53025a997e7ee1551475d9cb99742492716af7bfde95a6f3",
+        "bytes": 49362,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -646,8 +658,8 @@
       },
       {
         "path": "src/providers/reload.ts",
-        "sha256": "f29f5567ff13f8a239008b48ad2ea68911b446c313f127acad54181c762f5486",
-        "bytes": 1674,
+        "sha256": "85d5a9e0a419bfe813b2b4d269e962059c1945765abd7a369bd32b323a2bb0df",
+        "bytes": 1753,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -688,14 +700,14 @@
       },
       {
         "path": "src/service/application.ts",
-        "sha256": "42b236fddcdd8a30f0a0a013219d3cd6bf3e7e16c3e1cdc5053e907feb01f271",
-        "bytes": 27386,
+        "sha256": "3b1d7b2adfcb897b3d30d63283b7f601a755ac238418764123b632c90a82255e",
+        "bytes": 28060,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "src/service/client.ts",
-        "sha256": "bf9151da9762c38f3b593c6ce098868bd3bef008dd3aca3fc83e4f9cdf3d56aa",
-        "bytes": 6575,
+        "sha256": "8bb607206835c18f319e9cb61a6baa4c6f7f86c747e3bd0014b6f1987b9abbcc",
+        "bytes": 6719,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -705,15 +717,21 @@
         "reason": "cited outside source ownership roots"
       },
       {
+        "path": "src/service/reconnect.ts",
+        "sha256": "a5beb786e06c0a5775bbd9db4a4f674411964753bc23c1229332d5ee99c32324",
+        "bytes": 1251,
+        "reason": "cited outside source ownership roots"
+      },
+      {
         "path": "src/service/rpc.ts",
-        "sha256": "bfccaaac3babce11da6592b390ffe79ba22ee903f0f360e18eb9b2b095d869eb",
-        "bytes": 1658,
+        "sha256": "2f225e8494527c482083bdcfbaedc71996ced87d39d3a3c5183fdeb7b00df2ee",
+        "bytes": 2199,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "src/service/server.ts",
-        "sha256": "4344cdc4085d3d55bfcf1d280da752c40980ae89cbaae99b82bed40e2d35895c",
-        "bytes": 17778,
+        "sha256": "f497553d3cdd1817d49885d6e094d320ea7a11933de9a11b054d301bc2103ae0",
+        "bytes": 17955,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -742,8 +760,8 @@
       },
       {
         "path": "src/verification/workspace.ts",
-        "sha256": "551d34cb085865277f9d121817571f2c243ee21312f2926fd943119fa96f1f87",
-        "bytes": 4449,
+        "sha256": "4a8dcfac0c3002ec117b31132d80abddbacc7968d894b3e0a845e6b2a62e7d8c",
+        "bytes": 5078,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -760,8 +778,8 @@
       },
       {
         "path": "src/webview/catalog.ts",
-        "sha256": "6bfb64686a9491bf195770a5e588839d57665c6f129eb0b252f1c49c6fffb013",
-        "bytes": 5286,
+        "sha256": "5e56acf2d936f45b2374f64c098d0ece63b480a4a8ab89d319221f7687ce42c9",
+        "bytes": 5408,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -790,8 +808,14 @@
       },
       {
         "path": "src/webview/main.ts",
-        "sha256": "fdfffb49d447664429e5042b6c46607f11fffae7f74a6164b9d2a1a06c3826a6",
-        "bytes": 59394,
+        "sha256": "180cbd7efacd0692ccaf5b159a5b8223de090c4c3ea1629ab0aa3e6fb374edee",
+        "bytes": 67834,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/webview/progress.ts",
+        "sha256": "d9f594a9307bd0f259ed099bf4e8d65ed8f734f6abe9a713aaf769db4228857e",
+        "bytes": 2388,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -843,6 +867,12 @@
         "reason": "cited outside source ownership roots"
       },
       {
+        "path": "tests/integration/recipe-configuration.test.ts",
+        "sha256": "ee580a8a1f79b698eae1eb08a3ec6035f59ea0bf0aadc5d1c75bc628cc4a5dc4",
+        "bytes": 1781,
+        "reason": "cited outside source ownership roots"
+      },
+      {
         "path": "tests/integration/references.test.ts",
         "sha256": "ff00d1d8dbfcbba4c706c6ee86171bc1c8e5926c3682496fdbab6b3c0ea024b9",
         "bytes": 11503,
@@ -874,14 +904,20 @@
       },
       {
         "path": "tests/ui/catalog.spec.ts",
-        "sha256": "0bc6202ebab80a2b5584bd907e67e14c1782c2f84e3e4029fcf6816d86188ec2",
-        "bytes": 2638,
+        "sha256": "5009272fd50c61be3192b7e47ef09afd3463f6f1ea49a47bd47bc17307784245",
+        "bytes": 2695,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "tests/ui/console.spec.ts",
+        "sha256": "7b018737b29287ebd7e4b52606606f65a1ee70b9ab6a7ca6a1127398673e0781",
+        "bytes": 4357,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "tests/ui/sidebar.spec.ts",
-        "sha256": "3fa484e73df8a6ccec3ea5245f56ff9c2c7e65a2a53390bf153d996e3c043c1d",
-        "bytes": 17463,
+        "sha256": "ecef508b25403fb30f84279aad044220381794b9f8bbf6abe4eb1c1545e5279f",
+        "bytes": 17569,
         "reason": "cited outside source ownership roots"
       },
       {

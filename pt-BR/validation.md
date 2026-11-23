@@ -18,7 +18,7 @@ As imagens existentes são capturas da aplicação com registros de exemplo. O b
 
 ## Mantenha as lacunas explícitas
 
-O serviço conectado do Contextory estava indisponível para recuperar pedidos, revisar o catálogo e exportar o projeto. Nenhuma conclusão rastreada ou atualização de catálogo foi inventada. Lacunas dinâmicas/estáticas, confiança nativa, repositórios grandes e suporte remoto/outros sistemas precisam de evidências próprias. Um build local da documentação não comprova implantação no ar; verifique separadamente o build do Pages e o artefato servido.
+A reescrita anterior registrou serviço indisponível; a entrega 0.8.0 recuperou o registro original e usa verificações rastreadas de release. Entradas do catálogo permanecem observações até revisão humana. Confiança nativa, chats autenticados, lacunas estáticas/dinâmicas, workspaces remotos e outros sistemas mantêm limites de qualificação próprios.
 
 ## Fontes
 
@@ -29,4 +29,11 @@ O serviço conectado do Contextory estava indisponível para recuperar pedidos, 
 - tests/ui/catalog.spec.ts
 - artifacts/host-release-070-vscode.json
 - artifacts/host-release-070-bob.json
+- src/extension.ts
+- src/service/reconnect.ts
+- src/service/rpc.ts
+- src/webview/progress.ts
+- tests/ui/console.spec.ts
+- tests/integration/recipe-configuration.test.ts
+- scripts/verify-background-startup.mjs
 

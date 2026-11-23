@@ -1,5 +1,5 @@
 {
-  "version": "0.7.0",
+  "version": "0.8.0",
   "pages": [
     "changelog.html",
     "docs/CODEBASE-INTELLIGENCE-PLAN.html",
@@ -24,6 +24,7 @@
     "docs/releases/v0.5.1.html",
     "docs/releases/v0.6.0.html",
     "docs/releases/v0.7.0.html",
+    "docs/releases/v0.8.0.html",
     "en/adaptation.html",
     "en/advanced.html",
     "en/api.html",
@@ -50,6 +51,7 @@
     "en/release-v0-5-1.html",
     "en/release-v0-6-0.html",
     "en/release-v0-7-0.html",
+    "en/release-v0-8-0.html",
     "en/releases.html",
     "en/skill-contextory-codebase-references-retrieval.html",
     "en/skill-contextory-codebase-skill.html",
@@ -88,6 +90,7 @@
     "pt-BR/release-v0-5-1.html",
     "pt-BR/release-v0-6-0.html",
     "pt-BR/release-v0-7-0.html",
+    "pt-BR/release-v0-8-0.html",
     "pt-BR/releases.html",
     "pt-BR/skill-contextory-codebase-references-retrieval.html",
     "pt-BR/skill-contextory-codebase-skill.html",
@@ -138,6 +141,7 @@
     "skills/contextory-migrate/SKILL.html": "skill-contextory-migrate-skill",
     "skills/contextory-workflow/SKILL.html": "skill-contextory-workflow-skill",
     "skills/contextory-workflow/references/completion.html": "skill-contextory-workflow-references-completion",
-    "skills/contextory-codebase/references/retrieval.html": "skill-contextory-codebase-references-retrieval"
+    "skills/contextory-codebase/references/retrieval.html": "skill-contextory-codebase-references-retrieval",
+    "docs/releases/v0.8.0.html": "release-v0-8-0"
   }
 }

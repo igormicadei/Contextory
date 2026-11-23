@@ -3,7 +3,7 @@
   "name": "Contextory",
   "slug": "contextory",
   "kind": "plugin",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "pages": [
     {
       "id": "overview",
@@ -23,6 +23,24 @@
         },
         {
           "path": "src/providers/clients.ts"
+        },
+        {
+          "path": "src/service/reconnect.ts"
+        },
+        {
+          "path": "src/service/rpc.ts"
+        },
+        {
+          "path": "src/webview/progress.ts"
+        },
+        {
+          "path": "tests/ui/console.spec.ts"
+        },
+        {
+          "path": "tests/integration/recipe-configuration.test.ts"
+        },
+        {
+          "path": "scripts/verify-background-startup.mjs"
         }
       ],
       "sections": [
@@ -43,8 +61,8 @@
             {
               "type": "paragraph",
               "text": {
-                "pt-BR": "Este guia descreve o Contextory 0.7.0, uma prévia qualificada no Windows com pastas locais confiáveis no VS Code e IBM Bob. A extensão precisa do Node.js 24+. Python 3.10+ é opcional para análise Python. Cada agente usa sua própria conta, modelo e conversa.",
-                "en": "This guide describes Contextory 0.7.0, a preview qualified on Windows with trusted local folders in VS Code and IBM Bob. The extension needs Node.js 24+. Python 3.10+ is optional for Python analysis. Your agent supplies its own account, model and conversation."
+                "pt-BR": "Este guia descreve o Contextory 0.8.0, uma prévia qualificada no Windows com pastas locais confiáveis no VS Code e IBM Bob. A extensão precisa do Node.js 24+. Python 3.10+ é opcional para análise Python. Cada agente usa sua própria conta, modelo e conversa.",
+                "en": "This guide describes Contextory 0.8.0, a preview qualified on Windows with trusted local folders in VS Code and IBM Bob. The extension needs Node.js 24+. Python 3.10+ is optional for Python analysis. Your agent supplies its own account, model and conversation."
               }
             },
             {
@@ -310,8 +328,8 @@
               "type": "steps",
               "items": [
                 {
-                  "pt-BR": "Baixe contextory-workspace-0.7.0.vsix e o arquivo .sha256 na release v0.7.0.",
-                  "en": "Download contextory-workspace-0.7.0.vsix and its .sha256 file from the v0.7.0 release."
+                  "pt-BR": "Baixe contextory-workspace-0.8.0.vsix e o arquivo .sha256 na release v0.8.0.",
+                  "en": "Download contextory-workspace-0.8.0.vsix and its .sha256 file from the v0.8.0 release."
                 },
                 {
                   "pt-BR": "Compare o checksum do pacote baixado com o checksum da release.",
@@ -322,17 +340,17 @@
                   "en": "In Extensions, open the … menu, select Install from VSIX… and choose the downloaded file. Reload if prompted."
                 },
                 {
-                  "pt-BR": "Abra um projeto local confiável e selecione Contextory na barra de atividades. O workspace inicial ainda não contém pedidos.",
-                  "en": "Open a trusted local project and choose Contextory in the activity bar. The initial workspace has no requests."
+                  "pt-BR": "Abra um projeto local confiável. O serviço e os agentes configurados iniciam em segundo plano; abra o Contextory quando quiser inspecionar o trabalho. O projeto inicial não contém pedidos.",
+                  "en": "Open a trusted local project. The service and configured startup agents prepare in the background; open Contextory whenever you want to inspect work. The initial project has no requests."
                 }
               ]
             },
             {
               "type": "link",
-              "href": "https://github.com/igormicadei/Contextory/releases/tag/v0.7.0",
+              "href": "https://github.com/igormicadei/Contextory/releases/tag/v0.8.0",
               "text": {
-                "pt-BR": "Baixar a versão 0.7.0",
-                "en": "Download version 0.7.0"
+                "pt-BR": "Baixar a versão 0.8.0",
+                "en": "Download version 0.8.0"
               }
             },
             {
@@ -342,7 +360,7 @@
                 "pt-BR": "Verificar e instalar o pacote da release",
                 "en": "Verify and install the release package"
               },
-              "code": "(Get-FileHash -Algorithm SHA256 .\\contextory-workspace-0.7.0.vsix).Hash.ToLowerInvariant()\nGet-Content .\\contextory-workspace-0.7.0.sha256\ncode --install-extension .\\contextory-workspace-0.7.0.vsix"
+              "code": "(Get-FileHash -Algorithm SHA256 .\\contextory-workspace-0.8.0.vsix).Hash.ToLowerInvariant()\nGet-Content .\\contextory-workspace-0.8.0.sha256\ncode --install-extension .\\contextory-workspace-0.8.0.vsix"
             },
             {
               "type": "paragraph",
@@ -414,6 +432,27 @@
         },
         {
           "path": "tests/core/workflow.test.ts"
+        },
+        {
+          "path": "src/extension.ts"
+        },
+        {
+          "path": "src/service/reconnect.ts"
+        },
+        {
+          "path": "src/service/rpc.ts"
+        },
+        {
+          "path": "src/webview/progress.ts"
+        },
+        {
+          "path": "tests/ui/console.spec.ts"
+        },
+        {
+          "path": "tests/integration/recipe-configuration.test.ts"
+        },
+        {
+          "path": "scripts/verify-background-startup.mjs"
         }
       ],
       "sections": [
@@ -428,8 +467,8 @@
               "type": "steps",
               "items": [
                 {
-                  "pt-BR": "Abra o projeto confiável. O Contextory prepara todos os agentes nativos compatíveis detectados quando Auto-connect está ativo.",
-                  "en": "Open the trusted project. Contextory prepares every detected supported native agent when Auto-connect is on."
+                  "pt-BR": "Abra o projeto confiável. O Contextory inicia o serviço e prepara agentes compatíveis detectados quando Auto-connect está ativo, sem precisar exibir sua barra lateral.",
+                  "en": "Open the trusted project. Contextory starts the service and prepares detected supported agents when Auto-connect is on, without needing to display its sidebar."
                 },
                 {
                   "pt-BR": "Para configuração manual, clique no controle do agente no rodapé ou execute Contextory: Connect Native Codex, Contextory: Connect Native Claude Code ou Contextory: Connect Native IBM Bob.",
@@ -583,6 +622,27 @@
         },
         {
           "path": "src/codebase/queries.ts"
+        },
+        {
+          "path": "src/extension.ts"
+        },
+        {
+          "path": "src/service/reconnect.ts"
+        },
+        {
+          "path": "src/service/rpc.ts"
+        },
+        {
+          "path": "src/webview/progress.ts"
+        },
+        {
+          "path": "tests/ui/console.spec.ts"
+        },
+        {
+          "path": "tests/integration/recipe-configuration.test.ts"
+        },
+        {
+          "path": "scripts/verify-background-startup.mjs"
         }
       ],
       "sections": [
@@ -773,34 +833,55 @@
         },
         {
           "path": "tests/ui/catalog.spec.ts"
+        },
+        {
+          "path": "src/extension.ts"
+        },
+        {
+          "path": "src/service/reconnect.ts"
+        },
+        {
+          "path": "src/service/rpc.ts"
+        },
+        {
+          "path": "src/webview/progress.ts"
+        },
+        {
+          "path": "tests/ui/console.spec.ts"
+        },
+        {
+          "path": "tests/integration/recipe-configuration.test.ts"
+        },
+        {
+          "path": "scripts/verify-background-startup.mjs"
         }
       ],
       "sections": [
         {
           "id": "overview-and-requests",
           "title": {
-            "pt-BR": "Overview e Requests",
-            "en": "Overview and Requests"
+            "pt-BR": "Work e Requests",
+            "en": "Work and Requests"
           },
           "blocks": [
             {
               "type": "steps",
               "items": [
                 {
-                  "pt-BR": "Abra o Contextory e selecione o Project responsável. Overview mostra pedidos abertos, progresso das especificações e as três atividades mais recentes; um workspace vazio convida à criação de um pedido.",
-                  "en": "Open Contextory and select the owning Project. Overview shows open requests, spec progress and the three most recent activities; an empty workspace invites you to create a request."
+                  "pt-BR": "Abra o Contextory e selecione o Project responsável. Work mostra a especificação atual, evidências registradas por critério, verificações em execução, bloqueios e o último registro relevante. Um projeto vazio oferece um novo pedido.",
+                  "en": "Open Contextory and select the owning Project. Work shows the current specification, recorded criterion evidence, running checks, blockers and latest meaningful work. An empty project offers a new request."
                 },
                 {
-                  "pt-BR": "Abra Requests e selecione + New request. Preencha Title e What should change?, escolha os projetos afetados se necessário e selecione Create request.",
-                  "en": "Open Requests and choose + New request. Enter Title and What should change?, select affected projects if needed, then choose Create request."
+                  "pt-BR": "Escolha Requests e + New request. Preencha Title e What should change?, selecione os projetos afetados quando necessário e use Create request. Abra um pedido para inspecionar seu plano; expanda o resumo e as ações quando precisar.",
+                  "en": "Choose Requests and + New request. Enter Title and What should change?, select affected projects when needed, then Create request. Open one request to inspect its plan; expand its brief and actions only when needed."
                 },
                 {
-                  "pt-BR": "Expanda um marco e selecione sua especificação. Inspecione Contract, Issues, Decisions, Evidence, Outcome, Usage e History. Search history também busca explicações dos registros descendentes.",
-                  "en": "Expand a milestone and select its spec. Inspect Contract, Issues, Decisions, Evidence, Outcome, Usage and History. Search history also searches descendant explanations."
+                  "pt-BR": "Expanda um marco, selecione sua especificação e abra Specification details para plano, problemas, decisões, evidências, resultado, uso ou histórico. As contagens descrevem verificações registradas; elas não estimam o tempo restante.",
+                  "en": "Expand a milestone, select its spec and open Specification details for the plan, issues, decisions, evidence, outcome, usage or history. The evidence counts describe recorded verification; they do not estimate time remaining."
                 },
                 {
-                  "pt-BR": "Use Explore relationships para abrir registros e locais de código vinculados. Exporte um relatório quando precisar transferir o contexto.",
-                  "en": "Use Explore relationships to open linked records and source locations. Export a report when you need a durable handoff."
+                  "pt-BR": "Use Tools para Knowledge, Versions, History, Code map e Architecture. Exportações e relações continuam disponíveis no pedido ou especificação selecionados.",
+                  "en": "Use Tools for Knowledge, Versions, History, Code map and Architecture. Request exports and relationship links remain available in the selected request or specification."
                 }
               ]
             },
@@ -836,8 +917,8 @@
               "type": "steps",
               "items": [
                 {
-                  "pt-BR": "Abra Architecture ou execute Contextory: Explore Architecture. Selecione um subsistema, arquivo e símbolo no mapa, árvore e inspetor coordenados.",
-                  "en": "Open Architecture or run Contextory: Explore Architecture. Select a subsystem, file and symbol in the coordinated map, tree and inspector."
+                  "pt-BR": "Abra Tools > Architecture ou execute Contextory: Explore Architecture. Selecione subsistema, arquivo e símbolo no mapa, árvore e inspetor coordenados.",
+                  "en": "Open Tools > Architecture or run Contextory: Explore Architecture. Select a subsystem, file and symbol in the coordinated map, tree and inspector."
                 },
                 {
                   "pt-BR": "Use Explore connections e os filtros de relação/direção. As linhas de Matrix dependem das colunas; o marcador recíproco identifica dependências diretas nas duas direções.",
@@ -890,16 +971,16 @@
               "type": "steps",
               "items": [
                 {
-                  "pt-BR": "Abra Knowledge. Filtre entradas por categoria, texto ou caminho e inspecione a definição, testes e atualização.",
-                  "en": "Open Knowledge. Filter entries by category, text or source path and inspect the definition, tests and freshness."
+                  "pt-BR": "Escolha o alerta persistente de revisão ou Tools > Knowledge. Revise primeiro a fila; expanda busca de definições e cobertura de arquivos quando necessário.",
+                  "en": "Choose the persistent review alert, or Tools > Knowledge. Review the queue first; expand definition search and file coverage separately when needed."
                 },
                 {
                   "pt-BR": "Para uma linha de base observada ou alteração pendente, leia a proposta exata e informe um motivo antes de Approve baseline, Approve change ou Reject. Apenas uma pessoa usa esses controles de revisão.",
                   "en": "For an observed baseline or pending change, read the exact proposal and enter a review reason before Approve baseline, Approve change or Reject. Only a human uses these review controls."
                 },
                 {
-                  "pt-BR": "Abra Versions para inspecionar a versão atual, commits e planos de release. Revise versão, arquivos e changelog antes de aplicar um plano. Publish é uma ação separada que exige autorização de release.",
-                  "en": "Open Versions to inspect current version, commits and release plans. Review version/file/changelog edits before applying a plan. Publish is a separate action that needs release authorization."
+                  "pt-BR": "Abra Tools > Versions para inspecionar versão, commits e planos de release. Revise versão, arquivos e changelog antes de aplicar; Publish é uma ação de release autorizada separadamente.",
+                  "en": "Open Tools > Versions to inspect the current version, commits and release plans. Review version, files and changelog before applying; Publish is a separately authorized release action."
                 }
               ]
             },
@@ -944,8 +1025,8 @@
               "type": "steps",
               "items": [
                 {
-                  "pt-BR": "Abra History ou Full history em Overview. Filtre por pedido, marco ou especificação e use Load older activity para consultar eventos anteriores.",
-                  "en": "Open History or Full history from Overview. Filter to a request, milestone or spec, then use Load older activity to page earlier events."
+                  "pt-BR": "Abra Tools > History ou o histórico do pedido/especificação selecionados. Filtre o escopo e use Load older activity para consultar eventos anteriores.",
+                  "en": "Open Tools > History, or the selected request/specification history. Filter its scope and use Load older activity to page earlier events."
                 },
                 {
                   "pt-BR": "Para usar o layout horizontal, mova Workspace Tasks para o Panel do editor e redimensione. Em áreas largas e baixas, a lista de pedidos aparece ao lado do inspetor da especificação.",
@@ -972,8 +1053,8 @@
             {
               "type": "paragraph",
               "text": {
-                "pt-BR": "Redimensionar ou mudar a posição preserva seleção e rascunhos dentro do mesmo projeto. Estados inicial/carregando/erro/desabilitado dependem do projeto selecionado e do serviço disponível. As imagens publicadas são capturas reais existentes da aplicação, com registros de exemplo; não foram recapturadas em um chat nativo autenticado durante esta reescrita.",
-                "en": "Resizing or docking preserves selection and drafts within the same project. Initial/loading/error/disabled states remain tied to the selected project and available service. Published screenshots are genuine existing application captures, with example records; they were not recaptured in an authenticated native chat during this rewrite."
+                "pt-BR": "Redimensionar ou mover preserva seleção, rascunhos, detalhes expandidos e rolagem no mesmo projeto. Barras laterais estreitas empilham trabalho e detalhes; painéis largos e baixos os separam. Carregamento, erros e dados da última atualização ficam explícitos. As capturas mostram a webview de produção com exemplos isolados, não um chat nativo autenticado.",
+                "en": "Resizing or docking preserves selection, drafts, expanded details and scroll within the same project. Narrow sidebars stack work and details; wide, shallow panels split them. Loading, errors and retained last-received data stay explicit. Screenshots show the production webview with isolated example records, not an authenticated native-agent chat."
               }
             }
           ]
@@ -1004,6 +1085,27 @@
         },
         {
           "path": "tests/ui/workspace.spec.ts"
+        },
+        {
+          "path": "src/extension.ts"
+        },
+        {
+          "path": "src/service/reconnect.ts"
+        },
+        {
+          "path": "src/service/rpc.ts"
+        },
+        {
+          "path": "src/webview/progress.ts"
+        },
+        {
+          "path": "tests/ui/console.spec.ts"
+        },
+        {
+          "path": "tests/integration/recipe-configuration.test.ts"
+        },
+        {
+          "path": "scripts/verify-background-startup.mjs"
         }
       ],
       "sections": [
@@ -1062,6 +1164,13 @@
             {
               "type": "paragraph",
               "text": {
+                "pt-BR": "O serviço e a preparação das conexões nativas iniciam na ativação da extensão, mesmo com Explorer ou outra barra lateral visível. Mudanças de confiança, pastas, agentes instalados e runtime reparado usam a mesma recuperação. Pausas de Auto-connect continuam respeitadas.",
+                "en": "Service startup and native bridge preparation run when the extension activates, even while Explorer or another sidebar is visible. Trust, folder, installed-agent and repaired runtime changes enter the same recovery path. Auto-connect pauses remain respected."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
                 "pt-BR": "Auto-connect vem ativo e contextory.startupAgent usa auto, preparando todos os agentes compatíveis detectados. Use Auto-connect no rodapé para pausar a configuração automática. Conexões, sessões e registros existentes continuam disponíveis. Um agente desconectado manualmente permanece desativado até ser reconectado.",
                 "en": "Auto-connect defaults to on and contextory.startupAgent defaults to auto, preparing all detected supported agents. Use the footer Auto-connect switch to pause automatic setup. Existing connections, sessions and records remain available. A manually disconnected provider stays opted out until reconnected."
               }
@@ -1109,6 +1218,13 @@
                 "pt-BR": "Use executável e listas de argumentos para verificações reais do projeto. O agente chama uma receita configurada, acompanha o job e associa as evidências independentes a cada critério atual. Alterações de código, contrato ou tentativa podem invalidar evidências anteriores.",
                 "en": "Use executable plus argument arrays for real project checks. The agent invokes a configured recipe, polls its job and maps independently produced evidence to each current criterion. Source, contract or attempt changes can invalidate older evidence."
               }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "pt-BR": "Configure até 256 receitas. Configurações inválidas mostram Fix check settings e preservam a conexão e a última lista válida. Um serviço novo não possui receitas válidas até uma configuração bem-sucedida.",
+                "en": "Configure up to 256 recipes. Invalid settings show Fix check settings while keeping the service connection and last valid recipe list. A fresh service has no valid recipes until configuration succeeds."
+              }
             }
           ]
         },
@@ -1122,8 +1238,8 @@
             {
               "type": "paragraph",
               "text": {
-                "pt-BR": "A aba Usage e contextory_usage_get mostram metadados observados. O Codex pode informar tokens por requisição, Claude fornece metadados de modelo e os hooks documentados do Bob atualmente não fornecem esses dados. Contagens ausentes permanecem indisponíveis. A associação com sessão/lease é exata; observações sem associação continuam sem associação.",
-                "en": "The Usage tab and contextory_usage_get show observed metadata. Codex can report per-request token counts, Claude provides model metadata, and Bob’s documented hooks currently supply neither. Missing counts remain unavailable. Session/lease correlation is exact; unassigned observations remain unassigned."
+                "pt-BR": "A seção Usage em Specification details e contextory_usage_get mostram metadados observados. O Codex pode informar tokens por requisição, Claude fornece metadados de modelo e os hooks documentados do Bob atualmente não fornecem esses dados. Contagens ausentes permanecem indisponíveis. A associação com sessão/lease é exata; observações sem associação continuam sem associação.",
+                "en": "The Usage section in Specification details and contextory_usage_get show observed metadata. Codex can report per-request token counts, Claude provides model metadata, and Bob’s documented hooks currently supply neither. Missing counts remain unavailable. Session/lease correlation is exact; unassigned observations remain unassigned."
               }
             },
             {
@@ -1380,6 +1496,27 @@
         },
         {
           "path": "tests/integration/catalog.test.ts"
+        },
+        {
+          "path": "src/extension.ts"
+        },
+        {
+          "path": "src/service/reconnect.ts"
+        },
+        {
+          "path": "src/service/rpc.ts"
+        },
+        {
+          "path": "src/webview/progress.ts"
+        },
+        {
+          "path": "tests/ui/console.spec.ts"
+        },
+        {
+          "path": "tests/integration/recipe-configuration.test.ts"
+        },
+        {
+          "path": "scripts/verify-background-startup.mjs"
         }
       ],
       "sections": [
@@ -1461,6 +1598,13 @@
             "en": "Review an exact definition revision"
           },
           "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "pt-BR": "Um alerta persistente conta definições observadas e alterações pendentes. A view do editor também mostra um badge e oferece Review now quando mudam as revisões pendentes. Notificações são deduplicadas por projeto entre reinícios; dispensá-las mantém o alerta disponível.",
+                "en": "A persistent review alert counts observed definitions and pending changes. The editor view also has a badge and offers Review now when exact pending record revisions change. Notifications are deduplicated per project across restarts; dismissing one leaves the review alert available."
+              }
+            },
             {
               "type": "steps",
               "items": [
@@ -1577,6 +1721,9 @@
         },
         {
           "path": "tests/integration/releases.test.ts"
+        },
+        {
+          "path": "contextory.release.json"
         }
       ],
       "sections": [
@@ -2434,6 +2581,21 @@
         },
         {
           "path": "scripts/documentation/vendor/PROVENANCE.json"
+        },
+        {
+          "path": "src/service/reconnect.ts"
+        },
+        {
+          "path": "src/webview/progress.ts"
+        },
+        {
+          "path": "tests/ui/console.spec.ts"
+        },
+        {
+          "path": "tests/integration/recipe-configuration.test.ts"
+        },
+        {
+          "path": "scripts/verify-background-startup.mjs"
         }
       ],
       "sections": [
@@ -2555,8 +2717,8 @@
                     "en": "[]"
                   },
                   {
-                    "pt-BR": "Receitas nomeadas com executável/lista de argumentos para verificações independentes",
-                    "en": "Named executable/argument-array recipes for independent checks"
+                    "pt-BR": "Até 256 receitas nomeadas com executável/argumentos; mudanças inválidas preservam a conexão e a última lista válida",
+                    "en": "Up to 256 named executable/argument-array recipes; invalid changes retain the connection and last valid list"
                   }
                 ]
               ]
@@ -2652,8 +2814,8 @@
             {
               "type": "paragraph",
               "text": {
-                "pt-BR": "A recuperação de workspace/catálogo/exportação do Contextory estava indisponível durante esta reescrita: SERVICE_UNAVAILABLE — Open Contextory in the connected workspace and retry. Foi usada inspeção do código atual. Não se afirma conclusão de spec rastreada nem aprovação humana do catálogo. Consulte o registro de revisão para verificações e limites exatos.",
-                "en": "Contextory workspace/catalog/export retrieval was unavailable during this rewrite: SERVICE_UNAVAILABLE — Open Contextory in the connected workspace and retry. Current source inspection was used instead. No tracked spec or human catalog approval is claimed. See the review record for precise checks and limitations."
+                "pt-BR": "A reescrita histórica usou inspeção local durante a indisponibilidade do Contextory. A entrega 0.8.0 recuperou o serviço e inspecionou código e trabalho rastreado atuais. Definições observadas não são requisitos aprovados por pessoas. Consulte o registro de revisão para escopo e limites.",
+                "en": "The historical documentation rewrite used native inspection while Contextory was unavailable. The 0.8.0 delivery recovered the original service ledger and inspected current source and tracked work. Observed catalog definitions are not human-approved requirements. See the review record for scope and evidence limits."
               }
             }
           ]
@@ -2822,6 +2984,27 @@
         },
         {
           "path": "tests/core/readiness.test.ts"
+        },
+        {
+          "path": "src/extension.ts"
+        },
+        {
+          "path": "src/service/reconnect.ts"
+        },
+        {
+          "path": "src/service/rpc.ts"
+        },
+        {
+          "path": "src/webview/progress.ts"
+        },
+        {
+          "path": "tests/ui/console.spec.ts"
+        },
+        {
+          "path": "tests/integration/recipe-configuration.test.ts"
+        },
+        {
+          "path": "scripts/verify-background-startup.mjs"
         }
       ],
       "sections": [
@@ -2923,6 +3106,43 @@
               "text": {
                 "pt-BR": "Guia de recuperação de conexões e hooks",
                 "en": "Connection and hook recovery walkthrough"
+              }
+            }
+          ]
+        },
+        {
+          "id": "automatic-recovery",
+          "title": {
+            "pt-BR": "Recuperação automática e limites de requisição",
+            "en": "Automatic recovery and request timeouts"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "pt-BR": "O editor verifica o serviço a cada 20 segundos, com limite de cinco segundos. Perda do fluxo, inclusive encerramento normal, dispara reconexão após 1, 2, 4, 8, 16 e no máximo 30 segundos. A interface identifica dados retidos e oferece Retry now. A recuperação não repete mutações com falha.",
+                "en": "The editor probes service health every 20 seconds with a five-second timeout. Lost streams, including clean closure, trigger reconnection after 1, 2, 4, 8, 16 and at most 30 seconds. The view labels retained data and offers Retry now. Recovery never replays failed mutations."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "pt-BR": "REQUEST_TIMEOUT indica que a operação excedeu seu limite; não comprova SERVICE_UNAVAILABLE. Ferramentas comuns permitem 120 segundos e releases têm limite separado de cinco minutos. Se a resposta de uma mutação for incerta, recupere com o ID de operação e a entrada originais exatos.",
+                "en": "REQUEST_TIMEOUT means an operation exceeded its request budget; it does not establish SERVICE_UNAVAILABLE. Ordinary tools allow 120 seconds and release operations have their separate five-minute budget. For an uncertain mutation response, recover with the exact original operation ID and input."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "pt-BR": "Para o antigo erro Configure at most 30 check recipes, atualize para 0.8.0: até 256 receitas são aceitas. Corrija IDs duplicados ou receitas inválidas em Fix check settings. Erros de configuração preservam o serviço e suas últimas receitas válidas.",
+                "en": "For the former Configure at most 30 check recipes error, upgrade to 0.8.0: up to 256 recipes are supported. Fix duplicate IDs or malformed recipes through Fix check settings. Configuration errors retain the service and its last valid recipes."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "pt-BR": "Rebuild hooks grava arquivos gerenciados imediatamente. Reparos com mudanças seguem contextory.restartAfterSetup: prompt, automatic ou never. A extensão Codex inspecionada não expõe comando público para atualizar hooks; o Contextory não concede confiança nativa nem garante recarga imediata em chat ativo. Revise /hooks na sessão, preserve maiúsculas/minúsculas do caminho e reabra o chat após reiniciar extensões quando necessário.",
+                "en": "Rebuild hooks writes managed files immediately. Changed repairs follow contextory.restartAfterSetup: prompt, automatic or never. The installed Codex extension exposes no public hook-refresh command; Contextory cannot grant native trust or guarantee immediate reload inside a running chat. Review /hooks in that session, keep workspace path casing consistent and reopen the chat after restarting extensions when required."
               }
             }
           ]
@@ -3055,6 +3275,9 @@
         },
         {
           "path": "tests/core/workflow.test.ts"
+        },
+        {
+          "path": "src/verification/workspace.ts"
         }
       ],
       "sections": [
@@ -3126,6 +3349,13 @@
               "alt": {
                 "pt-BR": "Lista de pedidos ao lado da especificação selecionada.",
                 "en": "Request list beside the selected specification."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "pt-BR": "O snapshot assina o conteúdo completo dos arquivos do manifesto, usando leitura em blocos de 1 MiB. Arquivos maiores que 20 MiB continuam incluídos; não é necessário remover fixtures para executar checks. Se tamanho, datas de modificação/metadados, identidade ou tipo de um arquivo mudar durante a leitura, a captura é recusada com STALE_SOURCE. A comparação de snapshots antes e depois do comando e a exigência de evidência independente continuam ativas.",
+                "en": "The snapshot hashes the complete contents of manifest files using 1 MiB read chunks. Files larger than 20 MiB remain included; fixtures do not need to be removed to run checks. If a file changes size, modification/metadata timestamps, identity or type during the read, capture is rejected with STALE_SOURCE. Before/after command snapshot comparison and independent-evidence requirements remain active."
               }
             }
           ]
@@ -3396,6 +3626,27 @@
         },
         {
           "path": "artifacts/host-release-070-bob.json"
+        },
+        {
+          "path": "src/extension.ts"
+        },
+        {
+          "path": "src/service/reconnect.ts"
+        },
+        {
+          "path": "src/service/rpc.ts"
+        },
+        {
+          "path": "src/webview/progress.ts"
+        },
+        {
+          "path": "tests/ui/console.spec.ts"
+        },
+        {
+          "path": "tests/integration/recipe-configuration.test.ts"
+        },
+        {
+          "path": "scripts/verify-background-startup.mjs"
         }
       ],
       "sections": [
@@ -3506,8 +3757,8 @@
             {
               "type": "paragraph",
               "text": {
-                "pt-BR": "O serviço conectado do Contextory estava indisponível para recuperar pedidos, revisar o catálogo e exportar o projeto. Nenhuma conclusão rastreada ou atualização de catálogo foi inventada. Lacunas dinâmicas/estáticas, confiança nativa, repositórios grandes e suporte remoto/outros sistemas precisam de evidências próprias. Um build local da documentação não comprova implantação no ar; verifique separadamente o build do Pages e o artefato servido.",
-                "en": "Contextory’s connected service was unavailable for request recovery, catalog review and project export. No tracked completion or catalog update was fabricated. Dynamic/static-analysis gaps, native trust, large-repository behavior and remote/other-OS support require their own evidence. A local documentation build does not establish live deployment; verify the Pages build and the served artifact separately."
+                "pt-BR": "A reescrita anterior registrou serviço indisponível; a entrega 0.8.0 recuperou o registro original e usa verificações rastreadas de release. Entradas do catálogo permanecem observações até revisão humana. Confiança nativa, chats autenticados, lacunas estáticas/dinâmicas, workspaces remotos e outros sistemas mantêm limites de qualificação próprios.",
+                "en": "The earlier documentation rewrite recorded an unavailable service; the 0.8.0 delivery recovered the original project ledger and uses tracked release checks. Catalog entries remain observations until human review. Native trust, authenticated agent chats, dynamic/static-analysis gaps, remote workspaces and other operating systems retain their own qualification limits."
               }
             }
           ]
@@ -3538,15 +3789,15 @@
         {
           "id": "current-version",
           "title": {
-            "pt-BR": "Versão documentada atual: 0.7.0",
-            "en": "Current documented version: 0.7.0"
+            "pt-BR": "Versão documentada atual: 0.8.0",
+            "en": "Current documented version: 0.8.0"
           },
           "blocks": [
             {
               "type": "paragraph",
               "text": {
-                "pt-BR": "A versão 0.7.0 adiciona recuperação explícita de hooks no rodapé, Command Palette e MCP, preservando configurações alheias e aprovações nativas. Novas tentativas limitadas de substituição de arquivos no Windows melhoram a recuperação. A linha 0.6.0 introduziu projetos separados e pedidos coordenados entre projetos; 0.5.0 adicionou Knowledge com governança, releases do projeto e exportação de documentação.",
-                "en": "Version 0.7.0 adds explicit hook recovery in the footer, Command Palette and MCP; it preserves unrelated configuration and native approvals. Bounded Windows file-replacement retries improve startup recovery. The 0.6.0 line introduced separate workspace projects and coordinated cross-project requests; 0.5.0 added governed Knowledge, project releases and documentation export."
+                "pt-BR": "A versão 0.8.0 introduz o console responsivo Work/Requests, progresso por evidências, alertas persistentes de Knowledge, recuperação automática, inicialização independente da barra lateral, 256 receitas e fingerprints completos por streaming. A versão 0.7.0 introduziu recuperação de hooks; 0.6.0 introduziu projetos separados e pedidos coordenados.",
+                "en": "Version 0.8.0 introduces the responsive Work/Requests console, evidence-based progress, persistent Knowledge review alerts, automatic service recovery, background startup independent of sidebar visibility, 256 check recipes and complete streamed source fingerprints. Version 0.7.0 introduced managed hook recovery; 0.6.0 introduced separate workspace projects and coordinated requests."
               }
             },
             {
@@ -4870,6 +5121,114 @@
       ]
     },
     {
+      "id": "release-v0-8-0",
+      "title": {
+        "pt-BR": "Release v0.8.0",
+        "en": "Release v0.8.0"
+      },
+      "sources": [
+        {
+          "path": "src/extension.ts"
+        },
+        {
+          "path": "src/service/reconnect.ts"
+        },
+        {
+          "path": "src/webview/progress.ts"
+        },
+        {
+          "path": "src/verification/workspace.ts"
+        },
+        {
+          "path": "tests/ui/console.spec.ts"
+        },
+        {
+          "path": "tests/integration/recipe-configuration.test.ts"
+        },
+        {
+          "path": "scripts/verify-background-startup.mjs"
+        }
+      ],
+      "sections": [
+        {
+          "id": "changes",
+          "title": {
+            "pt-BR": "Console de trabalho e conexões confiáveis",
+            "en": "Work console and reliable connections"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "pt-BR": "Work e Requests concentram a interface na especificação atual e em um plano por vez. Tools abre a exploração do projeto sob demanda. A mesma view se adapta à barra lateral vertical e ao painel horizontal, preservando seleção, rascunhos e rolagem.",
+                "en": "Work and Requests focus the interface on the current specification and one request plan. Tools exposes project exploration on demand. The same view adapts to a narrow vertical sidebar and a wide horizontal panel while preserving selection, drafts and scroll."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "pt-BR": "O progresso mostra evidências por critério, verificações em execução, bloqueios e trabalho recente em vez de estimar tempo. Alertas persistentes, badge e notificações deduplicadas destacam Knowledge aguardando revisão humana.",
+                "en": "Progress shows criterion evidence, running checks, blockers and latest work instead of a time estimate. Persistent review alerts, a view badge and deduplicated notifications expose Knowledge awaiting human review."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "pt-BR": "A recuperação detecta falhas de heartbeat e fluxos encerrados, reconecta com espera limitada e distingue limites de requisição. A inicialização independe de abrir a view. Até 256 receitas são aceitas; configurações inválidas preservam conexão e receitas válidas.",
+                "en": "Service recovery detects failed heartbeats and closed event streams, retries automatically with bounded backoff and distinguishes request timeouts. Startup no longer depends on opening the Contextory view. Up to 256 recipes are supported; invalid settings retain the connection and last valid recipes."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "pt-BR": "Reparos de hooks seguem a política de recarga configurada e a confiança permanece no cliente nativo. Snapshots processam arquivos completos em blocos de 1 MiB, inclusive acima de 20 MiB, e recusam mudanças durante a leitura.",
+                "en": "Changed hook repairs follow the configured reload policy while native trust remains client-owned. Source snapshots stream complete files in 1 MiB chunks, including files over 20 MiB, and reject files changed during hashing."
+              }
+            },
+            {
+              "type": "link",
+              "href": "install",
+              "text": {
+                "pt-BR": "Instalar 0.8.0",
+                "en": "Install 0.8.0"
+              }
+            },
+            {
+              "type": "link",
+              "href": "https://github.com/igormicadei/Contextory/releases/tag/v0.8.0",
+              "text": {
+                "pt-BR": "Baixar VSIX e checksum",
+                "en": "Download VSIX and checksum"
+              }
+            }
+          ]
+        },
+        {
+          "id": "qualification",
+          "title": {
+            "pt-BR": "Qualificação e limites",
+            "en": "Qualification and boundaries"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "pt-BR": "A implementação passou em 115 testes de backend/core/integração/análise e 43 testes de navegador. Perfis isolados do VS Code 1.147.0 verificam ativação automática com Explorer visível, runtime reparado e inicialização pausada. O teste não chama extension.activate(). Um teste do pacote também verificou 33 receitas, preservação após configuração inválida e recuperação de serviço. Assets finais e Pages são conferidos separadamente na publicação.",
+                "en": "The implementation passed 115 backend/core/integration/analysis tests and 43 browser tests. Isolated VS Code 1.147.0 profiles verify actual automatic activation with Explorer visible, repaired runtime readiness and paused startup. The test never calls extension.activate(). A packaged host check also exercised 33 recipes, invalid configuration retention and service restart recovery. Final release assets and Pages are checked separately at publication."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "pt-BR": "Aprovação nativa de hooks e dispensa de notificações permanecem verificações humanas. Reuso de metadados de referências e documentação integrada permanecem no backlog; o estudo de viabilidade não implementa essas integrações.",
+                "en": "Native hook approval and notification dismissal remain human UI checks. Reference metadata reuse and embedded project documentation remain backlog candidates; the feasibility assessment does not ship those integrations."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "release-v0-7-0",
       "title": {
         "pt-BR": "Release v0.7.0",
@@ -5698,6 +6057,12 @@
       "sources": [
         {
           "path": "src/core/workflow.ts"
+        },
+        {
+          "path": "src/webview/main.ts"
+        },
+        {
+          "path": "src/webview/progress.ts"
         }
       ],
       "pages": [
@@ -5715,6 +6080,12 @@
       "sources": [
         {
           "path": "src/providers/registration.ts"
+        },
+        {
+          "path": "src/extension.ts"
+        },
+        {
+          "path": "src/service/reconnect.ts"
         }
       ],
       "pages": [
@@ -5878,8 +6249,8 @@
     }
   ],
   "hasUserInterface": true,
-  "sourceRevision": "63e0eee9f865626da3fb6d8e45b386d2f51adf09",
-  "sourceFingerprint": "e0accfdbc75bf479055e37e7cc99f8c2c45c2a3dbec37a3e003d3e7791e2d7eb",
+  "sourceRevision": "c49da721555aef703916e35fd1106179eab4b16f",
+  "sourceFingerprint": "9246c1ae2927631338cfa3a2382d779981ce3b732ee084e9f39e967be361ba2a",
   "sources": [
     {
       "path": "scripts/documentation/build.py",
@@ -6214,14 +6585,14 @@
       },
       {
         "path": ".documentation/markdown-targets.json",
-        "sha256": "4e0ec513d32670df855678de34e18ba82b84468ced92cff04bb348c3ce2d8b22",
-        "bytes": 385,
+        "sha256": "2648a0f287a72f7d8415194fe2dbf4a78f7f9af554af9ad3b509347bfa053744",
+        "bytes": 432,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": ".documentation/redirects.json",
-        "sha256": "71054442283f314c6e00242095c5e4fba63162f1df40faffe0f1ddc58a121a97",
-        "bytes": 1551,
+        "sha256": "1809aae2ca5229793d2be0d236145e5de5ff0b1fa6ea24660bdf127ce8a9d413",
+        "bytes": 1600,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -6250,32 +6621,32 @@
       },
       {
         "path": "CHANGELOG.md",
-        "sha256": "322b00845ef8945e883413ca995f234b446ac0fdb8d4f2c096276c4f603a2283",
-        "bytes": 27541,
+        "sha256": "36ea2b3c0424480d498431355ca320db4ff763ba625ba801d668cb2c85af40e6",
+        "bytes": 33291,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "artifacts/architecture-dark.png",
-        "sha256": "6e25548d70e3cbe1d694ac2ab8a44d2555afac827503f7a28e0e5ce497fe65e4",
-        "bytes": 31582,
+        "sha256": "58302c850f73dfa1940f6e41c351b71b6aa8215b96fe23508ea234a187de5813",
+        "bytes": 32644,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "artifacts/architecture-explorer.png",
-        "sha256": "cdb5a1bf40c7b4223cdbf145b0dacd907665af6e7b01b41052e4e417f7154fd4",
-        "bytes": 49923,
+        "sha256": "d30475dd4073f6ff9923acc43dda52f1cc082cd02ad71b6d0730a08007f3964e",
+        "bytes": 50343,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "artifacts/architecture-light-320.png",
-        "sha256": "b6c67fc3d3fff3a7ee0f42e85bd2f2631f2e592ad087382a45faf8360d390158",
-        "bytes": 32346,
+        "sha256": "5ea44115c9686534a7431bfb762a534f80e6ab53e58f18aa458935604a215357",
+        "bytes": 32333,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "artifacts/code-map-explorer.png",
-        "sha256": "4b5fc991fa72bf2c8429ef288a87e5d99b8b421cccc8e41512909e1597382c3d",
-        "bytes": 68352,
+        "sha256": "493692e8f42529b57192cea96bb6eb376f2666230443d3f62aa595ec39b0967b",
+        "bytes": 68689,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -6333,6 +6704,12 @@
         "reason": "cited outside source ownership roots"
       },
       {
+        "path": "contextory.release.json",
+        "sha256": "22b43dbfc0fd89c9b30da38cc4b52026fd141d62a69ba59200e0f0ba7810919f",
+        "bytes": 525,
+        "reason": "cited outside source ownership roots"
+      },
+      {
         "path": "media/contextory-icon.png",
         "sha256": "5087019f159f18e1f7b4678cffc94f594a09df8465a31d2803cb872d5c8ca243",
         "bytes": 9079,
@@ -6352,8 +6729,8 @@
       },
       {
         "path": "package.json",
-        "sha256": "342e91ade2a1e1eba5e3ae95b928534ffa25069ed229f0eda4172c654948b25d",
-        "bytes": 10314,
+        "sha256": "22c9133efac74984faea6a88183dd56bbaafff768a1361373d8d2aa3b1afe1bc",
+        "bytes": 10341,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -6384,6 +6761,12 @@
         "path": "scripts/package-vsix.mjs",
         "sha256": "ecdc08098852f6a52d7c66533ee4e58b0a3f037728dc55ba8a0062c83519f618",
         "bytes": 974,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "scripts/verify-background-startup.mjs",
+        "sha256": "5fa38ca874cfb0a862fe270ced65d6fc947516c732e2003667f6e18e04c79a69",
+        "bytes": 2303,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -6526,8 +6909,8 @@
       },
       {
         "path": "src/contracts/model.ts",
-        "sha256": "bf69eeb95238672ec78223c4bbbb48dc31e7dce5e352c12cda0fbf6e8b1f5c82",
-        "bytes": 5386,
+        "sha256": "fe193236633eb2baaec05f0419ed7b269cc932e5f9959823a84a613d588aa671",
+        "bytes": 5676,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -6574,8 +6957,8 @@
       },
       {
         "path": "src/extension.ts",
-        "sha256": "f59a9c66e05fbafff64231e5eb3f20b4e9fdf58cf7eaf1ff745f6fee2b44b83c",
-        "bytes": 44951,
+        "sha256": "087753e052c9273e53025a997e7ee1551475d9cb99742492716af7bfde95a6f3",
+        "bytes": 49362,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -6646,8 +7029,8 @@
       },
       {
         "path": "src/providers/reload.ts",
-        "sha256": "f29f5567ff13f8a239008b48ad2ea68911b446c313f127acad54181c762f5486",
-        "bytes": 1674,
+        "sha256": "85d5a9e0a419bfe813b2b4d269e962059c1945765abd7a369bd32b323a2bb0df",
+        "bytes": 1753,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -6688,14 +7071,14 @@
       },
       {
         "path": "src/service/application.ts",
-        "sha256": "42b236fddcdd8a30f0a0a013219d3cd6bf3e7e16c3e1cdc5053e907feb01f271",
-        "bytes": 27386,
+        "sha256": "3b1d7b2adfcb897b3d30d63283b7f601a755ac238418764123b632c90a82255e",
+        "bytes": 28060,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "src/service/client.ts",
-        "sha256": "bf9151da9762c38f3b593c6ce098868bd3bef008dd3aca3fc83e4f9cdf3d56aa",
-        "bytes": 6575,
+        "sha256": "8bb607206835c18f319e9cb61a6baa4c6f7f86c747e3bd0014b6f1987b9abbcc",
+        "bytes": 6719,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -6705,15 +7088,21 @@
         "reason": "cited outside source ownership roots"
       },
       {
+        "path": "src/service/reconnect.ts",
+        "sha256": "a5beb786e06c0a5775bbd9db4a4f674411964753bc23c1229332d5ee99c32324",
+        "bytes": 1251,
+        "reason": "cited outside source ownership roots"
+      },
+      {
         "path": "src/service/rpc.ts",
-        "sha256": "bfccaaac3babce11da6592b390ffe79ba22ee903f0f360e18eb9b2b095d869eb",
-        "bytes": 1658,
+        "sha256": "2f225e8494527c482083bdcfbaedc71996ced87d39d3a3c5183fdeb7b00df2ee",
+        "bytes": 2199,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "src/service/server.ts",
-        "sha256": "4344cdc4085d3d55bfcf1d280da752c40980ae89cbaae99b82bed40e2d35895c",
-        "bytes": 17778,
+        "sha256": "f497553d3cdd1817d49885d6e094d320ea7a11933de9a11b054d301bc2103ae0",
+        "bytes": 17955,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -6742,8 +7131,8 @@
       },
       {
         "path": "src/verification/workspace.ts",
-        "sha256": "551d34cb085865277f9d121817571f2c243ee21312f2926fd943119fa96f1f87",
-        "bytes": 4449,
+        "sha256": "4a8dcfac0c3002ec117b31132d80abddbacc7968d894b3e0a845e6b2a62e7d8c",
+        "bytes": 5078,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -6760,8 +7149,8 @@
       },
       {
         "path": "src/webview/catalog.ts",
-        "sha256": "6bfb64686a9491bf195770a5e588839d57665c6f129eb0b252f1c49c6fffb013",
-        "bytes": 5286,
+        "sha256": "5e56acf2d936f45b2374f64c098d0ece63b480a4a8ab89d319221f7687ce42c9",
+        "bytes": 5408,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -6790,8 +7179,14 @@
       },
       {
         "path": "src/webview/main.ts",
-        "sha256": "fdfffb49d447664429e5042b6c46607f11fffae7f74a6164b9d2a1a06c3826a6",
-        "bytes": 59394,
+        "sha256": "180cbd7efacd0692ccaf5b159a5b8223de090c4c3ea1629ab0aa3e6fb374edee",
+        "bytes": 67834,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/webview/progress.ts",
+        "sha256": "d9f594a9307bd0f259ed099bf4e8d65ed8f734f6abe9a713aaf769db4228857e",
+        "bytes": 2388,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -6843,6 +7238,12 @@
         "reason": "cited outside source ownership roots"
       },
       {
+        "path": "tests/integration/recipe-configuration.test.ts",
+        "sha256": "ee580a8a1f79b698eae1eb08a3ec6035f59ea0bf0aadc5d1c75bc628cc4a5dc4",
+        "bytes": 1781,
+        "reason": "cited outside source ownership roots"
+      },
+      {
         "path": "tests/integration/references.test.ts",
         "sha256": "ff00d1d8dbfcbba4c706c6ee86171bc1c8e5926c3682496fdbab6b3c0ea024b9",
         "bytes": 11503,
@@ -6874,14 +7275,20 @@
       },
       {
         "path": "tests/ui/catalog.spec.ts",
-        "sha256": "0bc6202ebab80a2b5584bd907e67e14c1782c2f84e3e4029fcf6816d86188ec2",
-        "bytes": 2638,
+        "sha256": "5009272fd50c61be3192b7e47ef09afd3463f6f1ea49a47bd47bc17307784245",
+        "bytes": 2695,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "tests/ui/console.spec.ts",
+        "sha256": "7b018737b29287ebd7e4b52606606f65a1ee70b9ab6a7ca6a1127398673e0781",
+        "bytes": 4357,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "tests/ui/sidebar.spec.ts",
-        "sha256": "3fa484e73df8a6ccec3ea5245f56ff9c2c7e65a2a53390bf153d996e3c043c1d",
-        "bytes": 17463,
+        "sha256": "ecef508b25403fb30f84279aad044220381794b9f8bbf6abe4eb1c1545e5279f",
+        "bytes": 17569,
         "reason": "cited outside source ownership roots"
       },
       {

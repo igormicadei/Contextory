@@ -2,7 +2,7 @@
 
 ## Conecte o agente nativo
 
-1. Abra o projeto confiável. O Contextory prepara todos os agentes nativos compatíveis detectados quando Auto-connect está ativo.
+1. Abra o projeto confiável. O Contextory inicia o serviço e prepara agentes compatíveis detectados quando Auto-connect está ativo, sem precisar exibir sua barra lateral.
 2. Para configuração manual, clique no controle do agente no rodapé ou execute Contextory: Connect Native Codex, Contextory: Connect Native Claude Code ou Contextory: Connect Native IBM Bob.
 3. Revise a configuração gerada no workspace e aprove MCP/hooks pelo cliente nativo. Recarregue ou reabra a sessão quando solicitado.
 4. Peça ao agente para chamar contextory_workspace_get e contextory_context_get. Um indicador verde no rodapé registra tráfego MCP observado no serviço atual.
@@ -56,4 +56,11 @@ Pedidos no Panel horizontal do editor.
 - src/agents/instructions.ts
 - package.json
 - tests/core/workflow.test.ts
+- src/extension.ts
+- src/service/reconnect.ts
+- src/service/rpc.ts
+- src/webview/progress.ts
+- tests/ui/console.spec.ts
+- tests/integration/recipe-configuration.test.ts
+- scripts/verify-background-startup.mjs
 

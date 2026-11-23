@@ -14,6 +14,8 @@ Pedidos no Panel horizontal do editor.
 
 ## Prepare conexões na inicialização
 
+O serviço e a preparação das conexões nativas iniciam na ativação da extensão, mesmo com Explorer ou outra barra lateral visível. Mudanças de confiança, pastas, agentes instalados e runtime reparado usam a mesma recuperação. Pausas de Auto-connect continuam respeitadas.
+
 Auto-connect vem ativo e contextory.startupAgent usa auto, preparando todos os agentes compatíveis detectados. Use Auto-connect no rodapé para pausar a configuração automática. Conexões, sessões e registros existentes continuam disponíveis. Um agente desconectado manualmente permanece desativado até ser reconectado.
 
 As opções de inicialização são auto, last-used, codex, claude, bob e none. O Contextory prepara a configuração local do workspace; os clientes nativos controlam confiança, recarga MCP, autenticação e início da sessão.
@@ -37,9 +39,11 @@ Exemplo de receita do workspace
 
 Use executável e listas de argumentos para verificações reais do projeto. O agente chama uma receita configurada, acompanha o job e associa as evidências independentes a cada critério atual. Alterações de código, contrato ou tentativa podem invalidar evidências anteriores.
 
+Configure até 256 receitas. Configurações inválidas mostram Fix check settings e preservam a conexão e a última lista válida. Um serviço novo não possui receitas válidas até uma configuração bem-sucedida.
+
 ## Consulte registros de modelo e uso
 
-A aba Usage e contextory_usage_get mostram metadados observados. O Codex pode informar tokens por requisição, Claude fornece metadados de modelo e os hooks documentados do Bob atualmente não fornecem esses dados. Contagens ausentes permanecem indisponíveis. A associação com sessão/lease é exata; observações sem associação continuam sem associação.
+A seção Usage em Specification details e contextory_usage_get mostram metadados observados. O Codex pode informar tokens por requisição, Claude fornece metadados de modelo e os hooks documentados do Bob atualmente não fornecem esses dados. Contagens ausentes permanecem indisponíveis. A associação com sessão/lease é exata; observações sem associação continuam sem associação.
 
 As contagens não estimam cobrança ou cota. Tokens de cache e raciocínio são subconjuntos. O Contextory não lê nem espelha conversas nativas para calcular o uso.
 
@@ -60,4 +64,11 @@ O proxy mantém a descoberta disponível na inicialização atrasada e tenta agu
 - src/service/workspace.ts
 - src/core/usage.ts
 - tests/ui/workspace.spec.ts
+- src/extension.ts
+- src/service/reconnect.ts
+- src/service/rpc.ts
+- src/webview/progress.ts
+- tests/ui/console.spec.ts
+- tests/integration/recipe-configuration.test.ts
+- scripts/verify-background-startup.mjs
 
