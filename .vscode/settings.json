@@ -111,11 +111,12 @@
         "--import",
         "tsx",
         "--test",
+        "--test-concurrency=2",
         "tests/core/*.test.ts",
         "tests/integration/*.test.ts",
         "tests/analysis/*.test.ts"
       ],
-      "timeoutMs": 300000
+      "timeoutMs": 600000
     },
     {
       "id": "documentation",
