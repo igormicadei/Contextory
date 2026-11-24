@@ -3,29 +3,57 @@ import { normalizeHook } from "./observation";
 import type { Provider } from "../contracts/model";
 import { clients } from "../providers/clients";
 import { completionNote, retrievalReminder } from "../agents/instructions";
+import { contentLanguageInstruction, normalizeLanguage } from "../i18n";
+import {
+  approvalOutput,
+  approvalSafeTool,
+  type ApprovalGate,
+} from "./approval";
+const provider = process.argv[3] as Provider;
+let event = "unknown";
+let tool: string | undefined;
+function block(reason: string) {
+  process.stdout.write(approvalOutput(provider, event, reason));
+  process.stderr.write(reason + "\n");
+  process.exitCode = 2;
+}
 let input = "";
 for await (const part of process.stdin) {
   input += part;
-  if (input.length > 1024 * 1024) process.exit(0);
+  if (input.length > 1024 * 1024) {
+    process.stderr.write(
+      "Contextory hook payload exceeds 1 MiB; approval status could not be checked.\n",
+    );
+    process.exit(2);
+  }
 }
 try {
   const raw = JSON.parse(input) as Record<string, unknown>;
-  const provider = process.argv[3] as Provider;
   const observation = normalizeHook(raw, provider);
-  const event = observation.event;
-  const brief = await rpc<{ specs: unknown[] }>(
-    process.argv[2],
-    "hook",
-    observation,
-    450,
-  );
-  if (
+  event = observation.event;
+  tool = observation.tool;
+  const brief = await rpc<{
+    specs?: unknown[];
+    approvalGate?: ApprovalGate;
+    uiLanguage?: string;
+  }>(process.argv[2], "hook", observation, 3000);
+  if ((event === "Stop" || event === "PreToolUse") && !brief.approvalGate)
+    throw new Error(
+      "Approval gate contract unavailable; reload the service/runtime together.",
+    );
+  if (brief.approvalGate?.blocked) {
+    block(
+      brief.approvalGate.reason +
+        "\n" +
+        contentLanguageInstruction(normalizeLanguage(brief.uiLanguage)),
+    );
+  } else if (
     ["SessionStart", "UserPromptSubmit", "PostCompact", "PreToolUse"].includes(
       event,
     ) &&
     !observation.tool?.includes("contextory_")
   ) {
-    const context = `Contextory companion: ${retrievalReminder} ${completionNote}\nCurrent tracked specs: ${JSON.stringify(
+    const context = `Contextory companion: ${contentLanguageInstruction(normalizeLanguage(brief.uiLanguage))} ${retrievalReminder} ${completionNote}\nCurrent tracked specs: ${JSON.stringify(
       (brief.specs ?? []).map((s: unknown) => {
         const spec = s as { id: string; title: string; state: string };
         return { id: spec.id, title: spec.title, state: spec.state };
@@ -47,7 +75,16 @@ try {
       );
   }
 } catch {
-  process.stderr.write(
-    "Contextory observation unavailable; native work can continue. Check automatic connections in Contextory if this persists.\n",
-  );
+  if (
+    event === "Stop" ||
+    (event === "PreToolUse" && !approvalSafeTool(tool)) ||
+    event === "unknown"
+  )
+    block(
+      "Contextory approval status unavailable. Wait and restore the project service before implementation or completion; read-only recovery tools remain available. No approval was granted.",
+    );
+  else
+    process.stderr.write(
+      "Contextory observation unavailable. Restore the project service to check approval status before implementation.\n",
+    );
 }

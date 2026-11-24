@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { normalizeLanguage, contentLanguageInstruction } from "../i18n";
 import { readFile, mkdir, writeFile, realpath } from "node:fs/promises";
 import { join, relative, isAbsolute, dirname } from "node:path";
 import { z } from "zod";
@@ -22,6 +23,7 @@ import { renderReport } from "../core/report";
 import { historyPage } from "../core/history";
 import { recordUsage, usageSummary } from "../core/usage";
 import { hookObservation } from "../contracts/usage";
+import { approvalGate, approvalSafeTool } from "../hooks/approval";
 import { AnalysisManager } from "../analysis/manager";
 import { Knowledge, Embeddings } from "../knowledge/search";
 import { Catalog } from "../knowledge/catalog";
@@ -48,6 +50,9 @@ import {
   workspacePath,
 } from "../verification/workspace";
 export class Application {
+  get uiLanguage() {
+    return normalizeLanguage(this.ledger.meta("ui.language"));
+  }
   readonly hooks: HookRecovery;
   readonly workspace: WorkspaceProjects;
   readonly documentation: DocumentationManager;
@@ -107,6 +112,7 @@ export class Application {
       .all())
       attemptStartedAt[String(row.entity_id)] = String(row.time);
     return {
+      uiLanguage: this.uiLanguage,
       catalog: this.catalog.summary(),
       attemptStartedAt,
       checks: [...this.checks.running.keys()].map((id) => {
@@ -160,6 +166,8 @@ export class Application {
           : !["completed", "cancelled"].includes(s.state),
       );
     return {
+      uiLanguage: this.uiLanguage,
+      contentLanguageInstruction: contentLanguageInstruction(this.uiLanguage),
       root: this.ledger.root,
       projectId: this.ledger.projectId,
       workspace: this.workspace.info(),
@@ -232,6 +240,21 @@ export class Application {
           .slice(0, 2000),
       );
     const a = parsed.data;
+    if (
+      !actor.human &&
+      !approvalSafeTool(key) &&
+      !["contextory_catalog_review", "contextory_outcome_submit"].includes(
+        key,
+      ) &&
+      !(
+        key === "contextory_spec_change" &&
+        (a as Input<"contextory_spec_change">).action === "complete"
+      )
+    ) {
+      const gate = approvalGate(this.catalog.pending(), "PreToolUse", key);
+      if (gate.blocked)
+        throw new ContextoryError("APPROVAL_REQUIRED", gate.reason);
+    }
     if (
       raw &&
       typeof raw === "object" &&
@@ -728,10 +751,19 @@ export class Application {
   }
   async hook(provider: Provider, raw: unknown) {
     const event = hookObservation.parse(raw);
-    const response = () =>
-      ["SessionStart", "UserPromptSubmit", "PostCompact"].includes(event.event)
+    const response = () => ({
+      ...(["SessionStart", "UserPromptSubmit", "PostCompact"].includes(
+        event.event,
+      )
         ? this.brief()
-        : { observed: true };
+        : { observed: true }),
+      uiLanguage: this.uiLanguage,
+      approvalGate: approvalGate(
+        this.catalog.pending(),
+        event.event,
+        event.tool,
+      ),
+    });
     if (!isAbsolute(event.cwd))
       throw new ContextoryError(
         "WRONG_WORKSPACE",

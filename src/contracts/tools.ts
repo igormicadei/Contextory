@@ -215,7 +215,7 @@ export const tools = {
   },
   contextory_catalog_change: {
     description:
-      "Under a spec lease, create an observed source-backed catalog entry or propose a replacement/retirement of an existing entry with expectedRevision and reason. Never silently overwrite or delete established behavior. Proposals retain before/after definitions. Approval requires the human review UI; generated and agent-authored entries are observations, not approved requirements.",
+      "Under a spec lease, create an observed source-backed entry or revise/retire an exact revision. autoApprove=true with compatibility=preserved and impact=implementation records compatible maintenance without another human decision. Implementation conflicts may also auto-approve with compatibility=conflicting and impact=implementation; explain the conflict, rationale and validation in reason. Preserve behavioral descriptions/UI contracts; file-purpose prose may be corrected without attributing it to an earlier human review. Process/outcome conflicts, changed behavior, retirements and uncertain conflicts require human review BEFORE implementation. decisionIds links prior decisions; process/outcome or unclassified conflicts cannot be auto-overridden. Pending proposals block native implementation and completion; new observations have optional review. Every change retains before/after, hashes, spec, actor and approval provenance.",
     schema: z.object({
       operationId,
       ...lease,
@@ -223,8 +223,16 @@ export const tools = {
       id: id.optional(),
       expectedRevision,
       content: catalogContent.optional(),
-      reason: text,
+      reason: text.trim().min(1),
       migrationId: id.optional(),
+      compatibility: z
+        .enum(["preserved", "changed", "conflicting", "unknown"])
+        .default("unknown"),
+      impact: z
+        .enum(["implementation", "process", "outcome", "unknown"])
+        .default("unknown"),
+      autoApprove: z.boolean().default(false),
+      decisionIds: z.array(id).max(30).default([]),
     }),
   },
   contextory_catalog_review: {
@@ -357,7 +365,7 @@ export const tools = {
   },
   contextory_decision_record: {
     description:
-      "Store a concise user-facing design choice, rationale, alternatives and consequences. Do not store a reasoning transcript or attribute an agent choice to the human. Optional supersedes preserves decision history.",
+      "Store a concise design choice, rationale, alternatives, consequences and impact (implementation/process/outcome/unknown). Never attribute an agent choice to a human. supersedes preserves earlier project decisions across specs: only implementation-to-implementation conflicts auto-approve. For process/outcome or unclassified conflicts, first obtain a human-approved catalog proposal in this spec whose decisionIds includes the old decision and whose description equals the new choice; pass its approvalId. Propose before implementing and wait. Record source links for regression investigation.",
     schema: z.object({
       operationId,
       ...lease,
@@ -367,6 +375,10 @@ export const tools = {
       alternatives: z.string().max(12000).default("None material"),
       consequences: text,
       supersedes: id.optional(),
+      impact: z
+        .enum(["implementation", "process", "outcome", "unknown"])
+        .default("unknown"),
+      approvalId: id.optional(),
       sources: z.array(source).max(30).default([]),
     }),
   },

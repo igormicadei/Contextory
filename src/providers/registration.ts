@@ -252,7 +252,9 @@ function hooksEdit(r: Registration, remove = false): Edit {
           preserved.push({
             ...(event.includes("Tool") ? { matcher: "*" } : {}),
             hooks: [
-              { type: "command", command: hookCommand(r), timeout: 2 } as {
+              // Allow the launcher's bounded approval RPC to return a deny
+              // before a host timeout can terminate the hook.
+              { type: "command", command: hookCommand(r), timeout: 5 } as {
                 command: string;
               },
             ],

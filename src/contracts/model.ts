@@ -38,6 +38,12 @@ export interface Audit {
   time: string;
   data: Record<string, unknown>;
   title?: string;
+  presentation?: {
+    action: string;
+    subject: string;
+    native: boolean;
+    detail?: string;
+  };
   context?: { id: string; title: string; kind: Kind }[];
 }
 export interface HistoryPage {
@@ -115,6 +121,7 @@ export interface Connection {
   hookCurrent?: boolean;
 }
 export interface Dashboard {
+  uiLanguage?: import("../i18n").UiLanguage;
   catalog?: {
     observed: number;
     pendingChanges: number;

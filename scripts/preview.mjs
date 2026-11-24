@@ -17,7 +17,11 @@ const routes = new Map([
 createServer(async (request, response) => {
   response.setHeader("cache-control", "no-store");
   response.setHeader("x-content-type-options", "nosniff");
-  const path = new URL(request.url ?? "/", "http://127.0.0.1").pathname;
+  const url = new URL(request.url ?? "/", "http://127.0.0.1");
+  const path = url.pathname;
+  const language = /^pt(?:-br)?$/i.test(url.searchParams.get("locale") ?? "")
+    ? "pt-BR"
+    : "en";
   try {
     if (
       path === "/" ||
@@ -29,7 +33,7 @@ createServer(async (request, response) => {
       const nonce = randomBytes(24).toString("hex");
       response.setHeader("content-type", "text/html; charset=utf-8");
       response.end(
-        `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'nonce-${nonce}'; connect-src 'none'; base-uri 'none'; form-action 'none'"><title>Contextory companion preview</title><link rel="stylesheet" href="/sidebar.css"></head><body data-surface="${path === "/flow.html" ? "flow" : path === "/relationships.html" ? "relationships" : path === "/architecture.html" ? "architecture" : "sidebar"}"><div id="app"></div><script nonce="${nonce}" src="/theme.js"></script><script nonce="${nonce}" src="/fixture.js"></script><script nonce="${nonce}" src="/webview.js"></script></body></html>`,
+        `<!doctype html><html lang="${language}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'nonce-${nonce}'; connect-src 'none'; base-uri 'none'; form-action 'none'"><title>Contextory companion preview</title><link rel="stylesheet" href="/sidebar.css"></head><body data-surface="${path === "/flow.html" ? "flow" : path === "/relationships.html" ? "relationships" : path === "/architecture.html" ? "architecture" : "sidebar"}"><div id="app"></div><script nonce="${nonce}" src="/theme.js"></script><script nonce="${nonce}" src="/fixture.js"></script><script nonce="${nonce}" src="/webview.js"></script></body></html>`,
       );
       return;
     }

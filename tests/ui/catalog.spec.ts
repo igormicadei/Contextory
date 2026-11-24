@@ -1,12 +1,39 @@
 import { openTool } from "./navigation";
 import { test, expect } from "@playwright/test";
 
+test("observations do not demand approval and Knowledge exposes attributed agent auto-approval", async ({
+  page,
+}) => {
+  await page.goto("/sidebar.html?catalog=observations-only");
+  await expect(page.locator(".approval-count")).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Review pending knowledge" }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Approvals", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "No pending approvals", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      name: "Optional baseline review",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await openTool(page, "Knowledge");
+  await expect(page.locator(".catalog-provenance")).toContainText(
+    "auto-approved by codex",
+  );
+  await expect(page.locator(".catalog-provenance")).toContainText("KCH-auto");
+  await page.locator(".catalog-provenance").scrollIntoViewIfNeeded();
+  await page.screenshot({ path: "artifacts/approval-provenance.png" });
+});
+
 test("Approvals is independent of Knowledge filters and preserves reasons across navigation", async ({
   page,
 }) => {
   await page.goto("/sidebar.html");
   const tab = page.getByRole("button", { name: "Approvals", exact: true });
-  await expect(tab.locator(".approval-count")).toHaveText("2");
+  await expect(tab.locator(".approval-count")).toHaveText("1");
   await openTool(page, "Knowledge");
   await expect(
     page.getByRole("heading", { name: "Project knowledge", exact: true }),

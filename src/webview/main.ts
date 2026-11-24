@@ -1,3 +1,4 @@
+import { ui, tx, setLanguage, language } from "../i18n";
 import type {
   RelationshipGraph,
   Audit,
@@ -50,6 +51,7 @@ declare function acquireVsCodeApi(): {
   setState(state: unknown): void;
 };
 const host = acquireVsCodeApi();
+setLanguage(document.documentElement.lang);
 const app = document.querySelector<HTMLDivElement>("#app")!;
 let dashboard: Dashboard | undefined;
 let workspace: WorkspaceInfo | undefined;
@@ -131,7 +133,7 @@ let selected = "";
 let focusedRequest = "";
 let serviceConnection = {
   state: "connecting",
-  text: "Connecting to your workspace",
+  text: tx("Connecting to your workspace"),
   checkedAt: "",
   nextRetryAt: 0,
 };
@@ -250,12 +252,12 @@ function projectName(project: WorkspaceInfo["projects"][number]) {
 function projectBadge() {
   const project = workspace?.projects.find((p) => p.id === currentProjectId);
   return dashboard
-    ? `<span class="project-badge" title="${escape(project?.root ?? dashboard.root)}">${escape(project ? projectName(project) : dashboard.root.split(/[\\/]/).pop())}</span>`
+    ? ui`<span class="project-badge" title="${escape(project?.root ?? dashboard.root)}">${escape(project ? projectName(project) : dashboard.root.split(/[\\/]/).pop())}</span>`
     : "";
 }
 function projectSelector() {
   return workspace && workspace.projects.length > 1
-    ? `<div class="project-selector"><label for="workspaceProject">Project</label><select id="workspaceProject" name="workspaceProject">${workspace.projects.map((p) => `<option value="${escape(p.id)}" ${p.id === (expectedProjectId || currentProjectId) ? "selected" : ""}>${escape(projectName(p))}</option>`).join("")}</select><span class="muted" title="Requests, knowledge, source, checks and versions are scoped to this project">${workspace.projects.length} projects</span></div>`
+    ? ui`<div class="project-selector"><label for="workspaceProject">Project</label><select id="workspaceProject" name="workspaceProject">${workspace.projects.map((p) => ui`<option value="${escape(p.id)}" ${p.id === (expectedProjectId || currentProjectId) ? "selected" : ""}>${escape(projectName(p))}</option>`).join("")}</select><span class="muted" title="Requests, knowledge, source, checks and versions are scoped to this project">${workspace.projects.length} projects</span></div>`
     : "";
 }
 function workspaceRequestView(request: Entity) {
@@ -271,7 +273,7 @@ function workspaceRequestView(request: Entity) {
         root: "",
       },
     }));
-  return `<section class="workspace-request" aria-label="Cross-project request"><div class="section-heading"><strong>Across projects</strong>${status ? badge(status.state) : '<span class="muted">Loading branches...</span>'}</div><small class="record-id">${escape(group.id)}</small>${status?.error ? `<p class="muted">${escape(status.error)}</p>` : ""}<div class="project-branches">${branches.map((b) => (b.request ? button("projectBranch", `${escape(projectName(b.project))} &middot; ${escape(b.request.state)}${b.specs ? ` &middot; ${b.specs.filter((s) => s.state === "completed").length}/${b.specs.length} specs` : ""}`, `data-project-id="${escape(b.project.id)}" data-record-id="${escape(b.request.id)}" title="${escape(b.project.root)}"`, "small") : `<span class="muted" title="${escape(b.error ?? "Loading branch")}">${escape(projectName(b.project))} &middot; ${escape(b.error ?? "waiting")}</span>`)).join("")}</div>${status?.partial ? `<p class="muted">Some project branches are missing or unavailable. This request is incomplete.</p>${group.ownerProjectId === currentProjectId && group.creation ? button("retryWorkspaceRequest", "Retry missing branches", `data-id="${escape(request.id)}"`, "small") : ""}` : ""}</section>`;
+  return ui`<section class="workspace-request" aria-label="Cross-project request"><div class="section-heading"><strong>Across projects</strong>${status ? badge(status.state) : ui('<span class="muted">Loading branches...</span>')}</div><small class="record-id">${escape(group.id)}</small>${status?.error ? ui`<p class="muted">${escape(status.error)}</p>` : ""}<div class="project-branches">${branches.map((b) => (b.request ? button("projectBranch", `${escape(projectName(b.project))} &middot; ${escape(b.request.state)}${b.specs ? ui` &middot; ${b.specs.filter((s) => s.state === "completed").length}/${b.specs.length} specs` : ""}`, ui`data-project-id="${escape(b.project.id)}" data-record-id="${escape(b.request.id)}" title="${escape(b.project.root)}"`, "small") : ui`<span class="muted" title="${escape(b.error ?? tx("Loading branch"))}">${escape(projectName(b.project))} &middot; ${escape(b.error ?? "waiting")}</span>`)).join("")}</div>${status?.partial ? ui`<p class="muted">Some project branches are missing or unavailable. This request is incomplete.</p>${group.ownerProjectId === currentProjectId && group.creation ? button("retryWorkspaceRequest", tx("Retry missing branches"), `data-id="${escape(request.id)}"`, "small") : ""}` : ""}</section>`;
 }
 function loadWorkspaceRequests() {
   for (const entity of dashboard?.entities ?? []) {
@@ -286,7 +288,7 @@ function loadWorkspaceRequests() {
   }
 }
 const empty = (title: string, body: string, action = "") =>
-  `<div class="empty"><div class="empty-symbol" aria-hidden="true">◇</div><h2>${title}</h2><p>${body}</p>${action}</div>`;
+  ui`<div class="empty"><div class="empty-symbol" aria-hidden="true">◇</div><h2>${title}</h2><p>${body}</p>${action}</div>`;
 const children = (id: string, kind?: string) =>
   (childrenById.get(id) ?? []).filter((e) => !kind || e.kind === kind);
 const requestOf = (id: string): Entity | undefined => {
@@ -322,7 +324,7 @@ const requestState = (r: Entity) => {
       : "open";
 };
 function connections() {
-  return `<div class="connections" role="group" aria-label="Native agents">${clientIds
+  return ui`<div class="connections" role="group" aria-label="Native agents">${clientIds
     .filter(
       (id) =>
         id !== "generic" ||
@@ -333,30 +335,30 @@ function connections() {
       const name = clients[provider].label;
       const online = c?.configured && (c.mcpCurrent ?? Boolean(c.mcpSeen));
       const label = online
-        ? `Disconnect ${name}`
+        ? ui`Disconnect ${name}`
         : c?.configured
-          ? `Retry ${name} connection`
-          : `Connect ${name}`;
-      return `<button class="connection" data-action="${online ? "disconnect" : "connect"}" data-provider="${provider}" aria-label="${label}" title="${name}: ${online ? "MCP observed in this service. Click to disconnect." : c?.configured ? "Configured; waiting for native traffic in this service. Click to retry connection setup." : "Disconnected. Click to connect."}"><strong>${name}</strong><span class="status-dot ${online ? "online" : ""}" role="img" aria-label="${online ? "MCP observed" : "Waiting for MCP traffic"}"></span></button>`;
+          ? ui`Retry ${name} connection`
+          : ui`Connect ${name}`;
+      return ui`<button class="connection" data-action="${online ? "disconnect" : "connect"}" data-provider="${provider}" aria-label="${label}" title="${name}: ${online ? tx("MCP observed in this service. Click to disconnect.") : c?.configured ? tx("Configured; waiting for native traffic in this service. Click to retry connection setup.") : tx("Disconnected. Click to connect.")}"><strong>${name}</strong><span class="status-dot ${online ? "online" : ""}" role="img" aria-label="${online ? tx("MCP observed") : tx("Waiting for MCP traffic")}"></span></button>`;
     })
     .join("")}</div>`;
 }
 function autoConnectSwitch() {
   const enabled = automation?.enabled ?? true;
-  return `<button class="automation-toggle" role="switch" aria-checked="${enabled}" aria-label="Auto-connect" data-action="autoConnect" ${automation ? "" : "disabled"} title="${enabled ? "Pause automatic agent connections" : "Resume automatic agent connections"}. Existing connections stay available."><span>Auto-connect</span><span class="toggle-track" aria-hidden="true"></span></button>`;
+  return ui`<button class="automation-toggle" role="switch" aria-checked="${enabled}" aria-label="Auto-connect" data-action="autoConnect" ${automation ? "" : "disabled"} title="${enabled ? tx("Pause automatic agent connections") : tx("Resume automatic agent connections")}. Existing connections stay available."><span>Auto-connect</span><span class="toggle-track" aria-hidden="true"></span></button>`;
 }
 function rebuildHooksButton() {
   return button(
     "rebuildHooks",
-    "Rebuild hooks",
-    `title="Restore Contextory hooks for this project" ${!dashboard || busy || projectPending ? "disabled" : ""}`,
+    tx("Rebuild hooks"),
+    ui`title="Restore Contextory hooks for this project" ${!dashboard || busy || projectPending ? "disabled" : ""}`,
     "text-button hook-rebuild",
   );
 }
 function requestProgress(request: Entity) {
   const specs = requestSpecs(request.id);
   const done = specs.filter((s) => s.state === "completed").length;
-  return `<small class="muted">${done} / ${specs.length} specs complete${specs.some((s) => s.state === "implementing") ? " · Work in progress" : ""}</small>`;
+  return ui`<small class="muted">${done} / ${specs.length} specs complete${specs.some((s) => s.state === "implementing") ? " · Work in progress" : ""}</small>`;
 }
 function reviewCount() {
   const catalog =
@@ -366,11 +368,9 @@ function reviewCount() {
         ? (catalogPage ?? dashboard?.catalog)
         : (dashboard?.catalog ?? catalogPage);
   return catalog
-    ? catalog.observed + catalog.pendingChanges
+    ? catalog.pendingChanges
     : (dashboard?.entities.filter(
-        (e) =>
-          (e.kind === "knowledge" && e.state === "observed") ||
-          (e.kind === "knowledge_change" && e.state === "pending"),
+        (e) => e.kind === "knowledge_change" && e.state === "pending",
       ).length ?? 0);
 }
 function timeSince(time: string) {
@@ -379,12 +379,12 @@ function timeSince(time: string) {
     Math.floor((Date.now() - new Date(time).getTime()) / 1000),
   );
   return seconds < 60
-    ? "just now"
+    ? tx("just now")
     : seconds < 3600
-      ? `${Math.floor(seconds / 60)}m ago`
+      ? ui`${Math.floor(seconds / 60)}m ago`
       : seconds < 86400
-        ? `${Math.floor(seconds / 3600)}h ago`
-        : `${Math.floor(seconds / 86400)}d ago`;
+        ? ui`${Math.floor(seconds / 3600)}h ago`
+        : ui`${Math.floor(seconds / 86400)}d ago`;
 }
 function workStatus(spec: Entity, compact = false) {
   const progress = specProgress(
@@ -393,10 +393,10 @@ function workStatus(spec: Entity, compact = false) {
     dashboard?.checks,
   );
   const startedAt = dashboard?.attemptStartedAt?.[spec.id];
-  return `<section class="work-status ${compact ? "compact" : ""}" aria-label="Specification progress"><div class="phase-line"><span class="phase-dot ${progress.blockers.length ? "blocked" : ""}"></span><strong>${escape(progress.phase)}</strong>${startedAt ? `<time datetime="${escape(startedAt)}" title="This attempt started ${escape(new Date(startedAt).toLocaleString())}">Started ${timeSince(startedAt)}</time>` : ""}</div><p class="evidence-count"><strong>${progress.covered} / ${progress.criteria.length}</strong> criteria with passing checks</p><div class="criterion-segments" aria-hidden="true">${progress.criteria.map((c) => `<span class="${c.status}"></span>`).join("")}</div>${compact ? "" : `<ul class="criterion-checklist">${progress.criteria.map((c) => `<li class="${c.status}"><span aria-hidden="true">${c.status === "check" ? "✓" : c.status === "reported" ? "◒" : "○"}</span><div>${escape(c.text)}<small>${c.status === "check" ? "Passing independent check recorded" : c.status === "reported" ? "Agent reported · independent check pending" : "Evidence pending"}</small></div></li>`).join("")}</ul>`}${progress.running.length ? `<div class="running-checks"><strong>Checking now</strong>${progress.running.map((c) => `<p>${escape(c.name)}</p>`).join("")}</div>` : ""}${progress.blockers.map((b) => `<p class="work-blocker"><strong>Needs attention:</strong> ${escape(b.title)}</p>`).join("")}${progress.latest ? `<p class="latest-work"><span>Latest update · <time datetime="${escape(progress.latest.updatedAt)}">${timeSince(progress.latest.updatedAt)}</time></span>${escape(progress.latest.title)}</p>` : '<p class="muted latest-work">Waiting for the agent’s next work record.</p>'}${compact ? "" : '<p class="progress-note">Recorded evidence, not a time estimate. Source freshness and completion are checked separately.</p>'}</section>`;
+  return ui`<section class="work-status ${compact ? "compact" : ""}" aria-label="Specification progress"><div class="phase-line"><span class="phase-dot ${progress.blockers.length ? "blocked" : ""}"></span><strong>${escape(progress.phase)}</strong>${startedAt ? ui`<time datetime="${escape(startedAt)}" title="This attempt started ${escape(new Date(startedAt).toLocaleString(language()))}">Started ${timeSince(startedAt)}</time>` : ""}</div><p class="evidence-count"><strong>${progress.covered} / ${progress.criteria.length}</strong> criteria with passing checks</p><div class="criterion-segments" aria-hidden="true">${progress.criteria.map((c) => ui`<span class="${c.status}"></span>`).join("")}</div>${compact ? "" : ui`<ul class="criterion-checklist">${progress.criteria.map((c) => ui`<li class="${c.status}"><span aria-hidden="true">${c.status === "check" ? "✓" : c.status === "reported" ? "◒" : "○"}</span><div>${escape(c.text)}<small>${c.status === "check" ? tx("Passing independent check recorded") : c.status === "reported" ? tx("Agent reported · independent check pending") : tx("Evidence pending")}</small></div></li>`).join("")}</ul>`}${progress.running.length ? ui`<div class="running-checks"><strong>Checking now</strong>${progress.running.map((c) => ui`<p>${escape(c.name)}</p>`).join("")}</div>` : ""}${progress.blockers.map((b) => ui`<p class="work-blocker"><strong>Needs attention:</strong> ${escape(b.title)}</p>`).join("")}${progress.latest ? ui`<p class="latest-work"><span>Latest update · <time datetime="${escape(progress.latest.updatedAt)}">${timeSince(progress.latest.updatedAt)}</time></span>${escape(progress.latest.title)}</p>` : ui('<p class="muted latest-work">Waiting for the agent’s next work record.</p>')}${compact ? "" : ui('<p class="progress-note">Recorded evidence, not a time estimate. Source freshness and completion are checked separately.</p>')}</section>`;
 }
 function activity(events: Audit[], full = false) {
-  return `<ol class="activity">${events.map((e) => `<li><span class="activity-dot"></span><div><strong>${escape(e.title ?? e.type.replaceAll(".", " "))}</strong>${e.context?.length ? `<div class="history-links">${e.context.map((c) => button("select", escape(c.title), `data-id="${escape(c.id)}" title="${escape(c.kind)} ${escape(c.id)}"`, "text-button")).join('<span aria-hidden="true"> / </span>')}</div>` : `<span class="muted">${escape(e.entityId)}</span>`}<span class="muted">${escape(e.actor)}${full ? ` \u00b7 event ${e.sequence}` : ""}</span></div><time datetime="${e.time}">${new Date(e.time).toLocaleString([], full ? {} : { hour: "2-digit", minute: "2-digit" })}</time></li>`).join("") || '<li class="muted">No project activity yet.</li>'}</ol>`;
+  return ui`<ol class="activity">${events.map((e) => ui`<li><span class="activity-dot"></span><div><strong>${escape(e.presentation ? (e.presentation.native ? `${e.presentation.subject} ${tx(e.presentation.action)}${e.presentation.detail ? `: ${e.presentation.detail}` : ""}` : `${tx(e.presentation.action)}: ${e.presentation.subject}`) : (e.title ?? e.type.replaceAll(".", " ")))}</strong>${e.context?.length ? ui`<div class="history-links">${e.context.map((c) => button("select", escape(c.title), ui`data-id="${escape(c.id)}" title="${escape(c.kind)} ${escape(c.id)}"`, "text-button")).join(ui('<span aria-hidden="true"> / </span>'))}</div>` : ui`<span class="muted">${escape(e.entityId)}</span>`}<span class="muted">${escape(e.actor)}${full ? ui` \u00b7 event ${e.sequence}` : ""}</span></div><time datetime="${e.time}">${new Date(e.time).toLocaleString(language(), full ? {} : { hour: "2-digit", minute: "2-digit" })}</time></li>`).join("") || ui('<li class="muted">No project activity yet.</li>')}</ol>`;
 }
 function overview() {
   const specs = dashboard?.entities.filter((e) => e.kind === "spec") ?? [];
@@ -409,48 +409,52 @@ function overview() {
     specs.find((s) => s.state === "implementing") ??
     specs.find((s) => s.state === "blocked") ??
     specs.find((s) => s.state === "submitted");
-  return `<div class="workbench"><section class="focus-work" data-scroll="focus" aria-label="Current specification" tabindex="0"><div class="section-heading"><span class="eyebrow">Happening now</span>${current ? badge(current.state) : ""}</div>${current ? `<p class="focus-request">${escape(requestOf(current.id)?.title)}</p><h1>${escape(current.title)}</h1>${workStatus(current, true)}${button("select", "Open work details →", `data-id="${current.id}"`, "primary")}` : `<h1>Room for your next idea.</h1><p>Describe a change in your native conversation, or create a request to plan the work.</p>${button("newRequest", "+ New request", "", "primary")}`}</section><section class="overview-work"><div class="section-heading"><div><span class="eyebrow">Work queue</span><h2 id="work-heading">${open.length} open requests</h2></div>${button("navigate", "All requests", 'data-screen="requests"', "text-button")}</div><div class="work-list" data-scroll="work" role="region" aria-labelledby="work-heading" tabindex="0">${open.map((r) => `<button class="work-row" data-action="select" data-id="${r.id}"><div><strong>${escape(r.title)}</strong>${requestProgress(r)}</div>${badge(requestState(r))}<span aria-hidden="true">›</span></button>`).join("") || '<p class="muted">Your queue is clear.</p>'}</div></section></div>`;
+  return ui`<div class="workbench"><section class="focus-work" data-scroll="focus" aria-label="Current specification" tabindex="0"><div class="section-heading"><span class="eyebrow">Happening now</span>${current ? badge(current.state) : ""}</div>${current ? ui`<p class="focus-request">${escape(requestOf(current.id)?.title)}</p><h1>${escape(current.title)}</h1>${workStatus(current, true)}${button("select", tx("Open work details →"), `data-id="${current.id}"`, "primary")}` : ui`<h1>Room for your next idea.</h1><p>Describe a change in your native conversation, or create a request to plan the work.</p>${button("newRequest", tx("+ New request"), "", "primary")}`}</section><section class="overview-work"><div class="section-heading"><div><span class="eyebrow">Work queue</span><h2 id="work-heading">${open.length} open requests</h2></div>${button("navigate", tx("All requests"), 'data-screen="requests"', "text-button")}</div><div class="work-list" data-scroll="work" role="region" aria-labelledby="work-heading" tabindex="0">${open.map((r) => ui`<button class="work-row" data-action="select" data-id="${r.id}"><div><strong>${escape(r.title)}</strong>${requestProgress(r)}</div>${badge(requestState(r))}<span aria-hidden="true">›</span></button>`).join("") || ui('<p class="muted">Your queue is clear.</p>')}</div></section></div>`;
 }
 function requestCard(r: Entity) {
   const inline = !horizontalLayout();
-  return `<article class="request-card ${requestOf(selected)?.id === r.id ? "selected-request" : ""}" id="record-${r.id}">
+  return ui`<article class="request-card ${requestOf(selected)?.id === r.id ? "selected-request" : ""}" id="record-${r.id}">
     <div class="section-heading"><div class="request-title"><span class="eyebrow">Request</span>${(workspace?.projects.length ?? 0) > 1 ? projectBadge() : ""}<h2>${escape(r.title)}</h2></div>${badge(requestState(r))}</div>
     ${requestProgress(r)}
     ${workspaceRequestView(r)}
     <details class="request-brief" ${drafts.requestBriefOpen === "true" ? "open" : ""}><summary>Brief & actions</summary><p>${escape(r.data.description)}</p><small class="record-id">${r.id} · revision ${r.revision}</small>
-    <div class="request-actions">${button("report", "Export request report", `data-id="${r.id}"`, "small")}${button("history", "Request history", `data-id="${r.id}"`, "text-button")}${button("openDocumentation", "Related documentation", `data-id="${r.id}"`, "text-button")}</div></details>
+    <div class="request-actions">${button("report", tx("Export request report"), `data-id="${r.id}"`, "small")}${button("history", tx("Request history"), `data-id="${r.id}"`, "text-button")}${button("openDocumentation", tx("Related documentation"), `data-id="${r.id}"`, "text-button")}</div></details>
     ${
       children(r.id, "milestone")
         .map(
           (
             m,
-          ) => `<details class="milestone" data-milestone="${m.id}" ${openMilestones.has(m.id) ? "open" : ""}>
+          ) => ui`<details class="milestone" data-milestone="${m.id}" ${openMilestones.has(m.id) ? "open" : ""}>
       <summary><span>${escape(m.title)}</span>${badge(m.state)}</summary>
-      <div class="milestone-detail"><span class="record-id">${m.id} &middot; revision ${m.revision}</span><p>${escape(m.data.description || "Milestone specifications")}</p>${button("history", "Milestone history", `data-id="${m.id}"`, "text-button")}
+      <div class="milestone-detail"><span class="record-id">${m.id} &middot; revision ${m.revision}</span><p>${escape(m.data.description || tx("Milestone specifications"))}</p>${button("history", tx("Milestone history"), `data-id="${m.id}"`, "text-button")}
       ${
         children(m.id, "spec")
           .map(
             (s) =>
-              `<button class="spec-row ${selected === s.id ? "selected" : ""}" aria-expanded="${selected === s.id}" ${selected === s.id ? `aria-controls="detail-${s.id}"` : ""} data-action="toggleSpec" data-id="${s.id}"><span class="spec-indicator ${s.state}"></span><div><strong>${escape(s.title)}</strong><small>${specProgress(s, dashboard?.entities ?? [], dashboard?.checks).phase}</small>${(workspace?.projects.length ?? 0) > 1 ? projectBadge() : ""}</div>${badge(s.state)}</button>${inline && selected === s.id ? specDetails(s) : ""}`,
+              ui`<button class="spec-row ${selected === s.id ? "selected" : ""}" aria-expanded="${selected === s.id}" ${selected === s.id ? `aria-controls="detail-${s.id}"` : ""} data-action="toggleSpec" data-id="${s.id}"><span class="spec-indicator ${s.state}"></span><div><strong>${escape(s.title)}</strong><small>${specProgress(s, dashboard?.entities ?? [], dashboard?.checks).phase}</small>${(workspace?.projects.length ?? 0) > 1 ? projectBadge() : ""}</div>${badge(s.state)}</button>${inline && selected === s.id ? specDetails(s) : ""}`,
           )
-          .join("") || '<p class="muted">Waiting for specifications.</p>'
+          .join("") || ui('<p class="muted">Waiting for specifications.</p>')
       }
       </div></details>`,
         )
         .join("") ||
-      '<p class="muted">The native agent can add milestones and specifications through Contextory.</p>'
+      ui(
+        '<p class="muted">The native agent can add milestones and specifications through Contextory.</p>',
+      )
     }
   </article>`;
 }
 function requestInspector(spec: Entity | undefined) {
   if (!spec)
     return empty(
-      "Select a specification",
-      "Expand a milestone in the request list to review its contract, issues, decisions and evidence.",
+      tx("Select a specification"),
+      tx(
+        "Expand a milestone in the request list to review its contract, issues, decisions and evidence.",
+      ),
     );
   const request = requestOf(spec.id);
   const milestone = entitiesById.get(spec.parentId ?? "");
-  return `<header class="inspector-heading"><p class="muted">${escape(request?.title)} / ${escape(milestone?.title)}</p><h2>${escape(spec.title)}</h2></header>${specDetails(spec)}`;
+  return ui`<header class="inspector-heading"><p class="muted">${escape(request?.title)} / ${escape(milestone?.title)}</p><h2>${escape(spec.title)}</h2></header>${specDetails(spec)}`;
 }
 function requestTree() {
   const requests =
@@ -471,21 +475,23 @@ function requestTree() {
     matching.find((r) => requestState(r) === "implementing") ??
     matching[0];
   const picker = matching.length
-    ? `<label class="request-picker">Request<select name="requestSelection">${matching.map((r) => `<option value="${r.id}" ${r.id === currentRequest?.id ? "selected" : ""}>${escape(r.title)} · ${escape(requestState(r))}</option>`).join("")}</select></label>`
+    ? ui`<label class="request-picker">Request<select name="requestSelection">${matching.map((r) => ui`<option value="${r.id}" ${r.id === currentRequest?.id ? "selected" : ""}>${escape(r.title)} · ${escape(requestState(r))}</option>`).join("")}</select></label>`
     : "";
   const visibleSpec = matching.some((r) => r.id === requestOf(selected)?.id)
     ? entitiesById.get(selected)
     : undefined;
-  return `<div class="requests-view"><div class="requests-toolbar"><div class="section-heading"><h1>Requests</h1>${button("newRequest", "+ New request", "", "primary")}</div><form id="search-form"><label class="sr-only" for="query">Filter requests and their history</label><div class="search-box"><input type="search" id="query" name="query" placeholder="Search requests, changes, decisions..." value="${escape(drafts.query)}"><button type="submit" class="small">Search history</button></div></form><p class="muted search-hint">${matching.length} of ${requests.length} requests &middot; Includes milestones, specs, issues and decisions.</p></div><div class="requests-layout"><div class="request-list" data-scroll="requests" role="region" aria-label="Request list" tabindex="0"><form id="request-form" class="new-request ${drafts.showRequest === "true" ? "" : "hidden"}"><label>Title<input id="requestTitle" name="requestTitle" maxlength="300" required value="${escape(drafts.requestTitle)}"></label><label>What should change?<textarea id="requestDescription" name="requestDescription" maxlength="12000" required>${escape(drafts.requestDescription)}</textarea></label>${workspace && workspace.projects.length > 1 ? `<fieldset class="request-projects"><legend>Projects affected</legend>${workspace.projects.map((p) => `<label><input type="checkbox" name="requestProject" value="${escape(p.id)}" ${p.id === currentProjectId || requestProjects.has(p.id) ? "checked" : ""} ${p.id === currentProjectId ? "disabled" : ""}>${escape(projectName(p))}</label>`).join("")}<small class="muted">Each project keeps its own specifications and evidence.</small></fieldset>` : ""}<button type="submit" class="primary">Create request</button></form>${
+  return ui`<div class="requests-view"><div class="requests-toolbar"><div class="section-heading"><h1>Requests</h1>${button("newRequest", tx("+ New request"), "", "primary")}</div><form id="search-form"><label class="sr-only" for="query">Filter requests and their history</label><div class="search-box"><input type="search" id="query" name="query" placeholder="Search requests, changes, decisions..." value="${escape(drafts.query)}"><button type="submit" class="small">Search history</button></div></form><p class="muted search-hint">${matching.length} of ${requests.length} requests &middot; Includes milestones, specs, issues and decisions.</p></div><div class="requests-layout"><div class="request-list" data-scroll="requests" role="region" aria-label="Request list" tabindex="0"><form id="request-form" class="new-request ${drafts.showRequest === "true" ? "" : "hidden"}"><label>Title<input id="requestTitle" name="requestTitle" maxlength="300" required value="${escape(drafts.requestTitle)}"></label><label>What should change?<textarea id="requestDescription" name="requestDescription" maxlength="12000" required>${escape(drafts.requestDescription)}</textarea></label>${workspace && workspace.projects.length > 1 ? ui`<fieldset class="request-projects"><legend>Projects affected</legend>${workspace.projects.map((p) => ui`<label><input type="checkbox" name="requestProject" value="${escape(p.id)}" ${p.id === currentProjectId || requestProjects.has(p.id) ? "checked" : ""} ${p.id === currentProjectId ? "disabled" : ""}>${escape(projectName(p))}</label>`).join("")}<small class="muted">Each project keeps its own specifications and evidence.</small></fieldset>` : ""}<button type="submit" class="primary">Create request</button></form>${
     !requests.length
       ? empty(
-          "A clear plan starts here",
-          "Create a request from your native conversation. Contextory keeps milestones, specs and their history together.",
+          tx("A clear plan starts here"),
+          tx(
+            "Create a request from your native conversation. Contextory keeps milestones, specs and their history together.",
+          ),
         )
       : !matching.length
-        ? '<p class="muted">No matching requests.</p>'
+        ? ui('<p class="muted">No matching requests.</p>')
         : picker + (currentRequest ? requestCard(currentRequest) : "")
-  }</div>${horizontalLayout() ? `<aside class="request-inspector" data-scroll="inspector" aria-label="Specification inspector" tabindex="0">${requestInspector(visibleSpec)}</aside>` : ""}</div></div>`;
+  }</div>${horizontalLayout() ? ui`<aside class="request-inspector" data-scroll="inspector" aria-label="Specification inspector" tabindex="0">${requestInspector(visibleSpec)}</aside>` : ""}</div></div>`;
 }
 function loadHistory(append = false) {
   send({
@@ -501,111 +507,119 @@ function loadHistory(append = false) {
 }
 function historyView() {
   const scope = dashboard?.entities.find((e) => e.id === historyScope);
-  return `<div class="history-view"><div class="history-toolbar"><div class="section-heading"><h1>History</h1>${button("historyRefresh", "Refresh", "", "small")}</div><label>Request<select id="historyFilter" name="historyFilter"><option value="">All project history</option>${dashboard?.entities
+  return ui`<div class="history-view"><div class="history-toolbar"><div class="section-heading"><h1>History</h1>${button("historyRefresh", tx("Refresh"), "", "small")}</div><label>Request<select id="historyFilter" name="historyFilter"><option value="">All project history</option>${dashboard?.entities
     .filter((e) => e.kind === "request")
     .map(
       (r) =>
-        `<option value="${r.id}" ${historyScope === r.id || requestOf(historyScope)?.id === r.id ? "selected" : ""}>${escape(r.title)}</option>`,
+        ui`<option value="${r.id}" ${historyScope === r.id || requestOf(historyScope)?.id === r.id ? "selected" : ""}>${escape(r.title)}</option>`,
     )
     .join(
       "",
-    )}</select></label>${scope ? `<p class="muted">History for ${escape(scope.title)} and its descendants. ${button("history", "Show all", "", "text-button")}</p>` : '<p class="muted">Requests, milestones, specifications and native sessions, with links to their context.</p>'}</div><div class="history-feed" data-scroll="history" role="region" aria-label="Project history" tabindex="0">${activity(history.events, true)}${history.nextBefore ? button("olderHistory", "Load older activity", "", "small") : historyLoaded ? '<p class="muted">Beginning of history.</p>' : '<p class="muted">Loading history...</p>'}</div></div>`;
+    )}</select></label>${scope ? ui`<p class="muted">History for ${escape(scope.title)} and its descendants. ${button("history", tx("Show all"), "", "text-button")}</p>` : ui('<p class="muted">Requests, milestones, specifications and native sessions, with links to their context.</p>')}</div><div class="history-feed" data-scroll="history" role="region" aria-label="Project history" tabindex="0">${activity(history.events, true)}${history.nextBefore ? button("olderHistory", tx("Load older activity"), "", "small") : historyLoaded ? ui('<p class="muted">Beginning of history.</p>') : ui('<p class="muted">Loading history...</p>')}</div></div>`;
 }
 function specDetails(s: Entity) {
   const records = children(s.id);
   const criteria = s.data.criteria as { id: string; text: string }[];
   let body = "";
   if (detailTab === "contract")
-    body = `<p>${escape(s.data.description)}</p><h3>Acceptance criteria</h3><ul class="criteria">${criteria.map((c) => `<li><span>${escape(c.id)}</span>${escape(c.text)}</li>`).join("")}</ul><h3>Scope</h3><p class="muted">${escape((s.data.paths as string[])?.join(", ") || "Defined by the specification")}</p>`;
+    body = ui`<p>${escape(s.data.description)}</p><h3>Acceptance criteria</h3><ul class="criteria">${criteria.map((c) => ui`<li><span>${escape(c.id)}</span>${escape(c.text)}</li>`).join("")}</ul><h3>Scope</h3><p class="muted">${escape((s.data.paths as string[])?.join(", ") || tx("Defined by the specification"))}</p>`;
   if (detailTab === "issues")
     body =
       records
         .filter((e) => e.kind === "finding")
         .map(
           (e) =>
-            `<article class="record"><div class="section-heading"><h3>${escape(e.title)}</h3>${badge(e.state)}</div><p>${escape(e.data.observation)}</p><p><strong>Impact:</strong> ${escape(e.data.impact)}</p>${e.data.resolution ? `<p><strong>Resolution:</strong> ${escape(e.data.resolution)}</p>` : ""}${((e.data.sources as SourceRef[]) ?? []).map(sourceButton).join("")}</article>`,
+            ui`<article class="record"><div class="section-heading"><h3>${escape(e.title)}</h3>${badge(e.state)}</div><p>${escape(e.data.observation)}</p><p><strong>Impact:</strong> ${escape(e.data.impact)}</p>${e.data.resolution ? ui`<p><strong>Resolution:</strong> ${escape(e.data.resolution)}</p>` : ""}${((e.data.sources as SourceRef[]) ?? []).map(sourceButton).join("")}</article>`,
         )
         .join("") ||
-      '<p class="muted">No findings recorded. The outcome will state whether issues were found.</p>';
+      ui(
+        '<p class="muted">No findings recorded. The outcome will state whether issues were found.</p>',
+      );
   if (detailTab === "decisions")
     body =
       records
         .filter((e) => e.kind === "decision")
         .map(
           (e) =>
-            `<article class="record"><h3>${escape(e.title)}</h3><p>${escape(e.data.choice)}</p><p><strong>Why:</strong> ${escape(e.data.rationale)}</p><p><strong>Tradeoffs:</strong> ${escape(e.data.alternatives)}</p><p><strong>Consequences:</strong> ${escape(e.data.consequences)}</p><small class="muted">${escape(e.data.provenance)}</small></article>`,
+            ui`<article class="record"><h3>${escape(e.title)}</h3><p>${escape(e.data.choice)}</p><p><strong>Why:</strong> ${escape(e.data.rationale)}</p><p><strong>Tradeoffs:</strong> ${escape(e.data.alternatives)}</p><p><strong>Consequences:</strong> ${escape(e.data.consequences)}</p><small class="muted">${escape(e.data.provenance)}</small></article>`,
         )
         .join("") ||
-      '<p class="muted">Choices and their rationale will remain here for future work.</p>';
+      ui(
+        '<p class="muted">Choices and their rationale will remain here for future work.</p>',
+      );
   if (detailTab === "evidence")
     body =
       records
         .filter((e) => e.kind === "evidence")
         .map(
           (e) =>
-            `<article class="record"><div class="section-heading"><h3>${escape(e.title)}</h3>${badge(e.state)}</div><p class="muted">${e.data.origin === "contextory-runner" ? "Independent Contextory check" : "Agent-reported observation"} · ${escape((e.data.criteria as string[])?.join(", "))}</p><pre>${escape(e.data.detail)}</pre><small class="muted">Bound to the recorded source, contract and attempt. Completion rechecks eligibility.</small></article>`,
+            ui`<article class="record"><div class="section-heading"><h3>${escape(e.title)}</h3>${badge(e.state)}</div><p class="muted">${e.data.origin === "contextory-runner" ? tx("Independent Contextory check") : tx("Agent-reported observation")} · ${escape((e.data.criteria as string[])?.join(", "))}</p><pre>${escape(e.data.detail)}</pre><small class="muted">Bound to the recorded source, contract and attempt. Completion rechecks eligibility.</small></article>`,
         )
         .join("") ||
-      '<p class="muted">No evidence yet. Native agents can run your configured independent checks.</p>';
+      ui(
+        '<p class="muted">No evidence yet. Native agents can run your configured independent checks.</p>',
+      );
   if (detailTab === "outcome")
     body =
       records
         .filter((e) => e.kind === "outcome")
         .map(
           (e) =>
-            `<article class="record"><h3>What changed</h3><p>${escape(e.data.summary)}</p><h3>Issues and fixes</h3><p>${escape(e.data.issuesSummary)}</p><h3>Decisions</h3><p>${escape(e.data.decisionsSummary)}</p><h3>Remaining limits</h3><p>${escape(e.data.limitations)}</p><h3>Report</h3><p>${escape(e.data.report)}</p></article>`,
+            ui`<article class="record"><h3>What changed</h3><p>${escape(e.data.summary)}</p><h3>Issues and fixes</h3><p>${escape(e.data.issuesSummary)}</p><h3>Decisions</h3><p>${escape(e.data.decisionsSummary)}</p><h3>Remaining limits</h3><p>${escape(e.data.limitations)}</p><h3>Report</h3><p>${escape(e.data.report)}</p></article>`,
         )
         .join("") ||
-      '<p class="muted">The agent submits a durable explanation before completion.</p>';
+      ui(
+        '<p class="muted">The agent submits a durable explanation before completion.</p>',
+      );
   if (detailTab === "history")
-    body = `<p>Explore all events for this specification and its records.</p>${button("history", "Open specification history", `data-id="${s.id}"`, "small")}`;
+    body = ui`<p>Explore all events for this specification and its records.</p>${button("history", tx("Open specification history"), `data-id="${s.id}"`, "small")}`;
   if (detailTab === "usage") {
     const usage = usageBySpec.get(s.id);
     const count = (value: number | null | undefined) =>
       value === null || value === undefined
-        ? "Unavailable"
-        : value.toLocaleString();
-    body = `<div class="section-heading"><h3>Agent models and usage</h3>${button("refreshUsage", "Refresh usage", "", "small")}</div>${usage ? `<p>${usage.attempts} native request attempts observed; ${usage.measuredAttempts} with token counts.</p>${usage.groups.map((g) => `<article class="record"><h3>${escape(g.provider)} &middot; ${escape(g.model ?? "Model unavailable")}</h3><p>Input: ${count(g.tokens.inputTokens)} &middot; Output: ${count(g.tokens.outputTokens)} &middot; Total: ${count(g.tokens.totalTokens)}</p><p class="muted">Cached input (included in input): ${count(g.tokens.cachedInputTokens)}<br>Reasoning (included in output): ${count(g.tokens.reasoningTokens)}</p></article>`).join("") || '<p class="muted">No native model or usage records linked to this specification.</p>'}${usage.groupsTruncated ? '<p class="muted">Only the first 100 model groups are shown. Filter with contextory_usage_get.</p>' : ""}<p class="muted">${escape(usage.note)}</p>` : '<p class="muted">Loading native usage records...</p>'}`;
+        ? tx("Unavailable")
+        : value.toLocaleString(language());
+    body = ui`<div class="section-heading"><h3>Agent models and usage</h3>${button("refreshUsage", tx("Refresh usage"), "", "small")}</div>${usage ? ui`<p>${usage.attempts} native request attempts observed; ${usage.measuredAttempts} with token counts.</p>${usage.groups.map((g) => ui`<article class="record"><h3>${escape(g.provider)} &middot; ${escape(g.model ?? tx("Model unavailable"))}</h3><p>Input: ${count(g.tokens.inputTokens)} &middot; Output: ${count(g.tokens.outputTokens)} &middot; Total: ${count(g.tokens.totalTokens)}</p><p class="muted">Cached input (included in input): ${count(g.tokens.cachedInputTokens)}<br>Reasoning (included in output): ${count(g.tokens.reasoningTokens)}</p></article>`).join("") || ui('<p class="muted">No native model or usage records linked to this specification.</p>')}${usage.groupsTruncated ? ui('<p class="muted">Only the first 100 model groups are shown. Filter with contextory_usage_get.</p>') : ""}<p class="muted">${escape(tx(usage.note))}</p>` : ui('<p class="muted">Loading native usage records...</p>')}`;
   }
-  return `<section id="detail-${s.id}" class="spec-detail" aria-label="${escape(s.title)} details"><div class="section-heading"><span class="record-id">${s.id}</span>${projectBadge()}${badge(s.state)}</div><label class="spec-section">Specification details<select id="detailSection" name="detailSection" aria-label="Specification details">${["contract", "issues", "decisions", "evidence", "outcome", "usage", "history"].map((tab) => `<option value="${tab}" ${detailTab === tab ? "selected" : ""}>${tab === "contract" ? "Plan & progress" : tab[0].toUpperCase() + tab.slice(1)}</option>`).join("")}</select></label>${detailTab === "contract" ? workStatus(s) : ""}<div class="spec-section-body">${body}</div><div class="detail-actions">${button("impact", "Explore relationships", `data-id="${s.id}"`)}${s.state === "submitted" ? button("complete", "Check completion", `data-id="${s.id}" data-revision="${s.revision}"`, "primary") : ""}</div></section>`;
+  return ui`<section id="detail-${s.id}" class="spec-detail" aria-label="${escape(s.title)} details"><div class="section-heading"><span class="record-id">${s.id}</span>${projectBadge()}${badge(s.state)}</div><label class="spec-section">Specification details<select id="detailSection" name="detailSection" aria-label="Specification details">${["contract", "issues", "decisions", "evidence", "outcome", "usage", "history"].map((tab) => ui`<option value="${tab}" ${detailTab === tab ? "selected" : ""}>${tab === "contract" ? tx("Plan & progress") : tx(tab[0].toUpperCase() + tab.slice(1))}</option>`).join("")}</select></label>${detailTab === "contract" ? workStatus(s) : ""}<div class="spec-section-body">${body}</div><div class="detail-actions">${button("impact", tx("Explore relationships"), `data-id="${s.id}"`)}${s.state === "submitted" ? button("complete", tx("Check completion"), `data-id="${s.id}" data-revision="${s.revision}"`, "primary") : ""}</div></section>`;
 }
 function nativeDiagnostics() {
   const configured = dashboard?.connections.filter((c) => c.configured) ?? [];
   return configured.length
-    ? `<section class="native-diagnostics"><strong>Native observations</strong>${configured.map((c) => `<p><b>${escape(clients[c.provider].label)}</b><span>MCP: ${c.mcpCurrent ? "observed in this service" : "waiting for native traffic"}</span>${c.provider !== "generic" ? `<span>Hooks: ${c.hookCurrent ? "observed in this service" : "waiting for a trusted native event"}</span>` : ""}</p>`).join("")}<small>These are observations, not a live probe of the agent. Contextory checks its own service every 20 seconds.</small><p class="tools-help">Hook files update immediately. If Codex has not loaded them, review /hooks in that session and resume it after restarting extensions. Native trust stays with Codex.</p></section>`
+    ? ui`<section class="native-diagnostics"><strong>Native observations</strong>${configured.map((c) => ui`<p><b>${escape(clients[c.provider].label)}</b><span>MCP: ${c.mcpCurrent ? tx("observed in this service") : tx("waiting for native traffic")}</span>${c.provider !== "generic" ? ui`<span>Hooks: ${c.hookCurrent ? tx("observed in this service") : tx("waiting for a trusted native event")}</span>` : ""}</p>`).join("")}<small>These are observations, not a live probe of the agent. Contextory checks its own service every 20 seconds.</small><p class="tools-help">Hook files update immediately. If Codex has not loaded them, review /hooks in that session and resume it after restarting extensions. Native trust stays with Codex.</p></section>`
     : "";
 }
 function workspaceNavigation() {
   const tools = [
-    ["documentation", "Documentation"],
-    ["catalog", "Knowledge"],
-    ["versions", "Versions"],
-    ["history", "History"],
-    ["map", "Code map"],
-    ["architecture", "Architecture"],
+    ["documentation", tx("Documentation")],
+    ["catalog", tx("Knowledge")],
+    ["versions", tx("Versions")],
+    ["history", tx("History")],
+    ["map", tx("Code map")],
+    ["architecture", tx("Architecture")],
   ];
-  return `<nav class="main-nav" aria-label="Contextory views">${[
-    ["overview", "Work"],
-    ["requests", "Requests"],
-    ["approvals", "Approvals"],
+  return ui`<nav class="main-nav" aria-label="Contextory views">${[
+    ["overview", tx("Work")],
+    ["requests", tx("Requests")],
+    ["approvals", tx("Approvals")],
   ]
     .map(([id, label]) =>
       button(
         "navigate",
         id === "approvals" && reviewCount()
-          ? `${label}<span class="approval-count" aria-hidden="true">${reviewCount()}</span>`
+          ? ui`${label}<span class="approval-count" aria-hidden="true">${reviewCount()}</span>`
           : label,
-        `data-screen="${id}" aria-label="${label}" ${id === "approvals" ? `title="${reviewCount()} items awaiting review"` : ""} aria-current="${screen === id ? "page" : "false"}"`,
+        ui`data-screen="${id}" aria-label="${label}" ${id === "approvals" ? ui`title="${reviewCount()} items awaiting review"` : ""} aria-current="${screen === id ? "page" : "false"}"`,
         screen === id ? "active" : "",
       ),
     )
     .join(
       "",
-    )}<details class="workspace-tools" ${drafts.toolsOpen === "true" ? "open" : ""}><summary>Tools <span aria-hidden="true">⌄</span></summary><div class="tools-menu">${tools.map(([id, label]) => button("navigate", label, `data-screen="${id}" aria-current="${screen === id ? "page" : "false"}"`)).join("")}<hr>${nativeDiagnostics()}${button("checkConnections", "Check connections")}${button("restartAgents", "Restart agent extensions", 'title="Restarts the Extension Host and interrupts active extension tasks"')}</div></details></nav>`;
+    )}<details class="workspace-tools" ${drafts.toolsOpen === "true" ? "open" : ""}><summary>Tools <span aria-hidden="true">⌄</span></summary><div class="tools-menu">${tools.map(([id, label]) => button("navigate", label, `data-screen="${id}" aria-current="${screen === id ? "page" : "false"}"`)).join("")}<hr>${nativeDiagnostics()}${button("checkConnections", tx("Check connections"))}${button("restartAgents", tx("Restart agent extensions"), ui('title="Restarts the Extension Host and interrupts active extension tasks"'))}</div></details></nav>`;
 }
 function attentionStrip() {
   const count = reviewCount();
-  return `<div class="attention-strip">${count && screen !== "approvals" ? button("navigate", `<span class="review-count">${count}</span><span>Knowledge ${count === 1 ? "item needs" : "items need"} review</span><span aria-hidden="true">→</span>`, 'data-screen="approvals" aria-label="Review pending knowledge"', "review-alert") : ""}${serviceConnection.state === "reconnecting" ? `<div class="connection-alert" role="status"><strong>Reconnecting automatically</strong><span>${escape(serviceConnection.text)}</span>${dashboard ? "<small>Showing the last received workspace data.</small>" : ""}${button("refresh", "Retry now", "", "small")}</div>` : ""}${dashboard?.configurationError ? `<div class="configuration-alert" role="status"><span>${escape(dashboard.configurationError)}</span>${button("checkSettings", "Fix check settings", "", "small")}</div>` : ""}${automation?.reloadRequired ? `<div class="reload-alert"><span>Agent setup changed. Reload integrations to use it.</span>${button("restartAgents", "Restart extensions", 'title="Interrupts active extension tasks"', "small")}</div>` : ""}</div>`;
+  return ui`<div class="attention-strip">${count && screen !== "approvals" ? button("navigate", ui`<span class="review-count">${count}</span><span>Knowledge ${count === 1 ? tx("item needs") : tx("items need")} review</span><span aria-hidden="true">→</span>`, ui('data-screen="approvals" aria-label="Review pending knowledge"'), "review-alert") : ""}${serviceConnection.state === "reconnecting" ? ui`<div class="connection-alert" role="status"><strong>Reconnecting automatically</strong><span>${escape(serviceConnection.text)}</span>${dashboard ? ui("<small>Showing the last received workspace data.</small>") : ""}${button("refresh", tx("Retry now"), "", "small")}</div>` : ""}${dashboard?.configurationError ? ui`<div class="configuration-alert" role="status"><span>${escape(dashboard.configurationError)}</span>${button("checkSettings", tx("Fix check settings"), "", "small")}</div>` : ""}${automation?.reloadRequired ? ui`<div class="reload-alert"><span>Agent setup changed. Reload integrations to use it.</span>${button("restartAgents", tx("Restart extensions"), ui('title="Interrupts active extension tasks"'), "small")}</div>` : ""}</div>`;
 }
 function map() {
   return flowView(graph, nodeId, drafts);
@@ -643,11 +657,11 @@ function render() {
   const workspaceName =
     document.body.dataset.workspaceName ||
     dashboard?.root.split(/[\\/]/).pop() ||
-    "No workspace open";
+    tx("No workspace open");
   const workspacePath =
     document.body.dataset.workspacePath || dashboard?.root || workspaceName;
   app.classList.toggle("workspace-console", surface === "sidebar");
-  app.innerHTML = `<header class="app-header"><div class="brand"><span class="brand-mark" aria-hidden="true">${contextoryIcon}</span><div class="brand-copy"><strong>Contextory</strong><span class="workspace-name" aria-label="Workspace" title="${escape(workspacePath)}">${escape(workspaceName)}</span></div></div>${button("refresh", "&#8635;", 'aria-label="Refresh workspace" title="Refresh workspace"', "icon-button")}</header>${projectSelector()}${surface === "sidebar" ? workspaceNavigation() + attentionStrip() : ""}${notice ? `<div class="notice" role="status"><span>${escape(notice)}</span>${button("dismiss", "?", 'aria-label="Dismiss notification"', "icon-button")}</div>` : ""}${busy ? '<div class="loading-line" role="progressbar" aria-label="Contextory is working"></div>' : ""}<main>${projectPending ? empty("Switching project", "Loading this project's records...") : !dashboard && screen !== "map" && screen !== "relationships" ? empty(serviceConnection.state === "reconnecting" ? "Restoring your workspace" : "Your workspace, connected", "Contextory keeps trying automatically while the service starts. Your project records stay in place.", button("refresh", "Retry now", "", "primary")) : screen === "documentation" ? documentationView(documentationPage, drafts, documentationOffset, documentationError, documentationLoading, documentationJob) : screen === "versions" ? versionsView(versionsPage, versionDetail, releasePlan, drafts, versionsOffset) : screen === "catalog" ? catalogView(catalogPage, drafts, catalogOffset) : screen === "approvals" ? approvalsView(approvalsPage, drafts, approvalsOffset, catalogStatuses) : screen === "architecture" ? architectureView(architecture, codeContext, drafts.codeQuery ?? "", architectureOnly, architectureState, dashboard?.references ?? [], architectureCodebase) : screen === "relationships" ? relationshipView(relationships) : screen === "requests" ? requestTree() : screen === "history" ? historyView() : screen === "map" ? map() : overview()}</main><footer>${surface === "sidebar" ? connections() : ""}<div class="workspace-status"><span class="status-dot ${serviceConnection.state === "connected" ? "online" : ""}"></span><span class="service-state" title="${escape(serviceConnection.checkedAt ? `Last connection check: ${new Date(serviceConnection.checkedAt).toLocaleString()}` : serviceConnection.text)}">${serviceConnection.state === "connected" ? "Service connected" : serviceConnection.state === "reconnecting" ? "Reconnecting?" : "Connecting?"}</span>${surface === "sidebar" ? rebuildHooksButton() + autoConnectSwitch() : '<span class="footer-label">Native conversation &middot; durable context</span>'}</div></footer>`;
+  app.innerHTML = ui`<header class="app-header"><div class="brand"><span class="brand-mark" aria-hidden="true">${contextoryIcon}</span><div class="brand-copy"><strong>Contextory</strong><span class="workspace-name" aria-label="Workspace" title="${escape(workspacePath)}">${escape(workspaceName)}</span></div></div>${button("refresh", "&#8635;", ui('aria-label="Refresh workspace" title="Refresh workspace"'), "icon-button")}</header>${projectSelector()}${surface === "sidebar" ? workspaceNavigation() + attentionStrip() : ""}${notice ? ui`<div class="notice" role="status"><span>${escape(notice)}</span>${button("dismiss", "?", ui('aria-label="Dismiss notification"'), "icon-button")}</div>` : ""}${busy ? ui('<div class="loading-line" role="progressbar" aria-label="Contextory is working"></div>') : ""}<main>${projectPending ? empty(tx("Switching project"), tx("Loading this project's records...")) : !dashboard && screen !== "map" && screen !== "relationships" ? empty(serviceConnection.state === "reconnecting" ? tx("Restoring your workspace") : tx("Your workspace, connected"), tx("Contextory keeps trying automatically while the service starts. Your project records stay in place."), button("refresh", tx("Retry now"), "", "primary")) : screen === "documentation" ? documentationView(documentationPage, drafts, documentationOffset, documentationError, documentationLoading, documentationJob) : screen === "versions" ? versionsView(versionsPage, versionDetail, releasePlan, drafts, versionsOffset) : screen === "catalog" ? catalogView(catalogPage, drafts, catalogOffset) : screen === "approvals" ? approvalsView(approvalsPage, drafts, approvalsOffset, catalogStatuses) : screen === "architecture" ? architectureView(architecture, codeContext, drafts.codeQuery ?? "", architectureOnly, architectureState, dashboard?.references ?? [], architectureCodebase) : screen === "relationships" ? relationshipView(relationships) : screen === "requests" ? requestTree() : screen === "history" ? historyView() : screen === "map" ? map() : overview()}</main><footer>${surface === "sidebar" ? connections() : ""}<div class="workspace-status"><span class="status-dot ${serviceConnection.state === "connected" ? "online" : ""}"></span><span class="service-state" title="${escape(serviceConnection.checkedAt ? ui`Last connection check: ${new Date(serviceConnection.checkedAt).toLocaleString(language())}` : serviceConnection.text)}">${serviceConnection.state === "connected" ? tx("Service connected") : serviceConnection.state === "reconnecting" ? tx("Reconnecting?") : tx("Connecting?")}</span>${surface === "sidebar" ? rebuildHooksButton() + autoConnectSwitch() : ui('<span class="footer-label">Native conversation &middot; durable context</span>')}</div></footer>`;
   document.querySelector<HTMLElement>("main")!.dataset.screen = screen;
   for (const scroll of scrollAreas) {
     const replacement = document.querySelector<HTMLElement>(
@@ -729,7 +743,7 @@ function loadDocumentation() {
       query: drafts.docsQuery ?? "",
       path: drafts.docsPath || undefined,
       recordId: drafts.docsRecord || undefined,
-      locale: drafts.docsLocale || "en",
+      locale: drafts.docsLocale || language(),
       offset: documentationOffset,
       limit: 10,
     },
@@ -1024,8 +1038,9 @@ function action(element: Element) {
       if (catalogStatuses[data.id]?.state === "pending") break;
       const reason = drafts[`catalogReason-${data.id}`]?.trim();
       if (!reason) {
-        const text =
-          "Enter a review reason before approving, rejecting or refreshing this definition.";
+        const text = tx(
+          "Enter a review reason before approving, rejecting or refreshing this definition.",
+        );
         notice = text;
         catalogStatuses[data.id] = {
           state: "error",
@@ -1045,8 +1060,8 @@ function action(element: Element) {
         state: "pending",
         text:
           data.review === "refresh"
-            ? "Refreshing source snapshot…"
-            : "Saving your review…",
+            ? tx("Refreshing source snapshot…")
+            : tx("Saving your review…"),
         revision: Number(data.revision),
       };
       render();
@@ -1356,7 +1371,7 @@ app.addEventListener("click", (event) => {
   if (element) action(element);
 });
 app.addEventListener("keydown", (event) => {
-  if (event.key === "Enter" || event.key === " ") {
+  if (event.key === tx("Enter") || event.key === " ") {
     const element = (event.target as Element).closest("g[data-action]");
     if (element) {
       event.preventDefault();
@@ -1366,15 +1381,18 @@ app.addEventListener("keydown", (event) => {
 });
 app.addEventListener("keydown", (event) => {
   const tab = (event.target as Element).closest('[role="tab"]');
-  if (!tab || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key))
+  if (
+    !tab ||
+    !["ArrowLeft", "ArrowRight", tx("Home"), tx("End")].includes(event.key)
+  )
     return;
   event.preventDefault();
   const tabs = [...app.querySelectorAll<HTMLElement>('[role="tab"]')];
   const index = tabs.indexOf(tab as HTMLElement);
   const next =
-    event.key === "Home"
+    event.key === tx("Home")
       ? 0
-      : event.key === "End"
+      : event.key === tx("End")
         ? tabs.length - 1
         : (index + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) %
           tabs.length;
@@ -1591,8 +1609,9 @@ window.addEventListener("message", (event) => {
   ) {
     workspaceRequests.set(message.result.id, message.result);
     if (message.result.partial)
-      notice =
-        "Some project branches could not be created. The request is incomplete; retry its missing branches when the projects are available.";
+      notice = tx(
+        "Some project branches could not be created. The request is incomplete; retry its missing branches when the projects are available.",
+      );
   }
   if (message.type === "notice") {
     notice = message.text;
@@ -1640,7 +1659,7 @@ window.addEventListener("message", (event) => {
       documentationError =
         message.error?.message ??
         message.text ??
-        "Could not load documentation.";
+        tx("Could not load documentation.");
   }
   if (
     message.requestId === documentationJobRequest &&
@@ -1653,7 +1672,7 @@ window.addEventListener("message", (event) => {
           error:
             message.error?.message ??
             message.text ??
-            "Documentation operation failed.",
+            tx("Documentation operation failed."),
         },
       };
     else if (message.result.jobId) {
@@ -1714,12 +1733,16 @@ window.addEventListener("message", (event) => {
       catalogReviews.delete(String(message.requestId));
       const failed = message.type === "toolError";
       const text = failed
-        ? String(message.text || "The review could not be saved. Try again.")
+        ? String(
+            message.text || tx("The review could not be saved. Try again."),
+          )
         : review.action === "refresh"
-          ? "Source snapshot refreshed. Check the definition, then approve or reject it."
+          ? tx(
+              "Source snapshot refreshed. Check the definition, then approve or reject it.",
+            )
           : review.action === "approve"
-            ? `Approved ${review.id}.`
-            : `Rejected ${review.id}.`;
+            ? ui`Approved ${review.id}.`
+            : ui`Rejected ${review.id}.`;
       catalogStatuses[review.id] = {
         state: failed ? "error" : "success",
         text,

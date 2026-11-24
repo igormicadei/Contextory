@@ -2,12 +2,14 @@
 name: contextory-codebase
 description: Understand a connected workspace, locate definitions and related code, assess source impact, and recover relevant project decisions through Contextory. Use for codebase questions and before changes spanning related components.
 metadata:
-  version: "7"
+  version: "9"
 ---
 
 <!-- contextory-managed-codebase -->
 
 Use the Contextory capabilities advertised by the current client. A connected MCP server or packaged CLI supplies shared retrieval; hooks and editor language services are optional. The same workflow applies in any agent.
+
+When authoring UI-facing project records, read `uiLanguage` in `contextory_context_get` and use that VS Code language (`en`/`pt-BR`) for all new prose, even if chat uses another language. Preserve stored historical text, source identifiers and code; bilingual documentation keeps its paired locales.
 
 In a multi-root editor workspace, first use `contextory_workspace_get`. Pass the intended `projectId` on every related retrieval and workflow call, with `workspaceId` when multiple editor contexts are attached. Omission/current stays on that server's project; changing the UI project does not change agent defaults. Keep project identity/root with records, artifact handles, graph snapshots and citations. Identical paths/symbols in different projects are distinct. Unknown or ambiguous scope fails instead of selecting another project. `codebaseId` still selects a read-only reference within the chosen project; references are not writable workspace members.
 
@@ -18,6 +20,8 @@ For missing, stale or duplicate Contextory hooks, use advertised `contextory_hoo
 Start a code question or related edit with `contextory_code_context_get`: put the actual task in `query`, scope with known `paths` and optionally `specId`, and choose a bounded `budgetTokens`. Read the cited current files before deciding or editing. Read-only exploration does not require a tracked request.
 
 Use `contextory_code_architecture_get` for orientation, `contextory_impact_get` for affected callers/dependencies/tests/records, `contextory_code_path_get` to explain a connection, and `contextory_flow_trace` for detailed branches/calls. Use `contextory_search` for earlier decisions, findings and changes, then inspect record state, revision and provenance. Resolve ambiguous symbols with `source:path#qualifiedName` where supported.
+
+When something stopped working, recover its catalog contract and last known working source/check/version, then follow impact links, catalog before/after revisions (including agent auto-approvals), decisions and spec history. Search by feature and source path/symbol and page chronology. Treat these as candidate causes until reproduced; Git version membership and ledger recording intervals are different evidence. Link a confirmed regression/fix to the responsible change/spec/source and retain uncertainty otherwise. Compatible maintenance and implementation conflicts may be agent auto-approved; process/outcome conflicts require human review before implementation. Approval provenance never substitutes for executed checks.
 
 Keep source citations, graph snapshot, coverage and truncation attached to conclusions. Narrow or page bounded results. Static calls, test references and inferred contracts are possible relationships, not proof of execution or test coverage. Generated facts do not become approved requirements.
 

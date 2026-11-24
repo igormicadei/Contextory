@@ -1,3 +1,4 @@
+import { tx } from "../i18n";
 import * as vscode from "vscode";
 import { createHash, randomUUID } from "node:crypto";
 import { relative } from "node:path";
@@ -25,7 +26,7 @@ export async function editorCallGraph(
               reject(
                 new ContextoryError(
                   "EDITOR_TIMEOUT",
-                  "Language service exceeded the source query budget.",
+                  tx("Language service exceeded the source query budget."),
                 ),
               ),
             Math.max(1, limits.timeoutMs - (Date.now() - started)),
@@ -54,7 +55,9 @@ export async function editorCallGraph(
   if (!candidates?.length)
     throw new ContextoryError(
       "NO_CALL_PROVIDER",
-      "No installed language service resolved a call hierarchy here. Use TS/JS Flow mode or enable a language extension.",
+      tx(
+        "No installed language service resolved a call hierarchy here. Use TS/JS Flow mode or enable a language extension.",
+      ),
     );
   const graph: FlowGraph = {
     id: randomUUID(),
@@ -66,7 +69,9 @@ export async function editorCallGraph(
     edges: [],
     frontier: [],
     gaps: [
-      "Possible caller/callee relationships from the installed language service; no branch order or runtime execution is implied.",
+      tx(
+        "Possible caller/callee relationships from the installed language service; no branch order or runtime execution is implied.",
+      ),
     ],
     limits,
     partial: false,

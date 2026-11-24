@@ -1,3 +1,4 @@
+import { tx } from "../i18n";
 import type { Dashboard, Entity } from "../contracts/model";
 
 /** A recorded-evidence summary, never an estimate of time or eligibility to complete. */
@@ -55,16 +56,16 @@ export function specProgress(
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
   const phase =
     spec.state === "completed"
-      ? "Completed"
+      ? tx("Completed")
       : blockers.length || spec.state === "blocked"
-        ? "Blocked"
+        ? tx("Blocked")
         : running.length
-          ? "Running checks"
+          ? tx("Running checks")
           : spec.state === "submitted"
-            ? "Awaiting completion"
+            ? tx("Awaiting completion")
             : spec.state === "implementing"
-              ? "Implementation in progress"
-              : "Ready to start";
+              ? tx("Implementation in progress")
+              : tx("Ready to start");
   return {
     criteria,
     covered: criteria.filter((c) => c.status === "check").length,

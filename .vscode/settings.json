@@ -188,19 +188,31 @@
     },
     {
       "id": "knowledge-review",
-      "name": "Knowledge review recovery, ordering and native role boundaries",
+      "name": "Approval policy, enforced waiting and knowledge review boundaries",
       "executable": "node",
       "args": [
         "--import",
         "tsx",
         "--test",
         "--test-concurrency=2",
+        "tests/integration/approval-policy.test.ts",
+        "tests/core/workflow.test.ts",
+        "tests/core/i18n.test.ts",
+        "tests/core/history.test.ts",
+        "tests/integration/i18n.test.ts",
         "tests/integration/catalog.test.ts",
         "tests/integration/service.test.ts",
         "tests/integration/headless.test.ts",
         "tests/integration/registration.test.ts"
       ],
       "timeoutMs": 180000
+    },
+    {
+      "id": "localization",
+      "name": "English and Brazilian Portuguese UI catalog and manifest coverage",
+      "executable": "node",
+      "args": ["scripts/check-localization.mjs"],
+      "timeoutMs": 30000
     }
   ]
 }

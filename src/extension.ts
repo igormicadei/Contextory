@@ -1,3 +1,4 @@
+import { ui, tx, setLanguage } from "./i18n";
 import * as vscode from "vscode";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { mkdir, realpath } from "node:fs/promises";
@@ -34,7 +35,8 @@ export async function deactivate() {
   active = undefined;
 }
 export async function activate(context: vscode.ExtensionContext) {
-  const output = vscode.window.createOutputChannel("Contextory");
+  setLanguage(vscode.env.language);
+  const output = vscode.window.createOutputChannel(tx("Contextory"));
   context.subscriptions.push(output);
   let view: vscode.WebviewView | undefined;
   let panel: vscode.WebviewPanel | undefined;
@@ -66,10 +68,12 @@ export async function activate(context: vscode.ExtensionContext) {
     context.workspaceState,
     async () =>
       (await vscode.window.showInformationMessage(
-        "Contextory installed or updated workspace MCP/hooks. Restart the Extension Host to reload native integrations, then resume your chat. Hook trust remains in the native client; restarting interrupts active extension tasks.",
-        "Restart Extension Host",
-        "Later",
-      )) === "Restart Extension Host",
+        tx(
+          "Contextory installed or updated workspace MCP/hooks. Restart the Extension Host to reload native integrations, then resume your chat. Hook trust remains in the native client; restarting interrupts active extension tasks.",
+        ),
+        tx("Restart Extension Host"),
+        tx("Later"),
+      )) === tx("Restart Extension Host"),
     async () =>
       await vscode.commands.executeCommand(
         "workbench.action.restartExtensionHost",
@@ -82,7 +86,7 @@ export async function activate(context: vscode.ExtensionContext) {
           .getConfiguration("contextory")
           .get<ReloadMode>("restartAfterSetup", "prompt"),
       )
-      .catch((error) => output.appendLine(`Setup reload: ${error.message}`));
+      .catch((error) => output.appendLine(ui`Setup reload: ${error.message}`));
   };
   const automation = (path = selectedRoot): AgentAutomation => ({
     reloadRequired: setupReload.pending,
@@ -155,14 +159,16 @@ export async function activate(context: vscode.ExtensionContext) {
       !folders?.length ||
       folders.some((folder) => folder.uri.scheme !== "file")
     )
-      throw new Error("Open a trusted local folder to use Contextory.");
+      throw new Error(tx("Open a trusted local folder to use Contextory."));
     if (folders.length > 16)
       throw new Error(
-        "Contextory supports up to 16 local project folders per workspace.",
+        tx("Contextory supports up to 16 local project folders per workspace."),
       );
     if (!vscode.workspace.isTrusted)
       throw new Error(
-        "Trust this workspace before connecting agents or running analysis/checks.",
+        tx(
+          "Trust this workspace before connecting agents or running analysis/checks.",
+        ),
       );
     return (
       folders.find((folder) => folder.uri.fsPath === selectedRoot)?.uri
@@ -221,7 +227,7 @@ export async function activate(context: vscode.ExtensionContext) {
         text:
           error instanceof Error
             ? error.message
-            : "Restoring the workspace connection.",
+            : tx("Restoring the workspace connection."),
       });
     },
   );
@@ -234,20 +240,14 @@ export async function activate(context: vscode.ExtensionContext) {
       reconnect.request(error);
   };
   const notifyReviews = (client: ServiceClient, dashboard: Dashboard) => {
-    const count =
-      (dashboard.catalog?.observed ?? 0) +
-      (dashboard.catalog?.pendingChanges ?? 0);
+    const count = dashboard.catalog?.pendingChanges ?? 0;
     if (view)
       view.badge = count
-        ? { value: count, tooltip: `${count} knowledge items await review` }
+        ? { value: count, tooltip: ui`${count} knowledge items await review` }
         : undefined;
     const key = projectKey("contextory.reviewNotification", client.root);
     const signature = dashboard.entities
-      .filter(
-        (e) =>
-          (e.kind === "knowledge" && e.state === "observed") ||
-          (e.kind === "knowledge_change" && e.state === "pending"),
-      )
+      .filter((e) => e.kind === "knowledge_change" && e.state === "pending")
       .map((e) => `${e.id}:${e.revision}`)
       .sort()
       .join(",");
@@ -261,10 +261,10 @@ export async function activate(context: vscode.ExtensionContext) {
     void Promise.resolve(context.workspaceState.update(key, signature))
       .then(async () => {
         const choice = await vscode.window.showInformationMessage(
-          `${count} knowledge ${count === 1 ? "item needs" : "items need"} your review in ${client.root.split(/[\\/]/).pop()}.`,
-          "Review now",
+          ui`${count} knowledge ${count === 1 ? tx("item needs") : tx("items need")} your review in ${client.root.split(/[\\/]/).pop()}.`,
+          tx("Review now"),
         );
-        if (choice !== "Review now") return;
+        if (choice !== tx("Review now")) return;
         const folder = clientFolders.get(client);
         if (!folder) return;
         await selectProjectRoot(folder.uri.fsPath);
@@ -276,7 +276,7 @@ export async function activate(context: vscode.ExtensionContext) {
         });
       })
       .catch((error: Error) =>
-        output.appendLine(`Knowledge review notification: ${error.message}`),
+        output.appendLine(ui`Knowledge review notification: ${error.message}`),
       );
   };
   const configureClient = async (
@@ -291,11 +291,12 @@ export async function activate(context: vscode.ExtensionContext) {
       await client.call("configure", {
         recipes: settings.get("checks", []),
         pythonExecutable: settings.get("pythonExecutable", "python"),
+        uiLanguage: vscode.env.language,
       });
       configurationErrors.delete(client.root);
     } catch (error) {
       if ((error as { code?: string }).code !== "INVALID_CHECKS") throw error;
-      const text = `${error instanceof Error ? error.message : String(error)} The connection remains available; checks retain their last valid configuration.`;
+      const text = ui`${error instanceof Error ? error.message : String(error)} The connection remains available; checks retain their last valid configuration.`;
       configurationErrors.set(client.root, text);
       output.appendLine(text);
     }
@@ -333,14 +334,16 @@ export async function activate(context: vscode.ExtensionContext) {
       membership = "";
       postProject(client, {
         type: "notice",
-        text: "Contextory service disconnected. Refresh to reconnect; native work can continue.",
+        text: tx(
+          "Contextory service disconnected. Refresh to reconnect; native work can continue.",
+        ),
       });
       clientFolders.delete(client);
       void client.close();
       running.delete(client);
       recover(
         new Error(
-          String(event.message ?? "Contextory connection interrupted."),
+          String(event.message ?? tx("Contextory connection interrupted.")),
         ),
       );
     }
@@ -352,7 +355,7 @@ export async function activate(context: vscode.ExtensionContext) {
     );
     if (!folder)
       return Promise.reject(
-        new Error("The selected project is no longer in this workspace."),
+        new Error(tx("The selected project is no longer in this workspace.")),
       );
     const existing = projectClients.get(folderRoot);
     if (existing)
@@ -391,7 +394,7 @@ export async function activate(context: vscode.ExtensionContext) {
       try {
         await prepareStartupAgents(client, true);
       } catch (error) {
-        const text = `Startup agent configuration: ${error instanceof Error ? error.message : String(error)}`;
+        const text = ui`Startup agent configuration: ${error instanceof Error ? error.message : String(error)}`;
         output.appendLine(text);
         postProject(client, { type: "notice", text });
       }
@@ -475,7 +478,9 @@ export async function activate(context: vscode.ExtensionContext) {
       return await work();
     } catch (error) {
       const text =
-        error instanceof Error ? error.message : "Contextory operation failed.";
+        error instanceof Error
+          ? error.message
+          : tx("Contextory operation failed.");
       post({ type: "notice", text, projectId });
       output.appendLine(text);
       if ((error as { code?: string }).code === "SERVICE_UNAVAILABLE")
@@ -564,14 +569,14 @@ export async function activate(context: vscode.ExtensionContext) {
         try {
           await registerAgent(client, provider);
           output.appendLine(
-            `Automatic connection ${provider}: workspace MCP/hooks ready for the native client.`,
+            ui`Automatic connection ${provider}: workspace MCP/hooks ready for the native client.`,
           );
         } catch (error) {
           const text = `${provider}: ${error instanceof Error ? error.message : String(error)}`;
-          output.appendLine(`Automatic connection failed: ${text}`);
+          output.appendLine(ui`Automatic connection failed: ${text}`);
           postProject(client, {
             type: "notice",
-            text: `Automatic connection needs attention: ${text}`,
+            text: ui`Automatic connection needs attention: ${text}`,
           });
         }
       }
@@ -605,7 +610,9 @@ export async function activate(context: vscode.ExtensionContext) {
       provider !== undefined &&
       (!isClient(String(provider)) || provider === "generic")
     )
-      throw new Error("Choose Codex, Claude Code or IBM Bob to rebuild hooks.");
+      throw new Error(
+        tx("Choose Codex, Claude Code or IBM Bob to rebuild hooks."),
+      );
     const picked =
       provider === undefined
         ? await vscode.window.showQuickPick(
@@ -614,7 +621,7 @@ export async function activate(context: vscode.ExtensionContext) {
               provider: id,
             })),
             {
-              placeHolder: `Rebuild Contextory hooks for ${client.root.split(/[\\/]/).pop()}`,
+              placeHolder: ui`Rebuild Contextory hooks for ${client.root.split(/[\\/]/).pop()}`,
             },
           )
         : { provider: provider as Exclude<Provider, "generic"> };
@@ -676,7 +683,7 @@ export async function activate(context: vscode.ExtensionContext) {
     if (!panel) {
       panel = vscode.window.createWebviewPanel(
         "contextory.flow",
-        "Contextory · Source Flow",
+        tx("Contextory · Source Flow"),
         vscode.ViewColumn.Beside,
         { enableScripts: true, localResourceRoots: [context.extensionUri] },
       );
@@ -703,7 +710,7 @@ export async function activate(context: vscode.ExtensionContext) {
     if (!input) {
       rememberEditor(vscode.window.activeTextEditor);
       if (!lastSource)
-        throw new Error("Place the cursor inside a source function first.");
+        throw new Error(tx("Place the cursor inside a source function first."));
       if (lastSourceRoot && lastSourceRoot !== root())
         await selectProjectRoot(lastSourceRoot);
       input = {
@@ -754,6 +761,7 @@ export async function activate(context: vscode.ExtensionContext) {
     surface: "sidebar" | "flow" | "relationships" | "architecture" = "sidebar",
   ) =>
     webviewDocument({
+      language: vscode.env.language,
       script: webview
         .asWebviewUri(
           vscode.Uri.joinPath(context.extensionUri, "dist/webview.js"),
@@ -784,7 +792,7 @@ export async function activate(context: vscode.ExtensionContext) {
     if (!relationshipPanel) {
       const created = vscode.window.createWebviewPanel(
         "contextory.relationships",
-        "Contextory: Relationships",
+        tx("Contextory: Relationships"),
         vscode.ViewColumn.Beside,
         { enableScripts: true, localResourceRoots: [context.extensionUri] },
       );
@@ -814,7 +822,7 @@ export async function activate(context: vscode.ExtensionContext) {
     if (!architecturePanel) {
       const created = vscode.window.createWebviewPanel(
         "contextory.architecture",
-        "Contextory: Architecture",
+        tx("Contextory: Architecture"),
         vscode.ViewColumn.Beside,
         { enableScripts: true, localResourceRoots: [context.extensionUri] },
       );
@@ -844,7 +852,7 @@ export async function activate(context: vscode.ExtensionContext) {
       source.path.includes("..") ||
       /^[\\/]|^[A-Za-z]:/.test(source.path)
     )
-      throw new Error("Source link must stay in this workspace.");
+      throw new Error(tx("Source link must stay in this workspace."));
     const client = await service();
     const path = await client.call<string>("source.resolve", {
       path: source.path,
@@ -866,7 +874,7 @@ export async function activate(context: vscode.ExtensionContext) {
       const dashboard = await client.call<Dashboard>("dashboard");
       const requests = dashboard.entities.filter((e) => e.kind === "request");
       if (!requests.length)
-        throw new Error("Create a request before exporting its report.");
+        throw new Error(tx("Create a request before exporting its report."));
       const picked =
         requests.length === 1
           ? requests[0].id
@@ -877,7 +885,7 @@ export async function activate(context: vscode.ExtensionContext) {
                   description: e.id,
                   id: e.id,
                 })),
-                { placeHolder: "Choose the request to export" },
+                { placeHolder: tx("Choose the request to export") },
               )
             )?.id;
       if (!picked) return;
@@ -921,7 +929,9 @@ export async function activate(context: vscode.ExtensionContext) {
         (folder) => folder.uri.fsPath === path,
       )
     )
-      throw new Error("The selected project is no longer in this workspace.");
+      throw new Error(
+        tx("The selected project is no longer in this workspace."),
+      );
     selectedRoot = path;
     pendingDocumentation = undefined;
     lastGraph = undefined;
@@ -977,7 +987,9 @@ export async function activate(context: vscode.ExtensionContext) {
             project &&
             [...clientFolders].find(([client]) => client.root === project.root);
           if (!client)
-            throw new Error("Select an active project from this workspace.");
+            throw new Error(
+              tx("Select an active project from this workspace."),
+            );
           await selectProjectRoot(
             client[1].uri.fsPath,
             typeof message.recordId === "string" ? message.recordId : undefined,
@@ -1016,8 +1028,8 @@ export async function activate(context: vscode.ExtensionContext) {
             canSelectFiles: false,
             canSelectFolders: true,
             canSelectMany: false,
-            openLabel: "Analyze as reference",
-            title: "Choose a reference codebase",
+            openLabel: tx("Analyze as reference"),
+            title: tx("Choose a reference codebase"),
           });
           const folder = folders?.[0];
           if (!folder || folder.scheme !== "file") break;
@@ -1098,7 +1110,7 @@ export async function activate(context: vscode.ExtensionContext) {
               text:
                 error instanceof Error
                   ? error.message
-                  : "Contextory operation failed.",
+                  : tx("Contextory operation failed."),
             });
             throw error;
           }
@@ -1179,7 +1191,7 @@ export async function activate(context: vscode.ExtensionContext) {
           const sources = await client.call("index.sources", {}, 120000);
           postProject(client, {
             type: "notice",
-            text: `Workspace indexed: ${JSON.stringify(sources)}`,
+            text: ui`Workspace indexed: ${JSON.stringify(sources)}`,
           });
           if ((await client.call<Dashboard>("dashboard")).semantic.ready)
             await client.call("index.vectors", {}, 600000);
@@ -1241,14 +1253,14 @@ export async function activate(context: vscode.ExtensionContext) {
         .filter((c) => c.configured)
         .map(
           (c) =>
-            `${c.provider}: MCP ${c.mcpCurrent ? "observed in this service" : "waiting for native traffic"}; hooks ${c.provider === "generic" ? "not used" : c.hookCurrent ? "observed in this service" : "not yet observed (check native trust/reload)"}`,
+            ui`${c.provider}: MCP ${c.mcpCurrent ? tx("observed in this service") : tx("waiting for native traffic")}; hooks ${c.provider === "generic" ? tx("not used") : c.hookCurrent ? tx("observed in this service") : tx("not yet observed (check native trust/reload)")}`,
         )
-        .join("\n") || "No configured native connections.";
+        .join("\n") || tx("No configured native connections.");
     output.appendLine(text);
     output.show(true);
     const choice = await vscode.window.showInformationMessage(
       text,
-      "Restart Extension Host",
+      tx("Restart Extension Host"),
     );
     if (choice)
       await vscode.commands.executeCommand(
@@ -1265,7 +1277,7 @@ export async function activate(context: vscode.ExtensionContext) {
   command("contextory.disconnectProvider", async () => {
     const provider = await vscode.window.showQuickPick(
       ["codex", "claude", "bob", "generic"],
-      { placeHolder: "Disconnect Contextory from this native agent" },
+      { placeHolder: tx("Disconnect Contextory from this native agent") },
     );
     if (provider) await connect(provider as Provider, true);
   });
@@ -1295,7 +1307,7 @@ export async function activate(context: vscode.ExtensionContext) {
     await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: "Contextory: Preparing optional local semantic search",
+        title: tx("Contextory: Preparing optional local semantic search"),
       },
       () =>
         new Promise<void>((resolve, reject) => {
@@ -1322,7 +1334,9 @@ export async function activate(context: vscode.ExtensionContext) {
               ? resolve()
               : reject(
                   new Error(
-                    "Local model preparation failed. See Contextory output; lexical search remains available.",
+                    tx(
+                      "Local model preparation failed. See Contextory output; lexical search remains available.",
+                    ),
                   ),
                 ),
           );
@@ -1407,7 +1421,7 @@ export async function activate(context: vscode.ExtensionContext) {
         workspaceInfo = undefined;
         post({
           type: "notice",
-          text: "Open a trusted local project folder to use Contextory.",
+          text: tx("Open a trusted local project folder to use Contextory."),
         });
         return;
       }
@@ -1447,7 +1461,7 @@ export async function activate(context: vscode.ExtensionContext) {
       const entry =
         project &&
         [...clientFolders].find(([client]) => client.root === project.root);
-      if (!entry) throw new Error("Unknown workspace project.");
+      if (!entry) throw new Error(tx("Unknown workspace project."));
       await selectProjectRoot(entry[1].uri.fsPath);
     },
     health: async () => (await service()).call("health"),

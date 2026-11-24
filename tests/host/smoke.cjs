@@ -61,6 +61,19 @@ exports.run = async function () {
         "startup runtime readiness failure recovers after configuration repair while Explorer stays visible",
       );
     }
+    const languageContext = await api.tool("contextory_context_get", {});
+    const expectedLanguage = /^pt(?:-br)?$/i.test(vscode.env.language)
+      ? "pt-BR"
+      : "en";
+    assert.equal(languageContext.uiLanguage, expectedLanguage);
+    assert.match(
+      languageContext.contentLanguageInstruction,
+      /NEW UI-facing record prose/,
+    );
+    result.language = vscode.env.language;
+    result.checks.push(
+      "VS Code display language reaches the project context and agent content-language instruction",
+    );
     assert.equal(config.get("startupAgent"), "auto");
     if (!config.get("autoConnect")) {
       for (const file of [".codex/config.toml", ".mcp.json", ".bob/mcp.json"])

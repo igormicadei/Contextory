@@ -1,3 +1,4 @@
+import { ui, tx } from "../i18n";
 import { escape, button } from "./html";
 
 export interface MapNode {
@@ -57,7 +58,7 @@ export function explorerSvg(
     240,
     ...[...positions.values()].map((p) => p.y + 110),
   );
-  return `<svg class="explorer-diagram ${className}" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="group" aria-label="${escape(label)}"><defs><marker id="map-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z"/></marker></defs>${links
+  return ui`<svg class="explorer-diagram ${className}" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="group" aria-label="${escape(label)}"><defs><marker id="map-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z"/></marker></defs>${links
     .map((e) => {
       const a = positions.get(e.from)!,
         b = positions.get(e.to)!;
@@ -73,20 +74,20 @@ export function explorerSvg(
             ? `M${x1},${y1} C${x1 + 48},${y1 - 65} ${x2 - 48},${y2 - 65} ${x2},${y2}`
             : `M${x1},${y1} C${x1 + 32},${y1} ${x2 - 32},${y2} ${x2},${y2}`;
       const related = selected && (e.from === selected || e.to === selected);
-      return `<g class="graph-edge ${escape(e.kind)} ${e.label?.includes("· inferred") ? "inferred" : ""} ${related ? "related" : selected ? "dimmed" : ""}"><title>${escape(`${nodes.find((n) => n.id === e.from)?.label} → ${nodes.find((n) => n.id === e.to)?.label}: ${e.label ?? e.kind}`)}</title><path d="${d}" marker-end="url(#map-arrow)"/><text x="${(x1 + x2) / 2}" y="${(y1 + y2) / 2 - (backward ? 30 : 7)}" text-anchor="middle">${escape(e.label ?? e.kind)}</text></g>`;
+      return ui`<g class="graph-edge ${escape(tx(e.kind))} ${e.label?.includes("· inferred") ? "inferred" : ""} ${related ? "related" : selected ? "dimmed" : ""}"><title>${escape(`${nodes.find((n) => n.id === e.from)?.label} → ${nodes.find((n) => n.id === e.to)?.label}: ${e.label ?? e.kind}`)}</title><path d="${d}" marker-end="url(#map-arrow)"/><text x="${(x1 + x2) / 2}" y="${(y1 + y2) / 2 - (backward ? 30 : 7)}" text-anchor="middle">${escape(e.label ?? e.kind)}</text></g>`;
     })
     .join("")}${nodes
     .map((n) => {
       const p = positions.get(n.id)!;
       const trim = (s: string, max: number) =>
         escape(s.length > max ? `${s.slice(0, max - 1)}…` : s);
-      return `<g class="graph-node ${escape(n.kind)} ${n.id === selected ? "selected" : selected && !connected.has(n.id) ? "dimmed" : ""}" transform="translate(${p.x},${p.y})" role="button" tabindex="0" aria-pressed="${n.id === selected}" aria-label="${escape(n.label)}" data-action="${action}" data-id="${escape(n.id)}"><title>${escape(n.label)}${n.detail ? ` — ${escape(n.detail)}` : ""}</title><rect width="240" height="78" rx="10"/><text x="15" y="20" class="node-kind">${escape(n.kind.replaceAll("_", " "))}</text><text x="15" y="43" class="node-name">${trim(n.label, 31)}</text><text x="15" y="63" class="node-location">${trim(n.detail ?? "Select to explore", 37)}</text></g>`;
+      return ui`<g class="graph-node ${escape(tx(n.kind))} ${n.id === selected ? "selected" : selected && !connected.has(n.id) ? "dimmed" : ""}" transform="translate(${p.x},${p.y})" role="button" tabindex="0" aria-pressed="${n.id === selected}" aria-label="${escape(n.label)}" data-action="${action}" data-id="${escape(n.id)}"><title>${escape(n.label)}${n.detail ? ` — ${escape(n.detail)}` : ""}</title><rect width="240" height="78" rx="10"/><text x="15" y="20" class="node-kind">${escape(n.kind.replaceAll("_", " "))}</text><text x="15" y="43" class="node-name">${trim(n.label, 31)}</text><text x="15" y="63" class="node-location">${trim(n.detail ?? tx("Select to explore"), 37)}</text></g>`;
     })
     .join("")}</svg>`;
 }
 
 export function mapToolbar(id: string) {
-  return `<div class="map-tools" role="group" aria-label="Map viewport"><span class="muted">Drag background to pan · Ctrl + wheel to zoom</span><div>${button("mapZoom", "−", `data-map="${id}" data-factor="0.8" aria-label="Zoom out"`, "small")}${button("mapZoom", "+", `data-map="${id}" data-factor="1.25" aria-label="Zoom in"`, "small")}${button("mapFit", "Fit", `data-map="${id}" aria-label="Fit map to view"`, "small")}${button("mapReset", "100%", `data-map="${id}" aria-label="Reset map zoom"`, "small")}</div></div>`;
+  return ui`<div class="map-tools" role="group" aria-label="Map viewport"><span class="muted">Drag background to pan · Ctrl + wheel to zoom</span><div>${button("mapZoom", "−", ui`data-map="${id}" data-factor="0.8" aria-label="Zoom out"`, "small")}${button("mapZoom", "+", ui`data-map="${id}" data-factor="1.25" aria-label="Zoom in"`, "small")}${button("mapFit", tx("Fit"), ui`data-map="${id}" aria-label="Fit map to view"`, "small")}${button("mapReset", "100%", ui`data-map="${id}" aria-label="Reset map zoom"`, "small")}</div></div>`;
 }
 
 const viewports = new Map<

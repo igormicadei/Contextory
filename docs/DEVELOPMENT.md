@@ -78,6 +78,22 @@ Packaging refreshes the versioned VSIX and checksum but does not publish, change
 
 [Review qualification evidence](VALIDATION.md)
 
+<a id="localize-interface"></a>
+
+## Maintain interface translations safely
+
+Use package.nls.json and package.nls.pt-br.json for extension contributions; keep command IDs and setting keys unchanged. Source-owned webview/host messages use tx for controlled labels or the ui template tag for HTML and interpolated messages. The helper translates the static skeleton before substituting values. Do not apply translation to stored record titles, descriptions, reasons, code or paths. Machine IDs, selectors, CSS classes and SVG coordinates are not localized.
+
+Translate the label, preserve the record
+
+```typescript
+import { ui } from "../i18n";
+// escape preserves the existing HTML-escaping boundary.
+return ui`<h1>Requests</h1><p>${escape(record.title)}</p>`;
+```
+
+Add the matching Portuguese message to src/i18n/pt-BR.json and preserve numbered numbered substitution markers. npm run i18n:check extracts declared messages and checks Portuguese coverage, substitution marker parity and manifest catalogs; npm run check includes it. New UI-facing agent prose follows contextory_context_get.uiLanguage. English source keys and protocol/schema identifiers remain stable. Activity presentation separates the localized action from the untouched record subject.
+
 ## Sources
 
 - package.json
@@ -88,3 +104,19 @@ Packaging refreshes the versioned VSIX and checksum but does not publish, change
 - .gitattributes
 - .vscodeignore
 - tests/documentation/site.test.mjs
+- skills/contextory-workflow/references/approvals-and-regressions.md
+- src/i18n/index.ts
+- src/i18n/pt-BR.json
+- package.nls.json
+- package.nls.pt-br.json
+- src/extension.ts
+- src/webview/document.ts
+- src/service/application.ts
+- src/service/server.ts
+- src/hooks/launcher.ts
+- tests/core/i18n.test.ts
+- tests/integration/i18n.test.ts
+- tests/ui/i18n.spec.ts
+- scripts/check-localization.mjs
+- scripts/localization-catalog.mjs
+- tests/host/smoke.cjs

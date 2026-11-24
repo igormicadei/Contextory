@@ -12,7 +12,7 @@ These are recorded facts, not a percentage of implementation time or a finish es
 
 ## Review knowledge
 
-The **Approvals** tab shows a pending count and contains only observed definitions and pending replacements or retirements. A persistent review alert and the editor's **Review now** notification open this tab directly. Stale source snapshots can be refreshed explicitly after checking the linked files; approval remains a separate human action. Errors appear beside the item and preserve the review reason.
+The **Approvals** count and persistent review alert include pending change proposals. Observed definitions have optional baseline review and do not block work or trigger mandatory alerts. Agents can auto-approve compatible maintenance and implementation conflicts with an explicit rationale; conflicts involving process rules or results, changed behavioral contracts and retirements require human review before implementation. Native tool/Stop hooks enforce waiting. Stale proposals can be refreshed after inspecting linked files; human approval remains a separate action. Errors preserve the review reason. See [project knowledge](PROJECT-KNOWLEDGE.md) for audit history and regression investigation.
 
 **Tools > Knowledge** browses definitions, source/test references, history and file coverage. Its search filters and page are independent of Approvals, and it has no approval forms. Moving between the two views preserves review drafts. Reviewed items leave the approval queue; an empty queue shows that no approvals are pending.
 

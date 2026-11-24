@@ -445,14 +445,40 @@ export class Workflow {
   decision(a: Input<"contextory_decision_record">, actor: Actor) {
     return this.ledger.transaction(a.operationId, actor, "decision", a, () => {
       this.assertLease(a.specId, a.leaseId, actor);
-      if (
-        a.supersedes &&
-        this.kind(a.supersedes, "decision").parentId !== a.specId
-      )
-        throw new ContextoryError(
-          "WRONG_SPEC",
-          "Superseded decision belongs to another spec.",
-        );
+      const previous = a.supersedes
+        ? this.kind(a.supersedes, "decision")
+        : undefined;
+      const auto =
+        previous &&
+        a.impact === "implementation" &&
+        previous.data.impact === "implementation" &&
+        previous.data.provenance !== "developer";
+      if (previous && !auto && !actor.human) {
+        const approval = a.approvalId
+          ? this.kind(a.approvalId, "knowledge_change")
+          : undefined;
+        const target = approval
+          ? this.kind(String(approval.data.targetId), "knowledge")
+          : undefined;
+        if (
+          !approval ||
+          approval.state !== "approved" ||
+          approval.parentId !== a.specId ||
+          !(approval.data.decisionIds as string[] | undefined)?.includes(
+            previous.id,
+          ) ||
+          (approval.data.content as { description?: string })?.description !==
+            a.choice ||
+          approval.data.action === "retire" ||
+          target?.state !== "approved" ||
+          (target.data.content as { description?: string })?.description !==
+            a.choice
+        )
+          throw new ContextoryError(
+            "DECISION_APPROVAL_REQUIRED",
+            "Propose this process/outcome or unclassified decision conflict in the catalog before implementation. Wait for human approval, then pass its approvalId; decisionIds must name the old decision and the approved description must equal the new choice.",
+          );
+      }
       const e = this.create(
         "decision",
         a.title,
@@ -463,6 +489,20 @@ export class Workflow {
           consequences: a.consequences,
           sources: a.sources,
           provenance: actor.human ? "developer" : "agent-authored",
+          impact: a.impact,
+          approvalId: a.approvalId,
+          conflictReview: previous
+            ? {
+                mode: actor.human
+                  ? "human"
+                  : auto
+                    ? "agent-auto"
+                    : "human-approved-proposal",
+                actor: actor.id,
+                supersedes: previous.id,
+                reason: a.rationale,
+              }
+            : undefined,
         },
         actor,
         a.specId,

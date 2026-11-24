@@ -94,6 +94,24 @@ Use Tools > Documentation to find explanations linked to current source and trac
 
 [Read the project documentation guide](PROJECT-DOCUMENTATION.md)
 
+<a id="interface-language"></a>
+
+## Follow the VS Code display language
+
+Contextory follows the editor's display language for built-in labels, command titles, settings descriptions, native dialogs and webview controls. English and Brazilian Portuguese are supported. pt/pt-br select pt-BR; other unsupported locales fall back to English. The sidebar, horizontal panel, architecture, source flow and relationships share the same locale, including accessibility labels and dates.
+
+1. Use VS Code's Configure Display Language command and choose English or Brazilian Portuguese. Install the language pack through VS Code if needed, then restart as requested by the editor.
+2. Open Contextory. New webview documents take vscode.env.language, and the editor configures that normalized language for every connected project.
+3. Ask the agent to read contextory_context_get. uiLanguage and contentLanguageInstruction tell it to write every new UI-facing record in the editor language, even when the conversation uses another language.
+
+Existing requests, definitions, decisions, reports and source identifiers keep their original text. Localization translates source-owned interface messages before dynamic values are inserted; it never rewrites stored prose, code, paths, IDs or tool keys. Raw code/command output and unknown diagnostics retain their original language. Change language in VS Code and reload; Contextory has no competing language preference.
+
+![Portuguese Contextory interface around original English project entries](../.documentation/assets/knowledge-pt-BR.png)
+
+Built-in controls follow Brazilian Portuguese; stored sample definitions remain exactly as authored.
+
+The project's language is set only through authenticated editor configuration and persists in that project's service storage. Standalone/headless projects default to English; attaching to an editor-managed ledger retains its last configured language. Native hooks repeat the content-language instruction after session starts and before tools, including pending-review responses. This is an instruction to the native agent, not a language detector or automatic translation of its output.
+
 ## Sources
 
 - src/webview/main.ts
@@ -109,3 +127,14 @@ Use Tools > Documentation to find explanations linked to current source and trac
 - tests/ui/console.spec.ts
 - tests/integration/recipe-configuration.test.ts
 - scripts/verify-background-startup.mjs
+- src/i18n/index.ts
+- src/i18n/pt-BR.json
+- package.nls.json
+- package.nls.pt-br.json
+- src/webview/document.ts
+- src/service/application.ts
+- src/service/server.ts
+- src/hooks/launcher.ts
+- tests/core/i18n.test.ts
+- tests/integration/i18n.test.ts
+- tests/ui/i18n.spec.ts

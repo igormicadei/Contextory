@@ -1,4 +1,5 @@
 import type { SourceRef } from "../contracts/model";
+import { tx } from "../i18n";
 export const escape = (value: unknown) =>
   String(value ?? "").replace(
     /[&<>"']/g,
@@ -15,7 +16,7 @@ export const button = (
 ) =>
   `<button type="button" data-action="${action}" ${attributes} class="${className}">${label}</button>`;
 export const badge = (state: string) =>
-  `<span class="badge ${escape(state)}">${escape(state.replaceAll("_", " "))}</span>`;
+  `<span class="badge ${escape(state)}">${escape(tx(state.replaceAll("_", " ")))}</span>`;
 export const sourceButton = (source: SourceRef) =>
   button(
     "source",

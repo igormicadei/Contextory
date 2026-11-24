@@ -2,7 +2,7 @@
 name: contextory-documentation
 description: Author, update, retrieve and build source-backed bilingual project documentation through Contextory's bundled software-documentation and Carbon runtime, including source and tracked-change associations.
 metadata:
-  version: "1"
+  version: "2"
 ---
 
 <!-- contextory-managed-documentation -->
@@ -10,6 +10,8 @@ metadata:
 Use the existing Contextory MCP connection or packaged CLI. The documentation runtime, documentation playbooks, complete Carbon module, fonts and assets ship with Contextory; no CustomAgents/plugin installation or extra MCP registration is needed. Python 3.11+ is needed only for generator operations, using the project's `contextory.pythonExecutable`. Reading explanations and guidance does not require Python. Optional official Carbon MCP guidance is included; use it only if its tools are actually advertised.
 
 Select the intended project with `contextory_workspace_get` and carry its `projectId` on every call. Read current task/source context and catalog before authoring. Page the relevant `contextory_project_export` datasets when documenting decisions, definitions, architecture, changes or evidence; retain record IDs, revisions, approval state, source freshness and historical provenance. Do not publish private history merely because it is exportable.
+
+Read `uiLanguage` from `contextory_context_get` and write new UI-facing record titles, descriptions, reasons, findings, decisions and outcomes in that VS Code language. Preserve existing/historical prose and exact IDs/paths/code. This does not replace the documentation corpus's required English/pt-BR pair: author both locales there, and let the UI choose its initial reading language.
 
 For existing explanations, call `contextory_docs_get` with `section=sections` and a query, source path or local record ID. Page results, inspect source links and distinguish authored drafts, stale/unknown citations and approved requirements. The source graph remains the basis for definitions and dependencies. Use `Tools > Documentation`, Architecture's **Explain this area**, or a request's **Related documentation** for the human browser. Approvals remains the human knowledge review destination.
 

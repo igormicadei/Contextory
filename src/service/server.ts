@@ -10,6 +10,7 @@ import {
 } from "node:fs/promises";
 import { join, isAbsolute } from "node:path";
 import { Application } from "./application";
+import { normalizeLanguage } from "../i18n";
 import { Ledger } from "../storage/ledger";
 import { writeAtomic } from "../storage/atomic";
 import { toolDefinitions } from "../contracts/tools";
@@ -319,6 +320,12 @@ export async function startService(options: ServiceOptions) {
           app.analysis.graphs.clear();
           return { invalidated: true };
         case "configure":
+          if (typeof params.uiLanguage === "string")
+            ledger.db
+              .prepare(
+                "INSERT INTO meta VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+              )
+              .run("ui.language", normalizeLanguage(params.uiLanguage));
           app.checks.recipes = parseRecipes(params.recipes);
           if (
             typeof params.pythonExecutable === "string" &&

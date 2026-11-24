@@ -362,6 +362,17 @@ const catalogProposal = entity(
   "SPEC-demo",
   "pending",
 );
+if (catalogScenario === "observations-only") {
+  catalogProposal.state = "auto_approved";
+  dashboard.catalog.pendingChanges = 0;
+  catalogApproved.data.maintenanceReview = {
+    actor: "codex",
+    mode: "agent-auto",
+    reason:
+      "Resolved helper conflict; payment result and process rules preserved.",
+  };
+  catalogApproved.data.lastChangeId = "KCH-auto";
+}
 const releaseFixture = entity(
   "REL-demo",
   "release",

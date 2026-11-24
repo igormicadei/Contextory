@@ -76,6 +76,8 @@ test("hook-only rebuild repairs all native providers, deduplicates stale launche
       rebuilt.hooks.SessionStart[1].hooks[0].command,
       hookCommand(r),
     );
+    assert.equal(rebuilt.hooks.PreToolUse.at(-1).hooks[0].timeout, 5);
+    assert.equal(rebuilt.hooks.Stop.at(-1).hooks[0].timeout, 5);
     assert.equal(await readFile(configPath, "utf8"), configBefore);
     assert.deepEqual(await rebuildProviderHooks(r), []);
   }

@@ -82,8 +82,13 @@ export class Catalog {
       pendingChanges: this.ledger
         .all("knowledge_change")
         .filter((e) => e.state === "pending").length,
-      note: "Page contextory_catalog_get by path/category and inventory. Observations need review; test links are not execution evidence. Behavioral completeness requires source/UI review, including dynamic behavior and untested gaps.",
+      note: "Observations have optional baseline review. Compatible maintenance and implementation conflicts may be agent auto-approved with an explicit rationale; process/outcome conflicts and changed approved behavior require human review before implementation. Page catalog/history for provenance and coverage; auto-approval and test links are not execution evidence.",
     };
+  }
+  pending() {
+    return this.ledger
+      .all("knowledge_change")
+      .filter((e) => e.state === "pending");
   }
   async verify(
     specId: string,
@@ -97,14 +102,10 @@ export class Catalog {
         "Record catalog.recordIds and an explanation of additions, changes, retirements or why behavior is unchanged in the outcome.",
       );
     for (const id of review.recordIds) this.kind(id, "knowledge");
-    if (
-      this.ledger
-        .all("knowledge_change")
-        .some((e) => e.parentId === specId && e.state === "pending")
-    )
+    if (this.pending().length)
       throw new ContextoryError(
         "CATALOG_APPROVAL_PENDING",
-        "Resolve this spec's pending catalog proposals in the human review UI before completion.",
+        "Wait for this project's pending catalog proposals in Approvals before implementation or completion.",
       );
     const paths = ((this.ledger.get(specId).data.paths as string[]) ?? []).map(
       normalized,
@@ -253,6 +254,19 @@ export class Catalog {
   }
   async change(p: Input<"contextory_catalog_change">, actor: Actor) {
     this.workflow.assertLease(p.specId, p.leaseId, actor);
+    // Recover an exact retry before inspecting sources that may since have changed.
+    if (
+      this.ledger.db
+        .prepare("SELECT id FROM operations WHERE id=?")
+        .get(p.operationId)
+    )
+      return this.ledger.transaction(
+        p.operationId,
+        actor,
+        "catalog.change",
+        p,
+        () => null,
+      );
     if (p.action !== "retire" && !p.content)
       throw new ContextoryError(
         "INVALID_ARGUMENT",
@@ -307,6 +321,49 @@ export class Catalog {
             "INVALID_ARGUMENT",
             "Preserve the entry category.",
           );
+        const decisions = p.decisionIds.map((id) => this.kind(id, "decision"));
+        if (
+          p.autoApprove &&
+          this.pending().some((e) => e.data.targetId === old.id)
+        )
+          throw new ContextoryError(
+            "CATALOG_APPROVAL_PENDING",
+            "This definition already has a pending proposal. Wait for its review before creating another change.",
+          );
+        const before = old.data.content as Content;
+        // References/fingerprints are implementation details; approved behavior
+        // remains exact. Semantic equivalence of rewritten prose is not inferred.
+        const behavior = (c: Content) => ({
+          category: c.category,
+          description: c.description,
+          ui: c.ui,
+        });
+        const implementationConflict =
+          p.compatibility === "conflicting" &&
+          p.impact === "implementation" &&
+          before.category !== "rule" &&
+          decisions.every(
+            (d) =>
+              d.data.impact === "implementation" &&
+              d.data.provenance !== "developer",
+          );
+        const auto =
+          p.autoApprove &&
+          p.action === "revise" &&
+          p.impact === "implementation" &&
+          (p.compatibility === "preserved" || implementationConflict) &&
+          (before.category === "file" ||
+            digest(behavior(before)) === digest(behavior(p.content!)));
+        const review = auto
+          ? {
+              actor: actor.id,
+              mode: "agent-auto",
+              reason: p.reason,
+              time: new Date().toISOString(),
+              compatibility: p.compatibility,
+              impact: p.impact,
+            }
+          : undefined;
         const proposal = this.ledger.create(
           "knowledge_change",
           `${p.action}: ${old.title}`,
@@ -314,17 +371,68 @@ export class Catalog {
             targetId: old.id,
             targetRevision: old.revision,
             before: old.data.content,
+            beforeFingerprints: old.data.fingerprints,
             content: p.action === "retire" ? old.data.content : p.content,
             fingerprints,
             action: p.action,
             reason: p.reason,
             provenance: "agent-authored proposal",
+            compatibility: p.compatibility,
+            impact: p.impact,
+            autoApproveRequested: p.autoApprove,
+            decisionIds: p.decisionIds,
+            review,
+            approvalRequired: !auto,
           },
           p.specId,
-          "pending",
+          auto ? "auto_approved" : "pending",
         );
         this.ledger.edge(proposal.id, old.id, "proposes_change", p.reason);
         this.links(proposal, proposal.data.content as Content);
+        for (const id of p.decisionIds)
+          this.ledger.edge(proposal.id, id, "considers_decision", p.reason);
+        if (auto) {
+          this.uniqueFile(p.content!, old.id);
+          const target = this.ledger.update(old, old.revision, {
+            title: p.content!.title,
+            state:
+              old.state === "approved" &&
+              digest(behavior(before)) !== digest(behavior(p.content!))
+                ? "observed"
+                : old.state,
+            data: {
+              ...old.data,
+              content: p.content,
+              fingerprints,
+              lastChangeId: proposal.id,
+              maintenanceReview: review,
+              approvalBaselineRevision:
+                old.data.approvalBaselineRevision ??
+                (old.state === "approved" ? old.revision : undefined),
+              // Preserve the human review on an approved contract, and keep
+              // unapproved observations unapproved.
+            },
+          });
+          this.links(target, p.content!);
+          const applied = this.ledger.update(proposal, proposal.revision, {
+            data: { ...proposal.data, appliedRevision: target.revision },
+          });
+          this.ledger.audit("catalog.auto_approved", proposal.id, actor, {
+            targetId: old.id,
+            beforeRevision: old.revision,
+            revision: target.revision,
+            specId: p.specId,
+            review,
+          });
+          this.ledger.audit("catalog.maintained", old.id, actor, {
+            proposalId: proposal.id,
+            beforeRevision: old.revision,
+            revision: target.revision,
+            specId: p.specId,
+            review,
+          });
+          return applied;
+        }
         this.ledger.audit("catalog.proposed", proposal.id, actor, {
           targetId: old.id,
           targetRevision: old.revision,
@@ -460,6 +568,7 @@ export class Catalog {
         assertReviewable(current);
         const review = {
           actor: actor.id,
+          mode: "human",
           reason: p.reason,
           time: new Date().toISOString(),
         };
@@ -482,7 +591,15 @@ export class Catalog {
             );
           const result = this.ledger.update(current, p.expectedRevision, {
             state: p.action === "approve" ? "approved" : "retired",
-            data: { ...current.data, review },
+            data: {
+              ...current.data,
+              review,
+              maintenanceReview: undefined,
+              approvalBaselineRevision:
+                p.action === "approve"
+                  ? current.revision + 1
+                  : current.data.approvalBaselineRevision,
+            },
           });
           this.ledger.audit(
             `catalog.${p.action === "approve" ? "approved" : "rejected"}`,
@@ -517,6 +634,11 @@ export class Catalog {
               fingerprints: current.data.fingerprints,
               review,
               lastChangeId: current.id,
+              maintenanceReview: undefined,
+              approvalBaselineRevision:
+                current.data.action === "retire"
+                  ? old.data.approvalBaselineRevision
+                  : old.revision + 1,
             },
           });
           this.links(target, content);

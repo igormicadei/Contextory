@@ -24,7 +24,7 @@ test("review alerts are visible before opening tools and lead to concrete human 
   await page.goto("/sidebar.html");
   await expect(page.locator(".main-nav > button")).toHaveCount(3);
   const alert = page.getByRole("button", { name: "Review pending knowledge" });
-  await expect(alert).toContainText("2");
+  await expect(alert).toContainText("1");
   await expect(page.locator(".workspace-tools")).not.toHaveAttribute("open");
   await alert.click();
   await expect(

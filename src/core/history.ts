@@ -1,7 +1,7 @@
 import type { Audit, Entity, HistoryPage } from "../contracts/model";
 import type { Ledger } from "../storage/ledger";
 
-const verbs: Record<string, string> = {
+export const activityVerbs: Record<string, string> = {
   "release.observed": "Observed Git version",
   "release.reconciled": "Completed version membership after full Git fetch",
   "release.git_changed": "Updated project Git version context",
@@ -21,6 +21,8 @@ const verbs: Record<string, string> = {
   "catalog.change_approved": "Approved definition change",
   "catalog.change_rejected": "Rejected definition change",
   "catalog.migrated": "Scanned migration batch",
+  "catalog.auto_approved": "Auto-approved implementation change",
+  "catalog.maintained": "Updated compatible implementation references",
   "request.created": "Created request",
   "request.revised": "Updated request contract",
   "milestone.created": "Planned milestone",
@@ -53,6 +55,16 @@ const verbs: Record<string, string> = {
   "check.interrupted": "Interrupted independent check",
   "check.stale": "Source changed during independent check",
 };
+export const nativeActivityActions: Record<string, string> = {
+  SessionStart: "started a session",
+  UserPromptSubmit: "received a user request",
+  PreToolUse: "started a tool",
+  PostToolUse: "finished a tool",
+  PreCompact: "prepared conversation context",
+  PostCompact: "restored conversation context",
+  Stop: "finished an agent turn",
+  PostModelSwitch: "changed the active model",
+};
 export function describeActivity(
   event: Audit,
   lookup: (id: string) => Entity | undefined,
@@ -79,22 +91,30 @@ export function describeActivity(
     event.data.title ?? evidence?.title ?? entity?.title ?? event.entityId,
   );
   const native = event.type.startsWith("native.");
-  const actions: Record<string, string> = {
-    SessionStart: "started a session",
-    UserPromptSubmit: "received a user request",
-    PreToolUse: "started a tool",
-    PostToolUse: "finished a tool",
-    PreCompact: "prepared conversation context",
-    PostCompact: "restored conversation context",
-    Stop: "finished an agent turn",
-    PostModelSwitch: "changed the active model",
-  };
+  const provider =
+    event.entityId === "bob"
+      ? "IBM Bob"
+      : event.entityId === "claude"
+        ? "Claude Code"
+        : "Codex";
+  const action = native
+    ? (nativeActivityActions[event.type.slice(7)] ??
+      "reported session activity")
+    : (activityVerbs[event.type] ?? event.type.replaceAll(".", " "));
   return {
     ...event,
     context,
+    presentation: {
+      action,
+      subject: native ? provider : title,
+      native,
+      detail: native
+        ? String(event.data.tool ?? event.data.model ?? "")
+        : undefined,
+    },
     title: native
-      ? `${event.entityId === "bob" ? "IBM Bob" : event.entityId === "claude" ? "Claude Code" : "Codex"} ${actions[event.type.slice(7)] ?? "reported session activity"}${event.data.tool ? `: ${event.data.tool}` : event.data.model ? `: ${event.data.model}` : ""}`
-      : `${verbs[event.type] ?? event.type.replaceAll(".", " ")}: ${title}`,
+      ? `${provider} ${action}${event.data.tool ? `: ${event.data.tool}` : event.data.model ? `: ${event.data.model}` : ""}`
+      : `${action}: ${title}`,
   };
 }
 export function historyPage(

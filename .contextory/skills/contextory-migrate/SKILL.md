@@ -2,12 +2,14 @@
 name: contextory-migrate
 description: Build a source-backed Contextory knowledge baseline for an existing project, including file responsibilities, rules, features, tests and interface contracts. Use when bootstrapping or resuming a project knowledge migration; ordinary code lookups do not need migration.
 metadata:
-  version: "1"
+  version: "3"
 ---
 
 <!-- contextory-managed-migrate -->
 
 Act as the project's migration agent in the native client. Use the advertised Contextory MCP capabilities; never start a second model service or execute project modules to infer behavior. Migrating knowledge does not authorize changing application behavior. Preserve source, existing approved records, client configuration and historical decisions.
+
+Use the project's `uiLanguage` from `contextory_context_get` for every new catalog title/description, finding, rationale, UI contract, review reason and report, even when chat uses another language. Preserve historical prose, exact identifiers, paths and code; reconstructed observations are not bulk translations of existing records.
 
 Read `contextory_context_get`, recover the migration request/spec through search and inspect its current state. For authorized migration, create missing tracked work, attach this session and claim/renew the spec lease. If the tools are unavailable, report the missing capability and retain a source-cited draft; do not claim the ledger was populated.
 
@@ -17,7 +19,7 @@ Work through subsystems in bounded batches. Read file bodies, entry points, call
 
 For every interface surface, inspect its layout and event/state handlers, and inspect the running UI when available and authorized. Add `category:"ui"` contracts with `ui.location`, `element`, `trigger`, `behavior` and `states`: placement/grouping, control/value, click/change/keyboard trigger, resulting action/state/persistence/navigation, and relevant initial/loading/empty/error/disabled states. Link behavioral tests or explicit gaps. Static extraction cannot prove pixel layout, dynamic dispatch or runtime effects; mark those limits with sources and follow-up findings. Projects without a UI should record why this category is inapplicable in the migration report.
 
-Use leased `contextory_catalog_change` creates for new observations and proposals with current target revision and reason for corrections or retirements. Link related historical decisions/specs with `contextory_relationship_change`. Generated source facts and legacy decisions are candidates, never retroactive human approval. The human **Approvals** tab approves a concrete baseline or before/after proposal. Never call approval using another role's credentials, infer approval from silence, or claim this migration request approves each reconstructed rule. Preserve superseded definitions and rejected proposals.
+Use leased `contextory_catalog_change` creates for new observations. Compatible corrections to file-purpose descriptions/source links can use `compatibility:preserved`, `impact:implementation`, `autoApprove:true`, the current revision and a source-backed reason; observations remain unapproved. Behavioral descriptions and UI contracts stay exact through auto-approval, even on observations. Implementation conflicts may auto-approve with a recorded rationale, but conflicts with process rules or results, changed behavior and retirements need a before/after human proposal before implementation. Link historical decisions/specs through `decisionIds` or `contextory_relationship_change`. Generated facts and legacy decisions never become retroactive human approval. Optional baseline review does not block migration. Wait on actual pending proposals; never borrow human credentials, infer approval from silence, or erase superseded/rejected history.
 
 Before finalizing, reconcile the current inventory, stale/missing source fingerprints, duplicate descriptions, pending proposals, rule/feature-to-test gaps and interface interactions against the scope. Record a source-cited migration report explaining reviewed subsystems, omissions, conflicts, test gaps and categories not applicable. Keep resumable outstanding work when review is pending. Do not describe a completed file scan as a complete application specification. Run configured meaningful independent checks, map evidence to each criterion, include catalog IDs/explanation in the outcome, explicitly complete only verified specs and export the request report. No new application tests are needed merely to restate documentation.
 

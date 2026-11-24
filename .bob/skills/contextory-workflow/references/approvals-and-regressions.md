@@ -1,0 +1,22 @@
+<!-- contextory-managed-resource -->
+
+# Approvals and regression investigation
+
+Classify the effect on established behavior before implementation. Replacing function A with B while preserving results, errors, side effects and interface behavior needs no new human decision. Maintain its source/test references with `contextory_catalog_change action=revise`, the current `expectedRevision`, `compatibility=preserved`, `impact=implementation`, `autoApprove=true` and a concrete `reason` explaining compatibility and validation. The catalog keeps before/after definitions and hashes, spec, actor, rationale and review mode. An approved behavioral definition keeps its exact description/UI contract and original human review; an observed baseline stays observed. File-purpose prose may be corrected for implementation changes. Changed source still needs meaningful executed checks before completion.
+
+An implementation conflict can also use `autoApprove=true`, `compatibility=conflicting`, `impact=implementation` when it does not change a process rule or the outcome. Explain which implementation choices conflict, why the chosen resolution preserves behavior, affected sources/tests and validation. Link relevant prior `decisionIds`. Conflicts involving rule entries, process/outcome or unclassified decisions, changed approved behavior, retirements and uncertain conflicts require human review. Request scope/native permissions continue to apply.
+
+Prepare these review proposals before editing the disputed behavior. Keep the established contract effective until the exact proposal is approved in Approvals. Pending proposals persist across service/session restarts and block implementation tools and Stop across the project; reads, catalog preparation, independent checks and lease renewal remain available. Use the native question/wait handoff, not a polling loop or another shell/tool. Hook status failures block implementation/completion until recovery. Generic MCP has no native file-tool hook; the service still blocks workflow mutations/completion, and the agent must honor the wait. Hooks do not intercept editors or unreported changes. Native hook trust and reload remain host-owned.
+
+After approval, implement and validate. If sources changed since a proposal was prepared, a human must inspect and refresh its exact snapshot before approval. After rejection, retain or restore the established behavior, record the resolution and validate before continuing. Human review of a baseline is optional; do not stop migration or ordinary work merely because observations are not approved.
+
+When recording a decision, set `impact`. `contextory_decision_record supersedes=...` auto-reviews only implementation-to-implementation conflicts. For a process/outcome or unclassified prior decision, prepare a catalog proposal in the current spec with that decision in `decisionIds` and its replacement choice as the exact `content.description`. After human approval, pass its `approvalId`. Earlier project decisions and the explicit supersedes edge remain available across specs. Never relabel historical uncertainty as human approval.
+
+For a report that something used to work:
+
+1. Recover the affected feature/rule/UI contract and current source using code context, catalog and documentation. Record the observed failure and a reproducer as a finding; distinguish expected behavior from the current symptom.
+2. Use impact/path queries and search the feature, source path/symbol, finding, catalog ID and related decisions. Page history and read exact revisions, including auto-approved changes, reasons, before/after hashes, spec and prior passing evidence.
+3. Compare the last known working version/commit and current source. Use version history for exact Git membership. A ledger time interval or static relationship identifies candidates, not proven causation. Check callers, dependencies, interface states, errors and side effects; use Git history/bisect where useful and authorized.
+4. Reproduce the cause, add a focused regression check, fix it, and link the finding/fix to the responsible change/spec/source using `contextory_relationship_change`. Record uncertainty if causation is not established. Update affected catalog/documentation and submit current independent evidence with the outcome.
+
+Keep all material changes indexed even when no human review is needed. Auto-approval is an attributed implementation decision, never proof of passing tests or a human-approved requirement.
