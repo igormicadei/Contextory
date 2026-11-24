@@ -1,5 +1,53 @@
 # Changelog
 
+## 0.10.0 (2026-11-24)
+
+### Commits
+
+- e24e15a95eaa0d8fe5bc41b9aa1f1de3676568f3: chore: qualify 0.9.0 documentation and VSIX
+- dd8c77e596767959d054b747a5371022ef8424eb: feat: enforce selective approval gates and localize the interface
+
+### Project decisions, features and rules recorded in this interval
+
+These ledger entries are associated by recording interval, not verified commit inclusion. Refer to their immutable revisions for provenance.
+
+- DEC-8ba8db5c@1 (decision, active): Classify approval by effects on process and results, and retain every change
+- DEC-fcdaece2@1 (decision, active): Use VS Code display language for controls and new record prose
+- ISS-7c2834a4@1 (finding, resolved): Preserve the known pre-plugin Pages root and recover a timed-out push by observation
+- ISS-bc9a14f1@2 (finding, resolved): Approval reminders neither gate tools nor distinguish compatible maintenance
+- ISS-db327418@1 (finding, deferred): GitHub Actions billing lock persists for the release documentation workflow
+- ISS-e0d5a558@1 (finding, resolved): Interface and agent record prose did not follow the editor language
+- KN-02832820@1 (knowledge, observed): Audited automatic approval of implementation maintenance and conflicts
+- KN-060204e8@1 (knowledge, observed): Process and outcome conflicts wait for human review before implementation
+- KN-18a8306b@1 (knowledge, observed): Native approval decision policy
+- KN-2cde575f@1 (knowledge, observed): Contextory follows English or Brazilian Portuguese editor language
+- KN-4e288e67@1 (knowledge, observed): Native lifecycle hook launcher
+- KN-4e41e253@1 (knowledge, observed): Localization coverage and substitution validation
+- KN-84afac00@1 (knowledge, observed): Required review counts and visible agent auto-approval provenance
+- KN-95fe96fe@1 (knowledge, observed): Tracked implementation and catalog reports
+- KN-9cb331fd@1 (knowledge, observed): Source-linked history for regression investigation
+- KN-a4b4c4b4@1 (knowledge, observed): Brazilian Portuguese runtime message catalog
+- KN-ab4f7e14@1 (knowledge, observed): Source-owned interface localization and language guidance
+- KN-ad405216@1 (knowledge, observed): Default extension contribution messages
+- KN-af30d4ff@1 (knowledge, observed): Vendored documentation resources preserve exact upstream Git bytes
+- KN-bd31c018@1 (knowledge, observed): New agent-authored UI content uses the project editor language
+- KN-c3fce41d@1 (knowledge, observed): Localization message extraction
+- KN-d0bf74d2@1 (knowledge, observed): Localized controls around unchanged historical project entries
+- KN-d42a6f6a@1 (knowledge, observed): Version 0.9.0 release assembly and qualification
+- KN-eb763793@1 (knowledge, observed): Portuguese extension contribution messages
+- OUT-27acc54f@1 (outcome, submitted): Implemented English and Brazilian Portuguese localization following VS Code's display language, with English fallback and explicit project-language instructions for all new agent-authored UI prose. Pr
+- OUT-411fd446@1 (outcome, submitted): Released Contextory 0.9.0: versioned VSIX/checksum published, main and immutable tag pushed, full bilingual documentation deployed and publicly verified.
+- OUT-6bce13bd@1 (outcome, submitted): Implemented audited auto-approval for compatible maintenance and implementation conflicts, with real waiting for process/outcome reviews and indexed regression history.
+- REQ-41287e45@3 (request, completed): Behavior-aware approvals, enforced waiting and regression traceability
+- REQ-6f67cf4a@2 (request, completed): Release Contextory 0.9.0 with Approvals and independent project documentation
+- REQ-bc42ebf2@2 (request, completed): Follow VS Code language in the interface and agent-authored entries
+- REQ-cfe42d87@1 (request, active): Bump Contextory to 0.10.0, build VSIX, commit and push
+- SPEC-3dca104e@5 (spec, completed): Publish the qualified Contextory 0.9.0 extension and documentation
+- SPEC-6b6ed52a@3 (spec, implementing): Version, package, commit and push the completed features
+- SPEC-814d3532@8 (spec, completed): Implement audited implementation auto-approval, waiting hooks and regression traceability
+- SPEC-93bbafd9@7 (spec, completed): Localize the extension and propagate UI language to agents
+
+
 ## 0.9.0 (2026-11-23)
 
 ### Commits
