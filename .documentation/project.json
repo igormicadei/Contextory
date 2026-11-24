@@ -17,7 +17,7 @@
   "draft": false,
   "audit": {
     "featuresReviewed": true,
-    "reviewedSourceFingerprint": "09ff9d8ea7921bcd43145d2a105f02dc71c5b83196f744837d35569d8e629e69"
+    "reviewedSourceFingerprint": "cacef14cc1a7a34ae92e37b8d416b4755c71022ea09e918db5b24542611d2e37"
   },
   "features": [
     {
@@ -365,8 +365,8 @@
             {
               "type": "paragraph",
               "text": {
-                "pt-BR": "Este guia descreve o Contextory 0.9.0, uma prévia qualificada no Windows com pastas locais confiáveis no VS Code e IBM Bob. A extensão precisa do Node.js 24+. Python 3.10+ é opcional para análise Python. Cada agente usa sua própria conta, modelo e conversa.",
-                "en": "This guide describes Contextory 0.9.0, a preview qualified on Windows with trusted local folders in VS Code and IBM Bob. The extension needs Node.js 24+. Python 3.10+ is optional for Python analysis. Your agent supplies its own account, model and conversation."
+                "pt-BR": "Este guia descreve o Contextory 0.10.0, uma prévia qualificada no Windows com pastas locais confiáveis no VS Code e IBM Bob. A extensão precisa do Node.js 24+. Python 3.10+ é opcional para análise Python. Cada agente usa sua própria conta, modelo e conversa.",
+                "en": "This guide describes Contextory 0.10.0, a preview qualified on Windows with trusted local folders in VS Code and IBM Bob. The extension needs Node.js 24+. Python 3.10+ is optional for Python analysis. Your agent supplies its own account, model and conversation."
               }
             },
             {
@@ -656,12 +656,12 @@
               "type": "steps",
               "items": [
                 {
-                  "pt-BR": "Baixe contextory-workspace-0.9.0.vsix e o arquivo .sha256 na release v0.9.0.",
-                  "en": "Download contextory-workspace-0.9.0.vsix and its .sha256 file from the v0.9.0 release."
+                  "en": "Build from the 0.10.0 checkout with npm ci and npm run package:vsix, or obtain contextory-workspace-0.10.0.vsix and its .sha256 from your build provider. The local artifacts directory contains both files; this build does not upload GitHub release assets.",
+                  "pt-BR": "Gere o pacote a partir do checkout 0.10.0 com npm ci e npm run package:vsix, ou obtenha contextory-workspace-0.10.0.vsix e seu .sha256 com o responsável pela compilação. A pasta local artifacts contém os dois arquivos; essa compilação não envia assets de release ao GitHub."
                 },
                 {
-                  "pt-BR": "Compare o checksum do pacote baixado com o checksum da release.",
-                  "en": "Compare the downloaded package checksum with the release checksum."
+                  "en": "Compare the package SHA-256 with the accompanying checksum.",
+                  "pt-BR": "Compare o SHA-256 do pacote com o checksum que o acompanha."
                 },
                 {
                   "pt-BR": "Em Extensions, abra o menu …, selecione Install from VSIX… e escolha o arquivo baixado. Recarregue se solicitado.",
@@ -675,20 +675,20 @@
             },
             {
               "type": "link",
-              "href": "https://github.com/igormicadei/Contextory/releases/tag/v0.9.0",
+              "href": "release-v0-10-0",
               "text": {
-                "pt-BR": "Baixar a versão 0.9.0",
-                "en": "Download version 0.9.0"
+                "en": "Read the 0.10.0 package notes",
+                "pt-BR": "Leia as notas do pacote 0.10.0"
               }
             },
             {
               "type": "code",
               "language": "powershell",
               "caption": {
-                "pt-BR": "Verificar e instalar o pacote da release",
-                "en": "Verify and install the release package"
+                "en": "Verify and install the local package",
+                "pt-BR": "Verificar e instalar o pacote local"
               },
-              "code": "(Get-FileHash -Algorithm SHA256 .\\contextory-workspace-0.9.0.vsix).Hash.ToLowerInvariant()\nGet-Content .\\contextory-workspace-0.9.0.sha256\ncode --install-extension .\\contextory-workspace-0.9.0.vsix"
+              "code": "(Get-FileHash -Algorithm SHA256 .\\artifacts\\contextory-workspace-0.10.0.vsix).Hash.ToLowerInvariant()\nGet-Content .\\artifacts\\contextory-workspace-0.10.0.sha256\ncode --install-extension .\\artifacts\\contextory-workspace-0.10.0.vsix"
             },
             {
               "type": "paragraph",
@@ -4914,15 +4914,15 @@
         {
           "id": "current-version",
           "title": {
-            "pt-BR": "Versão documentada atual: 0.9.0",
-            "en": "Current documented version: 0.9.0"
+            "en": "Current documented version: 0.10.0",
+            "pt-BR": "Versão documentada atual: 0.10.0"
           },
           "blocks": [
             {
               "type": "paragraph",
               "text": {
-                "en": "Version 0.9.0 adds a dedicated Approvals queue, recoverable source review and independent project documentation with bundled software-documentation and Carbon. Version 0.8.0 introduced the responsive work console, background startup, automatic recovery, 256 check recipes and complete streamed source fingerprints. Earlier releases remain preserved below.",
-                "pt-BR": "A versão 0.9.0 adiciona a fila Approvals, revisão recuperável de fontes e documentação independente com software-documentation e Carbon incluídos. A versão 0.8.0 introduziu o console responsivo, inicialização em segundo plano, recuperação automática, 256 receitas e fingerprints completos por streaming. As versões anteriores continuam preservadas abaixo."
+                "en": "Version 0.10.0 adds audited agent auto-approval for compatible maintenance and implementation conflicts, enforced waiting for process/outcome review, regression traceability and English/Brazilian Portuguese UI following VS Code. Version 0.9.0 added the dedicated Approvals queue and bundled project documentation; version 0.8.0 introduced the responsive work console and recovery. Earlier releases remain preserved below.",
+                "pt-BR": "A versão 0.10.0 adiciona autoaprovação auditada para manutenção compatível e conflitos de implementação, espera obrigatória na revisão de processo/resultado, rastreabilidade de regressões e interface em inglês/português brasileiro seguindo o VS Code. A versão 0.9.0 adicionou a fila Approvals e documentação integrada; a versão 0.8.0 introduziu o console responsivo e recuperação. As versões anteriores continuam preservadas abaixo."
               }
             },
             {
@@ -5019,8 +5019,8 @@
             {
               "type": "paragraph",
               "text": {
-                "pt-BR": "O Contextory 0.9.0 define 39 ferramentas. Os schemas Zod a seguir foram extraídos pelo analisador TypeScript do código salvo sem executar a aplicação. Eles preservam obrigatoriedade, opcionais, padrões e intervalos. tools/list do MCP em execução é autoritativo para a versão instalada. contextory_catalog_review é exclusivo da interface humana mesmo quando seu contrato está visível.",
-                "en": "Contextory 0.9.0 defines 39 tools. The following Zod schema excerpts were extracted with the TypeScript parser from the saved source without executing application code. They preserve required/optional/default/range semantics. The running MCP tools/list response is authoritative for the installed client version. contextory_catalog_review is human-UI-only even if its contract is visible."
+                "pt-BR": "O Contextory 0.10.0 define 39 ferramentas. Os schemas Zod a seguir foram extraídos pelo analisador TypeScript do código salvo sem executar a aplicação. Eles preservam obrigatoriedade, opcionais, padrões e intervalos. tools/list do MCP em execução é autoritativo para a versão instalada. contextory_catalog_review é exclusivo da interface humana mesmo quando seu contrato está visível.",
+                "en": "Contextory 0.10.0 defines 39 tools. The following Zod schema excerpts were extracted with the TypeScript parser from the saved source without executing application code. They preserve required/optional/default/range semantics. The running MCP tools/list response is authoritative for the installed client version. contextory_catalog_review is human-UI-only even if its contract is visible."
               }
             },
             {
@@ -6044,6 +6044,109 @@
                 "pt-BR": "Schema de entrada · src/contracts/tools.ts:113"
               },
               "code": "z.object({\n      operationId,\n      ...lease,\n      pageId: id,\n      sectionId: id,\n      corpusFingerprint: z.string().length(64),\n      recordIds: z.array(id).max(30),\n      reason: text,\n    })"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "release-v0-10-0",
+      "title": {
+        "en": "Release v0.10.0",
+        "pt-BR": "Release v0.10.0"
+      },
+      "sources": [
+        {
+          "path": "package.json"
+        },
+        {
+          "path": "src/contracts/model.ts"
+        },
+        {
+          "path": "src/knowledge/catalog.ts"
+        },
+        {
+          "path": "src/hooks/approval.ts"
+        },
+        {
+          "path": "src/core/history.ts"
+        },
+        {
+          "path": "src/i18n/index.ts"
+        },
+        {
+          "path": "src/agents/instructions.ts"
+        },
+        {
+          "path": "tests/integration/approval-policy.test.ts"
+        },
+        {
+          "path": "tests/integration/i18n.test.ts"
+        },
+        {
+          "path": "tests/ui/i18n.spec.ts"
+        }
+      ],
+      "sections": [
+        {
+          "id": "approval-policy",
+          "title": {
+            "en": "Selective approval with enforced waiting",
+            "pt-BR": "Aprovação seletiva com espera obrigatória"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Agents may auto-approve compatible maintenance and implementation conflicts with an explicit impact classification, reason, validation and audit record. Conflicts affecting process rules or outcomes, uncertain conflicts and retirements require human review before implementation. Native PreToolUse/Stop hooks and the service gate keep the agent waiting for that decision; silence or elapsed time never grants approval.",
+                "pt-BR": "Agentes podem autoaprovar manutenção compatível e conflitos de implementação com classificação de impacto, motivo, validação e registro de auditoria explícitos. Conflitos que afetam regras de processo ou resultados, conflitos incertos e desativações exigem revisão humana antes da implementação. Hooks nativos PreToolUse/Stop e a barreira do serviço mantêm o agente aguardando a decisão; silêncio ou tempo decorrido nunca concedem aprovação."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Definitions retain their before/after revisions, source hashes, actors, rationale, related decisions, specifications and check evidence. Use the catalog and history to investigate a feature that stopped working and connect a confirmed regression to its responsible change. Generated observations have optional review and do not become human-approved requirements.",
+                "pt-BR": "Definições preservam revisões antes/depois, hashes de fontes, autores, justificativas, decisões relacionadas, especificações e evidências de verificação. Use catálogo e histórico para investigar uma funcionalidade que parou de funcionar e relacionar uma regressão confirmada à mudança responsável. Observações geradas têm revisão opcional e não se tornam requisitos aprovados por uma pessoa."
+              }
+            }
+          ]
+        },
+        {
+          "id": "language",
+          "title": {
+            "en": "Follow the VS Code language",
+            "pt-BR": "Seguir o idioma do VS Code"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Controls and extension contributions use the VS Code display language: English or Brazilian Portuguese, with English fallback for other locales. The editor propagates uiLanguage and a content-language instruction to project context and hooks. Agents must write new UI-facing entries in that language, preserving exact identifiers, source code and historical text. Documentation retains both locales.",
+                "pt-BR": "Controles e contribuições da extensão usam o idioma de exibição do VS Code: inglês ou português brasileiro, com fallback para inglês nos demais idiomas. O editor propaga uiLanguage e uma instrução de idioma para o contexto do projeto e hooks. Agentes devem escrever novas entradas da interface nesse idioma, preservando identificadores exatos, código e texto histórico. A documentação mantém os dois idiomas."
+              }
+            }
+          ]
+        },
+        {
+          "id": "package",
+          "title": {
+            "en": "Local package and qualification",
+            "pt-BR": "Pacote local e qualificação"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Build with npm ci and npm run package:vsix. The output is artifacts/contextory-workspace-0.10.0.vsix and its matching .sha256. Compare the checksum before installing through Extensions > Install from VSIX, then reload the editor/native integrations when prompted. This delivery builds locally and pushes source commits; GitHub release asset publication and installation into an active editor are separate actions.",
+                "pt-BR": "Gere com npm ci e npm run package:vsix. A saída é artifacts/contextory-workspace-0.10.0.vsix e seu .sha256 correspondente. Compare o checksum antes de instalar por Extensions > Install from VSIX e recarregue o editor/integrações nativas quando solicitado. Esta entrega gera o pacote local e envia commits de código; publicar assets de release no GitHub e instalar no editor ativo são ações separadas."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Validation covers approval classification and enforcement, source-linked history, locale transport, translation/substitution coverage, English/Portuguese UI, managed skill consistency and bilingual documentation. Trusted local Windows workspaces with Node.js 24+ remain the qualified environment. Historical release notes and published checksums are preserved.",
+                "pt-BR": "A validação cobre classificação e bloqueio de aprovações, histórico ligado às fontes, transporte do idioma, cobertura de traduções/substituições, interface inglês/português, consistência de skills e documentação bilíngue. Workspaces locais confiáveis no Windows com Node.js 24+ continuam o ambiente qualificado. Notas históricas e checksums publicados são preservados."
+              }
             }
           ]
         }
