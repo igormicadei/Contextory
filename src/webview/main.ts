@@ -161,7 +161,7 @@ let approvalsRequestId = "";
 const catalogStatuses: Record<string, CatalogFeedback> = {};
 const catalogReviews = new Map<
   string,
-  { id: string; revision: number; action: string }
+  { id: string; revision: number; action: string; linked: boolean }
 >();
 let catalogReviewSequence = 0;
 let versionsPage: VersionsPage | undefined;
@@ -522,7 +522,7 @@ function specDetails(s: Entity) {
   const criteria = s.data.criteria as { id: string; text: string }[];
   let body = "";
   if (detailTab === "contract")
-    body = ui`<p>${escape(s.data.description)}</p><h3>Acceptance criteria</h3><ul class="criteria">${criteria.map((c) => ui`<li><span>${escape(c.id)}</span>${escape(c.text)}</li>`).join("")}</ul><h3>Scope</h3><p class="muted">${escape((s.data.paths as string[])?.join(", ") || tx("Defined by the specification"))}</p>`;
+    body = ui`<p>${escape(s.data.description)}</p>${(s.data.conversation as { nativeSessionId?: string } | undefined)?.nativeSessionId ? button("openConversation", tx("Reopen conversation"), `data-id="${s.id}"`) : ""}<h3>Acceptance criteria</h3><ul class="criteria">${criteria.map((c) => ui`<li><span>${escape(c.id)}</span>${escape(c.text)}</li>`).join("")}</ul><h3>Scope</h3><p class="muted">${escape((s.data.paths as string[])?.join(", ") || tx("Defined by the specification"))}</p>`;
   if (detailTab === "issues")
     body =
       records
@@ -1037,10 +1037,8 @@ function action(element: Element) {
       if (!data.id || !data.review) break;
       if (catalogStatuses[data.id]?.state === "pending") break;
       const reason = drafts[`catalogReason-${data.id}`]?.trim();
-      if (!reason) {
-        const text = tx(
-          "Enter a review reason before approving, rejecting or refreshing this definition.",
-        );
+      if (data.review === "feedback" && !reason) {
+        const text = tx("Describe the update you want the agent to make.");
         notice = text;
         catalogStatuses[data.id] = {
           state: "error",
@@ -1051,17 +1049,21 @@ function action(element: Element) {
         break;
       }
       const requestId = `catalog-review:${++catalogReviewSequence}`;
+      const item =
+        approvalsPage?.proposals.find((r) => r.id === data.id) ??
+        approvalsPage?.records.find((r) => r.id === data.id);
       catalogReviews.set(requestId, {
         id: data.id,
         revision: Number(data.revision),
         action: data.review,
+        linked: Boolean(
+          (item?.data.origin as { nativeSessionId?: string } | undefined)
+            ?.nativeSessionId,
+        ),
       });
       catalogStatuses[data.id] = {
         state: "pending",
-        text:
-          data.review === "refresh"
-            ? tx("Refreshing source snapshot…")
-            : tx("Saving your review…"),
+        text: tx("Saving your review…"),
         revision: Number(data.revision),
       };
       render();
@@ -1074,11 +1076,14 @@ function action(element: Element) {
           id: data.id,
           expectedRevision: Number(data.revision),
           action: data.review,
-          reason,
+          reason: reason ?? "",
         },
       });
       break;
     }
+    case "openConversation":
+      send({ type: "openConversation", id: data.id });
+      break;
     case "architectureRefresh":
       loadArchitecture();
       break;
@@ -1736,10 +1741,12 @@ window.addEventListener("message", (event) => {
         ? String(
             message.text || tx("The review could not be saved. Try again."),
           )
-        : review.action === "refresh"
-          ? tx(
-              "Source snapshot refreshed. Check the definition, then approve or reject it.",
-            )
+        : review.action === "feedback"
+          ? review.linked
+            ? tx(
+                "Update requested. Your instructions are queued for the originating conversation.",
+              )
+            : tx("Resume the agent and ask it to read this item's feedback.")
           : review.action === "approve"
             ? ui`Approved ${review.id}.`
             : ui`Rejected ${review.id}.`;
@@ -1750,8 +1757,7 @@ window.addEventListener("message", (event) => {
       };
       if (!failed) {
         notice = text;
-        if (review.action !== "refresh")
-          delete drafts[`catalogReason-${review.id}`];
+        delete drafts[`catalogReason-${review.id}`];
       }
       // Preserve the reason and reconcile stale revisions without replaying a review.
       catalogPage = undefined;
@@ -1849,6 +1855,8 @@ app.addEventListener(
     const d = event.target as HTMLDetailsElement;
     if (d.classList.contains("catalog-search"))
       drafts.catalogSearchOpen = String(d.open);
+    if (d.classList.contains("baseline-review"))
+      drafts.baselineReviewOpen = String(d.open);
     if (d.classList.contains("workspace-tools"))
       drafts.toolsOpen = String(d.open);
     if (d.classList.contains("request-brief"))

@@ -4,11 +4,9 @@ import type { Provider } from "../contracts/model";
 import { clients } from "../providers/clients";
 import { completionNote, retrievalReminder } from "../agents/instructions";
 import { contentLanguageInstruction, normalizeLanguage } from "../i18n";
-import {
-  approvalOutput,
-  approvalSafeTool,
-  type ApprovalGate,
-} from "./approval";
+import { reviewInstruction } from "../core/conversations";
+import { waitForReview, type ReviewBrief } from "./review-wait";
+import { approvalOutput, approvalSafeTool } from "./approval";
 const provider = process.argv[3] as Provider;
 let event = "unknown";
 let tool: string | undefined;
@@ -32,28 +30,48 @@ try {
   const observation = normalizeHook(raw, provider);
   event = observation.event;
   tool = observation.tool;
-  const brief = await rpc<{
-    specs?: unknown[];
-    approvalGate?: ApprovalGate;
-    uiLanguage?: string;
-  }>(process.argv[2], "hook", observation, 3000);
+  const observe = () =>
+    rpc<ReviewBrief>(process.argv[2], "hook", observation, 3000);
+  let brief = await observe();
   if ((event === "Stop" || event === "PreToolUse") && !brief.approvalGate)
     throw new Error(
       "Approval gate contract unavailable; reload the service/runtime together.",
     );
   if (brief.approvalGate?.blocked) {
+    const configured = Number(process.env.CONTEXTORY_REVIEW_WAIT_MS ?? 240000);
+    const attempts = Number.isFinite(configured)
+      ? Math.max(0, Math.min(240, Math.floor(configured / 1000)))
+      : 240;
+    brief = await waitForReview(brief, observe, undefined, attempts);
+  }
+  const messages = brief.reviewMessages ?? [];
+  const replies = reviewInstruction(messages);
+  if (
+    brief.approvalGate?.blocked ||
+    (messages.length &&
+      (event === "Stop" ||
+        (event === "PreToolUse" &&
+          messages.some((m) => m.action !== "approve") &&
+          !approvalSafeTool(tool))))
+  ) {
     block(
-      brief.approvalGate.reason +
+      replies +
+        "\n" +
+        brief.approvalGate!.reason +
         "\n" +
         contentLanguageInstruction(normalizeLanguage(brief.uiLanguage)),
     );
   } else if (
-    ["SessionStart", "UserPromptSubmit", "PostCompact", "PreToolUse"].includes(
-      event,
-    ) &&
-    !observation.tool?.includes("contextory_")
+    (messages.length > 0 ||
+      [
+        "SessionStart",
+        "UserPromptSubmit",
+        "PostCompact",
+        "PreToolUse",
+      ].includes(event)) &&
+    (messages.length > 0 || !observation.tool?.includes("contextory_"))
   ) {
-    const context = `Contextory companion: ${contentLanguageInstruction(normalizeLanguage(brief.uiLanguage))} ${retrievalReminder} ${completionNote}\nCurrent tracked specs: ${JSON.stringify(
+    const context = `${replies}\nContextory companion: ${contentLanguageInstruction(normalizeLanguage(brief.uiLanguage))} ${retrievalReminder} ${completionNote}\nCurrent tracked specs: ${JSON.stringify(
       (brief.specs ?? []).map((s: unknown) => {
         const spec = s as { id: string; title: string; state: string };
         return { id: spec.id, title: spec.title, state: spec.state };
@@ -73,6 +91,14 @@ try {
           },
         }) + "\n",
       );
+  }
+  if (messages.length) {
+    await rpc(
+      process.argv[2],
+      "hook",
+      { ...observation, reviewAck: messages.map((m) => m.id) },
+      3000,
+    ).catch(() => {});
   }
 } catch {
   if (

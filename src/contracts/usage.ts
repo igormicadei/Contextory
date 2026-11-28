@@ -25,6 +25,7 @@ export const hookObservation = z.object({
   agentId: z.string().max(200).optional(),
   status: z.enum(["completed", "failed", "cancelled"]).optional(),
   usage: tokenUsage.optional(),
+  reviewAck: z.array(z.string().min(1).max(200)).max(50).optional(),
 });
 export type HookObservation = z.infer<typeof hookObservation>;
 export interface UsageGroup {

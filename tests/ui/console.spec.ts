@@ -31,7 +31,7 @@ test("review alerts are visible before opening tools and lead to concrete human 
     page.getByRole("heading", { name: "Pending changes", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Approve change", exact: true }),
+    page.getByRole("button", { name: "Approve", exact: true }),
   ).toHaveCount(1);
   await page.getByRole("button", { name: "Work", exact: true }).click();
   await expect(alert).toBeVisible();

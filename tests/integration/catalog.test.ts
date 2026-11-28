@@ -15,113 +15,36 @@ const content = {
   testGap: "No behavioral test exists yet.",
 };
 
-test("human source refresh preserves pending content/history and requires a separate current approval", async (t) => {
+test("legacy explicit snapshot refresh remains human-only and needs no comment", async (t) => {
   const f = await application(t),
-    work = await claimed(f.call);
+    w = await claimed(f.call);
   const entry = (await f.call("contextory_catalog_change", {
     operationId: operationId(),
-    specId: work.spec.id,
-    leaseId: work.leaseId,
+    specId: w.spec.id,
+    leaseId: w.leaseId,
     action: "create",
     content,
-    reason: "Observed baseline",
+    reason: "Baseline",
   })) as Entity;
-  await writeFile(
-    join(f.root, "main.ts"),
-    "export function hello(){return 43;}\n",
-  );
-  const refresh = {
+  const input = {
     operationId: operationId(),
     id: entry.id,
     expectedRevision: 1,
     action: "refresh",
-    reason: "Checked the current implementation",
   };
-  await assert.rejects(f.call("contextory_catalog_review", refresh), {
+  await assert.rejects(f.call("contextory_catalog_review", input), {
     code: "FORBIDDEN",
   });
-  await assert.rejects(
-    f.call(
-      "contextory_catalog_review",
-      { ...refresh, operationId: operationId(), reason: "   " },
-      human,
-    ),
-    { code: "INVALID_ARGUMENT" },
-  );
-  await assert.rejects(
-    f.call(
-      "contextory_catalog_review",
-      { ...refresh, action: "approve", operationId: operationId() },
-      human,
-    ),
-    { code: "STALE_CATALOG" },
-  );
-  const updated = (await f.call(
+  const refreshed = (await f.call(
     "contextory_catalog_review",
-    refresh,
+    input,
     human,
   )) as Entity;
-  assert.equal(updated.state, "observed");
-  assert.equal(updated.revision, 2);
-  assert.deepEqual(updated.data.content, entry.data.content);
+  assert.equal(refreshed.state, "observed");
+  assert.deepEqual(refreshed.data.content, entry.data.content);
   assert.deepEqual(
-    f.ledger.get(entry.id, 1).data.fingerprints,
-    entry.data.fingerprints,
-  );
-  assert.equal(updated.data.review, undefined);
-  assert.equal((updated.data.sourceRefresh as { actor: string }).actor, "ui");
-  await writeFile(
-    join(f.root, "main.ts"),
-    "export function hello(){return 44;}\n",
-  );
-  assert.deepEqual(
-    await f.call("contextory_catalog_review", refresh, human),
-    updated,
-  );
-  await assert.rejects(
-    f.call(
-      "contextory_catalog_review",
-      { ...refresh, operationId: operationId() },
-      human,
-    ),
-    { code: "REVISION_CONFLICT" },
-  );
-  await assert.rejects(
-    f.call(
-      "contextory_catalog_review",
-      {
-        ...refresh,
-        operationId: operationId(),
-        expectedRevision: 2,
-        action: "approve",
-      },
-      human,
-    ),
-    { code: "STALE_CATALOG" },
-  );
-  await f.call(
-    "contextory_catalog_review",
-    { ...refresh, operationId: operationId(), expectedRevision: 2 },
-    human,
-  );
-  const approved = (await f.call(
-    "contextory_catalog_review",
-    {
-      ...refresh,
-      operationId: operationId(),
-      expectedRevision: 3,
-      action: "approve",
-    },
-    human,
-  )) as Entity;
-  assert.equal(approved.state, "approved");
-  await assert.rejects(
-    f.call(
-      "contextory_catalog_review",
-      { ...refresh, operationId: operationId(), expectedRevision: 4 },
-      human,
-    ),
-    { code: "INVALID_STATE" },
+    await f.call("contextory_catalog_review", input, human),
+    refreshed,
   );
 });
 
@@ -510,7 +433,7 @@ test("catalog exposes test/source freshness and requires refreshed approval or t
     ...lease,
     action: "revise",
     id: entry.id,
-    expectedRevision: 1,
+    expectedRevision: 2,
     content: linked,
     reason: "Refresh source/test references",
   })) as Entity;
@@ -547,7 +470,7 @@ test("catalog exposes test/source freshness and requires refreshed approval or t
     ...lease,
     action: "retire",
     id: entry.id,
-    expectedRevision: 2,
+    expectedRevision: 3,
     reason: "Greeting removed intentionally",
   })) as Entity;
   await f.call(
@@ -562,7 +485,7 @@ test("catalog exposes test/source freshness and requires refreshed approval or t
     human,
   );
   assert.equal(f.ledger.get(entry.id).state, "retired");
-  assert.equal(f.ledger.get(entry.id, 2).state, "approved");
+  assert.equal(f.ledger.get(entry.id, 3).state, "approved");
 });
 
 test("catalog proposals handle competing revisions and rejected changes without losing the baseline", async (t) => {

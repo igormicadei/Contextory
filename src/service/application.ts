@@ -24,6 +24,7 @@ import { historyPage } from "../core/history";
 import { recordUsage, usageSummary } from "../core/usage";
 import { hookObservation } from "../contracts/usage";
 import { approvalGate, approvalSafeTool } from "../hooks/approval";
+import { acknowledgeReviews, reviewMessages } from "../core/conversations";
 import { AnalysisManager } from "../analysis/manager";
 import { Knowledge, Embeddings } from "../knowledge/search";
 import { Catalog } from "../knowledge/catalog";
@@ -758,6 +759,11 @@ export class Application {
         ? this.brief()
         : { observed: true }),
       uiLanguage: this.uiLanguage,
+      reviewMessages: reviewMessages(
+        this.ledger,
+        provider,
+        event.nativeSession,
+      ),
       approvalGate: approvalGate(
         this.catalog.pending(),
         event.event,
@@ -775,6 +781,12 @@ export class Application {
         "WRONG_WORKSPACE",
         "Hook cwd belongs to a different workspace.",
       );
+    acknowledgeReviews(
+      this.ledger,
+      provider,
+      event.nativeSession,
+      event.reviewAck,
+    );
     if (event.tool?.includes("contextory_")) return response();
     const now = new Date().toISOString();
     this.ledger.db.exec("BEGIN IMMEDIATE");

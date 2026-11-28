@@ -21,17 +21,12 @@ test("Portuguese follows the host locale while historical entries and source ide
   await expect(
     page.getByRole("heading", { name: "Alterações pendentes", exact: true }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("heading", {
-      name: "Revisão opcional da linha de base",
-      exact: true,
-    }),
-  ).toBeVisible();
+  await expect(page.locator(".baseline-review > summary")).toBeVisible();
   await expect(
     page.getByText("Show progress during recovery", { exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Aprovar alteração", exact: true }),
+    page.getByRole("button", { name: "Aprovar", exact: true }).first(),
   ).toBeVisible();
   await page.locator(".workspace-tools > summary").click();
   await page.getByRole("button", { name: "Conhecimento", exact: true }).click();
@@ -84,7 +79,7 @@ for (const size of [
     await page.goto("/sidebar.html?locale=pt-BR");
     await page.getByRole("button", { name: "Aprovações", exact: true }).click();
     await expect(
-      page.getByRole("button", { name: "Aprovar alteração", exact: true }),
+      page.getByRole("button", { name: "Aprovar", exact: true }).first(),
     ).toBeVisible();
     expect(
       await page.evaluate(

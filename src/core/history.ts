@@ -2,6 +2,9 @@ import type { Audit, Entity, HistoryPage } from "../contracts/model";
 import type { Ledger } from "../storage/ledger";
 
 export const activityVerbs: Record<string, string> = {
+  "catalog.response": "Recorded approval response",
+  "catalog.changes_requested": "Requested proposal updates",
+  "catalog.proposal_updated": "Updated proposal for review",
   "release.observed": "Observed Git version",
   "release.reconciled": "Completed version membership after full Git fetch",
   "release.git_changed": "Updated project Git version context",

@@ -354,7 +354,19 @@ export class Workflow {
           spec,
           {
             state: "implementing",
-            data: { ...spec.data, generation, lease, latestOutcome: null },
+            data: {
+              ...spec.data,
+              generation,
+              lease,
+              latestOutcome: null,
+              conversation: {
+                projectId: this.ledger.projectId,
+                provider: session.data.provider,
+                sessionId: session.id,
+                nativeSessionId: session.data.nativeSessionId,
+                specId: spec.id,
+              },
+            },
           },
           actor,
           "spec.claimed",

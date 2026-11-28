@@ -245,7 +245,11 @@ function launch(descriptor: string, provider: string, raw: unknown) {
       const child = spawn(
         process.execPath,
         [resolve("dist/contextory-hook.mjs"), descriptor, provider],
-        { windowsHide: true, stdio: ["pipe", "pipe", "pipe"] },
+        {
+          windowsHide: true,
+          stdio: ["pipe", "pipe", "pipe"],
+          env: { ...process.env, CONTEXTORY_REVIEW_WAIT_MS: "0" },
+        },
       );
       let out = "",
         err = "";

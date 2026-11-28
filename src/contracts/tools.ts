@@ -202,7 +202,7 @@ export const tools = {
   },
   contextory_catalog_get: {
     description:
-      "Read the versioned file-purpose, rule, feature and UI catalog before changes. Filter by path/category/query; page all results. pendingOnly=true restricts records to observed baselines before pagination and still returns matching pending proposals. Returns source freshness. Test references are not execution evidence. inventory=true also pages authorized workspace files and exposes missing descriptions; no claim of complete behavioral coverage.",
+      "Read the versioned file-purpose, rule, feature and UI catalog before changes. Filter/page results. pendingOnly=true returns observed baselines and pending/changes_requested proposals. Readable review source snapshots refresh automatically without a comment or approval, retaining historical hashes; missing sources remain blocked. Returns freshness and queued/offered/unbound review-delivery status. Test links are not execution evidence. inventory=true exposes file coverage gaps.",
     schema: z.object({
       category: category.optional(),
       path: z.string().max(2000).optional(),
@@ -215,7 +215,7 @@ export const tools = {
   },
   contextory_catalog_change: {
     description:
-      "Under a spec lease, create an observed source-backed entry or revise/retire an exact revision. autoApprove=true with compatibility=preserved and impact=implementation records compatible maintenance without another human decision. Implementation conflicts may also auto-approve with compatibility=conflicting and impact=implementation; explain the conflict, rationale and validation in reason. Preserve behavioral descriptions/UI contracts; file-purpose prose may be corrected without attributing it to an earlier human review. Process/outcome conflicts, changed behavior, retirements and uncertain conflicts require human review BEFORE implementation. decisionIds links prior decisions; process/outcome or unclassified conflicts cannot be auto-overridden. Pending proposals block native implementation and completion; new observations have optional review. Every change retains before/after, hashes, spec, actor and approval provenance.",
+      "Under a spec lease, create an observed source-backed entry or revise/retire an exact revision. autoApprove=true with compatibility=preserved and impact=implementation records compatible maintenance without another human decision. Implementation conflicts may also auto-approve with compatibility=conflicting and impact=implementation; explain the conflict, rationale and validation in reason. Preserve behavioral descriptions/UI contracts; file-purpose prose may be corrected without attributing it to an earlier human review. Process/outcome conflicts, changed behavior, retirements and uncertain conflicts require human review BEFORE implementation. decisionIds links prior decisions; process/outcome or unclassified conflicts cannot be auto-overridden. Pending proposals block native implementation and completion; new observations have optional review. Supply explanation.change, explanation.approvalReason and explanation.behavior in the UI language for human review. For changes_requested, revise the same proposal ID/current revision under its original spec and wait again. Every change retains before/after, hashes, spec, actor and approval provenance.",
     schema: z.object({
       operationId,
       ...lease,
@@ -233,18 +233,30 @@ export const tools = {
         .default("unknown"),
       autoApprove: z.boolean().default(false),
       decisionIds: z.array(id).max(30).default([]),
+      explanation: z
+        .object({
+          change: text.trim().min(1),
+          approvalReason: text.trim().min(1),
+          behavior: text.trim().min(1),
+        })
+        .optional(),
     }),
   },
   contextory_catalog_review: {
     description:
-      "Human UI only: approve/reject an exact observed baseline or pending catalog change, or refresh its source snapshot after checking the current files. Refresh preserves definition content and pending state; it never approves. Native agents cannot review or refresh; original revisions and reviewer identity remain in history.",
-    schema: z.object({
-      operationId,
-      id,
-      expectedRevision: z.number().int().positive(),
-      action: z.enum(["approve", "reject", "refresh"]),
-      reason: text.trim().min(1),
-    }),
+      "Human UI only: approve/reject an exact observed baseline or pending catalog change without a required comment, or action=feedback with required reason containing instructions for the agent. Feedback preserves the proposal as changes_requested and blocks implementation until the agent revises it and receives a new decision. Replies are durable and routed only to the linked native conversation. Source snapshots refresh automatically; refresh remains a legacy compatibility action, never approval. Native agents cannot review. Original revisions and reviewer identity remain in history.",
+    schema: z
+      .object({
+        operationId,
+        id,
+        expectedRevision: z.number().int().positive(),
+        action: z.enum(["approve", "reject", "feedback", "refresh"]),
+        reason: z.string().max(12000).trim().default(""),
+      })
+      .refine((p) => p.action !== "feedback" || p.reason.length > 0, {
+        message: "Describe the update you want the agent to make.",
+        path: ["reason"],
+      }),
   },
   contextory_catalog_migrate: {
     description:
@@ -320,7 +332,7 @@ export const tools = {
   },
   contextory_session_attach: {
     description:
-      "Register this native agent session and return a Contextory session ID. Pass the exact nativeSessionId supplied by the Contextory hook reminder to link native model/usage metadata to leased specs. If unavailable, omit it; never guess. Chat and model routing remain native.",
+      "Register this native agent session and return a Contextory session ID. Pass the exact hook-supplied nativeSessionId to link leased work, approval responses, conversation recovery and native usage to this conversation. If unavailable, omit it; never guess. Chat and model routing remain native.",
     schema: z.object({ operationId, nativeSessionId: id.optional() }),
   },
   contextory_usage_get: {

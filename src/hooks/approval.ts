@@ -69,7 +69,7 @@ export function approvalGate(
           .map((p) => p.id)
           .join(
             ", ",
-          )}. Wait for the human decision in Contextory > Approvals. Do not implement the proposal, use another tool to perform it, or claim completion. Read context/catalog/history to check status; independent checks and lease renewal remain available. After rejection, preserve or restore the established behavior and validate it before continuing.`
+          )}. Wait for the human decision in Contextory > Approvals. A changes_requested item contains human instructions: revise that proposal and its natural-language explanation with contextory_catalog_change, then wait again. Do not implement the proposal, use another tool to perform it, or claim completion. Read context/catalog/history to check status; independent checks and lease renewal remain available. After rejection, preserve or restore the established behavior and validate it before continuing.`
       : "No pending change requires approval.",
   };
 }

@@ -26,13 +26,13 @@ Read contextory_catalog_get before related changes and page definitions, proposa
 
 The persistent review alert, Approvals count and editor badge count pending change proposals only. Optional observed baselines remain available in Approvals without blocking work. Notifications are deduplicated per project and exact pending revisions.
 
-1. Open Approvals beside Work and Requests, or use the persistent review alert. This tab contains only pending changes and observed baselines. Inspect sources, tests, state, revision and freshness. Use Tools > Knowledge separately to browse all definitions and file coverage.
-2. Review baseline observations or the before/after content of a replacement or retirement. Enter a reason before approving or rejecting.
-3. If Sources need review appears, open the changed files and check the definition. Enter a reason and choose Refresh source snapshot. This records current file hashes and keeps the item pending; approve or reject the refreshed revision separately. Missing files must be corrected or the outdated item rejected. A proposal against an older target revision must be rejected and replaced.
+1. Open Approvals and read the agent’s explanation: what changes, why your approval is needed and how application behavior changes. Knowledge remains the browser for definitions, source coverage and immutable history.
+2. Choose Approve or Reject without entering a comment. To ask for an update first, write your instructions and choose Request changes. A proposal with requested changes still blocks implementation; the agent revises that same proposal and waits for another decision.
+3. Readable source snapshots refresh automatically and never grant approval or change the authored definition. Prior source hashes remain in history. Missing files still block approval. An edit during review refreshes the snapshot and asks you to inspect the latest item before retrying; no refresh button or refresh comment is required.
 
-Saving, success and errors appear beside the review controls. Failed reviews keep the entered reason and do not approve anything. Controls remain disabled while a review is pending. Switching to Knowledge and back preserves the reason; Knowledge search filters do not hide the approval queue. Refreshing a snapshot never edits the definition or grants approval.
+Saving, errors and success appear beside the controls. Failed responses preserve your instructions, and duplicate submissions are disabled. Switching to Knowledge and back preserves the draft; Knowledge filters do not hide approvals. Technical before/after definitions remain available through Definition history rather than filling the review card.
 
-![The Approvals tab with a pending count, before/after changes and review controls.](../.documentation/assets/knowledge-preview.png)
+![Approvals showing the agent explanation, simple decisions and update instructions.](../.documentation/assets/knowledge-preview.png)
 
 Approvals rendered by the production webview with isolated example records; no real project approval was performed.
 
@@ -138,6 +138,20 @@ After approval, implement and validate the accepted behavior. After rejection, r
 
 Auto-approval reduces interruptions, not traceability. All material changes still require indexed explanations and validation evidence so a later agent can investigate what changed and why.
 
+<a id="conversation-continuity"></a>
+
+## Return to the originating conversation
+
+Attach the exact native session ID supplied by the Contextory hook. The project, provider, session and specification are saved on proposals and retained on claimed work after lease release. Approval, rejection and feedback are durable audit events returned only to that exact provider/session in the same project. An unknown origin remains unbound; the extension never guesses the active chat.
+
+A trusted PreToolUse or Stop hook can wait up to four minutes for your decision and return it to that conversation. Approval releases the approved operation; rejection prevents the waiting operation, and feedback asks for a revised proposal. Expiry or service failure keeps the operation blocked. Responses remain queued until a matching hook receives them; transport acknowledgement does not prove the model acted on them. Hooks that are not trusted or a fully stopped client cannot resume automatically.
+
+Use Reopen conversation on an approval or a specification’s Contract tab. Claude opens the saved session through the installed native extension command. Codex resumes that exact saved conversation in an interactive terminal with codex resume, because its documented extension commands expose neither targeted reopening nor targeted message submission. Bob, generic clients or an unavailable Claude command copy the saved session ID for manual history recovery. The native client owns history availability and permissions; no response is injected into an arbitrary chat.
+
+[Claude session recovery contract](https://code.claude.com/docs/en/vs-code#launch-a-vs-code-tab-from-other-tools)
+
+[Documented Codex extension commands](https://developers.openai.com/codex/ide/commands)
+
 ## Sources
 
 - src/knowledge/catalog.ts
@@ -159,3 +173,8 @@ Auto-approval reduces interruptions, not traceability. All material changes stil
 - src/core/workflow.ts
 - tests/integration/approval-policy.test.ts
 - skills/contextory-workflow/references/approvals-and-regressions.md
+- src/core/conversations.ts
+- src/providers/conversations.ts
+- src/hooks/review-wait.ts
+- src/service/server.ts
+- tests/integration/approval-conversations.test.ts

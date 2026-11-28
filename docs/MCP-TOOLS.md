@@ -94,7 +94,7 @@ Read a record before editing. Existing records require current expectedRevision.
 
 Repair one provider’s managed hooks; requires a reachable service and preserves native trust.
 
-Input schema · src/contracts/tools.ts:126
+Input schema · src/contracts/tools.ts:129
 
 ```typescript
 z.object({
@@ -109,7 +109,7 @@ z.object({
 
 Discover project/workspace identities and optional coordinated-request status.
 
-Input schema · src/contracts/tools.ts:134
+Input schema · src/contracts/tools.ts:137
 
 ```typescript
 z.object({ groupId: id.optional() })
@@ -121,7 +121,7 @@ z.object({ groupId: id.optional() })
 
 Create linked local requests for selected projects with recoverable partial creation.
 
-Input schema · src/contracts/tools.ts:139
+Input schema · src/contracts/tools.ts:142
 
 ```typescript
 z.object({
@@ -138,7 +138,7 @@ z.object({
 
 Read repository-wide version state, commits and semantic records with independent pagination.
 
-Input schema · src/contracts/tools.ts:149
+Input schema · src/contracts/tools.ts:152
 
 ```typescript
 z.object({
@@ -154,7 +154,7 @@ z.object({
 
 Prepare a concrete release plan without source edits; no spec lease is needed.
 
-Input schema · src/contracts/tools.ts:158
+Input schema · src/contracts/tools.ts:161
 
 ```typescript
 z.object({
@@ -170,7 +170,7 @@ z.object({
 
 Apply, publish, recover or cancel an authorized release plan using its current revision.
 
-Input schema · src/contracts/tools.ts:167
+Input schema · src/contracts/tools.ts:170
 
 ```typescript
 z.object({
@@ -187,7 +187,7 @@ z.object({
 
 Page stored datasets for documentation, retaining sequence, snapshots and provenance.
 
-Input schema · src/contracts/tools.ts:177
+Input schema · src/contracts/tools.ts:180
 
 ```typescript
 z.object({
@@ -220,7 +220,7 @@ z.object({
 
 Read catalog definitions, pending proposals, source freshness and optional file inventory.
 
-Input schema · src/contracts/tools.ts:203
+Input schema · src/contracts/tools.ts:206
 
 ```typescript
 z.object({
@@ -240,7 +240,7 @@ z.object({
 
 Compatible maintenance needs no new human decision. Agents may auto-approve implementation conflicts too, with an explicit conflict assessment, rationale, source/test links and validation. Conflicts involving process rules or results, changed approved behavior, retirements and uncertain conflicts require human review before implementation. New observations have optional baseline review and do not trigger mandatory approval alerts.
 
-Input schema · src/contracts/tools.ts:216
+Input schema · src/contracts/tools.ts:219
 
 ```typescript
 z.object({
@@ -260,6 +260,13 @@ z.object({
         .default("unknown"),
       autoApprove: z.boolean().default(false),
       decisionIds: z.array(id).max(30).default([]),
+      explanation: z
+        .object({
+          change: text.trim().min(1),
+          approvalReason: text.trim().min(1),
+          behavior: text.trim().min(1),
+        })
+        .optional(),
     })
 ```
 
@@ -267,18 +274,23 @@ z.object({
 
 ## Catalog review
 
-Human UI only: approve, reject or refresh an exact pending proposal or optional baseline. Agent auto-approval of implementation maintenance/conflicts uses the leased catalog_change path, preserving human review provenance.
+Human UI only. Approve/reject an exact revision without a required comment, or send feedback with update instructions. Source snapshots refresh automatically without approval. The legacy refresh action remains compatible. Requested changes keep implementation blocked until the agent revises the proposal and receives another decision.
 
-Input schema · src/contracts/tools.ts:230
+Input schema · src/contracts/tools.ts:248
 
 ```typescript
-z.object({
-      operationId,
-      id,
-      expectedRevision: z.number().int().positive(),
-      action: z.enum(["approve", "reject", "refresh"]),
-      reason: text.trim().min(1),
-    })
+z
+      .object({
+        operationId,
+        id,
+        expectedRevision: z.number().int().positive(),
+        action: z.enum(["approve", "reject", "feedback", "refresh"]),
+        reason: z.string().max(12000).trim().default(""),
+      })
+      .refine((p) => p.action !== "feedback" || p.reason.length > 0, {
+        message: "Describe the update you want the agent to make.",
+        path: ["reason"],
+      })
 ```
 
 <a id="contextory-catalog-migrate"></a>
@@ -287,7 +299,7 @@ z.object({
 
 Bootstrap file descriptions in resumable batches; scanned candidates still need semantic review.
 
-Input schema · src/contracts/tools.ts:241
+Input schema · src/contracts/tools.ts:264
 
 ```typescript
 z.object({
@@ -304,7 +316,7 @@ z.object({
 
 Read workspace contracts, active work, check recipes and guidance before implementation.
 
-Input schema · src/contracts/tools.ts:251
+Input schema · src/contracts/tools.ts:274
 
 ```typescript
 z.object({ specId: id.optional() })
@@ -318,7 +330,7 @@ The response includes uiLanguage (en or pt-BR) and contentLanguageInstruction fr
 
 Read a current or immutable record revision, child page, job or artifact page.
 
-Input schema · src/contracts/tools.ts:256
+Input schema · src/contracts/tools.ts:279
 
 ```typescript
 z.object({
@@ -335,7 +347,7 @@ z.object({
 
 Page audit history; pass nextBefore as before to continue.
 
-Input schema · src/contracts/tools.ts:266
+Input schema · src/contracts/tools.ts:289
 
 ```typescript
 z.object({
@@ -351,7 +363,7 @@ z.object({
 
 Create or revise an authorized implementation request while preserving original intent.
 
-Input schema · src/contracts/tools.ts:275
+Input schema · src/contracts/tools.ts:298
 
 ```typescript
 z.object({
@@ -371,7 +383,7 @@ z.object({
 
 Create milestones/specs, revise/reopen/block/cancel work or explicitly request verified completion.
 
-Input schema · src/contracts/tools.ts:288
+Input schema · src/contracts/tools.ts:311
 
 ```typescript
 z.object({
@@ -403,7 +415,7 @@ z.object({
 
 Register an agent session; use the exact hook-supplied nativeSessionId or omit it.
 
-Input schema · src/contracts/tools.ts:313
+Input schema · src/contracts/tools.ts:336
 
 ```typescript
 z.object({ operationId, nativeSessionId: id.optional() })
@@ -415,7 +427,7 @@ z.object({ operationId, nativeSessionId: id.optional() })
 
 Read observed models/token metadata; unavailable counts stay unavailable.
 
-Input schema · src/contracts/tools.ts:318
+Input schema · src/contracts/tools.ts:341
 
 ```typescript
 z.object({
@@ -433,7 +445,7 @@ z.object({
 
 Claim, renew or release one specification’s implementation lease with an attached session.
 
-Input schema · src/contracts/tools.ts:329
+Input schema · src/contracts/tools.ts:352
 
 ```typescript
 z.object({
@@ -452,7 +464,7 @@ z.object({
 
 Record an issue, impact and resolution; unresolved blocking findings prevent completion.
 
-Input schema · src/contracts/tools.ts:341
+Input schema · src/contracts/tools.ts:364
 
 ```typescript
 z.object({
@@ -476,7 +488,7 @@ z.object({
 
 Record impact and concise decision rationale. Implementation-to-implementation supersession auto-reviews; process/outcome or unclassified conflicts require the exact human-approved proposal approvalId with matching decisionIds and replacement description before implementation. Prior decisions retain their original content and supersedes links across specs.
 
-Input schema · src/contracts/tools.ts:358
+Input schema · src/contracts/tools.ts:381
 
 ```typescript
 z.object({
@@ -502,7 +514,7 @@ z.object({
 
 Record reported external/manual evidence; it remains separate from independent checks.
 
-Input schema · src/contracts/tools.ts:373
+Input schema · src/contracts/tools.ts:400
 
 ```typescript
 z.object({
@@ -522,7 +534,7 @@ z.object({
 
 Run a configured recipe independently and return a job to poll.
 
-Input schema · src/contracts/tools.ts:386
+Input schema · src/contracts/tools.ts:413
 
 ```typescript
 z.object({
@@ -539,7 +551,7 @@ z.object({
 
 Submit criterion evidence and a durable report; a separate complete action is still required.
 
-Input schema · src/contracts/tools.ts:396
+Input schema · src/contracts/tools.ts:423
 
 ```typescript
 z.object({
@@ -577,7 +589,7 @@ z.object({
 
 Search source and project memory using lexical, semantic or hybrid retrieval.
 
-Input schema · src/contracts/tools.ts:427
+Input schema · src/contracts/tools.ts:454
 
 ```typescript
 z.object({
@@ -594,7 +606,7 @@ z.object({
 
 Retrieve ranked current source/task context with paths and a bounded estimated-token budget.
 
-Input schema · src/contracts/tools.ts:437
+Input schema · src/contracts/tools.ts:464
 
 ```typescript
 z.object({
@@ -612,7 +624,7 @@ z.object({
 
 Read subsystems, dependencies, entry points and coverage; refresh defaults to true.
 
-Input schema · src/contracts/tools.ts:448
+Input schema · src/contracts/tools.ts:475
 
 ```typescript
 z.object({
@@ -627,7 +639,7 @@ z.object({
 
 Explain a bounded indexed path between two source/record roots.
 
-Input schema · src/contracts/tools.ts:456
+Input schema · src/contracts/tools.ts:483
 
 ```typescript
 z.object({
@@ -645,7 +657,7 @@ z.object({
 
 Refresh source projection or validate/import optional Graphify data.
 
-Input schema · src/contracts/tools.ts:467
+Input schema · src/contracts/tools.ts:494
 
 ```typescript
 z.object({
@@ -660,7 +672,7 @@ z.object({
 
 List the current project and its isolated read-only reference registrations.
 
-Input schema · src/contracts/tools.ts:475
+Input schema · src/contracts/tools.ts:502
 
 ```typescript
 z.object({})
@@ -672,7 +684,7 @@ z.object({})
 
 Register or detach an authorized local reference; source files remain untouched.
 
-Input schema · src/contracts/tools.ts:480
+Input schema · src/contracts/tools.ts:507
 
 ```typescript
 z
@@ -695,7 +707,7 @@ z
 
 Link project records or source locations with a typed relationship and rationale.
 
-Input schema · src/contracts/tools.ts:496
+Input schema · src/contracts/tools.ts:523
 
 ```typescript
 z.object({
@@ -714,7 +726,7 @@ z.object({
 
 Traverse source/record relationships with explicit direction, depth and size bounds.
 
-Input schema · src/contracts/tools.ts:508
+Input schema · src/contracts/tools.ts:535
 
 ```typescript
 z.object({
@@ -732,7 +744,7 @@ z.object({
 
 Trace bounded calls/control flow from a symbol or source position.
 
-Input schema · src/contracts/tools.ts:519
+Input schema · src/contracts/tools.ts:546
 
 ```typescript
 z.object({
@@ -760,7 +772,7 @@ z.object({
 
 Page a stored graph or expand a frontier while validating its source snapshot.
 
-Input schema · src/contracts/tools.ts:540
+Input schema · src/contracts/tools.ts:567
 
 ```typescript
 z.object({
@@ -780,7 +792,7 @@ z.object({
 
 Export one request’s report, completed-work changelog or JSON through an artifact handle.
 
-Input schema · src/contracts/tools.ts:553
+Input schema · src/contracts/tools.ts:580
 
 ```typescript
 z.object({
@@ -795,7 +807,7 @@ z.object({
 
 Read paired explanations by query/path/record, source freshness, bundled guidance or a runtime job. Pagination remains explicit.
 
-Input schema · src/contracts/tools.ts:60
+Input schema · src/contracts/tools.ts:63
 
 ```typescript
 z.object({
@@ -821,7 +833,7 @@ z.object({
 
 Queue any upstream documentation operation on demand; mutating operations need a lease and Pages publication needs explicit authorization plus publish=true. Poll the durable job and inspect its result.
 
-Input schema · src/contracts/tools.ts:79
+Input schema · src/contracts/tools.ts:82
 
 ```typescript
 z.object({
@@ -862,7 +874,7 @@ z.object({
 
 Record a source-hash-bound observed association to local records after review, preserving revisions and history; this does not approve requirements.
 
-Input schema · src/contracts/tools.ts:113
+Input schema · src/contracts/tools.ts:116
 
 ```typescript
 z.object({

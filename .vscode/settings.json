@@ -196,6 +196,7 @@
         "--test",
         "--test-concurrency=2",
         "tests/integration/approval-policy.test.ts",
+        "tests/integration/approval-conversations.test.ts",
         "tests/core/workflow.test.ts",
         "tests/core/i18n.test.ts",
         "tests/core/history.test.ts",

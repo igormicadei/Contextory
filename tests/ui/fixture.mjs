@@ -317,7 +317,7 @@ const catalogBaseline = entity(
   "observed",
 );
 const catalogScenario = new URLSearchParams(location.search).get("catalog");
-let catalogBaselineStale = catalogScenario === "stale";
+let catalogBaselineStale = catalogScenario === "missing";
 let failCatalogReview = catalogScenario === "changed-during-review";
 const catalogUi = {
   category: "ui",
@@ -350,6 +350,19 @@ const catalogProposal = entity(
     targetRevision: 1,
     action: "revise",
     reason: "Show progress during recovery",
+    explanation: {
+      change: "Show progress during recovery",
+      approvalReason:
+        "The payment interaction changes and needs your decision.",
+      behavior: "Show progress and disable repeat submission",
+    },
+    origin: {
+      projectId: "demo",
+      provider: "codex",
+      nativeSessionId: "demo-session",
+      specId: "SPEC-demo",
+      sessionId: "SES-demo",
+    },
     before: catalogUi,
     content: {
       ...catalogUi,
@@ -591,7 +604,11 @@ window.acquireVsCodeApi = () => ({
             ).length,
             observed: catalogBaseline.state === "observed" ? 1 : 0,
             retired: 0,
-            pendingChanges: catalogProposal.state === "pending" ? 1 : 0,
+            pendingChanges: ["pending", "changes_requested"].includes(
+              catalogProposal.state,
+            )
+              ? 1
+              : 0,
             records: message.arguments.offset
               ? []
               : records.map((r) => ({
@@ -608,7 +625,9 @@ window.acquireVsCodeApi = () => ({
                   },
                 })),
             proposals:
-              catalogProposal.state === "pending" && !message.arguments.offset
+              ["pending", "changes_requested"].includes(
+                catalogProposal.state,
+              ) && !message.arguments.offset
                 ? [
                     {
                       ...catalogProposal,
@@ -636,12 +655,13 @@ window.acquireVsCodeApi = () => ({
       ) {
         if (failCatalogReview && message.arguments.id === catalogBaseline.id) {
           failCatalogReview = false;
-          catalogBaselineStale = true;
+          catalogBaselineStale = false;
+          catalogBaseline.revision++;
           send({
             type: "toolError",
             requestId: message.requestId,
             code: "STALE_CATALOG",
-            text: "Sources changed during review. Review the changed files and refresh the source snapshot.",
+            text: "Sources changed during review and were refreshed automatically. Check the latest item and try again.",
           });
           return;
         }
@@ -661,7 +681,16 @@ window.acquireVsCodeApi = () => ({
           catalogBaseline.revision++;
         } else {
           catalogProposal.state =
-            message.arguments.action === "approve" ? "approved" : "rejected";
+            message.arguments.action === "feedback"
+              ? "changes_requested"
+              : message.arguments.action === "approve"
+                ? "approved"
+                : "rejected";
+          catalogProposal.revision++;
+          if (message.arguments.action === "feedback")
+            catalogProposal.data.feedback = {
+              reason: message.arguments.reason,
+            };
           if (catalogProposal.state === "approved") {
             catalogApproved.data.content = catalogProposal.data.content;
             catalogApproved.revision++;
@@ -679,7 +708,11 @@ window.acquireVsCodeApi = () => ({
           ).length,
           observed: catalogBaseline.state === "observed" ? 1 : 0,
           retired: catalogBaseline.state === "retired" ? 1 : 0,
-          pendingChanges: catalogProposal.state === "pending" ? 1 : 0,
+          pendingChanges: ["pending", "changes_requested"].includes(
+            catalogProposal.state,
+          )
+            ? 1
+            : 0,
         };
         const reviewed = () => {
           send(resultMessage);

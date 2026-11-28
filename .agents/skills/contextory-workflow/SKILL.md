@@ -2,10 +2,12 @@
 name: contextory-workflow
 description: Track authorized software implementation in the connected Contextory companion. Use for requests, milestones, specs, issues, design decisions, evidence and continuing tracked work; ordinary questions need no new request.
 metadata:
-  version: "9"
+  version: "10"
 ---
 
 <!-- contextory-managed-workflow -->
+
+For changes requiring human review, always supply `catalog_change.explanation` in the project's UI language: `change` explains what changes, `approvalReason` explains why a decision is needed, and `behavior` explains the application behavior affected. Use natural language. Sources refresh automatically without a human comment or approval; immutable hashes and before/after definitions remain in history. Humans approve/reject without required text, or send instructions with **Request changes**. For `changes_requested`, read `data.feedback` and revise that same proposal ID at its current revision under the original spec, updating its content and explanation. Wait again for approval; feedback never authorizes implementation. Attach the exact hook-supplied `nativeSessionId` to route replies to that conversation. Trusted native hooks can wait up to four minutes and return replies there; expiry still blocks. Idle/stopped chats may need **Reopen conversation** or manual resume. Never guess an identity or send to an arbitrary active chat.
 
 Requires the workflow tools advertised by a connected Contextory MCP server. Conversation, editing, model selection and permissions remain in the native client; the workflow is shared across agents. Ordinary questions need no new tracked work.
 

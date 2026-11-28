@@ -1,5 +1,7 @@
 import { ui, tx, setLanguage } from "./i18n";
 import * as vscode from "vscode";
+import { conversationRecovery } from "./providers/conversations";
+import type { Conversation } from "./core/conversations";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { mkdir, realpath } from "node:fs/promises";
 import { join, relative } from "node:path";
@@ -1074,6 +1076,58 @@ export async function activate(context: vscode.ExtensionContext) {
           if (isClient(String(message.provider)))
             await connect(message.provider as Provider, true);
           break;
+        case "openConversation": {
+          const client = await service();
+          const result = await client.call<{
+            origin?: Conversation;
+            projectId: string;
+          }>("conversation.get", { id: message.id });
+          const recovery =
+            result.origin &&
+            conversationRecovery(result.origin, result.projectId);
+          if (!recovery || recovery.kind === "unavailable") {
+            postProject(client, {
+              type: "notice",
+              text: tx("No exact conversation is linked to this item."),
+            });
+          } else if (
+            recovery.kind === "command" &&
+            (await vscode.commands.getCommands(true)).includes(recovery.command)
+          ) {
+            await vscode.commands.executeCommand(
+              recovery.command,
+              recovery.sessionId,
+            );
+            postProject(client, {
+              type: "notice",
+              text: tx(
+                "Requested the linked conversation from the native client. Review responses remain scoped to its saved session ID.",
+              ),
+            });
+          } else if (recovery.kind === "terminal") {
+            const terminal = vscode.window.createTerminal({
+              name: tx("Contextory conversation"),
+              cwd: client.root,
+            });
+            terminal.show();
+            terminal.sendText(recovery.command);
+            postProject(client, {
+              type: "notice",
+              text: tx(
+                "Resuming the saved Codex conversation in the terminal. The Codex extension has no documented targeted reopen command.",
+              ),
+            });
+          } else {
+            await vscode.env.clipboard.writeText(recovery.sessionId);
+            postProject(client, {
+              type: "notice",
+              text: tx(
+                "Conversation ID copied. Open it from your native client's history to continue.",
+              ),
+            });
+          }
+          break;
+        }
         case "tool": {
           let projectId = message.projectId;
           try {

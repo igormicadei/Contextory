@@ -210,6 +210,16 @@ export async function startService(options: ServiceOptions) {
           node: process.versions.node,
           projectId: ledger.projectId,
         };
+      if (method === "conversation.get") {
+        if (!actor.human)
+          throw new ContextoryError(
+            "FORBIDDEN",
+            "Conversation recovery belongs to the human UI.",
+          );
+        const record = ledger.get(String(params.id));
+        const origin = record.data.origin ?? record.data.conversation;
+        return { origin, projectId: ledger.projectId };
+      }
       if (method === "tools/list") {
         if (actor.provider) {
           app.seen(`mcp:${actor.provider}`);

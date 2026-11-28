@@ -5,6 +5,7 @@ import { badge, button, escape, sourceButton } from "./html";
 export type CatalogRecord = Entity & {
   freshness?: { state: string; changed: string[] };
   reviewBlocker?: string;
+  delivery?: { state: string };
 };
 export interface CatalogFeedback {
   state: "pending" | "error" | "success";
@@ -70,11 +71,24 @@ function review(
   const action = (value: string, disabled: boolean) =>
     `data-id="${record.id}" data-revision="${record.revision}" data-review="${value}" ${disabled ? "disabled" : ""}`;
   return ui`<section class="catalog-review" aria-label="Review ${escape(record.title)}">
-    ${needsSnapshot ? ui`<div class="catalog-source-warning"><strong>Sources need review</strong><p>Open the changed files and check that this definition still describes them. Refresh the source snapshot before approving. Refreshing keeps the item pending.</p>${record.freshness?.changed.map((path) => sourceButton({ path })).join(" ") ?? ""}</div>` : ""}
+    ${needsSnapshot ? ui`<div class="catalog-source-warning"><strong>Sources unavailable</strong><p>Source snapshots refresh automatically. Ask the agent to restore missing files or correct their references before approval.</p>${record.freshness?.changed.map((path) => sourceButton({ path })).join(" ") ?? ""}</div>` : ""}
     ${record.reviewBlocker ? ui`<p class="catalog-feedback error" role="alert">${escape(record.reviewBlocker)}</p>` : ""}
     ${feedback(status)}
-    <label>Review reason<textarea name="catalogReason-${record.id}" maxlength="12000" required ${waiting ? "disabled" : ""}>${escape(drafts[`catalogReason-${record.id}`] ?? "")}</textarea></label>
-    <div class="detail-actions">${needsSnapshot ? button("catalogReview", tx("Refresh source snapshot"), action("refresh", Boolean(waiting || record.reviewBlocker))) : ""}${button("catalogReview", record.kind === "knowledge" ? tx("Approve baseline") : tx("Approve change"), action("approve", Boolean(waiting || needsSnapshot || record.reviewBlocker)), "primary")}${button("catalogReview", tx("Reject"), action("reject", Boolean(waiting)))}</div></section>`;
+    ${record.delivery ? ui`<p class="muted" role="status">${escape(record.delivery.state === "offered" ? tx("Response sent to the conversation hook; agent execution is not confirmed.") : record.delivery.state === "queued" ? tx("Response queued for the linked conversation.") : tx("Resume the agent and ask it to read this item's feedback."))}</p>` : ""}
+    <div class="detail-actions">${button("catalogReview", tx("Approve"), action("approve", Boolean(waiting || needsSnapshot || record.reviewBlocker || record.state === "changes_requested")), "primary")}${button("catalogReview", tx("Reject"), action("reject", Boolean(waiting)))}</div>
+    <label>Instructions for the agent<textarea name="catalogReason-${record.id}" maxlength="12000" placeholder="Describe what should be updated before you decide" ${waiting ? "disabled" : ""}>${escape(drafts[`catalogReason-${record.id}`] ?? "")}</textarea></label>
+    ${button("catalogReview", tx("Request changes"), action("feedback", Boolean(waiting)))}
+    ${record.data.feedback ? ui`<p class="catalog-feedback" role="status">Update requested: ${escape((record.data.feedback as { reason: string }).reason)}</p>` : ""}
+    ${conversationView(record)}
+    </section>`;
+}
+function conversationView(record: CatalogRecord) {
+  const origin = record.data.origin as
+    | { provider: string; nativeSessionId?: string }
+    | undefined;
+  return origin?.nativeSessionId
+    ? ui`<p class="muted">Conversation: ${escape(origin.provider)} · ${escape(origin.nativeSessionId)}</p>${button("openConversation", tx("Reopen conversation"), `data-id="${record.id}"`, "text-button")}<p class="muted">Responses return to this conversation through its next trusted hook. A stopped chat may need to be resumed.</p>`
+    : ui`<p class="muted">No originating conversation is linked. Ask the agent to attach its exact native session before continuing.</p>`;
 }
 function recordView(
   r: CatalogRecord,
@@ -100,7 +114,15 @@ function proposalView(
       : p.data.impact === "outcome"
         ? tx("May change results or behavior.")
         : tx("Review the effect on existing behavior.");
-  return ui`<article class="record" data-catalog-id="${p.id}"><p>${escape(p.id)} &middot; ${escape(p.data.action)} &middot; target revision ${escape(p.data.targetRevision)}</p><p>Implementation is waiting for this decision. ${effect}</p><h3>Reason</h3><p>${escape(p.data.reason)}</p><details><summary>Before</summary>${definition(p.data.before)}</details><details open><summary>${p.data.action === "retire" ? tx("Definition to retire") : tx("After")}</summary>${definition(p.data.content)}</details>${review(p, drafts, status)}</article>`;
+  const content = p.data.content as {
+    title: string;
+    description: string;
+    sources: SourceRef[];
+  };
+  const explanation = p.data.explanation as
+    | { change: string; approvalReason: string; behavior: string }
+    | undefined;
+  return ui`<article class="record" data-catalog-id="${p.id}"><h2>${escape(content.title)}</h2><p>Implementation is waiting for this decision. ${effect}</p><h3>What is changing</h3><p>${escape(explanation?.change ?? content.description)}</p><h3>Why your approval is needed</h3><p>${escape(explanation?.approvalReason ?? p.data.reason)}</p><h3>Effect on application behavior</h3><p>${escape(explanation?.behavior ?? tx("The agent has not explained the behavioral effect yet. You can request an update before deciding."))}</p><p class="muted">Sources are refreshed automatically.</p>${content.sources.map(sourceButton).join(" ")}${review(p, drafts, status)}${button("history", tx("Definition history"), `data-id="${p.id}"`, "text-button")}</article>`;
 }
 function pagination(offset: number, next: boolean) {
   return ui`<div class="detail-actions">${offset ? button("catalogPrevious", tx("Previous page")) : ""}${next ? button("catalogNext", tx("Next page")) : ""}</div>`;
@@ -120,7 +142,7 @@ export function approvalsView(
           !proposals.length
             ? ui`<div class="empty"><h2>No pending approvals</h2><p>You are up to date. Browse definitions and source coverage in Knowledge.</p>${button("navigate", tx("Open Knowledge"), 'data-screen="catalog"')}</div>`
             : ui`<h2>Pending changes</h2>${proposals.map((p) => proposalView(p, drafts, statuses[p.id])).join("")}`
-        }${baselines.length ? ui`<h2>Optional baseline review</h2><p>These observations are documented and indexed. Reviewing them establishes approved behavior; they do not block implementation or completion.</p>${baselines.map((r) => recordView(r, drafts, statuses[r.id], true)).join("")}` : ""}${pagination(offset, page.nextOffset !== null || page.proposalsNextOffset !== null)}`
+        }${baselines.length ? ui`<details class="baseline-review" ${drafts.baselineReviewOpen === "true" ? "open" : ""}><summary>Optional baseline review</summary><p>These observations are documented and indexed. Reviewing them establishes approved behavior; they do not block implementation or completion.</p>${baselines.map((r) => recordView(r, drafts, statuses[r.id], true)).join("")}</details>` : ""}${pagination(offset, page.nextOffset !== null || page.proposalsNextOffset !== null)}`
   }</section>`;
 }
 export function catalogView(
