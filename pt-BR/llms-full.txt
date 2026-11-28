@@ -1,8 +1,8 @@
 # Contextory (pt-BR)
 
-Version: 0.9.0
-Source revision: e24e15a95eaa0d8fe5bc41b9aa1f1de3676568f3
-Source fingerprint: 2f97dc7672e5c9153d3e6466e07c3045ccd76dc7bb8dfb708d2066117fc4069c
+Version: 0.11.0
+Source revision: 61e4068351857d158e6e4a76b4ea7a5c4c46dc2b
+Source fingerprint: cd3b4fe8251767e697083508853f838c7273b3466cd36ba95017a0ed114ab886
 
 # Contextory
 
@@ -10,7 +10,7 @@ Source fingerprint: 2f97dc7672e5c9153d3e6466e07c3045ccd76dc7bb8dfb708d2066117fc4
 
 O Contextory conecta pedidos, especificações, código, decisões e evidências de verificação em um registro local do projeto. Trabalhe no chat nativo do Codex, Claude Code ou IBM Bob e use o Contextory para recuperar o que foi pedido, o que mudou e por quê.
 
-Este guia descreve o Contextory 0.9.0, uma prévia qualificada no Windows com pastas locais confiáveis no VS Code e IBM Bob. A extensão precisa do Node.js 24+. Python 3.10+ é opcional para análise Python. Cada agente usa sua própria conta, modelo e conversa.
+Este guia descreve o Contextory 0.11.0, uma prévia qualificada no Windows com pastas locais confiáveis no VS Code e IBM Bob. A extensão precisa do Node.js 24+. Python 3.10+ é opcional para análise Python. Cada agente usa sua própria conta, modelo e conversa.
 
 [Instalar o Contextory](install.md)
 
@@ -82,19 +82,19 @@ python --version
 
 ## Instale o VSIX
 
-1. Baixe contextory-workspace-0.9.0.vsix e o arquivo .sha256 na release v0.9.0.
-2. Compare o checksum do pacote baixado com o checksum da release.
+1. Baixe contextory-workspace-0.11.0.vsix e seu .sha256 na release v0.11.0 do GitHub.
+2. Compare o SHA-256 do pacote com o checksum que o acompanha.
 3. Em Extensions, abra o menu …, selecione Install from VSIX… e escolha o arquivo baixado. Recarregue se solicitado.
 4. Abra um projeto local confiável. O serviço e os agentes configurados iniciam em segundo plano; abra o Contextory quando quiser inspecionar o trabalho. O projeto inicial não contém pedidos.
 
-[Baixar a versão 0.9.0](https://github.com/igormicadei/Contextory/releases/tag/v0.9.0)
+[Baixar a versão 0.11.0](https://github.com/igormicadei/Contextory/releases/tag/v0.11.0)
 
 Verificar e instalar o pacote da release
 
 ```powershell
-(Get-FileHash -Algorithm SHA256 .\contextory-workspace-0.9.0.vsix).Hash.ToLowerInvariant()
-Get-Content .\contextory-workspace-0.9.0.sha256
-code --install-extension .\contextory-workspace-0.9.0.vsix
+(Get-FileHash -Algorithm SHA256 .\contextory-workspace-0.11.0.vsix).Hash.ToLowerInvariant()
+Get-Content .\contextory-workspace-0.11.0.sha256
+code --install-extension .\contextory-workspace-0.11.0.vsix
 ```
 
 Usuários finais não precisam de npm, Rust, servidor de banco de dados ou modelo de embeddings. Instale e autentique o agente nativo pela interface dele. Reinicie o editor após instalar o Node se o PATH ainda não tiver sido atualizado.
@@ -267,7 +267,7 @@ Explorador de fluxo limitado do Contextory.
 ## Use Approvals, Knowledge e Versions
 
 1. Abra a aba Approvals ou o alerta para revisar pendências. A aba mostra um contador e não inclui definições já revisadas. Use Tools > Knowledge para buscar definições e consultar a cobertura das fontes.
-2. Para uma linha de base observada ou alteração pendente, leia a proposta exata e informe um motivo antes de Approve baseline, Approve change ou Reject. Apenas uma pessoa usa esses controles de revisão.
+2. Leia a explicação do agente em linguagem natural. Aprovar ou Rejeitar dispensa comentário; escreva instruções apenas ao solicitar ajustes. Snapshots são atualizados automaticamente, e respostas retornam à conversa vinculada pelos hooks confiáveis. Use Reabrir conversa quando a sessão nativa estiver parada.
 3. Abra Tools > Versions para inspecionar versão, commits e planos de release. Revise versão, arquivos e changelog antes de aplicar; Publish é uma ação de release autorizada separadamente.
 
 ![Versões do projeto e detalhes de releases no Panel do editor.](../assets/panel-versions.png)
@@ -376,6 +376,22 @@ Use Tools > Documentation para consultar explicações vinculadas às fontes e a
 
 [Leia o guia de documentação de projetos](documentation.md)
 
+## Usar o idioma de exibição do VS Code
+
+O Contextory acompanha o idioma de exibição do editor nos rótulos, títulos de comandos, descrições das configurações, diálogos nativos e controles das webviews. Inglês e português brasileiro são suportados. pt/pt-br selecionam pt-BR; idiomas não suportados usam inglês. Barra lateral, painel horizontal, arquitetura, fluxo do código e relações compartilham o mesmo idioma, inclusive rótulos de acessibilidade e datas.
+
+1. Use o comando Configurar Idioma de Exibição do VS Code e escolha inglês ou português brasileiro. Se necessário, instale o pacote de idioma pelo VS Code e reinicie quando solicitado.
+2. Abra o Contextory. Novas webviews recebem vscode.env.language, e o editor configura esse idioma normalizado para cada projeto conectado.
+3. Peça ao agente para ler contextory_context_get. uiLanguage e contentLanguageInstruction orientam a escrita de cada novo registro da interface no idioma do editor, mesmo quando a conversa usa outro idioma.
+
+Pedidos, definições, decisões, relatórios e identificadores existentes preservam o texto original. A localização traduz mensagens da interface antes de inserir valores dinâmicos; ela nunca reescreve textos armazenados, código, caminhos, IDs ou chaves das ferramentas. Saídas de código/comandos e diagnósticos desconhecidos mantêm o idioma original. Altere o idioma no VS Code e recarregue; o Contextory não possui uma preferência de idioma concorrente.
+
+![Interface do Contextory em português ao redor de registros originais em inglês](../assets/knowledge-pt-BR.png)
+
+Os controles usam português brasileiro; as definições de exemplo preservam exatamente o texto original.
+
+O idioma do projeto só é definido pela configuração autenticada do editor e persiste no armazenamento do serviço daquele projeto. Projetos independentes/headless usam inglês por padrão; ao usar o registro gerenciado pelo editor, preservam o último idioma configurado. Hooks nativos repetem a orientação de idioma no início da sessão e antes das ferramentas, inclusive em respostas de aprovação pendente. Essa é uma instrução ao agente nativo, não um detector de idioma nem tradução automática de sua saída.
+
 ## Fontes
 
 - src/webview/main.ts
@@ -391,6 +407,17 @@ Use Tools > Documentation para consultar explicações vinculadas às fontes e a
 - tests/ui/console.spec.ts
 - tests/integration/recipe-configuration.test.ts
 - scripts/verify-background-startup.mjs
+- src/i18n/index.ts
+- src/i18n/pt-BR.json
+- package.nls.json
+- package.nls.pt-br.json
+- src/webview/document.ts
+- src/service/application.ts
+- src/service/server.ts
+- src/hooks/launcher.ts
+- tests/core/i18n.test.ts
+- tests/integration/i18n.test.ts
+- tests/ui/i18n.spec.ts
 
 
 ---
@@ -492,19 +519,19 @@ Leia contextory_catalog_get antes de alterações relacionadas e pagine definiç
 
 ## Revise itens pendentes em Approvals
 
-Um alerta persistente conta definições observadas e alterações pendentes. A view do editor também mostra um badge e oferece Review now quando mudam as revisões pendentes. Notificações são deduplicadas por projeto entre reinícios; dispensá-las mantém o alerta disponível.
+O alerta persistente, a contagem de Aprovações e o badge do editor contam somente propostas de alteração pendentes. A revisão opcional da linha de base começa recolhida; expanda o resumo com clique ou teclado para inspecionar observações. O estado escolhido é mantido ao atualizar e navegar. Essas observações não bloqueiam o trabalho.
 
-1. Abra Approvals ao lado de Work e Requests ou use o alerta persistente. Essa aba contém apenas alterações pendentes e linhas de base observadas. Inspecione fontes, testes, estado, revisão e atualização. Use Tools > Knowledge separadamente para consultar todas as definições e a cobertura dos arquivos.
-2. Revise as observações iniciais ou o conteúdo antes/depois de substituições ou aposentadorias. Informe um motivo antes de aprovar ou rejeitar.
-3. Se aparecer Sources need review, abra os arquivos alterados e confira a definição. Informe um motivo e use Refresh source snapshot. Isso registra os hashes atuais e mantém o item pendente; aprove ou rejeite a revisão atualizada separadamente. Arquivos ausentes precisam ser corrigidos ou o item obsoleto rejeitado. Uma proposta contra uma revisão anterior deve ser rejeitada e substituída.
+1. Abra Aprovações e leia a explicação do agente: o que muda, por que sua aprovação é necessária e como o comportamento da aplicação muda. Conhecimento continua sendo o navegador de definições, cobertura das fontes e histórico imutável.
+2. Escolha Aprovar ou Rejeitar sem informar um comentário. Para pedir um ajuste antes, escreva suas instruções e escolha Solicitar ajustes. Uma proposta com ajustes solicitados continua bloqueando a implementação; o agente revisa a mesma proposta e aguarda outra decisão.
+3. Snapshots de fontes legíveis são atualizados automaticamente e nunca concedem aprovação nem alteram a definição escrita. Hashes anteriores permanecem no histórico. Arquivos ausentes continuam bloqueando a aprovação. Uma edição durante a revisão atualiza o snapshot e pede que você confira o item mais recente antes de tentar novamente; não há botão nem comentário de atualização obrigatório.
 
-Salvamento, sucesso e erros aparecem ao lado dos controles. Revisões com falha preservam o motivo informado e não aprovam nada. Os controles ficam desativados enquanto a revisão está em andamento. Alternar para Knowledge e voltar preserva o motivo; os filtros de Knowledge não ocultam a fila de aprovações. Atualizar o snapshot não altera a definição nem concede aprovação.
+Salvamento, erros e sucesso aparecem ao lado dos controles. Respostas com falha preservam suas instruções, e envios duplicados são desabilitados. Alternar para Conhecimento e voltar preserva o rascunho; os filtros não ocultam aprovações. Definições técnicas antes/depois permanecem disponíveis em Histórico da definição, sem ocupar o cartão de revisão.
 
-![A aba Approvals com contador de pendências, alterações antes/depois e controles de revisão.](../assets/knowledge-preview.png)
+![Aprovações com explicação do agente, decisões simples e instruções de ajuste.](../assets/knowledge-preview.png)
 
 Approvals renderizado pela webview de produção com exemplos isolados; nenhuma aprovação real do projeto foi realizada.
 
-A aprovação pertence à aba Approvals autenticada para revisão humana. Agentes não podem usar suas credenciais nem apresentar observações como requisitos aprovados. Propostas pendentes e definições aprovadas afetadas e obsoletas podem impedir a conclusão rastreada.
+A revisão humana em Approvals aprova mudanças exatas de processo/resultado e linhas de base opcionais. Agentes usam o fluxo com lease para aprovação automática de manutenção/conflitos de implementação e não podem usar credenciais humanas. Propostas pendentes e definições aprovadas afetadas e obsoletas bloqueiam a conclusão. Atualizar fontes de forma compatível preserva a revisão humana e o texto comportamental aprovado; alterar um hash não exige mudar o contrato.
 
 ## Consulte Knowledge separadamente
 
@@ -534,6 +561,78 @@ Chame contextory_project_export com o projectId escolhido. Pagine records, revis
 
 A exportação exclui credenciais, conversas nativas e vetores numéricos de embeddings. Respostas grandes podem retornar identificadores de artefatos para paginação adicional. Uma exportação somente leitura não precisa de pedido de implementação.
 
+## Escolher aprovação pelo impacto no comportamento
+
+Manutenção compatível dispensa nova decisão humana. Agentes também podem aprovar automaticamente conflitos de implementação, registrando avaliação do conflito, motivo, fontes/testes e validação. Conflitos com regras de processo ou resultados, mudanças em comportamento aprovado, aposentadorias e conflitos incertos exigem revisão humana antes da implementação. Observações novas têm revisão inicial opcional e não geram alertas de aprovação obrigatória.
+
+Manutenção compatível de fontes com o lease atual
+
+```json
+{
+  "action": "revise",
+  "id": "KN-existing",
+  "expectedRevision": 2,
+  "specId": "SPEC-current",
+  "leaseId": "current-lease",
+  "operationId": "unique-operation-id",
+  "compatibility": "preserved",
+  "impact": "implementation",
+  "autoApprove": true,
+  "content": {
+    "category": "feature",
+    "title": "Stable greeting",
+    "description": "Returns the configured greeting.",
+    "sources": [
+      {
+        "path": "src/greeting.ts",
+        "symbol": "greet"
+      }
+    ],
+    "tests": [
+      {
+        "path": "tests/greeting.test.ts"
+      }
+    ]
+  },
+  "reason": "Function A replaced by B with the same results, errors and side effects; record the relevant validation."
+}
+```
+
+Use compatibility=conflicting e impact=implementation somente quando o conflito não afetar regras de processo ou resultados. Preserve exatamente as descrições comportamentais e os contratos de interface aprovados; descrições de responsabilidade de arquivo podem acompanhar alterações de implementação. O servidor impede aprovação automática de mudanças comportamentais aprovadas, conflitos de regras e decisões relacionadas de processo/resultado ou sem classificação. decisionIds mantém os vínculos com decisões anteriores. A aprovação automática é uma avaliação do agente, não prova de equivalência semântica ou testes aprovados.
+
+Toda revisão preserva a definição original, fingerprints anteriores/novos, revisão de destino, motivo, especificação, autor e modo de revisão. Mudanças aprovadas pelo agente têm state=auto_approved; observações permanecem observadas e contratos comportamentais aprovados mantêm a revisão humana original. Knowledge mostra a proveniência da manutenção pelo agente; histórico, busca, relatórios e exportação preservam a mudança. Referências de testes não substituem evidências de execução independente.
+
+A aprova??o autom?tica preserva descri??es comportamentais e contratos de interface mesmo em observa??es. Quando a descri??o aprovada de responsabilidade de arquivo muda, a nova observa??o n?o ? atribu?da ? revis?o humana anterior; a revis?o inicial aprovada continua rastre?vel.
+
+## Aguardar antes de implementar uma mudança em disputa
+
+Prepare a proposta concreta antes de editar o comportamento em disputa. PreToolUse nega ferramentas de implementação enquanto houver proposta pendente no projeto; Stop bloqueia a conclusão. Leituras, preparação do catálogo, verificações configuradas, perguntas/espera e renovação de lease continuam disponíveis. O serviço também rejeita mutações de fluxo, impedindo contornar a espera com MCP direto. Não faça consultas contínuas nem use outro shell para prosseguir. O estado é relido a cada evento e persiste entre reinícios; silêncio e timeout nunca aprovam nada.
+
+Os launchers Codex/Claude emitem respostas estruturadas deny/block e código de saída 2; Bob usa stderr e código 2 para bloqueio. Falha ou contrato obsoleto de consulta de aprovação bloqueia implementação/conclusão até a recuperação. Após atualizar, recarregue o serviço e os hooks nativos juntos. Confiança nativa e entrega real dos eventos pertencem ao cliente. MCP genérico não possui hook de ferramentas de arquivo: o serviço impõe seu próprio fluxo, enquanto agentes devem respeitar a espera em edições externas. Hooks não interceptam alterações não registradas, um editor humano ou clientes que não os executem.
+
+Após aprovação, implemente e valide o comportamento aceito. Após rejeição, preserve ou restaure o comportamento estabelecido e valide. Substituir decisões de processo/resultado ou sem classificação exige proposta aprovada por humano na especificação atual, com a decisão anterior em decisionIds e a escolha substituta exata em content.description; informe approvalId a contextory_decision_record. Somente conflitos entre decisões de implementação têm revisão automática.
+
+## Relacionar uma regressão a uma mudança registrada
+
+1. Recupere o contrato da funcionalidade/regra/interface, o código atual e a última verificação ou versão funcional conhecida. Registre o sintoma e a reprodução como um problema.
+2. Siga relações de impacto/caminho e busque por funcionalidade, arquivo/símbolo, ID do catálogo e decisões anteriores. Pagine o histórico e examine revisões exatas, hashes, revisão humana ou do agente, especificação e evidências, inclusive alterações aprovadas automaticamente.
+3. Compare a inclusão real no Git e o último código funcional. Reproduza causas candidatas; relações estáticas e intervalos de registro não provam causalidade nem inclusão em uma versão. Use uma verificação de regressão e histórico/bisect do Git quando útil.
+4. Relacione o problema/correção confirmado à mudança/especificação/fonte responsável com contextory_relationship_change. Registre incerteza se a causa não foi comprovada; atualize catálogo/documentação e envie evidências independentes atuais.
+
+A aprovação automática reduz interrupções, sem reduzir a rastreabilidade. Toda mudança relevante continua exigindo explicações indexadas e evidências de validação para que outro agente investigue o que mudou e por quê.
+
+## Retorne à conversa de origem
+
+Associe o ID nativo exato fornecido pelo hook do Contextory. Projeto, provedor, sessão e especificação são salvos nas propostas e mantidos no trabalho após liberar o lease. Aprovação, rejeição e feedback são eventos de auditoria duráveis retornados apenas ao mesmo provedor/sessão no mesmo projeto. Uma origem desconhecida permanece sem vínculo; a extensão nunca adivinha a conversa ativa.
+
+Um hook confiável PreToolUse ou Stop pode aguardar até quatro minutos pela decisão e retorná-la à conversa. Aprovação libera a operação aprovada; rejeição impede a operação em espera, e feedback pede uma proposta revisada. Expiração ou falha do serviço mantém o bloqueio. Respostas ficam na fila até um hook correspondente recebê-las; confirmar o transporte não prova que o modelo agiu. Hooks sem confiança ou um cliente completamente parado não permitem retomada automática.
+
+Use Reabrir conversa em uma aprovação ou na aba Contrato da especificação. Claude abre a sessão salva pelo comando da extensão nativa instalada. Codex retoma a mesma conversa salva em um terminal interativo com codex resume, pois seus comandos documentados não expõem reabertura nem envio de mensagens para uma conversa específica. Bob, clientes genéricos ou um comando Claude indisponível copiam o ID salvo para recuperação manual no histórico. O cliente nativo controla disponibilidade do histórico e permissões; nenhuma resposta é inserida em uma conversa arbitrária.
+
+[Contrato de recuperação de sessões do Claude](https://code.claude.com/docs/en/vs-code#launch-a-vs-code-tab-from-other-tools)
+
+[Comandos documentados da extensão Codex](https://developers.openai.com/codex/ide/commands)
+
 ## Fontes
 
 - src/knowledge/catalog.ts
@@ -550,6 +649,16 @@ A exportação exclui credenciais, conversas nativas e vetores numéricos de emb
 - scripts/verify-background-startup.mjs
 - tests/ui/catalog.spec.ts
 - src/webview/main.ts
+- src/hooks/approval.ts
+- src/hooks/launcher.ts
+- src/core/workflow.ts
+- tests/integration/approval-policy.test.ts
+- skills/contextory-workflow/references/approvals-and-regressions.md
+- src/core/conversations.ts
+- src/providers/conversations.ts
+- src/hooks/review-wait.ts
+- src/service/server.ts
+- tests/integration/approval-conversations.test.ts
 
 
 ---
@@ -667,7 +776,9 @@ Registros semânticos associados entre limites de releases continuam sendo assoc
 | IBM Bob | .bob/mcp.json | .bob/skills; .bob/settings.json |
 | MCP genérico | .contextory/mcp.json | .contextory/skills para exportação; sem hooks |
 
-Conecte pelos comandos da extensão. O Contextory grava entradas gerenciadas locais do workspace e preserva configurações alheias. Conflitos malformados, links ou entradas sem propriedade falham sem substituição. Clientes nativos mantêm autenticação, seleção de modelo, edição, permissões e confiança. Hooks fornecem lembretes e metadados opcionais.
+Conecte pelos comandos da extensão. O Contextory grava entradas gerenciadas locais do workspace e preserva configurações alheias. Conflitos malformados, links ou entradas sem propriedade falham sem substituição. Clientes nativos mantêm autenticação, seleção de modelo, edição, permissões e confiança. Hooks fornecem lembretes, metadados e decisões de aprovação pendentes.
+
+Além de lembretes e metadados normalizados, hooks nativos impõem decisões de aprovação pendentes antes da implementação e de Stop. Agentes só aprovam automaticamente manutenção/conflitos de implementação; conflitos de processo/resultado aguardam revisão humana. A imposição depende de o cliente confiar e executar os hooks atualizados.
 
 ## Use outro cliente MCP
 
@@ -715,6 +826,11 @@ Remova --dry-run apenas para o projeto consumidor explicitamente escolhido. Clie
 - skills/contextory-workflow/SKILL.md
 - skills/contextory-migrate/SKILL.md
 - tests/integration/headless.test.ts
+- src/hooks/approval.ts
+- src/hooks/launcher.ts
+- src/knowledge/catalog.ts
+- src/core/workflow.ts
+- tests/integration/approval-policy.test.ts
 
 
 ---
@@ -763,6 +879,8 @@ Uma fonte indisponível, importação Graphify obsoleta, verificação independe
 
 Proxies MCP nativos conectam-se a descritores privados do serviço local. Hooks fornecem lembretes limitados e metadados normalizados. MCP nativo/independente, resumos e hooks compartilham orientação de execução; configurações específicas dos clientes ficam nos adaptadores.
 
+Além de lembretes e metadados normalizados, hooks nativos impõem decisões de aprovação pendentes antes da implementação e de Stop. Agentes só aprovam automaticamente manutenção/conflitos de implementação; conflitos de processo/resultado aguardam revisão humana. A imposição depende de o cliente confiar e executar os hooks atualizados.
+
 ## Preserve os registros autoritativos
 
 Pedidos, contratos, revisões imutáveis, decisões, evidências, resultados, definições Knowledge e releases são histórico autoritativo. O grafo de código e os índices lexicais/vetoriais são projeções reconstruíveis. Reconstruir a análise não deve apagar o histórico de trabalho.
@@ -783,6 +901,11 @@ O Contextory armazena explicações concisas e metadados observados, não transc
 - src/storage/ledger.ts
 - src/codebase/worker.ts
 - src/agents/instructions.ts
+- src/hooks/approval.ts
+- src/hooks/launcher.ts
+- src/knowledge/catalog.ts
+- src/core/workflow.ts
+- tests/integration/approval-policy.test.ts
 
 
 ---
@@ -952,11 +1075,15 @@ Ele comprova tráfego MCP observado para aquele agente configurado nesta instân
 
 ## Um agente pode aprovar sua própria definição Knowledge?
 
-Não. Agentes criam observações e propostas concretas. A interface Knowledge autenticada para uso humano aprova ou rejeita revisões exatas, preservando motivos e histórico.
+Manutenção compatível dispensa nova decisão humana. Agentes também podem aprovar automaticamente conflitos de implementação, registrando avaliação do conflito, motivo, fontes/testes e validação. Conflitos com regras de processo ou resultados, mudanças em comportamento aprovado, aposentadorias e conflitos incertos exigem revisão humana antes da implementação. Observações novas têm revisão inicial opcional e não geram alertas de aprovação obrigatória.
 
 ## Um grafo ou teste vinculado é evidência de execução?
 
 Não. Extração estática e referências de testes indicam relações possíveis. A verificação exige resultados atuais de verificações com proveniência e fingerprints de código/contrato/tentativa.
+
+## O Contextory acompanha o idioma do VS Code?
+
+Sim. A interface usa vscode.env.language e oferece inglês e português brasileiro, com inglês como fallback para outros idiomas. Agentes recebem uiLanguage do projeto e devem escrever novos registros da interface nesse idioma. Conteúdo histórico/do usuário e código são preservados; a documentação mantém o par inglês/pt-BR.
 
 ## Fontes
 
@@ -965,6 +1092,18 @@ Não. Extração estática e referências de testes indicam relações possívei
 - src/core/workflow.ts
 - src/core/usage.ts
 - src/knowledge/catalog.ts
+- src/i18n/index.ts
+- src/i18n/pt-BR.json
+- package.nls.json
+- package.nls.pt-br.json
+- src/extension.ts
+- src/webview/document.ts
+- src/service/application.ts
+- src/service/server.ts
+- src/hooks/launcher.ts
+- tests/core/i18n.test.ts
+- tests/integration/i18n.test.ts
+- tests/ui/i18n.spec.ts
 
 
 ---
@@ -999,7 +1138,7 @@ Rebuild hooks grava arquivos gerenciados imediatamente. Reparos com mudanças se
 
 | Sintoma | Ação |
 | --- | --- |
-| Um item continua pendente em Approvals | Leia o erro ao lado do item. Para fontes alteradas, inspecione os arquivos vinculados, informe um motivo, atualize o snapshot e aprove a nova revisão. Referências ausentes ou alvo de proposta obsoleto exigem correção ou rejeição. Atualizar não aprova. |
+| Um item continua pendente em Approvals | Leia o erro ao lado do item. Fontes são atualizadas automaticamente, sem comentário. Restaure arquivos ausentes ou peça ao agente para corrigir referências. Solicite ajustes para um alvo obsoleto ou explicação incompleta; o agente revisa a proposta e aguarda novamente. Se a resposta estiver na fila, retome a conversa vinculada e confira a confiança dos hooks nativos. |
 | Fluxo Python falha | Confira Python 3.10+ e contextory.pythonExecutable; use caminho absoluto se necessário |
 | Raiz de código inesperada | Informe projectId/codebaseId explicitamente e foque o símbolo desejado antes do trace |
 | Busca de código parece obsoleta | Consulte novamente o código salvo; atualize índices vazios/com falha, confira exclusões e gere/reimporte Graphify obsoleto |
@@ -1130,6 +1269,20 @@ O empacotamento atualiza VSIX e checksum da versão, mas não publica, altera a 
 
 [Consultar evidências de qualificação](validation.md)
 
+## Manter traduções da interface com segurança
+
+Use package.nls.json e package.nls.pt-br.json nas contribuições da extensão; preserve IDs de comandos e chaves de configuração. Mensagens das webviews/do host usam tx para rótulos controlados ou a tag ui para HTML e mensagens com valores. O helper traduz o texto estático antes de inserir os valores. Não aplique tradução a títulos, descrições, motivos, código ou caminhos armazenados. IDs técnicos, seletores, classes CSS e coordenadas SVG não são localizados.
+
+Traduzir o rótulo e preservar o registro
+
+```typescript
+import { ui } from "../i18n";
+// escape preserves the existing HTML-escaping boundary.
+return ui`<h1>Requests</h1><p>${escape(record.title)}</p>`;
+```
+
+Adicione a mensagem correspondente a src/i18n/pt-BR.json e preserve os marcadores de substitui??o numerados. npm run i18n:check extrai as mensagens declaradas e verifica a cobertura em português, a correspondência dos marcadores de substitui??o e os catálogos do manifesto; npm run check o inclui. Novos textos de agentes na interface seguem contextory_context_get.uiLanguage. Chaves de origem em inglês e identificadores de protocolos/schemas permanecem estáveis. A apresentação de atividades separa a ação localizada do assunto do registro preservado.
+
 ## Fontes
 
 - package.json
@@ -1140,6 +1293,22 @@ O empacotamento atualiza VSIX e checksum da versão, mas não publica, altera a 
 - .gitattributes
 - .vscodeignore
 - tests/documentation/site.test.mjs
+- skills/contextory-workflow/references/approvals-and-regressions.md
+- src/i18n/index.ts
+- src/i18n/pt-BR.json
+- package.nls.json
+- package.nls.pt-br.json
+- src/extension.ts
+- src/webview/document.ts
+- src/service/application.ts
+- src/service/server.ts
+- src/hooks/launcher.ts
+- tests/core/i18n.test.ts
+- tests/integration/i18n.test.ts
+- tests/ui/i18n.spec.ts
+- scripts/check-localization.mjs
+- scripts/localization-catalog.mjs
+- tests/host/smoke.cjs
 
 
 ---
@@ -1166,6 +1335,14 @@ As imagens existentes são capturas da aplicação com registros de exemplo. O b
 
 A reescrita anterior registrou serviço indisponível; a entrega 0.8.0 recuperou o registro original e usa verificações rastreadas de release. Entradas do catálogo permanecem observações até revisão humana. Confiança nativa, chats autenticados, lacunas estáticas/dinâmicas, workspaces remotos e outros sistemas mantêm limites de qualificação próprios.
 
+## Validação da política de aprovação e rastreabilidade
+
+Fixtures descartáveis exercitam substituição de função com resultado igual, preservação de contrato aprovado, conflitos de implementação auditados, proteções de processo/resultado/regra, aprovação exata de decisões substitutas, fontes obsoletas, rejeição de contorno pelo serviço, persistência e processos reais dos hooks empacotados Codex/Claude/Bob. Fixtures de navegador verificam observações opcionais, contagens obrigatórias e proveniência visível. Os testes validam contratos de launcher/serviço; não automatizam conversas nativas autenticadas, confiança nos hooks ou interceptação de edições não registradas.
+
+## Verificações de localização em inglês e português
+
+As verificações cobrem normalização/fallback de idioma, cobertura de mensagens e manifesto, preservação de marcadores de substitui??o, registros/código/atributos dinâmicos intactos, idioma/CSP das webviews, configuração autenticada por projeto, persistência das orientações em contexto/hooks, regressões em inglês e navegação/acessibilidade/layout em português na barra lateral, painel curto e áreas de exploração. O smoke isolado do editor compara o contexto do projeto com vscode.env.language real. Diagnósticos externos podem preservar o idioma original.
+
 ## Fontes
 
 - package.json
@@ -1182,15 +1359,33 @@ A reescrita anterior registrou serviço indisponível; a entrega 0.8.0 recuperou
 - tests/ui/console.spec.ts
 - tests/integration/recipe-configuration.test.ts
 - scripts/verify-background-startup.mjs
+- src/hooks/approval.ts
+- src/hooks/launcher.ts
+- src/knowledge/catalog.ts
+- src/core/workflow.ts
+- tests/integration/approval-policy.test.ts
+- src/i18n/index.ts
+- src/i18n/pt-BR.json
+- package.nls.json
+- package.nls.pt-br.json
+- src/webview/document.ts
+- src/service/application.ts
+- src/service/server.ts
+- tests/core/i18n.test.ts
+- tests/integration/i18n.test.ts
+- tests/ui/i18n.spec.ts
+- scripts/check-localization.mjs
+- scripts/localization-catalog.mjs
+- tests/host/smoke.cjs
 
 
 ---
 
 # Histórico de releases e documentos preservados
 
-## Versão documentada atual: 0.9.0
+## Versão documentada atual: 0.11.0
 
-A versão 0.9.0 adiciona a fila Approvals, revisão recuperável de fontes e documentação independente com software-documentation e Carbon incluídos. A versão 0.8.0 introduziu o console responsivo, inicialização em segundo plano, recuperação automática, 256 receitas e fingerprints completos por streaming. As versões anteriores continuam preservadas abaixo.
+A versão 0.11.0 entrega cartões de aprovação em linguagem natural, snapshots automáticos das fontes, solicitações de ajuste, retorno de respostas à conversa exata, recuperação de conversas e revisão opcional recolhível. Inclui a interface inglês/português brasileiro e a política auditada de aprovação introduzidas na linha de código 0.10.0. As notas históricas permanecem preservadas abaixo.
 
 [Instalar a release atual](install.md)
 
@@ -1214,7 +1409,7 @@ O changelog original, notas de release, planos, registros de validação e vers�
 
 ## Leia o contrato anunciado
 
-O Contextory 0.9.0 define 39 ferramentas. Os schemas Zod a seguir foram extraídos pelo analisador TypeScript do código salvo sem executar a aplicação. Eles preservam obrigatoriedade, opcionais, padrões e intervalos. tools/list do MCP em execução é autoritativo para a versão instalada. contextory_catalog_review é exclusivo da interface humana mesmo quando seu contrato está visível.
+O Contextory 0.11.0 define 39 ferramentas. Os schemas Zod a seguir foram extraídos pelo analisador TypeScript do código salvo sem executar a aplicação. Eles preservam obrigatoriedade, opcionais, padrões e intervalos. tools/list do MCP em execução é autoritativo para a versão instalada. contextory_catalog_review é exclusivo da interface humana mesmo quando seu contrato está visível.
 
 Toda ferramenta também aceita projectId e workspaceId opcionais. O escopo omitido/current permanece no projeto do servidor. Ferramentas de código também aceitam codebaseId opcional onde o schema/contrato anunciado permitir. Linhas/caracteres nas referências das ferramentas do produto começam em zero; linhas das citações da documentação começam em um.
 
@@ -1291,10 +1486,9 @@ Leia o registro antes de editar. Registros existentes exigem expectedRevision at
 
 Repara hooks gerenciados de um agente; exige serviço disponível e preserva confiança nativa.
 
-Schema de entrada · src/contracts/tools.ts:126
+Schema de entrada · src/contracts/tools.ts:129
 
 ```typescript
-// contextory_hooks_rebuild
 z.object({
       operationId,
       provider: z.enum(["codex", "claude", "bob"]),
@@ -1305,10 +1499,9 @@ z.object({
 
 Descobre identidades de projetos/workspaces e estado opcional de pedidos coordenados.
 
-Schema de entrada · src/contracts/tools.ts:134
+Schema de entrada · src/contracts/tools.ts:137
 
 ```typescript
-// contextory_workspace_get
 z.object({ groupId: id.optional() })
 ```
 
@@ -1316,10 +1509,9 @@ z.object({ groupId: id.optional() })
 
 Cria pedidos locais vinculados nos projetos escolhidos com recuperação de criação parcial.
 
-Schema de entrada · src/contracts/tools.ts:139
+Schema de entrada · src/contracts/tools.ts:142
 
 ```typescript
-// contextory_workspace_request_create
 z.object({
       operationId,
       projectIds: z.array(id).min(2).max(16),
@@ -1332,10 +1524,9 @@ z.object({
 
 Lê estado global de versões, commits e registros semânticos com paginação independente.
 
-Schema de entrada · src/contracts/tools.ts:149
+Schema de entrada · src/contracts/tools.ts:152
 
 ```typescript
-// contextory_version_get
 z.object({
       releaseId: id.optional(),
       offset: z.number().int().nonnegative().default(0),
@@ -1347,10 +1538,9 @@ z.object({
 
 Prepara um plano de release sem editar fontes; dispensa lease de especificação.
 
-Schema de entrada · src/contracts/tools.ts:158
+Schema de entrada · src/contracts/tools.ts:161
 
 ```typescript
-// contextory_release_prepare
 z.object({
       operationId,
       bump: z.enum(["auto", "patch", "minor", "major"]).default("auto"),
@@ -1362,10 +1552,9 @@ z.object({
 
 Aplica, publica, recupera ou cancela um plano autorizado usando a revisão atual.
 
-Schema de entrada · src/contracts/tools.ts:167
+Schema de entrada · src/contracts/tools.ts:170
 
 ```typescript
-// contextory_release_change
 z.object({
       operationId,
       id,
@@ -1378,10 +1567,9 @@ z.object({
 
 Pagina dados armazenados para documentação preservando sequência, snapshots e proveniência.
 
-Schema de entrada · src/contracts/tools.ts:177
+Schema de entrada · src/contracts/tools.ts:180
 
 ```typescript
-// contextory_project_export
 z.object({
       section: z
         .enum([
@@ -1410,10 +1598,9 @@ z.object({
 
 Lê definições, propostas pendentes, atualização das fontes e inventário opcional.
 
-Schema de entrada · src/contracts/tools.ts:203
+Schema de entrada · src/contracts/tools.ts:206
 
 ```typescript
-// contextory_catalog_get
 z.object({
       category: category.optional(),
       path: z.string().max(2000).optional(),
@@ -1427,12 +1614,11 @@ z.object({
 
 ## Alterar catálogo
 
-Sob lease, cria observações ou propõe substituições/aposentadorias exatas de definições.
+Manutenção compatível dispensa nova decisão humana. Agentes também podem aprovar automaticamente conflitos de implementação, registrando avaliação do conflito, motivo, fontes/testes e validação. Conflitos com regras de processo ou resultados, mudanças em comportamento aprovado, aposentadorias e conflitos incertos exigem revisão humana antes da implementação. Observações novas têm revisão inicial opcional e não geram alertas de aprovação obrigatória.
 
-Schema de entrada · src/contracts/tools.ts:216
+Schema de entrada · src/contracts/tools.ts:219
 
 ```typescript
-// contextory_catalog_change
 z.object({
       operationId,
       ...lease,
@@ -1440,36 +1626,54 @@ z.object({
       id: id.optional(),
       expectedRevision,
       content: catalogContent.optional(),
-      reason: text,
+      reason: text.trim().min(1),
       migrationId: id.optional(),
+      compatibility: z
+        .enum(["preserved", "changed", "conflicting", "unknown"])
+        .default("unknown"),
+      impact: z
+        .enum(["implementation", "process", "outcome", "unknown"])
+        .default("unknown"),
+      autoApprove: z.boolean().default(false),
+      decisionIds: z.array(id).max(30).default([]),
+      explanation: z
+        .object({
+          change: text.trim().min(1),
+          approvalReason: text.trim().min(1),
+          behavior: text.trim().min(1),
+        })
+        .optional(),
     })
 ```
 
 ## Revisar catálogo
 
-Somente interface humana: aprova ou rejeita revisão exata de definição/proposta; agentes não aprovam.
+Exclusivo da interface humana. Aprove/rejeite uma revisão exata sem comentário obrigatório, ou envie feedback com instruções de ajuste. Snapshots das fontes são atualizados automaticamente, sem aprovação. A ação antiga de refresh permanece compatível. Ajustes solicitados mantêm a implementação bloqueada até o agente revisar a proposta e receber outra decisão.
 
-Schema de entrada · src/contracts/tools.ts:230
+Schema de entrada · src/contracts/tools.ts:248
 
 ```typescript
-// contextory_catalog_review
-z.object({
-      operationId,
-      id,
-      expectedRevision: z.number().int().positive(),
-      action: z.enum(["approve", "reject", "refresh"]),
-      reason: text.trim().min(1),
-    })
+z
+      .object({
+        operationId,
+        id,
+        expectedRevision: z.number().int().positive(),
+        action: z.enum(["approve", "reject", "feedback", "refresh"]),
+        reason: z.string().max(12000).trim().default(""),
+      })
+      .refine((p) => p.action !== "feedback" || p.reason.length > 0, {
+        message: "Describe the update you want the agent to make.",
+        path: ["reason"],
+      })
 ```
 
 ## Migrar catálogo
 
 Inicia descrições em lotes retomáveis; candidatos varridos ainda precisam de revisão semântica.
 
-Schema de entrada · src/contracts/tools.ts:241
+Schema de entrada · src/contracts/tools.ts:264
 
 ```typescript
-// contextory_catalog_migrate
 z.object({
       operationId,
       ...lease,
@@ -1482,21 +1686,21 @@ z.object({
 
 Lê contratos, trabalho ativo, receitas e orientações antes da implementação.
 
-Schema de entrada · src/contracts/tools.ts:251
+Schema de entrada · src/contracts/tools.ts:274
 
 ```typescript
-// contextory_context_get
 z.object({ specId: id.optional() })
 ```
+
+A resposta inclui uiLanguage (en ou pt-BR) e contentLanguageInstruction do projeto configurado pelo editor. Use esse idioma em cada novo texto da interface; preserve o histórico e os identificadores exatos de protocolo/código. Projetos independentes usam inglês por padrão, salvo configuração do editor em seu registro.
 
 ## Consultar entidade
 
 Lê revisão atual ou imutável, página de filhos, job ou página de artefato.
 
-Schema de entrada · src/contracts/tools.ts:256
+Schema de entrada · src/contracts/tools.ts:279
 
 ```typescript
-// contextory_entity_get
 z.object({
       id,
       revision: z.number().int().positive().optional(),
@@ -1509,10 +1713,9 @@ z.object({
 
 Pagina auditoria; usa nextBefore como before para continuar.
 
-Schema de entrada · src/contracts/tools.ts:266
+Schema de entrada · src/contracts/tools.ts:289
 
 ```typescript
-// contextory_history_get
 z.object({
       entityId: id.optional(),
       before: z.number().int().positive().optional(),
@@ -1524,10 +1727,9 @@ z.object({
 
 Cria ou revisa um pedido autorizado preservando a intenção original.
 
-Schema de entrada · src/contracts/tools.ts:275
+Schema de entrada · src/contracts/tools.ts:298
 
 ```typescript
-// contextory_request_change
 z.object({
       operationId,
       action: z.enum(["create", "revise"]),
@@ -1543,10 +1745,9 @@ z.object({
 
 Cria marcos/especificações, revisa/reabre/bloqueia/cancela ou solicita conclusão verificada.
 
-Schema de entrada · src/contracts/tools.ts:288
+Schema de entrada · src/contracts/tools.ts:311
 
 ```typescript
-// contextory_spec_change
 z.object({
       operationId,
       action: z.enum([
@@ -1574,10 +1775,9 @@ z.object({
 
 Registra sessão do agente; usa o nativeSessionId exato do hook ou o omite.
 
-Schema de entrada · src/contracts/tools.ts:313
+Schema de entrada · src/contracts/tools.ts:336
 
 ```typescript
-// contextory_session_attach
 z.object({ operationId, nativeSessionId: id.optional() })
 ```
 
@@ -1585,10 +1785,9 @@ z.object({ operationId, nativeSessionId: id.optional() })
 
 Lê modelos/tokens observados; contagens ausentes continuam indisponíveis.
 
-Schema de entrada · src/contracts/tools.ts:318
+Schema de entrada · src/contracts/tools.ts:341
 
 ```typescript
-// contextory_usage_get
 z.object({
       entityId: id.optional(),
       provider: z.enum(["codex", "claude", "bob"]).optional(),
@@ -1602,10 +1801,9 @@ z.object({
 
 Obtém, renova ou libera o lease de implementação com uma sessão associada.
 
-Schema de entrada · src/contracts/tools.ts:329
+Schema de entrada · src/contracts/tools.ts:352
 
 ```typescript
-// contextory_spec_lease
 z.object({
       operationId,
       specId: id,
@@ -1620,10 +1818,9 @@ z.object({
 
 Registra problema, impacto e resolução; bloqueios não resolvidos impedem a conclusão.
 
-Schema de entrada · src/contracts/tools.ts:341
+Schema de entrada · src/contracts/tools.ts:364
 
 ```typescript
-// contextory_finding_record
 z.object({
       operationId,
       ...lease,
@@ -1641,12 +1838,11 @@ z.object({
 
 ## Registrar decisão
 
-Registra escolha, justificativa, alternativas e consequências com fontes.
+Registre impacto e motivo conciso da decisão. Substituições entre decisões de implementação têm revisão automática; conflitos de processo/resultado ou sem classificação exigem approvalId da proposta humana exata, com decisionIds e descrição substituta correspondentes, antes da implementação. Decisões anteriores preservam o conteúdo e os vínculos supersedes entre especificações.
 
-Schema de entrada · src/contracts/tools.ts:358
+Schema de entrada · src/contracts/tools.ts:381
 
 ```typescript
-// contextory_decision_record
 z.object({
       operationId,
       ...lease,
@@ -1656,6 +1852,10 @@ z.object({
       alternatives: z.string().max(12000).default("None material"),
       consequences: text,
       supersedes: id.optional(),
+      impact: z
+        .enum(["implementation", "process", "outcome", "unknown"])
+        .default("unknown"),
+      approvalId: id.optional(),
       sources: z.array(source).max(30).default([]),
     })
 ```
@@ -1664,10 +1864,9 @@ z.object({
 
 Registra evidência externa/manual relatada, separada de verificações independentes.
 
-Schema de entrada · src/contracts/tools.ts:373
+Schema de entrada · src/contracts/tools.ts:400
 
 ```typescript
-// contextory_evidence_record
 z.object({
       operationId,
       ...lease,
@@ -1683,10 +1882,9 @@ z.object({
 
 Executa receita configurada de forma independente e retorna um job para acompanhamento.
 
-Schema de entrada · src/contracts/tools.ts:386
+Schema de entrada · src/contracts/tools.ts:413
 
 ```typescript
-// contextory_check_run
 z.object({
       operationId,
       ...lease,
@@ -1699,10 +1897,9 @@ z.object({
 
 Envia evidências e relatório persistente; ainda é necessária a ação complete separada.
 
-Schema de entrada · src/contracts/tools.ts:396
+Schema de entrada · src/contracts/tools.ts:423
 
 ```typescript
-// contextory_outcome_submit
 z.object({
       operationId,
       ...lease,
@@ -1736,10 +1933,9 @@ z.object({
 
 Busca código e memória do projeto por recuperação lexical, semântica ou híbrida.
 
-Schema de entrada · src/contracts/tools.ts:427
+Schema de entrada · src/contracts/tools.ts:454
 
 ```typescript
-// contextory_search
 z.object({
       codebaseId: id.optional(),
       query: z.string().min(1).max(4000),
@@ -1752,10 +1948,9 @@ z.object({
 
 Recupera contexto atual de código/tarefa ordenado com caminhos e orçamento limitado.
 
-Schema de entrada · src/contracts/tools.ts:437
+Schema de entrada · src/contracts/tools.ts:464
 
 ```typescript
-// contextory_code_context_get
 z.object({
       codebaseId: id.optional(),
       query: z.string().min(1).max(4000),
@@ -1769,10 +1964,9 @@ z.object({
 
 Lê subsistemas, dependências, entradas e cobertura; refresh usa true por padrão.
 
-Schema de entrada · src/contracts/tools.ts:448
+Schema de entrada · src/contracts/tools.ts:475
 
 ```typescript
-// contextory_code_architecture_get
 z.object({
       codebaseId: id.optional(),
       refresh: z.boolean().default(true),
@@ -1783,10 +1977,9 @@ z.object({
 
 Explica um caminho indexado limitado entre duas raízes de código/registros.
 
-Schema de entrada · src/contracts/tools.ts:456
+Schema de entrada · src/contracts/tools.ts:483
 
 ```typescript
-// contextory_code_path_get
 z.object({
       codebaseId: id.optional(),
       from: z.string().min(1).max(2500),
@@ -1800,10 +1993,9 @@ z.object({
 
 Atualiza a projeção de código ou valida/importa dados opcionais Graphify.
 
-Schema de entrada · src/contracts/tools.ts:467
+Schema de entrada · src/contracts/tools.ts:494
 
 ```typescript
-// contextory_code_index_refresh
 z.object({
       codebaseId: id.optional(),
       graphifyPath: z.string().min(1).max(2000).optional(),
@@ -1814,10 +2006,9 @@ z.object({
 
 Lista o projeto atual e suas referências isoladas somente leitura.
 
-Schema de entrada · src/contracts/tools.ts:475
+Schema de entrada · src/contracts/tools.ts:502
 
 ```typescript
-// contextory_codebase_list
 z.object({})
 ```
 
@@ -1825,10 +2016,9 @@ z.object({})
 
 Registra ou desconecta uma referência local autorizada; preserva as fontes.
 
-Schema de entrada · src/contracts/tools.ts:480
+Schema de entrada · src/contracts/tools.ts:507
 
 ```typescript
-// contextory_codebase_change
 z
       .object({
         operationId,
@@ -1847,10 +2037,9 @@ z
 
 Vincula registros ou locais de código com relação tipada e justificativa.
 
-Schema de entrada · src/contracts/tools.ts:496
+Schema de entrada · src/contracts/tools.ts:523
 
 ```typescript
-// contextory_relationship_change
 z.object({
       operationId,
       from: id,
@@ -1865,10 +2054,9 @@ z.object({
 
 Percorre relações de código/registros com direção, profundidade e tamanho limitados.
 
-Schema de entrada · src/contracts/tools.ts:508
+Schema de entrada · src/contracts/tools.ts:535
 
 ```typescript
-// contextory_impact_get
 z.object({
       codebaseId: id.optional(),
       id: z.string().min(1).max(2500),
@@ -1882,10 +2070,9 @@ z.object({
 
 Traça chamadas/fluxo limitados a partir de símbolo ou posição.
 
-Schema de entrada · src/contracts/tools.ts:519
+Schema de entrada · src/contracts/tools.ts:546
 
 ```typescript
-// contextory_flow_trace
 z.object({
       codebaseId: id.optional(),
       root: z.object({
@@ -1909,10 +2096,9 @@ z.object({
 
 Pagina grafo armazenado ou expande fronteira validando o snapshot de código.
 
-Schema de entrada · src/contracts/tools.ts:540
+Schema de entrada · src/contracts/tools.ts:567
 
 ```typescript
-// contextory_flow_expand
 z.object({
       codebaseId: id.optional(),
       graphId: id,
@@ -1928,10 +2114,9 @@ z.object({
 
 Exporta relatório, changelog de trabalho concluído ou JSON de um pedido por artefato.
 
-Schema de entrada · src/contracts/tools.ts:553
+Schema de entrada · src/contracts/tools.ts:580
 
 ```typescript
-// contextory_report_export
 z.object({
       format: z.enum(["report", "changelog", "json"]).default("report"),
       requestId: id,
@@ -1942,10 +2127,9 @@ z.object({
 
 Consulte explicações bilíngues por texto/caminho/registro, atualização das fontes, guias incluídos ou job de runtime. A paginação permanece explícita.
 
-Schema de entrada · src/contracts/tools.ts:60
+Schema de entrada · src/contracts/tools.ts:63
 
 ```typescript
-// contextory_docs_get
 z.object({
       section: z
         .enum(["overview", "sections", "guidance", "job"])
@@ -1967,10 +2151,9 @@ z.object({
 
 Enfileire operações de documentação sob demanda; mutações exigem lease e publicar no Pages exige autorização explícita e publish=true. Consulte o job durável e inspecione seu resultado.
 
-Schema de entrada · src/contracts/tools.ts:79
+Schema de entrada · src/contracts/tools.ts:82
 
 ```typescript
-// contextory_docs_run
 z.object({
       operationId,
       action: z.enum([
@@ -2007,10 +2190,9 @@ z.object({
 
 Registre após revisão uma associação observada a registros locais vinculada a hashes de origem, preservando revisões/histórico; isso não aprova requisitos.
 
-Schema de entrada · src/contracts/tools.ts:113
+Schema de entrada · src/contracts/tools.ts:116
 
 ```typescript
-// contextory_docs_link
 z.object({
       operationId,
       ...lease,
@@ -2159,6 +2341,88 @@ Executa mapa/validação/build/export/preview sem publicar nem aprovar fontes.
 - src/contracts/tools.ts
 - src/service/application.ts
 - src/service/server.ts
+- src/i18n/index.ts
+- src/i18n/pt-BR.json
+- package.nls.json
+- package.nls.pt-br.json
+- src/extension.ts
+- src/webview/document.ts
+- src/hooks/launcher.ts
+- tests/core/i18n.test.ts
+- tests/integration/i18n.test.ts
+- tests/ui/i18n.spec.ts
+
+
+---
+
+# Release v0.11.0
+
+## Decida a partir de uma explicação clara
+
+Cartões de aprovação pedem que o agente explique o que muda, por que a aprovação é necessária e como o comportamento da aplicação muda. Aprovar ou Rejeitar dispensa comentário. Solicitar ajustes aceita instruções, mantém a implementação bloqueada e permite atualizar a mesma proposta antes de outra decisão. Definições antes/depois, autores, hashes e justificativas permanecem indexados.
+
+Snapshots de fontes legíveis são atualizados automaticamente, sem comentário do usuário nem aprovação implícita. Referências ausentes, edições concorrentes e alvos alterados continuam protegidos. A revisão opcional começa recolhida e pode ser aberta com clique ou teclado; o estado escolhido sobrevive à atualização e navegação. Decisões pendentes continuam visíveis.
+
+## Mantenha a conversa de origem
+
+Projeto, provedor e sessão nativa exata são mantidos no trabalho e nas propostas vinculadas. Respostas duráveis de aprovação/rejeição/feedback retornam apenas à mesma sessão por hooks confiáveis. Um hook em espera pode retornar a resposta dentro de quatro minutos; expiração ou falha do serviço nunca concede aprovação. Estados de fila/envio/sem vínculo distinguem transporte de execução pelo modelo.
+
+Reabrir conversa usa o comando de sessão do Claude instalado. Codex retoma a conversa salva exata em um terminal interativo e requer sua CLI. Bob/clientes genéricos ou adaptadores indisponíveis copiam o ID para recuperação no histórico nativo. Um cliente parado ou sem confiança pode exigir retomada manual; identidades históricas desconhecidas nunca são adivinhadas. Permissões, autenticação e disponibilidade do histórico continuam no cliente nativo.
+
+## Instale e verifique
+
+Baixe contextory-workspace-0.11.0.vsix e o .sha256 correspondente, compare o SHA-256 e use Extensions > Install from VSIX. Recarregue o editor e as integrações nativas quando solicitado para descobrir os contratos e hooks de espera atualizados. Revise a confiança dos hooks no cliente nativo. Inglês e português brasileiro seguem o idioma do VS Code, incluindo instruções para novas entradas da interface escritas pelo agente.
+
+[Baixar a release 0.11.0](https://github.com/igormicadei/Contextory/releases/tag/v0.11.0)
+
+A qualificação cobre aprovação e histórico das fontes, respostas reais de hooks em espera, limites de serviço/headless/registro, interface inglês/português, recolhimento por teclado, documentação bilíngue, consistência de skills e checksums. Workspaces locais confiáveis no Windows com Node.js 24+ continuam o ambiente qualificado. Conversas autenticadas com modelos mantêm os limites dos clientes nativos.
+
+## Fontes
+
+- package.json
+- src/contracts/model.ts
+- src/knowledge/catalog.ts
+- src/core/conversations.ts
+- src/hooks/review-wait.ts
+- src/providers/conversations.ts
+- src/webview/catalog.ts
+- src/webview/main.ts
+- tests/ui/catalog.spec.ts
+- tests/integration/approval-conversations.test.ts
+
+
+---
+
+# Release v0.10.0
+
+## Aprovação seletiva com espera obrigatória
+
+Agentes podem autoaprovar manutenção compatível e conflitos de implementação com classificação de impacto, motivo, validação e registro de auditoria explícitos. Conflitos que afetam regras de processo ou resultados, conflitos incertos e desativações exigem revisão humana antes da implementação. Hooks nativos PreToolUse/Stop e a barreira do serviço mantêm o agente aguardando a decisão; silêncio ou tempo decorrido nunca concedem aprovação.
+
+Definições preservam revisões antes/depois, hashes de fontes, autores, justificativas, decisões relacionadas, especificações e evidências de verificação. Use catálogo e histórico para investigar uma funcionalidade que parou de funcionar e relacionar uma regressão confirmada à mudança responsável. Observações geradas têm revisão opcional e não se tornam requisitos aprovados por uma pessoa.
+
+## Seguir o idioma do VS Code
+
+Controles e contribuições da extensão usam o idioma de exibição do VS Code: inglês ou português brasileiro, com fallback para inglês nos demais idiomas. O editor propaga uiLanguage e uma instrução de idioma para o contexto do projeto e hooks. Agentes devem escrever novas entradas da interface nesse idioma, preservando identificadores exatos, código e texto histórico. A documentação mantém os dois idiomas.
+
+## Pacote local e qualificação
+
+Gere com npm ci e npm run package:vsix. A saída é artifacts/contextory-workspace-0.10.0.vsix e seu .sha256 correspondente. Compare o checksum antes de instalar por Extensions > Install from VSIX e recarregue o editor/integrações nativas quando solicitado. Esta entrega gera o pacote local e envia commits de código; publicar assets de release no GitHub e instalar no editor ativo são ações separadas.
+
+A validação cobre classificação e bloqueio de aprovações, histórico ligado às fontes, transporte do idioma, cobertura de traduções/substituições, interface inglês/português, consistência de skills e documentação bilíngue. Workspaces locais confiáveis no Windows com Node.js 24+ continuam o ambiente qualificado. Notas históricas e checksums publicados são preservados.
+
+## Fontes
+
+- package.json
+- src/contracts/model.ts
+- src/knowledge/catalog.ts
+- src/hooks/approval.ts
+- src/core/history.ts
+- src/i18n/index.ts
+- src/agents/instructions.ts
+- tests/integration/approval-policy.test.ts
+- tests/integration/i18n.test.ts
+- tests/ui/i18n.spec.ts
 
 
 ---
@@ -2466,7 +2730,45 @@ Este é um recurso portátil de instruções distribuído sem alterações aos c
 Caminho do recurso canônico
 
 ```text
-skills/contextory-codebase/SKILL.md
+---
+name: contextory-codebase
+description: Understand a connected workspace, locate definitions and related code, assess source impact, and recover relevant project decisions through Contextory. Use for codebase questions and before changes spanning related components.
+metadata:
+  version: "9"
+---
+
+<!-- contextory-managed-codebase -->
+
+Use the Contextory capabilities advertised by the current client. A connected MCP server or packaged CLI supplies shared retrieval; hooks and editor language services are optional. The same workflow applies in any agent.
+
+When authoring UI-facing project records, read `uiLanguage` in `contextory_context_get` and use that VS Code language (`en`/`pt-BR`) for all new prose, even if chat uses another language. Preserve stored historical text, source identifiers and code; bilingual documentation keeps its paired locales.
+
+In a multi-root editor workspace, first use `contextory_workspace_get`. Pass the intended `projectId` on every related retrieval and workflow call, with `workspaceId` when multiple editor contexts are attached. Omission/current stays on that server's project; changing the UI project does not change agent defaults. Keep project identity/root with records, artifact handles, graph snapshots and citations. Identical paths/symbols in different projects are distinct. Unknown or ambiguous scope fails instead of selecting another project. `codebaseId` still selects a read-only reference within the chosen project; references are not writable workspace members.
+
+After resuming a chat, use its current advertised tools and a read-only probe before reporting Contextory disconnected; an earlier message or generated configuration does not establish current reachability. Report the concrete error or missing capability. In an editor, **Contextory: Check Native Connections** distinguishes current MCP/hook observations from history, and **Contextory: Restart Agent Extensions** reloads the Extension Host. Native project/hook trust remains with the client; reopening a session may still be required after tool changes.
+
+For missing, stale or duplicate Contextory hooks, use advertised `contextory_hooks_rebuild` with the intended `projectId`, explicit native `provider` (`codex`, `claude`, `bob`) and a new `operationId`. It repairs managed hooks and the launcher without changing MCP configuration, other hooks or native trust. Inspect changed files and observations; an unchanged result is not proof of execution. Reuse the exact operation ID/input only to recover an interrupted call. If hooks remain unobserved after one repair, inspect native trust and service logs instead of repeatedly rebuilding. Codex approvals can differ for `C:` versus `c:`: review `/hooks` in the affected session using its actual workspace path. If MCP is unreachable, use **Contextory: Rebuild Agent Hooks** in the editor, then resolve any service startup error and reload the native session as needed. A rebuild cannot approve hooks or repair an unreachable service through MCP.
+
+Start a code question or related edit with `contextory_code_context_get`: put the actual task in `query`, scope with known `paths` and optionally `specId`, and choose a bounded `budgetTokens`. Read the cited current files before deciding or editing. Read-only exploration does not require a tracked request.
+
+Use `contextory_code_architecture_get` for orientation, `contextory_impact_get` for affected callers/dependencies/tests/records, `contextory_code_path_get` to explain a connection, and `contextory_flow_trace` for detailed branches/calls. Use `contextory_search` for earlier decisions, findings and changes, then inspect record state, revision and provenance. Resolve ambiguous symbols with `source:path#qualifiedName` where supported.
+
+When something stopped working, recover its catalog contract and last known working source/check/version, then follow impact links, catalog before/after revisions (including agent auto-approvals), decisions and spec history. Search by feature and source path/symbol and page chronology. Treat these as candidate causes until reproduced; Git version membership and ledger recording intervals are different evidence. Link a confirmed regression/fix to the responsible change/spec/source and retain uncertainty otherwise. Compatible maintenance and implementation conflicts may be agent auto-approved; process/outcome conflicts require human review before implementation. Approval provenance never substitutes for executed checks.
+
+Keep source citations, graph snapshot, coverage and truncation attached to conclusions. Narrow or page bounded results. Static calls, test references and inferred contracts are possible relationships, not proof of execution or test coverage. Generated facts do not become approved requirements.
+
+Use advertised `contextory_catalog_get` alongside source retrieval to recover file responsibilities, rules/features, test links and UI layout/interaction contracts; inspect state, revision, pending changes and source freshness. Page `inventory:true` to identify files without descriptions. For documentation, `contextory_project_export` overview discovers all stored documentation datasets, with independent pagination for records, immutable revisions, history, relationships, source graph, checks/jobs, usage metadata and artifacts. Retain sequence/snapshot and provenance, and distinguish current approved behavior from observations and historical definitions. Read-only documentation needs no tracked request.
+
+When advertised, `contextory_docs_get section=sections` retrieves authored project explanations by query, source path or local record ID, with stable page/section IDs, source freshness and observed associations. Follow `nextOffset` for coverage. Relevant explanations may accompany current-project code context; they remain separate from source facts and human-approved requirements. Use the `contextory-documentation` skill for authoring, migration, generation and maintenance with the bundled documentation/Carbon runtime. No separately installed plugin is required, and optional generation must not gate source retrieval or service startup.
+
+For another local repository, use advertised `contextory_codebase_list` and `contextory_codebase_change` to register an authorized reference directory. Pass its `codebaseId` explicitly to source queries and flow expansion; omission/current always selects the active project. Reference graphs and project memory stay separate. Keep the returned codebase identity/root with relative citations. Analyzing a reference does not authorize applying its design, changing current requirements or editing either project. See the reference guide below for scope and freshness details.
+
+Saved edits refresh the source graph automatically; re-query relevant context after saving changes. Task/impact/path queries also verify disk content. Use `contextory_code_index_refresh` to recover an empty/stale/failed index or import regenerated Graphify data; repeated refresh cannot resolve every dynamic/external gap. Unsaved editor flow overlays are separate from the saved-file graph. If a capability is missing, use the packaged CLI or native source tools and state the gap; do not invent tool calls. Preserve the user's scope and native permissions.
+
+Read [retrieval and coverage](references/retrieval.md) for tool inputs, paging, freshness recovery and headless use.
+
+For version-specific documentation, use advertised `contextory_version_get` and page each release's commits and semantic entries. Release entities and immutable revisions are also exported with project records. Git membership establishes which commits belong to a version; definitions/decisions associated by recording interval need that qualification. Local observed tags do not prove remote publication. This history is project-wide and needs no request/spec scope.
+
 ```
 
 ## Fontes
@@ -2487,7 +2789,33 @@ Este é um recurso portátil de instruções distribuído sem alterações aos c
 Caminho do recurso canônico
 
 ```text
-skills/contextory-migrate/SKILL.md
+---
+name: contextory-migrate
+description: Build a source-backed Contextory knowledge baseline for an existing project, including file responsibilities, rules, features, tests and interface contracts. Use when bootstrapping or resuming a project knowledge migration; ordinary code lookups do not need migration.
+metadata:
+  version: "3"
+---
+
+<!-- contextory-managed-migrate -->
+
+Act as the project's migration agent in the native client. Use the advertised Contextory MCP capabilities; never start a second model service or execute project modules to infer behavior. Migrating knowledge does not authorize changing application behavior. Preserve source, existing approved records, client configuration and historical decisions.
+
+Use the project's `uiLanguage` from `contextory_context_get` for every new catalog title/description, finding, rationale, UI contract, review reason and report, even when chat uses another language. Preserve historical prose, exact identifiers, paths and code; reconstructed observations are not bulk translations of existing records.
+
+Read `contextory_context_get`, recover the migration request/spec through search and inspect its current state. For authorized migration, create missing tracked work, attach this session and claim/renew the spec lease. If the tools are unavailable, report the missing capability and retain a source-cited draft; do not claim the ledger was populated.
+
+Use `contextory_code_context_get` and inspect cited current source. Start `contextory_catalog_migrate` with `operationId`, `specId`, `leaseId` and a bounded `limit`. Resume with the returned `migration.id` in `migrationId` and a new operation ID, until `next` is null. After an interrupted call retry its exact operation ID/input, then inspect the run through `contextory_entity_get`. Its persisted manifest/cursor and skipped-file gaps are a file scan checkpoint, not semantic completion. Query `contextory_catalog_get` with `inventory:true` and page its independent record/proposal/inventory cursors to discover new or missing files after the scan. A later scan preserves existing descriptions.
+
+Work through subsystems in bounded batches. Read file bodies, entry points, callers, docs, tests and earlier decisions. Replace generated symbol lists with concise explanations of actual file responsibility through `contextory_catalog_change` revision proposals. Record unknowns instead of inventing purpose. Register distinct rule and feature candidates with their source references and specific test file/symbol links, or `testGap` explaining missing validation. Reconcile contradictory implementation, documentation and tests as findings; describe observed implementation separately from intended behavior.
+
+For every interface surface, inspect its layout and event/state handlers, and inspect the running UI when available and authorized. Add `category:"ui"` contracts with `ui.location`, `element`, `trigger`, `behavior` and `states`: placement/grouping, control/value, click/change/keyboard trigger, resulting action/state/persistence/navigation, and relevant initial/loading/empty/error/disabled states. Link behavioral tests or explicit gaps. Static extraction cannot prove pixel layout, dynamic dispatch or runtime effects; mark those limits with sources and follow-up findings. Projects without a UI should record why this category is inapplicable in the migration report.
+
+Use leased `contextory_catalog_change` creates for new observations. Compatible corrections to file-purpose descriptions/source links can use `compatibility:preserved`, `impact:implementation`, `autoApprove:true`, the current revision and a source-backed reason; observations remain unapproved. Behavioral descriptions and UI contracts stay exact through auto-approval, even on observations. Implementation conflicts may auto-approve with a recorded rationale, but conflicts with process rules or results, changed behavior and retirements need a before/after human proposal before implementation. Link historical decisions/specs through `decisionIds` or `contextory_relationship_change`. Generated facts and legacy decisions never become retroactive human approval. Optional baseline review does not block migration. Wait on actual pending proposals; never borrow human credentials, infer approval from silence, or erase superseded/rejected history.
+
+Before finalizing, reconcile the current inventory, stale/missing source fingerprints, duplicate descriptions, pending proposals, rule/feature-to-test gaps and interface interactions against the scope. Record a source-cited migration report explaining reviewed subsystems, omissions, conflicts, test gaps and categories not applicable. Keep resumable outstanding work when review is pending. Do not describe a completed file scan as a complete application specification. Run configured meaningful independent checks, map evidence to each criterion, include catalog IDs/explanation in the outcome, explicitly complete only verified specs and export the request report. No new application tests are needed merely to restate documentation.
+
+For later documentation requests, use `contextory_project_export` overview and page the needed datasets (including immutable revisions, decisions, catalog entries/proposals, relationships, checks and artifacts). Use `contextory_catalog_get` for freshness and `contextory_entity_get` for exact revisions. Cite sequence/snapshot, approved versus observed state, evidence origin and coverage limits; omit superseded behavior from current instructions while retaining it in historical documentation.
+
 ```
 
 ## Fontes
@@ -2508,7 +2836,37 @@ Este é um recurso portátil de instruções distribuído sem alterações aos c
 Caminho do recurso canônico
 
 ```text
-skills/contextory-workflow/SKILL.md
+---
+name: contextory-workflow
+description: Track authorized software implementation in the connected Contextory companion. Use for requests, milestones, specs, issues, design decisions, evidence and continuing tracked work; ordinary questions need no new request.
+metadata:
+  version: "9"
+---
+
+<!-- contextory-managed-workflow -->
+
+Requires the workflow tools advertised by a connected Contextory MCP server. Conversation, editing, model selection and permissions remain in the native client; the workflow is shared across agents. Ordinary questions need no new tracked work.
+
+Read `uiLanguage` and `contentLanguageInstruction` from `contextory_context_get` before writing records. Write all new UI-facing prose in that VS Code language (`en` or `pt-BR`): titles, descriptions, criteria, findings/fixes, decisions/rationale, review reasons, catalog/UI contracts, outcomes and reports, even if this conversation uses another language. Preserve historical content and exact IDs, paths, symbols, code, commands and protocol keys. Keep documentation's required paired locales. Do not bulk-translate existing records; headless projects default to English unless an editor configured their language.
+
+When managed hooks are missing, stale or duplicated, advertised `contextory_hooks_rebuild` repairs only the chosen project's native hooks and launcher. Pass explicit `projectId`, native `provider` and a new `operationId`; no spec lease is needed for this setup repair. Follow its trust/reload guidance and verify an observed hook event. Do not repeatedly rebuild an unchanged setup or edit global trust records. If MCP is unavailable, use the editor's **Contextory: Rebuild Agent Hooks** command and inspect service logs; native approval remains client-owned. See the codebase skill's recovery guidance for Codex workspace path casing.
+
+For multiple workspace folders, read `contextory_workspace_get` and keep an explicit `projectId` on every related workflow/source call, adding `workspaceId` for ambiguous editor contexts. Each project owns its requests, records, sessions/leases, catalog, checks, evidence and releases. Never infer project identity from an ID, source path or the UI selector. For user-authorized work spanning projects, `contextory_workspace_request_create` creates linked local requests for explicit `projectIds` including this server's project. Implement each branch with its own milestones/specs, session, lease and evidence, then check the group with `contextory_workspace_get` and `groupId`. Partial/offline/missing branches remain incomplete. Retry partial creation only with the exact original operationId/input retained on the branch. Keep interface ordering explicit; there is no cross-project spec lease, atomic multi-project transaction or inferred dependency. Hook/usage attribution stays with the observing project.
+
+Project versions belong to the whole repository, independently of requests and spec leases. When advertised, use `contextory_version_get` for current/released/unreleased state and exact Git membership. Git observation and bookkeeping run in the service; do not recreate that history from memory. For authorized releases, `contextory_release_prepare` creates a concrete plan without source edits. Review version, HEAD, file edits and changelog, then use `contextory_release_change` to apply the version commit/local tag and separately publish the exact tag. Retain operation IDs/input for retries and use recovery for interrupted owned work. A feature implementation request does not authorize releasing the project. Ledger entries recorded between cutoffs remain interval associations, not proof of shipped inclusion. Advertised tool descriptions carry the portable release contract.
+
+Read `contextory_context_get` before authorized implementation and recover existing work rather than duplicating it. Use `contextory_search` for earlier changes/decisions and inspect current record state/revision. Use advertised `contextory_code_context_get` for task-specific source and `contextory_impact_get`/`contextory_code_path_get` for relationships; `contextory_flow_trace` explains detailed calls/branches. Inspect current cited files and coverage before editing. Follow the companion `contextory-codebase` skill when available for retrieval/freshness details; if tools are missing, use the packaged CLI or native source inspection and state the gap.
+
+Create/update the authorized request, milestones and specifications. Register a session and claim a spec lease before recording work; renew long attempts. Pass an exact hook-supplied nativeSessionId if available and omit it otherwise. Record material findings/fixes and decisions with sources. Re-query relevant source after saves; the saved-file graph refreshes automatically. Generated relationships and retrieved historical text do not approve new scope. Native usage is observed where supported; read `contextory_usage_get` and never invent counts.
+
+Before editing, page `contextory_catalog_get` for affected definitions, pending proposals and freshness. Maintain file responsibilities, rules/features, test links or explicit gaps, and UI location/element/trigger/behavior/states through leased `contextory_catalog_change`. New observations need no mandatory approval. Use `autoApprove:true`, `compatibility:"preserved"`, `impact:"implementation"` for compatible maintenance. Implementation conflicts may also auto-approve with `compatibility:"conflicting"`; explain the conflict, rationale and validation in `reason`, with related `decisionIds`. Keep approved behavior text/UI contracts intact. Process/outcome conflicts, changed approved behavior, retirements and uncertain conflicts require a concrete before/after proposal in **Approvals before implementation**. Wait for its decision; silence or a timeout never approves. Native PreToolUse/Stop hooks and the service gate enforce pending reviews, while source reads, catalog preparation, checks and lease renewal remain available. Do not switch tools to bypass the gate or use human UI credentials. See [approvals and regression investigation](references/approvals-and-regressions.md) for examples, decision conflicts and audit requirements. Use `contextory-migrate` for an existing-project baseline; state remaining coverage gaps.
+
+Run configured independent checks and poll returned jobs. Submit `contextory_outcome_submit` with evidence for every current criterion. Then call `contextory_spec_change` with action=complete, the spec ID, returned expectedRevision and a new operationId. Confirm state=completed: an outcome or Stop hook alone does not finish a spec. Parent milestones and requests close when their children complete.
+
+When the catalog exists, include `catalog:{recordIds,explanation}` in the outcome, identifying affected definitions and explaining updates/retirements or why behavior is unchanged. Pending proposals and stale affected approved definitions block completion. Current test references do not replace executed evidence. For documentation, discover and page stored data through `contextory_project_export`; no implementation request is needed for a read-only export.
+
+Resolve or report explicit completion blockers. Keep native permissions and authorized scope intact. Read [completion and evidence](references/completion.md) for leases, checks, findings and reports.
+
 ```
 
 ## Fontes
@@ -2529,7 +2887,26 @@ Este é um recurso portátil de instruções distribuído sem alterações aos c
 Caminho do recurso canônico
 
 ```text
-skills/contextory-workflow/references/completion.md
+<!-- contextory-managed-resource -->
+
+# Completion and evidence
+
+Multi-project work is a coordinated group of project-owned requests, not a shared ledger or lease. Carry the same projectId (and workspaceId when needed) through each branch's session, spec lease, findings, catalog, checks, evidence, outcome, completion and report export. Evidence and record IDs from another project cannot complete a branch. After every local request completes, query contextory_workspace_get with groupId; offline, detached or missing branches remain explicitly incomplete. Recover partial creation with its exact original operationId/input; each branch retains that input. Native hook/model/usage observations are not reassigned across projects by inference.
+
+Recover earlier work with focused search and read its current request/spec state before creating records. Read cited historical revisions for rationale, then check whether later decisions supersede them. Keep observations, generated source relationships and approved criteria distinct. Hooks can restore reminders after compaction but do not carry the full current contract; reread `contextory_context_get` for it.
+
+Attach a Contextory session with `contextory_session_attach`; never guess a native session ID. Claim/renew with `contextory_spec_lease`. Mutations require fresh revisions and unique operation IDs. Read the record after a conflict rather than replaying a changed mutation with an old idempotency key.
+
+Record issues through `contextory_finding_record`, explaining impact, resolution and relevant sources. Blocking findings must be resolved before completion. Record concise choices and tradeoffs through `contextory_decision_record`. These explanations are project records, not chat transcripts.
+
+Use `contextory_check_run` recipes and poll with `contextory_entity_get`. With no recipes, configure the project's existing meaningful check command in workspace `contextory.checks`, then reread context. If no meaningful check is available, report verification as pending. Agent-reported external results remain reported evidence and cannot substitute for an independent runner's passing result.
+
+An outcome maps every acceptance criterion exactly once to current evidence. Finish source/configuration edits before final independent checks: evidence is bound to the source fingerprint, contract and attempt, so later changes may require new checks. A static test-reference edge is not test execution evidence. Explain changes, issues/fixes, decisions, validation and remaining limits, including when there were no findings or new decisions. Submit the outcome, explicitly complete the spec with the returned revision, and confirm its state. Export the full request using `contextory_report_export`.
+
+Use only advertised workflow mutations. If a required workflow tool or connection is unavailable, preserve the work and explicitly report which tracking or verification step remains pending; native source inspection can continue within the authorized scope. Never pretend an unavailable call succeeded or that a hook completed a spec.
+
+When a project catalog exists, include `catalog:{recordIds,explanation}` in the outcome. Explain additions, human-reviewed behavior changes, agent auto-approved maintenance/conflicts, retirements or why behavior is unchanged. Pending project proposals and stale affected approved source/test references block submission/completion. Refresh compatible source links through the leased auto-approval path, retaining the approved contract and original review; a changed hash alone is not a changed requirement. Observed baselines have optional review. A definition revision after submission invalidates its accounted outcome. Human review remains in Approvals for process/outcome conflicts and changed behavior; never borrow UI credentials. Page `contextory_project_export` for the complete stored base and immutable revisions. Follow [approvals and regression investigation](approvals-and-regressions.md) when classifying changes or tracing failures.
+
 ```
 
 ## Fontes
@@ -2550,7 +2927,71 @@ Este é um recurso portátil de instruções distribuído sem alterações aos c
 Caminho do recurso canônico
 
 ```text
-skills/contextory-codebase/references/retrieval.md
+<!-- contextory-managed-resource -->
+
+# Retrieval and coverage
+
+## Hook recovery
+
+Use `contextory_hooks_rebuild` only for an intended project's missing, stale or duplicate managed hooks: `{ "projectId": "<project>", "provider": "codex", "operationId": "<new unique ID>" }`. Supported providers are `codex`, `claude` and `bob`; Generic MCP has no hooks. The response separates changed hook files, launcher restoration and current-service MCP/hook observations. It never reads or writes native approval records, global hooks, MCP configuration or portable skills. Keep the exact operation ID/input for an interrupted retry; a later repair needs a new ID. Project/workspace scope is unchanged and reference codebases cannot be repaired through this tool.
+
+If files are unchanged but hooks remain unobserved, review native trust and reload the affected session instead of issuing more rebuilds. The installed Codex client may distinguish `C:\\` and `c:\\` when looking up hook approval: use `/hooks` from the affected session's actual project path. When MCP is unavailable, the editor's **Contextory: Rebuild Agent Hooks** command or sidebar **Rebuild hooks** action can initiate recovery after the local service starts. Inspect service output if startup itself fails; rebuilding through MCP requires a reachable service.
+
+## Choose the lookup
+
+| Need                                                | Tool and useful inputs                                                                                                                                                                                                                                                 |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Workspace contracts, active work, configured checks | `contextory_context_get`, optionally `specId`. This brief is cached orientation, not a fresh source investigation.                                                                                                                                                     |
+| Locate code for a task                              | `contextory_code_context_get` with `query`, known `paths`, optional `specId` and `budgetTokens` (512–6000, default 3000). Exact definitions rank before mentions; neighborhoods and linked project records are bounded.                                                |
+| Understand subsystems and entry points              | `contextory_code_architecture_get`. Default `refresh:true` verifies saved source; use `refresh:false` only when a cached overview is sufficient.                                                                                                                       |
+| Find callers, dependencies, tests or linked work    | `contextory_impact_get` with `id`, `direction` (`reverse` for dependents, `forward` for dependencies, `both` for surrounding relationships), `depth` and `limit`.                                                                                                      |
+| Explain how two things connect                      | `contextory_code_path_get` with `from`, `to`, optional `direction` (`forward` or `both`) and `maxDepth`. Returned edges retain their original direction.                                                                                                               |
+| Inspect calls or branches                           | `contextory_flow_trace` with `root:{path,symbol}` or a zero-based position, `view: calls/flow`, `direction: outgoing/incoming`, and optional limits. Supported engines cover TS/JS and Python.                                                                         |
+| Recover earlier intent and rationale                | `contextory_search` with a focused `query`, `mode` and `limit`; inspect full records with `contextory_entity_get`, including a cited `revision` when checking history. Verify current state before relying on an old decision.                                         |
+| Continue a bounded result                           | `contextory_entity_get` uses `offset`/`limit` for children, job results and 400-character artifact pages. `contextory_history_get` uses the returned `nextBefore` as `before`. Flow pages/expansion use `contextory_flow_expand` with the original graph/snapshot IDs. |
+
+For example, a task lookup can use `{"query":"How do provider connections install skills?","paths":["src/providers"],"budgetTokens":2000}`. Follow it with impact on the cited definition and inspect its current file and relevant callers. Avoid assuming this example's paths exist in another project.
+
+Source tools accept file paths, unique names or `source:path#qualifiedName` where their schemas permit. Choose a path-qualified candidate when a name is ambiguous. A failed search or absent bounded path does not prove two components are independent. Inspect category, evidence locations and provenance for each material edge. Semantic unavailability has an explicit lexical fallback in hybrid search; semantic-only search may fail. Narrow query/path scope or page results when truncated instead of presenting a bounded slice as exhaustive.
+
+## Freshness and coverage
+
+Saved file create/edit/delete/rename, Git changes and configuration changes trigger debounced refresh, backed by polling. Task context, impact and path queries also verify disk content before answering. Re-query after relevant saves; do not request a full manual reindex after every edit. Source context describes saved files. Only trusted editor flow requests can carry unsaved overlays; their snapshots are separate and expire when documents change.
+
+For an empty/stale/failed index, inspect status/errors and use `contextory_code_index_refresh` when a retry can help. For partial coverage, inspect the actual gaps: file/byte bounds may call for narrower reviewed configuration, while dynamic dispatch, callbacks and external code require native inspection. Repeated refresh does not create missing language support or execution evidence.
+
+Native extraction covers TS/JS through its compiler and Python through isolated AST parsing. Markdown links and recognized configuration paths add explicit connections. Graphify JSON adds other language facts with supplied provenance. Changed cited source invalidates imported facts: regenerate the export and re-import using `contextory_code_index_refresh` with a workspace-relative `graphifyPath`; refresh alone cannot regenerate external analysis. Static calls, inferred message links and test references do not prove execution or coverage.
+
+`contextory.project.json` holds reviewed configuration: schemaVersion 1, optional name, include/exclude patterns, entryPoints, conventions, maxFiles and maxBytes. Generated topology lives in rebuildable local storage; it does not approve requirements or overwrite authoritative work records. Consult user instructions and current decisions before treating a discovered convention as a constraint.
+
+## Reference codebases
+
+### Active workspace projects
+
+Trusted local multi-root workspaces attach up to sixteen independent folder services. `contextory_workspace_get` lists public project IDs, names and canonical roots, plus attached workspace contexts; it never returns credential paths. All tools accept `projectId` and `workspaceId` as common scope. Selection applies only to that call. Omitting projectId/current stays on the server's project, regardless of the editor's selected project or earlier calls. Multiple attached editor contexts require workspaceId for cross-project operations. Unknown, detached or identity-changed projects fail; do not retry against a different project. Use the same projectId when reading returned record IDs, artifacts or graph pages. Keep the returned project identity with relative source paths and symbols. Read-only lookups never merge project memory.
+
+The editor project selector scopes Requests, Knowledge, History, Versions, Architecture, checks and source navigation together; requests and specs carry project badges. Each folder retains its existing root-derived storage, ledger, graph, catalog, references, releases and checks. Removing a folder detaches its routing without deleting data. Shared/native hook observations stay with their observing project; usage is not inferred across project leases. A workspace is not a new merged project.
+
+The CLI `projects [group-id] --descriptor <generic.json>` reads active membership or a coordinated request; `--project <id>` and `--workspace <id>` scope other CLI calls. A standalone service has only its local project until an editor attaches membership. Do not use codebaseId or a reference registration to authorize cross-project work. Coordinated requests use the workflow skill's project-owned branches.
+
+When advertised, `contextory_codebase_list` returns the active workspace (`current`) and up to eight named local references. Register only a directory within the user's requested scope using `contextory_codebase_change` with `action:"add"`, an absolute `root`, optional `name`, and a new `operationId`. Registration resolves aliases and persists in the current service storage; it does not modify the reference. Detach using `action:"remove"`, its `codebaseId` and a new operation ID. Cached projections remain rebuildable service data.
+
+Pass that ID as `codebaseId` on architecture, code context, search, impact, path, index/import and flow trace/expand calls. Paths, Graphify input and source IDs resolve inside that reference. References cannot use current-project `specId` or workflow mutations. Omission or `current` always means the active workspace, even after another reference query. Separate requests can analyze different references concurrently; there is no global project switch or inferred cross-repository relationship. Preserve each response's `codebase`, snapshot, coverage and citations when combining an explanation. A same-path/same-name symbol in two repositories is not the same source.
+
+Reference context/impact/path/search and default architecture queries verify saved files on demand. References are not watched in the background. `refresh:false` explicitly uses cached architecture; use the default refresh after edits, and regenerate/re-import stale Graphify facts within the selected reference. Source files are parsed without executing them. Existing include/exclude/configuration and language coverage rules apply separately to each root. Reference search uses lexical graph matching (hybrid reports fallback); semantic-only reference search is unavailable. No active-project decisions, requirements, checks or unsaved editor overlays are imported into reference analysis.
+
+CLI equivalents are `references`, `reference-add <folder> [--name <label>]`, `reference-remove <id>`, and source commands with `--codebase <id>`. Always keep `--root`/storage/descriptor on the current project whose reference registry you intend to use. Architecture in the editor offers **Add reference**, a **Codebase** selector and **Detach reference**; source navigation stays inside the selected root. Applying any learned behavior to the current application remains a separate user-authorized implementation task.
+
+## Clients without a capability
+
+Use only the tools advertised in the current session. After an extension upgrade, an existing connection may still expose older tools until the client reloads its MCP connection. Continue useful work with available search/flow tools, the packaged CLI, or native `rg`/file reads; state the missing graph coverage when it affects conclusions. Hooks are advisory and optional.
+
+Run `node <installation>/dist/contextory.mjs help` for current CLI inputs. `context`, `impact`, `path`, `architecture` and `index` return JSON; `mcp` starts a hook-free stdio server. Supply the intended `--root` and either the existing service `--descriptor` or deliberately chosen `--storage` so the client reads the intended workspace and ledger. CLI code lookups do not replace MCP workflow mutations. Preserve the user's task and the host's permissions.
+
+## Application definitions and documentation
+
+Use `contextory_catalog_get` for file purposes, rules/features, UI placement/interactions, declared tests, pending proposals and source freshness. Record/proposal/inventory cursors are independent; keep paging each until exhausted. `contextory_project_export` overview enumerates stored documentation datasets; page current records, immutable revisions, history, relationships, source facts, jobs, usage metadata and artifacts with `offset`/`limit`. Keep sequence/snapshot and observed/approved/retired state. Use exact revisions for historical docs and current source for current behavior. The export grants no approval and exposes no service credentials or native conversations. Large result envelopes are read with `contextory_entity_get`.
+
 ```
 
 ## Fontes

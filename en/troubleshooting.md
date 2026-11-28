@@ -28,7 +28,7 @@ Rebuild hooks writes managed files immediately. Changed repairs follow contextor
 
 | Symptom | Action |
 | --- | --- |
-| An item remains pending in Approvals | Read the inline error. For changed sources, inspect the linked files, enter a reason, refresh the source snapshot, then approve the new revision. Missing references or an outdated proposal target require correction or rejection. Refresh does not approve. |
+| An item remains pending in Approvals | Read the inline error. Sources refresh automatically; no comment is needed. Restore missing files or ask the agent to correct references. Request changes for an outdated target or incomplete explanation; the agent revises the proposal and waits again. If a reply is queued, resume the linked conversation and check native hook trust. |
 | Python flow fails | Check Python 3.10+ and contextory.pythonExecutable; use an absolute executable path if needed |
 | Unexpected source root | Set projectId/codebaseId explicitly and focus the intended editor symbol before tracing |
 | Source search seems stale | Re-query saved source; refresh an empty/failed index, inspect exclusions and regenerate/re-import stale Graphify data |

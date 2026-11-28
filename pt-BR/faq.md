@@ -22,11 +22,15 @@ Ele comprova tráfego MCP observado para aquele agente configurado nesta instân
 
 ## Um agente pode aprovar sua própria definição Knowledge?
 
-Não. Agentes criam observações e propostas concretas. A interface Knowledge autenticada para uso humano aprova ou rejeita revisões exatas, preservando motivos e histórico.
+Manutenção compatível dispensa nova decisão humana. Agentes também podem aprovar automaticamente conflitos de implementação, registrando avaliação do conflito, motivo, fontes/testes e validação. Conflitos com regras de processo ou resultados, mudanças em comportamento aprovado, aposentadorias e conflitos incertos exigem revisão humana antes da implementação. Observações novas têm revisão inicial opcional e não geram alertas de aprovação obrigatória.
 
 ## Um grafo ou teste vinculado é evidência de execução?
 
 Não. Extração estática e referências de testes indicam relações possíveis. A verificação exige resultados atuais de verificações com proveniência e fingerprints de código/contrato/tentativa.
+
+## O Contextory acompanha o idioma do VS Code?
+
+Sim. A interface usa vscode.env.language e oferece inglês e português brasileiro, com inglês como fallback para outros idiomas. Agentes recebem uiLanguage do projeto e devem escrever novos registros da interface nesse idioma. Conteúdo histórico/do usuário e código são preservados; a documentação mantém o par inglês/pt-BR.
 
 ## Fontes
 
@@ -35,4 +39,16 @@ Não. Extração estática e referências de testes indicam relações possívei
 - src/core/workflow.ts
 - src/core/usage.ts
 - src/knowledge/catalog.ts
+- src/i18n/index.ts
+- src/i18n/pt-BR.json
+- package.nls.json
+- package.nls.pt-br.json
+- src/extension.ts
+- src/webview/document.ts
+- src/service/application.ts
+- src/service/server.ts
+- src/hooks/launcher.ts
+- tests/core/i18n.test.ts
+- tests/integration/i18n.test.ts
+- tests/ui/i18n.spec.ts
 

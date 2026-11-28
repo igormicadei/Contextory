@@ -3,7 +3,7 @@
   "name": "Contextory",
   "slug": "contextory",
   "kind": "plugin",
-  "version": "0.9.0",
+  "version": "0.11.0",
   "pages": [
     {
       "id": "overview",
@@ -61,8 +61,8 @@
             {
               "type": "paragraph",
               "text": {
-                "pt-BR": "Este guia descreve o Contextory 0.9.0, uma prévia qualificada no Windows com pastas locais confiáveis no VS Code e IBM Bob. A extensão precisa do Node.js 24+. Python 3.10+ é opcional para análise Python. Cada agente usa sua própria conta, modelo e conversa.",
-                "en": "This guide describes Contextory 0.9.0, a preview qualified on Windows with trusted local folders in VS Code and IBM Bob. The extension needs Node.js 24+. Python 3.10+ is optional for Python analysis. Your agent supplies its own account, model and conversation."
+                "pt-BR": "Este guia descreve o Contextory 0.11.0, uma prévia qualificada no Windows com pastas locais confiáveis no VS Code e IBM Bob. A extensão precisa do Node.js 24+. Python 3.10+ é opcional para análise Python. Cada agente usa sua própria conta, modelo e conversa.",
+                "en": "This guide describes Contextory 0.11.0, a preview qualified on Windows with trusted local folders in VS Code and IBM Bob. The extension needs Node.js 24+. Python 3.10+ is optional for Python analysis. Your agent supplies its own account, model and conversation."
               }
             },
             {
@@ -352,12 +352,12 @@
               "type": "steps",
               "items": [
                 {
-                  "pt-BR": "Baixe contextory-workspace-0.9.0.vsix e o arquivo .sha256 na release v0.9.0.",
-                  "en": "Download contextory-workspace-0.9.0.vsix and its .sha256 file from the v0.9.0 release."
+                  "en": "Download contextory-workspace-0.11.0.vsix and its .sha256 from the v0.11.0 GitHub release.",
+                  "pt-BR": "Baixe contextory-workspace-0.11.0.vsix e seu .sha256 na release v0.11.0 do GitHub."
                 },
                 {
-                  "pt-BR": "Compare o checksum do pacote baixado com o checksum da release.",
-                  "en": "Compare the downloaded package checksum with the release checksum."
+                  "en": "Compare the package SHA-256 with the accompanying checksum.",
+                  "pt-BR": "Compare o SHA-256 do pacote com o checksum que o acompanha."
                 },
                 {
                   "pt-BR": "Em Extensions, abra o menu …, selecione Install from VSIX… e escolha o arquivo baixado. Recarregue se solicitado.",
@@ -371,20 +371,20 @@
             },
             {
               "type": "link",
-              "href": "https://github.com/igormicadei/Contextory/releases/tag/v0.9.0",
+              "href": "https://github.com/igormicadei/Contextory/releases/tag/v0.11.0",
               "text": {
-                "pt-BR": "Baixar a versão 0.9.0",
-                "en": "Download version 0.9.0"
+                "en": "Download version 0.11.0",
+                "pt-BR": "Baixar a versão 0.11.0"
               }
             },
             {
               "type": "code",
               "language": "powershell",
               "caption": {
-                "pt-BR": "Verificar e instalar o pacote da release",
-                "en": "Verify and install the release package"
+                "en": "Verify and install the release package",
+                "pt-BR": "Verificar e instalar o pacote da release"
               },
-              "code": "(Get-FileHash -Algorithm SHA256 .\\contextory-workspace-0.9.0.vsix).Hash.ToLowerInvariant()\nGet-Content .\\contextory-workspace-0.9.0.sha256\ncode --install-extension .\\contextory-workspace-0.9.0.vsix"
+              "code": "(Get-FileHash -Algorithm SHA256 .\\contextory-workspace-0.11.0.vsix).Hash.ToLowerInvariant()\nGet-Content .\\contextory-workspace-0.11.0.sha256\ncode --install-extension .\\contextory-workspace-0.11.0.vsix"
             },
             {
               "type": "paragraph",
@@ -1005,8 +1005,8 @@
                   "en": "Open the Approvals tab or the review alert to review pending items. The tab shows a pending count and contains no already-reviewed definitions. Use Tools > Knowledge for definition search and source coverage."
                 },
                 {
-                  "pt-BR": "Para uma linha de base observada ou alteração pendente, leia a proposta exata e informe um motivo antes de Approve baseline, Approve change ou Reject. Apenas uma pessoa usa esses controles de revisão.",
-                  "en": "For an observed baseline or pending change, read the exact proposal and enter a review reason before Approve baseline, Approve change or Reject. Only a human uses these review controls."
+                  "en": "Read the agent’s plain-language explanation. Approve or Reject needs no comment; write instructions only when requesting changes. Source snapshots update automatically, and replies return to the linked conversation through trusted hooks. Use Reopen conversation when the native session has stopped.",
+                  "pt-BR": "Leia a explicação do agente em linguagem natural. Aprovar ou Rejeitar dispensa comentário; escreva instruções apenas ao solicitar ajustes. Snapshots são atualizados automaticamente, e respostas retornam à conversa vinculada pelos hooks confiáveis. Use Reabrir conversa quando a sessão nativa estiver parada."
                 },
                 {
                   "pt-BR": "Abra Tools > Versions para inspecionar versão, commits e planos de release. Revise versão, arquivos e changelog antes de aplicar; Publish é uma ação de release autorizada separadamente.",
@@ -1136,6 +1136,39 @@
         },
         {
           "path": "scripts/verify-background-startup.mjs"
+        },
+        {
+          "path": "src/i18n/index.ts"
+        },
+        {
+          "path": "src/i18n/pt-BR.json"
+        },
+        {
+          "path": "package.nls.json"
+        },
+        {
+          "path": "package.nls.pt-br.json"
+        },
+        {
+          "path": "src/webview/document.ts"
+        },
+        {
+          "path": "src/service/application.ts"
+        },
+        {
+          "path": "src/service/server.ts"
+        },
+        {
+          "path": "src/hooks/launcher.ts"
+        },
+        {
+          "path": "tests/core/i18n.test.ts"
+        },
+        {
+          "path": "tests/integration/i18n.test.ts"
+        },
+        {
+          "path": "tests/ui/i18n.spec.ts"
         }
       ],
       "sections": [
@@ -1338,6 +1371,65 @@
               "text": {
                 "en": "Read the project documentation guide",
                 "pt-BR": "Leia o guia de documentação de projetos"
+              }
+            }
+          ]
+        },
+        {
+          "id": "interface-language",
+          "title": {
+            "en": "Follow the VS Code display language",
+            "pt-BR": "Usar o idioma de exibição do VS Code"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Contextory follows the editor's display language for built-in labels, command titles, settings descriptions, native dialogs and webview controls. English and Brazilian Portuguese are supported. pt/pt-br select pt-BR; other unsupported locales fall back to English. The sidebar, horizontal panel, architecture, source flow and relationships share the same locale, including accessibility labels and dates.",
+                "pt-BR": "O Contextory acompanha o idioma de exibição do editor nos rótulos, títulos de comandos, descrições das configurações, diálogos nativos e controles das webviews. Inglês e português brasileiro são suportados. pt/pt-br selecionam pt-BR; idiomas não suportados usam inglês. Barra lateral, painel horizontal, arquitetura, fluxo do código e relações compartilham o mesmo idioma, inclusive rótulos de acessibilidade e datas."
+              }
+            },
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "en": "Use VS Code's Configure Display Language command and choose English or Brazilian Portuguese. Install the language pack through VS Code if needed, then restart as requested by the editor.",
+                  "pt-BR": "Use o comando Configurar Idioma de Exibição do VS Code e escolha inglês ou português brasileiro. Se necessário, instale o pacote de idioma pelo VS Code e reinicie quando solicitado."
+                },
+                {
+                  "en": "Open Contextory. New webview documents take vscode.env.language, and the editor configures that normalized language for every connected project.",
+                  "pt-BR": "Abra o Contextory. Novas webviews recebem vscode.env.language, e o editor configura esse idioma normalizado para cada projeto conectado."
+                },
+                {
+                  "en": "Ask the agent to read contextory_context_get. uiLanguage and contentLanguageInstruction tell it to write every new UI-facing record in the editor language, even when the conversation uses another language.",
+                  "pt-BR": "Peça ao agente para ler contextory_context_get. uiLanguage e contentLanguageInstruction orientam a escrita de cada novo registro da interface no idioma do editor, mesmo quando a conversa usa outro idioma."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Existing requests, definitions, decisions, reports and source identifiers keep their original text. Localization translates source-owned interface messages before dynamic values are inserted; it never rewrites stored prose, code, paths, IDs or tool keys. Raw code/command output and unknown diagnostics retain their original language. Change language in VS Code and reload; Contextory has no competing language preference.",
+                "pt-BR": "Pedidos, definições, decisões, relatórios e identificadores existentes preservam o texto original. A localização traduz mensagens da interface antes de inserir valores dinâmicos; ela nunca reescreve textos armazenados, código, caminhos, IDs ou chaves das ferramentas. Saídas de código/comandos e diagnósticos desconhecidos mantêm o idioma original. Altere o idioma no VS Code e recarregue; o Contextory não possui uma preferência de idioma concorrente."
+              }
+            },
+            {
+              "type": "image",
+              "src": "assets/knowledge-pt-BR.png",
+              "alt": {
+                "en": "Portuguese Contextory interface around original English project entries",
+                "pt-BR": "Interface do Contextory em português ao redor de registros originais em inglês"
+              },
+              "caption": {
+                "en": "Built-in controls follow Brazilian Portuguese; stored sample definitions remain exactly as authored.",
+                "pt-BR": "Os controles usam português brasileiro; as definições de exemplo preservam exatamente o texto original."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "The project's language is set only through authenticated editor configuration and persists in that project's service storage. Standalone/headless projects default to English; attaching to an editor-managed ledger retains its last configured language. Native hooks repeat the content-language instruction after session starts and before tools, including pending-review responses. This is an instruction to the native agent, not a language detector or automatic translation of its output.",
+                "pt-BR": "O idioma do projeto só é definido pela configuração autenticada do editor e persiste no armazenamento do serviço daquele projeto. Projetos independentes/headless usam inglês por padrão; ao usar o registro gerenciado pelo editor, preservam o último idioma configurado. Hooks nativos repetem a orientação de idioma no início da sessão e antes das ferramentas, inclusive em respostas de aprovação pendente. Essa é uma instrução ao agente nativo, não um detector de idioma nem tradução automática de sua saída."
               }
             }
           ]
@@ -1601,6 +1693,36 @@
         },
         {
           "path": "src/webview/main.ts"
+        },
+        {
+          "path": "src/hooks/approval.ts"
+        },
+        {
+          "path": "src/hooks/launcher.ts"
+        },
+        {
+          "path": "src/core/workflow.ts"
+        },
+        {
+          "path": "tests/integration/approval-policy.test.ts"
+        },
+        {
+          "path": "skills/contextory-workflow/references/approvals-and-regressions.md"
+        },
+        {
+          "path": "src/core/conversations.ts"
+        },
+        {
+          "path": "src/providers/conversations.ts"
+        },
+        {
+          "path": "src/hooks/review-wait.ts"
+        },
+        {
+          "path": "src/service/server.ts"
+        },
+        {
+          "path": "tests/integration/approval-conversations.test.ts"
         }
       ],
       "sections": [
@@ -1685,32 +1807,32 @@
             {
               "type": "paragraph",
               "text": {
-                "pt-BR": "Um alerta persistente conta definições observadas e alterações pendentes. A view do editor também mostra um badge e oferece Review now quando mudam as revisões pendentes. Notificações são deduplicadas por projeto entre reinícios; dispensá-las mantém o alerta disponível.",
-                "en": "A persistent review alert counts observed definitions and pending changes. The editor view also has a badge and offers Review now when exact pending record revisions change. Notifications are deduplicated per project across restarts; dismissing one leaves the review alert available."
+                "en": "The persistent review alert, Approvals count and editor badge count pending change proposals only. Optional baseline review is collapsed initially; expand its summary with a click or keyboard to inspect observations. The chosen state is retained across refresh and navigation. These observations do not block work.",
+                "pt-BR": "O alerta persistente, a contagem de Aprovações e o badge do editor contam somente propostas de alteração pendentes. A revisão opcional da linha de base começa recolhida; expanda o resumo com clique ou teclado para inspecionar observações. O estado escolhido é mantido ao atualizar e navegar. Essas observações não bloqueiam o trabalho."
               }
             },
             {
               "type": "steps",
               "items": [
                 {
-                  "pt-BR": "Abra Approvals ao lado de Work e Requests ou use o alerta persistente. Essa aba contém apenas alterações pendentes e linhas de base observadas. Inspecione fontes, testes, estado, revisão e atualização. Use Tools > Knowledge separadamente para consultar todas as definições e a cobertura dos arquivos.",
-                  "en": "Open Approvals beside Work and Requests, or use the persistent review alert. This tab contains only pending changes and observed baselines. Inspect sources, tests, state, revision and freshness. Use Tools > Knowledge separately to browse all definitions and file coverage."
+                  "en": "Open Approvals and read the agent’s explanation: what changes, why your approval is needed and how application behavior changes. Knowledge remains the browser for definitions, source coverage and immutable history.",
+                  "pt-BR": "Abra Aprovações e leia a explicação do agente: o que muda, por que sua aprovação é necessária e como o comportamento da aplicação muda. Conhecimento continua sendo o navegador de definições, cobertura das fontes e histórico imutável."
                 },
                 {
-                  "pt-BR": "Revise as observações iniciais ou o conteúdo antes/depois de substituições ou aposentadorias. Informe um motivo antes de aprovar ou rejeitar.",
-                  "en": "Review baseline observations or the before/after content of a replacement or retirement. Enter a reason before approving or rejecting."
+                  "en": "Choose Approve or Reject without entering a comment. To ask for an update first, write your instructions and choose Request changes. A proposal with requested changes still blocks implementation; the agent revises that same proposal and waits for another decision.",
+                  "pt-BR": "Escolha Aprovar ou Rejeitar sem informar um comentário. Para pedir um ajuste antes, escreva suas instruções e escolha Solicitar ajustes. Uma proposta com ajustes solicitados continua bloqueando a implementação; o agente revisa a mesma proposta e aguarda outra decisão."
                 },
                 {
-                  "pt-BR": "Se aparecer Sources need review, abra os arquivos alterados e confira a definição. Informe um motivo e use Refresh source snapshot. Isso registra os hashes atuais e mantém o item pendente; aprove ou rejeite a revisão atualizada separadamente. Arquivos ausentes precisam ser corrigidos ou o item obsoleto rejeitado. Uma proposta contra uma revisão anterior deve ser rejeitada e substituída.",
-                  "en": "If Sources need review appears, open the changed files and check the definition. Enter a reason and choose Refresh source snapshot. This records current file hashes and keeps the item pending; approve or reject the refreshed revision separately. Missing files must be corrected or the outdated item rejected. A proposal against an older target revision must be rejected and replaced."
+                  "en": "Readable source snapshots refresh automatically and never grant approval or change the authored definition. Prior source hashes remain in history. Missing files still block approval. An edit during review refreshes the snapshot and asks you to inspect the latest item before retrying; no refresh button or refresh comment is required.",
+                  "pt-BR": "Snapshots de fontes legíveis são atualizados automaticamente e nunca concedem aprovação nem alteram a definição escrita. Hashes anteriores permanecem no histórico. Arquivos ausentes continuam bloqueando a aprovação. Uma edição durante a revisão atualiza o snapshot e pede que você confira o item mais recente antes de tentar novamente; não há botão nem comentário de atualização obrigatório."
                 }
               ]
             },
             {
               "type": "paragraph",
               "text": {
-                "pt-BR": "Salvamento, sucesso e erros aparecem ao lado dos controles. Revisões com falha preservam o motivo informado e não aprovam nada. Os controles ficam desativados enquanto a revisão está em andamento. Alternar para Knowledge e voltar preserva o motivo; os filtros de Knowledge não ocultam a fila de aprovações. Atualizar o snapshot não altera a definição nem concede aprovação.",
-                "en": "Saving, success and errors appear beside the review controls. Failed reviews keep the entered reason and do not approve anything. Controls remain disabled while a review is pending. Switching to Knowledge and back preserves the reason; Knowledge search filters do not hide the approval queue. Refreshing a snapshot never edits the definition or grants approval."
+                "en": "Saving, errors and success appear beside the controls. Failed responses preserve your instructions, and duplicate submissions are disabled. Switching to Knowledge and back preserves the draft; Knowledge filters do not hide approvals. Technical before/after definitions remain available through Definition history rather than filling the review card.",
+                "pt-BR": "Salvamento, erros e sucesso aparecem ao lado dos controles. Respostas com falha preservam suas instruções, e envios duplicados são desabilitados. Alternar para Conhecimento e voltar preserva o rascunho; os filtros não ocultam aprovações. Definições técnicas antes/depois permanecem disponíveis em Histórico da definição, sem ocupar o cartão de revisão."
               }
             },
             {
@@ -1721,15 +1843,15 @@
                 "en": "Approvals rendered by the production webview with isolated example records; no real project approval was performed."
               },
               "alt": {
-                "pt-BR": "A aba Approvals com contador de pendências, alterações antes/depois e controles de revisão.",
-                "en": "The Approvals tab with a pending count, before/after changes and review controls."
+                "en": "Approvals showing the agent explanation, simple decisions and update instructions.",
+                "pt-BR": "Aprovações com explicação do agente, decisões simples e instruções de ajuste."
               }
             },
             {
               "type": "paragraph",
               "text": {
-                "pt-BR": "A aprovação pertence à aba Approvals autenticada para revisão humana. Agentes não podem usar suas credenciais nem apresentar observações como requisitos aprovados. Propostas pendentes e definições aprovadas afetadas e obsoletas podem impedir a conclusão rastreada.",
-                "en": "Approval belongs to the authenticated human Approvals tab. Agents cannot use its credentials or present observations as approved requirements. Pending proposals and stale affected approved definitions can block tracked completion."
+                "en": "Human review in Approvals approves exact process/outcome changes and optional baselines. Agents use the leased auto-approval path for implementation maintenance/conflicts and cannot borrow human credentials. Pending proposals and stale affected approved definitions block completion. A compatible source refresh preserves the original human review and approved behavioral text; a changed file hash alone does not require changing the contract.",
+                "pt-BR": "A revisão humana em Approvals aprova mudanças exatas de processo/resultado e linhas de base opcionais. Agentes usam o fluxo com lease para aprovação automática de manutenção/conflitos de implementação e não podem usar credenciais humanas. Propostas pendentes e definições aprovadas afetadas e obsoletas bloqueiam a conclusão. Atualizar fontes de forma compatível preserva a revisão humana e o texto comportamental aprovado; alterar um hash não exige mudar o contrato."
               }
             }
           ]
@@ -1823,6 +1945,185 @@
               "text": {
                 "pt-BR": "A exportação exclui credenciais, conversas nativas e vetores numéricos de embeddings. Respostas grandes podem retornar identificadores de artefatos para paginação adicional. Uma exportação somente leitura não precisa de pedido de implementação.",
                 "en": "This export excludes credentials, native conversations and numeric embedding vectors. Large responses may return artifact handles for further paging. A read-only export needs no implementation request."
+              }
+            }
+          ]
+        },
+        {
+          "id": "behavior-aware-approval",
+          "title": {
+            "en": "Choose approval by behavioral impact",
+            "pt-BR": "Escolher aprovação pelo impacto no comportamento"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Compatible maintenance needs no new human decision. Agents may auto-approve implementation conflicts too, with an explicit conflict assessment, rationale, source/test links and validation. Conflicts involving process rules or results, changed approved behavior, retirements and uncertain conflicts require human review before implementation. New observations have optional baseline review and do not trigger mandatory approval alerts.",
+                "pt-BR": "Manutenção compatível dispensa nova decisão humana. Agentes também podem aprovar automaticamente conflitos de implementação, registrando avaliação do conflito, motivo, fontes/testes e validação. Conflitos com regras de processo ou resultados, mudanças em comportamento aprovado, aposentadorias e conflitos incertos exigem revisão humana antes da implementação. Observações novas têm revisão inicial opcional e não geram alertas de aprovação obrigatória."
+              }
+            },
+            {
+              "type": "code",
+              "language": "json",
+              "caption": {
+                "en": "Compatible source maintenance under the current lease",
+                "pt-BR": "Manutenção compatível de fontes com o lease atual"
+              },
+              "code": "{\n  \"action\": \"revise\",\n  \"id\": \"KN-existing\",\n  \"expectedRevision\": 2,\n  \"specId\": \"SPEC-current\",\n  \"leaseId\": \"current-lease\",\n  \"operationId\": \"unique-operation-id\",\n  \"compatibility\": \"preserved\",\n  \"impact\": \"implementation\",\n  \"autoApprove\": true,\n  \"content\": {\n    \"category\": \"feature\",\n    \"title\": \"Stable greeting\",\n    \"description\": \"Returns the configured greeting.\",\n    \"sources\": [\n      {\n        \"path\": \"src/greeting.ts\",\n        \"symbol\": \"greet\"\n      }\n    ],\n    \"tests\": [\n      {\n        \"path\": \"tests/greeting.test.ts\"\n      }\n    ]\n  },\n  \"reason\": \"Function A replaced by B with the same results, errors and side effects; record the relevant validation.\"\n}"
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Use compatibility=conflicting and impact=implementation only when the conflict cannot affect process rules or results. Preserve approved behavior descriptions and UI contracts exactly; file-purpose prose may be corrected for implementation changes. The server declines auto-approval for changed approved behavior, rule conflicts and process/outcome or unclassified related decisions. decisionIds retains links to earlier decisions. Auto-approval is an agent assessment, not proof of semantic equivalence or passing tests.",
+                "pt-BR": "Use compatibility=conflicting e impact=implementation somente quando o conflito não afetar regras de processo ou resultados. Preserve exatamente as descrições comportamentais e os contratos de interface aprovados; descrições de responsabilidade de arquivo podem acompanhar alterações de implementação. O servidor impede aprovação automática de mudanças comportamentais aprovadas, conflitos de regras e decisões relacionadas de processo/resultado ou sem classificação. decisionIds mantém os vínculos com decisões anteriores. A aprovação automática é uma avaliação do agente, não prova de equivalência semântica ou testes aprovados."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Every revision preserves the original definition, before/after source fingerprints, target revision, reason, spec, actor and review mode. Auto-approved changes have state=auto_approved; observed targets remain observed and approved behavioral targets retain their original human review. Knowledge displays agent maintenance provenance, and history, search, reports and project export retain the change. Test references never substitute for independent executed evidence.",
+                "pt-BR": "Toda revisão preserva a definição original, fingerprints anteriores/novos, revisão de destino, motivo, especificação, autor e modo de revisão. Mudanças aprovadas pelo agente têm state=auto_approved; observações permanecem observadas e contratos comportamentais aprovados mantêm a revisão humana original. Knowledge mostra a proveniência da manutenção pelo agente; histórico, busca, relatórios e exportação preservam a mudança. Referências de testes não substituem evidências de execução independente."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Auto-approval preserves behavioral descriptions and UI contracts even on observed entries. When an approved file-purpose description changes, the new file observation is not attributed to the earlier human review; its approved baseline revision remains traceable.",
+                "pt-BR": "A aprova??o autom?tica preserva descri??es comportamentais e contratos de interface mesmo em observa??es. Quando a descri??o aprovada de responsabilidade de arquivo muda, a nova observa??o n?o ? atribu?da ? revis?o humana anterior; a revis?o inicial aprovada continua rastre?vel."
+              }
+            }
+          ]
+        },
+        {
+          "id": "wait-for-review",
+          "title": {
+            "en": "Wait before implementing a disputed change",
+            "pt-BR": "Aguardar antes de implementar uma mudança em disputa"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Prepare the concrete proposal before editing disputed behavior. PreToolUse denies implementation tools while any project proposal is pending; Stop blocks completion. Read-only tools, catalog preparation, configured checks, questions/wait and lease renewal remain available. Contextory also rejects workflow mutations through its service, so direct MCP calls do not bypass the gate. Do not busy-poll or use another shell to proceed. Approval status is re-read on each event and survives service restarts; silence and timeout never approve anything.",
+                "pt-BR": "Prepare a proposta concreta antes de editar o comportamento em disputa. PreToolUse nega ferramentas de implementação enquanto houver proposta pendente no projeto; Stop bloqueia a conclusão. Leituras, preparação do catálogo, verificações configuradas, perguntas/espera e renovação de lease continuam disponíveis. O serviço também rejeita mutações de fluxo, impedindo contornar a espera com MCP direto. Não faça consultas contínuas nem use outro shell para prosseguir. O estado é relido a cada evento e persiste entre reinícios; silêncio e timeout nunca aprovam nada."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Codex/Claude launchers emit structured deny/block responses plus exit code 2; Bob uses blocking stderr/exit code 2. A failed or obsolete approval-status contract blocks implementation/completion until recovery. Reload the service and native hook runtime together after upgrading. Native trust and actual hook delivery remain host-owned. Generic MCP has no native file-tool hook: the service enforces its own workflow, while agents must honor the wait for external edits. Hooks cannot intercept unreported changes, a human editor, or a client that never invokes them.",
+                "pt-BR": "Os launchers Codex/Claude emitem respostas estruturadas deny/block e código de saída 2; Bob usa stderr e código 2 para bloqueio. Falha ou contrato obsoleto de consulta de aprovação bloqueia implementação/conclusão até a recuperação. Após atualizar, recarregue o serviço e os hooks nativos juntos. Confiança nativa e entrega real dos eventos pertencem ao cliente. MCP genérico não possui hook de ferramentas de arquivo: o serviço impõe seu próprio fluxo, enquanto agentes devem respeitar a espera em edições externas. Hooks não interceptam alterações não registradas, um editor humano ou clientes que não os executem."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "After approval, implement and validate the accepted behavior. After rejection, retain or restore the established behavior and validate it. Superseding process/outcome or unclassified decisions requires a human-approved proposal in the current spec, with the old decision in decisionIds and the exact replacement choice as content.description; pass its approvalId to contextory_decision_record. Only implementation-to-implementation decision conflicts auto-review.",
+                "pt-BR": "Após aprovação, implemente e valide o comportamento aceito. Após rejeição, preserve ou restaure o comportamento estabelecido e valide. Substituir decisões de processo/resultado ou sem classificação exige proposta aprovada por humano na especificação atual, com a decisão anterior em decisionIds e a escolha substituta exata em content.description; informe approvalId a contextory_decision_record. Somente conflitos entre decisões de implementação têm revisão automática."
+              }
+            }
+          ]
+        },
+        {
+          "id": "trace-a-regression",
+          "title": {
+            "en": "Trace a regression to a recorded change",
+            "pt-BR": "Relacionar uma regressão a uma mudança registrada"
+          },
+          "blocks": [
+            {
+              "type": "steps",
+              "items": [
+                {
+                  "en": "Recover the affected feature/rule/UI contract, current source and last known working check or version. Record the symptom and reproducer as a finding.",
+                  "pt-BR": "Recupere o contrato da funcionalidade/regra/interface, o código atual e a última verificação ou versão funcional conhecida. Registre o sintoma e a reprodução como um problema."
+                },
+                {
+                  "en": "Follow impact/path relationships and search by feature, path/symbol, catalog ID and earlier decisions. Page history and inspect exact before/after revisions, hashes, agent or human review, spec and evidence, including auto-approved changes.",
+                  "pt-BR": "Siga relações de impacto/caminho e busque por funcionalidade, arquivo/símbolo, ID do catálogo e decisões anteriores. Pagine o histórico e examine revisões exatas, hashes, revisão humana ou do agente, especificação e evidências, inclusive alterações aprovadas automaticamente."
+                },
+                {
+                  "en": "Compare actual Git membership and the last working source. Reproduce candidate causes; static edges and recording intervals do not prove causation or shipped inclusion. Use a focused regression check and Git history/bisect when useful.",
+                  "pt-BR": "Compare a inclusão real no Git e o último código funcional. Reproduza causas candidatas; relações estáticas e intervalos de registro não provam causalidade nem inclusão em uma versão. Use uma verificação de regressão e histórico/bisect do Git quando útil."
+                },
+                {
+                  "en": "Link the confirmed finding/fix to the responsible change/spec/source with contextory_relationship_change. Record uncertainty if the cause is unproven; update catalog/docs and submit current independent evidence.",
+                  "pt-BR": "Relacione o problema/correção confirmado à mudança/especificação/fonte responsável com contextory_relationship_change. Registre incerteza se a causa não foi comprovada; atualize catálogo/documentação e envie evidências independentes atuais."
+                }
+              ]
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Auto-approval reduces interruptions, not traceability. All material changes still require indexed explanations and validation evidence so a later agent can investigate what changed and why.",
+                "pt-BR": "A aprovação automática reduz interrupções, sem reduzir a rastreabilidade. Toda mudança relevante continua exigindo explicações indexadas e evidências de validação para que outro agente investigue o que mudou e por quê."
+              }
+            }
+          ]
+        },
+        {
+          "id": "conversation-continuity",
+          "title": {
+            "en": "Return to the originating conversation",
+            "pt-BR": "Retorne à conversa de origem"
+          },
+          "sources": [
+            {
+              "path": "src/core/conversations.ts"
+            },
+            {
+              "path": "src/providers/conversations.ts"
+            },
+            {
+              "path": "src/hooks/review-wait.ts"
+            },
+            {
+              "path": "src/hooks/launcher.ts"
+            },
+            {
+              "path": "src/service/server.ts"
+            },
+            {
+              "path": "tests/integration/approval-conversations.test.ts"
+            }
+          ],
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Attach the exact native session ID supplied by the Contextory hook. The project, provider, session and specification are saved on proposals and retained on claimed work after lease release. Approval, rejection and feedback are durable audit events returned only to that exact provider/session in the same project. An unknown origin remains unbound; the extension never guesses the active chat.",
+                "pt-BR": "Associe o ID nativo exato fornecido pelo hook do Contextory. Projeto, provedor, sessão e especificação são salvos nas propostas e mantidos no trabalho após liberar o lease. Aprovação, rejeição e feedback são eventos de auditoria duráveis retornados apenas ao mesmo provedor/sessão no mesmo projeto. Uma origem desconhecida permanece sem vínculo; a extensão nunca adivinha a conversa ativa."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "A trusted PreToolUse or Stop hook can wait up to four minutes for your decision and return it to that conversation. Approval releases the approved operation; rejection prevents the waiting operation, and feedback asks for a revised proposal. Expiry or service failure keeps the operation blocked. Responses remain queued until a matching hook receives them; transport acknowledgement does not prove the model acted on them. Hooks that are not trusted or a fully stopped client cannot resume automatically.",
+                "pt-BR": "Um hook confiável PreToolUse ou Stop pode aguardar até quatro minutos pela decisão e retorná-la à conversa. Aprovação libera a operação aprovada; rejeição impede a operação em espera, e feedback pede uma proposta revisada. Expiração ou falha do serviço mantém o bloqueio. Respostas ficam na fila até um hook correspondente recebê-las; confirmar o transporte não prova que o modelo agiu. Hooks sem confiança ou um cliente completamente parado não permitem retomada automática."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Use Reopen conversation on an approval or a specification’s Contract tab. Claude opens the saved session through the installed native extension command. Codex resumes that exact saved conversation in an interactive terminal with codex resume, because its documented extension commands expose neither targeted reopening nor targeted message submission. Bob, generic clients or an unavailable Claude command copy the saved session ID for manual history recovery. The native client owns history availability and permissions; no response is injected into an arbitrary chat.",
+                "pt-BR": "Use Reabrir conversa em uma aprovação ou na aba Contrato da especificação. Claude abre a sessão salva pelo comando da extensão nativa instalada. Codex retoma a mesma conversa salva em um terminal interativo com codex resume, pois seus comandos documentados não expõem reabertura nem envio de mensagens para uma conversa específica. Bob, clientes genéricos ou um comando Claude indisponível copiam o ID salvo para recuperação manual no histórico. O cliente nativo controla disponibilidade do histórico e permissões; nenhuma resposta é inserida em uma conversa arbitrária."
+              }
+            },
+            {
+              "type": "link",
+              "href": "https://code.claude.com/docs/en/vs-code#launch-a-vs-code-tab-from-other-tools",
+              "text": {
+                "en": "Claude session recovery contract",
+                "pt-BR": "Contrato de recuperação de sessões do Claude"
+              }
+            },
+            {
+              "type": "link",
+              "href": "https://developers.openai.com/codex/ide/commands",
+              "text": {
+                "en": "Documented Codex extension commands",
+                "pt-BR": "Comandos documentados da extensão Codex"
               }
             }
           ]
@@ -2170,6 +2471,21 @@
         },
         {
           "path": "tests/integration/headless.test.ts"
+        },
+        {
+          "path": "src/hooks/approval.ts"
+        },
+        {
+          "path": "src/hooks/launcher.ts"
+        },
+        {
+          "path": "src/knowledge/catalog.ts"
+        },
+        {
+          "path": "src/core/workflow.ts"
+        },
+        {
+          "path": "tests/integration/approval-policy.test.ts"
         }
       ],
       "sections": [
@@ -2258,8 +2574,15 @@
             {
               "type": "paragraph",
               "text": {
-                "pt-BR": "Conecte pelos comandos da extensão. O Contextory grava entradas gerenciadas locais do workspace e preserva configurações alheias. Conflitos malformados, links ou entradas sem propriedade falham sem substituição. Clientes nativos mantêm autenticação, seleção de modelo, edição, permissões e confiança. Hooks fornecem lembretes e metadados opcionais.",
-                "en": "Connect through the extension commands. Contextory writes owned workspace-local entries and preserves unrelated settings. Malformed, linked or unowned conflicts fail without replacement. Native clients retain authentication, model selection, editing, permissions and trust. Hooks supply optional reminders and metadata."
+                "pt-BR": "Conecte pelos comandos da extensão. O Contextory grava entradas gerenciadas locais do workspace e preserva configurações alheias. Conflitos malformados, links ou entradas sem propriedade falham sem substituição. Clientes nativos mantêm autenticação, seleção de modelo, edição, permissões e confiança. Hooks fornecem lembretes, metadados e decisões de aprovação pendentes.",
+                "en": "Connect through the extension commands. Contextory writes owned workspace-local entries and preserves unrelated settings. Malformed, linked or unowned conflicts fail without replacement. Native clients retain authentication, model selection, editing, permissions and trust. Hooks supply lifecycle reminders, metadata and pending approval decisions."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Native hooks enforce pending approval decisions before implementation and Stop, in addition to lifecycle reminders and normalized metadata. Agents may auto-approve only implementation maintenance/conflicts; process/outcome conflicts wait for human Approvals. Enforcement requires the host to trust and invoke the updated hooks.",
+                "pt-BR": "Além de lembretes e metadados normalizados, hooks nativos impõem decisões de aprovação pendentes antes da implementação e de Stop. Agentes só aprovam automaticamente manutenção/conflitos de implementação; conflitos de processo/resultado aguardam revisão humana. A imposição depende de o cliente confiar e executar os hooks atualizados."
               }
             }
           ]
@@ -2483,6 +2806,21 @@
         },
         {
           "path": "src/agents/instructions.ts"
+        },
+        {
+          "path": "src/hooks/approval.ts"
+        },
+        {
+          "path": "src/hooks/launcher.ts"
+        },
+        {
+          "path": "src/knowledge/catalog.ts"
+        },
+        {
+          "path": "src/core/workflow.ts"
+        },
+        {
+          "path": "tests/integration/approval-policy.test.ts"
         }
       ],
       "sections": [
@@ -2563,6 +2901,13 @@
               "text": {
                 "pt-BR": "Proxies MCP nativos conectam-se a descritores privados do serviço local. Hooks fornecem lembretes limitados e metadados normalizados. MCP nativo/independente, resumos e hooks compartilham orientação de execução; configurações específicas dos clientes ficam nos adaptadores.",
                 "en": "Native MCP proxies connect to private local service descriptors. Hooks provide bounded lifecycle reminders and normalized metadata. Native/headless MCP, briefs and hooks share runtime guidance; provider-specific configuration remains in explicit adapters."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Native hooks enforce pending approval decisions before implementation and Stop, in addition to lifecycle reminders and normalized metadata. Agents may auto-approve only implementation maintenance/conflicts; process/outcome conflicts wait for human Approvals. Enforcement requires the host to trust and invoke the updated hooks.",
+                "pt-BR": "Além de lembretes e metadados normalizados, hooks nativos impõem decisões de aprovação pendentes antes da implementação e de Stop. Agentes só aprovam automaticamente manutenção/conflitos de implementação; conflitos de processo/resultado aguardam revisão humana. A imposição depende de o cliente confiar e executar os hooks atualizados."
               }
             }
           ]
@@ -3160,6 +3505,42 @@
         },
         {
           "path": "src/knowledge/catalog.ts"
+        },
+        {
+          "path": "src/i18n/index.ts"
+        },
+        {
+          "path": "src/i18n/pt-BR.json"
+        },
+        {
+          "path": "package.nls.json"
+        },
+        {
+          "path": "package.nls.pt-br.json"
+        },
+        {
+          "path": "src/extension.ts"
+        },
+        {
+          "path": "src/webview/document.ts"
+        },
+        {
+          "path": "src/service/application.ts"
+        },
+        {
+          "path": "src/service/server.ts"
+        },
+        {
+          "path": "src/hooks/launcher.ts"
+        },
+        {
+          "path": "tests/core/i18n.test.ts"
+        },
+        {
+          "path": "tests/integration/i18n.test.ts"
+        },
+        {
+          "path": "tests/ui/i18n.spec.ts"
         }
       ],
       "sections": [
@@ -3253,8 +3634,8 @@
             {
               "type": "paragraph",
               "text": {
-                "pt-BR": "Não. Agentes criam observações e propostas concretas. A interface Knowledge autenticada para uso humano aprova ou rejeita revisões exatas, preservando motivos e histórico.",
-                "en": "No. Agents create observations and concrete proposals. The authenticated human Knowledge UI approves or rejects exact revisions, preserving reasons and history."
+                "en": "Compatible maintenance needs no new human decision. Agents may auto-approve implementation conflicts too, with an explicit conflict assessment, rationale, source/test links and validation. Conflicts involving process rules or results, changed approved behavior, retirements and uncertain conflicts require human review before implementation. New observations have optional baseline review and do not trigger mandatory approval alerts.",
+                "pt-BR": "Manutenção compatível dispensa nova decisão humana. Agentes também podem aprovar automaticamente conflitos de implementação, registrando avaliação do conflito, motivo, fontes/testes e validação. Conflitos com regras de processo ou resultados, mudanças em comportamento aprovado, aposentadorias e conflitos incertos exigem revisão humana antes da implementação. Observações novas têm revisão inicial opcional e não geram alertas de aprovação obrigatória."
               }
             }
           ]
@@ -3271,6 +3652,22 @@
               "text": {
                 "pt-BR": "Não. Extração estática e referências de testes indicam relações possíveis. A verificação exige resultados atuais de verificações com proveniência e fingerprints de código/contrato/tentativa.",
                 "en": "No. Static extraction and test references indicate possible relationships. Verification requires actual current check results with their provenance and source/contract/attempt fingerprints."
+              }
+            }
+          ]
+        },
+        {
+          "id": "does-it-follow-vscode-language",
+          "title": {
+            "en": "Does Contextory follow VS Code's language?",
+            "pt-BR": "O Contextory acompanha o idioma do VS Code?"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Yes. The built-in interface supports English and Brazilian Portuguese using vscode.env.language, with English fallback for other locales. Agents receive the project uiLanguage and must author new interface entries in that language. Historical/user content and code are preserved; documentation retains its English/pt-BR pair.",
+                "pt-BR": "Sim. A interface usa vscode.env.language e oferece inglês e português brasileiro, com inglês como fallback para outros idiomas. Agentes recebem uiLanguage do projeto e devem escrever novos registros da interface nesse idioma. Conteúdo histórico/do usuário e código são preservados; a documentação mantém o par inglês/pt-BR."
               }
             }
           ]
@@ -3502,8 +3899,8 @@
                     "en": "An item remains pending in Approvals"
                   },
                   {
-                    "pt-BR": "Leia o erro ao lado do item. Para fontes alteradas, inspecione os arquivos vinculados, informe um motivo, atualize o snapshot e aprove a nova revisão. Referências ausentes ou alvo de proposta obsoleto exigem correção ou rejeição. Atualizar não aprova.",
-                    "en": "Read the inline error. For changed sources, inspect the linked files, enter a reason, refresh the source snapshot, then approve the new revision. Missing references or an outdated proposal target require correction or rejection. Refresh does not approve."
+                    "en": "Read the inline error. Sources refresh automatically; no comment is needed. Restore missing files or ask the agent to correct references. Request changes for an outdated target or incomplete explanation; the agent revises the proposal and waits again. If a reply is queued, resume the linked conversation and check native hook trust.",
+                    "pt-BR": "Leia o erro ao lado do item. Fontes são atualizadas automaticamente, sem comentário. Restaure arquivos ausentes ou peça ao agente para corrigir referências. Solicite ajustes para um alvo obsoleto ou explicação incompleta; o agente revisa a proposta e aguarda novamente. Se a resposta estiver na fila, retome a conversa vinculada e confira a confiança dos hooks nativos."
                   }
                 ],
                 [
@@ -3731,6 +4128,54 @@
         },
         {
           "path": "tests/documentation/site.test.mjs"
+        },
+        {
+          "path": "skills/contextory-workflow/references/approvals-and-regressions.md"
+        },
+        {
+          "path": "src/i18n/index.ts"
+        },
+        {
+          "path": "src/i18n/pt-BR.json"
+        },
+        {
+          "path": "package.nls.json"
+        },
+        {
+          "path": "package.nls.pt-br.json"
+        },
+        {
+          "path": "src/extension.ts"
+        },
+        {
+          "path": "src/webview/document.ts"
+        },
+        {
+          "path": "src/service/application.ts"
+        },
+        {
+          "path": "src/service/server.ts"
+        },
+        {
+          "path": "src/hooks/launcher.ts"
+        },
+        {
+          "path": "tests/core/i18n.test.ts"
+        },
+        {
+          "path": "tests/integration/i18n.test.ts"
+        },
+        {
+          "path": "tests/ui/i18n.spec.ts"
+        },
+        {
+          "path": "scripts/check-localization.mjs"
+        },
+        {
+          "path": "scripts/localization-catalog.mjs"
+        },
+        {
+          "path": "tests/host/smoke.cjs"
         }
       ],
       "sections": [
@@ -3935,6 +4380,38 @@
               }
             }
           ]
+        },
+        {
+          "id": "localize-interface",
+          "title": {
+            "en": "Maintain interface translations safely",
+            "pt-BR": "Manter traduções da interface com segurança"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Use package.nls.json and package.nls.pt-br.json for extension contributions; keep command IDs and setting keys unchanged. Source-owned webview/host messages use tx for controlled labels or the ui template tag for HTML and interpolated messages. The helper translates the static skeleton before substituting values. Do not apply translation to stored record titles, descriptions, reasons, code or paths. Machine IDs, selectors, CSS classes and SVG coordinates are not localized.",
+                "pt-BR": "Use package.nls.json e package.nls.pt-br.json nas contribuições da extensão; preserve IDs de comandos e chaves de configuração. Mensagens das webviews/do host usam tx para rótulos controlados ou a tag ui para HTML e mensagens com valores. O helper traduz o texto estático antes de inserir os valores. Não aplique tradução a títulos, descrições, motivos, código ou caminhos armazenados. IDs técnicos, seletores, classes CSS e coordenadas SVG não são localizados."
+              }
+            },
+            {
+              "type": "code",
+              "language": "typescript",
+              "caption": {
+                "en": "Translate the label, preserve the record",
+                "pt-BR": "Traduzir o rótulo e preservar o registro"
+              },
+              "code": "import { ui } from \"../i18n\";\n// escape preserves the existing HTML-escaping boundary.\nreturn ui`<h1>Requests</h1><p>${escape(record.title)}</p>`;"
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Add the matching Portuguese message to src/i18n/pt-BR.json and preserve numbered numbered substitution markers. npm run i18n:check extracts declared messages and checks Portuguese coverage, substitution marker parity and manifest catalogs; npm run check includes it. New UI-facing agent prose follows contextory_context_get.uiLanguage. English source keys and protocol/schema identifiers remain stable. Activity presentation separates the localized action from the untouched record subject.",
+                "pt-BR": "Adicione a mensagem correspondente a src/i18n/pt-BR.json e preserve os marcadores de substitui??o numerados. npm run i18n:check extrai as mensagens declaradas e verifica a cobertura em português, a correspondência dos marcadores de substitui??o e os catálogos do manifesto; npm run check o inclui. Novos textos de agentes na interface seguem contextory_context_get.uiLanguage. Chaves de origem em inglês e identificadores de protocolos/schemas permanecem estáveis. A apresentação de atividades separa a ação localizada do assunto do registro preservado."
+              }
+            }
+          ]
         }
       ]
     },
@@ -3986,6 +4463,60 @@
         },
         {
           "path": "scripts/verify-background-startup.mjs"
+        },
+        {
+          "path": "src/hooks/approval.ts"
+        },
+        {
+          "path": "src/hooks/launcher.ts"
+        },
+        {
+          "path": "src/knowledge/catalog.ts"
+        },
+        {
+          "path": "src/core/workflow.ts"
+        },
+        {
+          "path": "tests/integration/approval-policy.test.ts"
+        },
+        {
+          "path": "src/i18n/index.ts"
+        },
+        {
+          "path": "src/i18n/pt-BR.json"
+        },
+        {
+          "path": "package.nls.json"
+        },
+        {
+          "path": "package.nls.pt-br.json"
+        },
+        {
+          "path": "src/webview/document.ts"
+        },
+        {
+          "path": "src/service/application.ts"
+        },
+        {
+          "path": "src/service/server.ts"
+        },
+        {
+          "path": "tests/core/i18n.test.ts"
+        },
+        {
+          "path": "tests/integration/i18n.test.ts"
+        },
+        {
+          "path": "tests/ui/i18n.spec.ts"
+        },
+        {
+          "path": "scripts/check-localization.mjs"
+        },
+        {
+          "path": "scripts/localization-catalog.mjs"
+        },
+        {
+          "path": "tests/host/smoke.cjs"
         }
       ],
       "sections": [
@@ -4101,6 +4632,38 @@
               }
             }
           ]
+        },
+        {
+          "id": "approval-policy-checks",
+          "title": {
+            "en": "Approval policy and traceability validation",
+            "pt-BR": "Validação da política de aprovação e rastreabilidade"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Disposable integration fixtures exercise compatible function replacement with the same result, approved-contract preservation, audited implementation conflicts, process/outcome/rule guards, exact decision supersession approval, source staleness, service-side bypass rejection, restart persistence and real packaged hook processes for Codex/Claude/Bob. Browser fixtures verify optional observations, required review counts and visible agent provenance. These tests establish launcher/service contracts; they do not automate authenticated native conversations, hook trust or interception of unreported edits.",
+                "pt-BR": "Fixtures descartáveis exercitam substituição de função com resultado igual, preservação de contrato aprovado, conflitos de implementação auditados, proteções de processo/resultado/regra, aprovação exata de decisões substitutas, fontes obsoletas, rejeição de contorno pelo serviço, persistência e processos reais dos hooks empacotados Codex/Claude/Bob. Fixtures de navegador verificam observações opcionais, contagens obrigatórias e proveniência visível. Os testes validam contratos de launcher/serviço; não automatizam conversas nativas autenticadas, confiança nos hooks ou interceptação de edições não registradas."
+              }
+            }
+          ]
+        },
+        {
+          "id": "localization-checks",
+          "title": {
+            "en": "English and Portuguese localization checks",
+            "pt-BR": "Verificações de localização em inglês e português"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Checks cover locale normalization/fallback, static message and manifest coverage, substitution marker preservation, untouched dynamic records/code/attributes, webview language/CSP, project-scoped authenticated configuration, persisted context/hook instructions, English regressions and Portuguese navigation/accessibility/layout in sidebar, short panel and standalone workbenches. The isolated editor smoke compares the project context with the actual vscode.env.language. Raw external diagnostics are allowed to retain their source language.",
+                "pt-BR": "As verificações cobrem normalização/fallback de idioma, cobertura de mensagens e manifesto, preservação de marcadores de substitui??o, registros/código/atributos dinâmicos intactos, idioma/CSP das webviews, configuração autenticada por projeto, persistência das orientações em contexto/hooks, regressões em inglês e navegação/acessibilidade/layout em português na barra lateral, painel curto e áreas de exploração. O smoke isolado do editor compara o contexto do projeto com vscode.env.language real. Diagnósticos externos podem preservar o idioma original."
+              }
+            }
+          ]
         }
       ]
     },
@@ -4128,15 +4691,15 @@
         {
           "id": "current-version",
           "title": {
-            "pt-BR": "Versão documentada atual: 0.9.0",
-            "en": "Current documented version: 0.9.0"
+            "en": "Current documented version: 0.11.0",
+            "pt-BR": "Versão documentada atual: 0.11.0"
           },
           "blocks": [
             {
               "type": "paragraph",
               "text": {
-                "en": "Version 0.9.0 adds a dedicated Approvals queue, recoverable source review and independent project documentation with bundled software-documentation and Carbon. Version 0.8.0 introduced the responsive work console, background startup, automatic recovery, 256 check recipes and complete streamed source fingerprints. Earlier releases remain preserved below.",
-                "pt-BR": "A versão 0.9.0 adiciona a fila Approvals, revisão recuperável de fontes e documentação independente com software-documentation e Carbon incluídos. A versão 0.8.0 introduziu o console responsivo, inicialização em segundo plano, recuperação automática, 256 receitas e fingerprints completos por streaming. As versões anteriores continuam preservadas abaixo."
+                "en": "Version 0.11.0 delivers plain-language approval cards, automatic source snapshots, requested changes, exact-conversation response delivery and recovery, and collapsible optional baseline review. It includes the English/Brazilian Portuguese UI and audited approval policy introduced in the 0.10.0 source line. Earlier release pages remain preserved below.",
+                "pt-BR": "A versão 0.11.0 entrega cartões de aprovação em linguagem natural, snapshots automáticos das fontes, solicitações de ajuste, retorno de respostas à conversa exata, recuperação de conversas e revisão opcional recolhível. Inclui a interface inglês/português brasileiro e a política auditada de aprovação introduzidas na linha de código 0.10.0. As notas históricas permanecem preservadas abaixo."
               }
             },
             {
@@ -4190,6 +4753,36 @@
         },
         {
           "path": "src/service/server.ts"
+        },
+        {
+          "path": "src/i18n/index.ts"
+        },
+        {
+          "path": "src/i18n/pt-BR.json"
+        },
+        {
+          "path": "package.nls.json"
+        },
+        {
+          "path": "package.nls.pt-br.json"
+        },
+        {
+          "path": "src/extension.ts"
+        },
+        {
+          "path": "src/webview/document.ts"
+        },
+        {
+          "path": "src/hooks/launcher.ts"
+        },
+        {
+          "path": "tests/core/i18n.test.ts"
+        },
+        {
+          "path": "tests/integration/i18n.test.ts"
+        },
+        {
+          "path": "tests/ui/i18n.spec.ts"
         }
       ],
       "sections": [
@@ -4203,8 +4796,8 @@
             {
               "type": "paragraph",
               "text": {
-                "pt-BR": "O Contextory 0.9.0 define 39 ferramentas. Os schemas Zod a seguir foram extraídos pelo analisador TypeScript do código salvo sem executar a aplicação. Eles preservam obrigatoriedade, opcionais, padrões e intervalos. tools/list do MCP em execução é autoritativo para a versão instalada. contextory_catalog_review é exclusivo da interface humana mesmo quando seu contrato está visível.",
-                "en": "Contextory 0.9.0 defines 39 tools. The following Zod schema excerpts were extracted with the TypeScript parser from the saved source without executing application code. They preserve required/optional/default/range semantics. The running MCP tools/list response is authoritative for the installed client version. contextory_catalog_review is human-UI-only even if its contract is visible."
+                "pt-BR": "O Contextory 0.11.0 define 39 ferramentas. Os schemas Zod a seguir foram extraídos pelo analisador TypeScript do código salvo sem executar a aplicação. Eles preservam obrigatoriedade, opcionais, padrões e intervalos. tools/list do MCP em execução é autoritativo para a versão instalada. contextory_catalog_review é exclusivo da interface humana mesmo quando seu contrato está visível.",
+                "en": "Contextory 0.11.0 defines 39 tools. The following Zod schema excerpts were extracted with the TypeScript parser from the saved source without executing application code. They preserve required/optional/default/range semantics. The running MCP tools/list response is authoritative for the installed client version. contextory_catalog_review is human-UI-only even if its contract is visible."
               }
             },
             {
@@ -4267,10 +4860,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:126",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:126"
+                "en": "Input schema · src/contracts/tools.ts:129",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:129"
               },
-              "code": "// contextory_hooks_rebuild\nz.object({\n      operationId,\n      provider: z.enum([\"codex\", \"claude\", \"bob\"]),\n    })"
+              "code": "z.object({\n      operationId,\n      provider: z.enum([\"codex\", \"claude\", \"bob\"]),\n    })"
             }
           ]
         },
@@ -4292,10 +4885,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:134",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:134"
+                "en": "Input schema · src/contracts/tools.ts:137",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:137"
               },
-              "code": "// contextory_workspace_get\nz.object({ groupId: id.optional() })"
+              "code": "z.object({ groupId: id.optional() })"
             }
           ]
         },
@@ -4317,10 +4910,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:139",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:139"
+                "en": "Input schema · src/contracts/tools.ts:142",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:142"
               },
-              "code": "// contextory_workspace_request_create\nz.object({\n      operationId,\n      projectIds: z.array(id).min(2).max(16),\n      title: z.string().trim().min(1).max(300),\n      description: text,\n    })"
+              "code": "z.object({\n      operationId,\n      projectIds: z.array(id).min(2).max(16),\n      title: z.string().trim().min(1).max(300),\n      description: text,\n    })"
             }
           ]
         },
@@ -4342,10 +4935,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:149",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:149"
+                "en": "Input schema · src/contracts/tools.ts:152",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:152"
               },
-              "code": "// contextory_version_get\nz.object({\n      releaseId: id.optional(),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(20),\n    })"
+              "code": "z.object({\n      releaseId: id.optional(),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(20),\n    })"
             }
           ]
         },
@@ -4367,10 +4960,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:158",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:158"
+                "en": "Input schema · src/contracts/tools.ts:161",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:161"
               },
-              "code": "// contextory_release_prepare\nz.object({\n      operationId,\n      bump: z.enum([\"auto\", \"patch\", \"minor\", \"major\"]).default(\"auto\"),\n      version: z.string().max(100).optional(),\n    })"
+              "code": "z.object({\n      operationId,\n      bump: z.enum([\"auto\", \"patch\", \"minor\", \"major\"]).default(\"auto\"),\n      version: z.string().max(100).optional(),\n    })"
             }
           ]
         },
@@ -4392,10 +4985,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:167",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:167"
+                "en": "Input schema · src/contracts/tools.ts:170",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:170"
               },
-              "code": "// contextory_release_change\nz.object({\n      operationId,\n      id,\n      expectedRevision: z.number().int().positive(),\n      action: z.enum([\"apply\", \"publish\", \"recover\", \"cancel\"]),\n    })"
+              "code": "z.object({\n      operationId,\n      id,\n      expectedRevision: z.number().int().positive(),\n      action: z.enum([\"apply\", \"publish\", \"recover\", \"cancel\"]),\n    })"
             }
           ]
         },
@@ -4417,10 +5010,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:177",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:177"
+                "en": "Input schema · src/contracts/tools.ts:180",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:180"
               },
-              "code": "// contextory_project_export\nz.object({\n      section: z\n        .enum([\n          \"overview\",\n          \"records\",\n          \"revisions\",\n          \"history\",\n          \"relationships\",\n          \"code_files\",\n          \"code_nodes\",\n          \"code_edges\",\n          \"code_imports\",\n          \"jobs\",\n          \"usage\",\n          \"artifacts\",\n        ])\n        .default(\"overview\"),\n      entityId: id.optional(),\n      artifact: z.string().min(1).max(200).optional(),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(20),\n    })"
+              "code": "z.object({\n      section: z\n        .enum([\n          \"overview\",\n          \"records\",\n          \"revisions\",\n          \"history\",\n          \"relationships\",\n          \"code_files\",\n          \"code_nodes\",\n          \"code_edges\",\n          \"code_imports\",\n          \"jobs\",\n          \"usage\",\n          \"artifacts\",\n        ])\n        .default(\"overview\"),\n      entityId: id.optional(),\n      artifact: z.string().min(1).max(200).optional(),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(20),\n    })"
             }
           ]
         },
@@ -4442,10 +5035,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:203",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:203"
+                "en": "Input schema · src/contracts/tools.ts:206",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:206"
               },
-              "code": "// contextory_catalog_get\nz.object({\n      category: category.optional(),\n      path: z.string().max(2000).optional(),\n      query: z.string().max(4000).optional(),\n      inventory: z.boolean().default(false),\n      pendingOnly: z.boolean().default(false),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(20),\n    })"
+              "code": "z.object({\n      category: category.optional(),\n      path: z.string().max(2000).optional(),\n      query: z.string().max(4000).optional(),\n      inventory: z.boolean().default(false),\n      pendingOnly: z.boolean().default(false),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(20),\n    })"
             }
           ]
         },
@@ -4459,18 +5052,18 @@
             {
               "type": "paragraph",
               "text": {
-                "pt-BR": "Sob lease, cria observações ou propõe substituições/aposentadorias exatas de definições.",
-                "en": "Under a lease, create observations or propose exact definition replacements/retirements."
+                "en": "Compatible maintenance needs no new human decision. Agents may auto-approve implementation conflicts too, with an explicit conflict assessment, rationale, source/test links and validation. Conflicts involving process rules or results, changed approved behavior, retirements and uncertain conflicts require human review before implementation. New observations have optional baseline review and do not trigger mandatory approval alerts.",
+                "pt-BR": "Manutenção compatível dispensa nova decisão humana. Agentes também podem aprovar automaticamente conflitos de implementação, registrando avaliação do conflito, motivo, fontes/testes e validação. Conflitos com regras de processo ou resultados, mudanças em comportamento aprovado, aposentadorias e conflitos incertos exigem revisão humana antes da implementação. Observações novas têm revisão inicial opcional e não geram alertas de aprovação obrigatória."
               }
             },
             {
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:216",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:216"
+                "en": "Input schema · src/contracts/tools.ts:219",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:219"
               },
-              "code": "// contextory_catalog_change\nz.object({\n      operationId,\n      ...lease,\n      action: z.enum([\"create\", \"revise\", \"retire\"]),\n      id: id.optional(),\n      expectedRevision,\n      content: catalogContent.optional(),\n      reason: text,\n      migrationId: id.optional(),\n    })"
+              "code": "z.object({\n      operationId,\n      ...lease,\n      action: z.enum([\"create\", \"revise\", \"retire\"]),\n      id: id.optional(),\n      expectedRevision,\n      content: catalogContent.optional(),\n      reason: text.trim().min(1),\n      migrationId: id.optional(),\n      compatibility: z\n        .enum([\"preserved\", \"changed\", \"conflicting\", \"unknown\"])\n        .default(\"unknown\"),\n      impact: z\n        .enum([\"implementation\", \"process\", \"outcome\", \"unknown\"])\n        .default(\"unknown\"),\n      autoApprove: z.boolean().default(false),\n      decisionIds: z.array(id).max(30).default([]),\n      explanation: z\n        .object({\n          change: text.trim().min(1),\n          approvalReason: text.trim().min(1),\n          behavior: text.trim().min(1),\n        })\n        .optional(),\n    })"
             }
           ]
         },
@@ -4484,18 +5077,18 @@
             {
               "type": "paragraph",
               "text": {
-                "pt-BR": "Somente interface humana: aprova ou rejeita revisão exata de definição/proposta; agentes não aprovam.",
-                "en": "Human UI only: approve or reject an exact definition/proposal revision; native agents cannot approve."
+                "en": "Human UI only. Approve/reject an exact revision without a required comment, or send feedback with update instructions. Source snapshots refresh automatically without approval. The legacy refresh action remains compatible. Requested changes keep implementation blocked until the agent revises the proposal and receives another decision.",
+                "pt-BR": "Exclusivo da interface humana. Aprove/rejeite uma revisão exata sem comentário obrigatório, ou envie feedback com instruções de ajuste. Snapshots das fontes são atualizados automaticamente, sem aprovação. A ação antiga de refresh permanece compatível. Ajustes solicitados mantêm a implementação bloqueada até o agente revisar a proposta e receber outra decisão."
               }
             },
             {
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:230",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:230"
+                "en": "Input schema · src/contracts/tools.ts:248",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:248"
               },
-              "code": "// contextory_catalog_review\nz.object({\n      operationId,\n      id,\n      expectedRevision: z.number().int().positive(),\n      action: z.enum([\"approve\", \"reject\", \"refresh\"]),\n      reason: text.trim().min(1),\n    })"
+              "code": "z\n      .object({\n        operationId,\n        id,\n        expectedRevision: z.number().int().positive(),\n        action: z.enum([\"approve\", \"reject\", \"feedback\", \"refresh\"]),\n        reason: z.string().max(12000).trim().default(\"\"),\n      })\n      .refine((p) => p.action !== \"feedback\" || p.reason.length > 0, {\n        message: \"Describe the update you want the agent to make.\",\n        path: [\"reason\"],\n      })"
             }
           ]
         },
@@ -4517,10 +5110,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:241",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:241"
+                "en": "Input schema · src/contracts/tools.ts:264",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:264"
               },
-              "code": "// contextory_catalog_migrate\nz.object({\n      operationId,\n      ...lease,\n      migrationId: id.optional(),\n      limit: z.number().int().min(1).max(50).default(20),\n    })"
+              "code": "z.object({\n      operationId,\n      ...lease,\n      migrationId: id.optional(),\n      limit: z.number().int().min(1).max(50).default(20),\n    })"
             }
           ]
         },
@@ -4542,10 +5135,17 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:251",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:251"
+                "en": "Input schema · src/contracts/tools.ts:274",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:274"
               },
-              "code": "// contextory_context_get\nz.object({ specId: id.optional() })"
+              "code": "z.object({ specId: id.optional() })"
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "The response includes uiLanguage (en or pt-BR) and contentLanguageInstruction from the editor-configured project. Use it for all newly authored UI-facing prose; preserve stored history and exact protocol/source identifiers. Standalone projects default to English unless an editor configured their ledger.",
+                "pt-BR": "A resposta inclui uiLanguage (en ou pt-BR) e contentLanguageInstruction do projeto configurado pelo editor. Use esse idioma em cada novo texto da interface; preserve o histórico e os identificadores exatos de protocolo/código. Projetos independentes usam inglês por padrão, salvo configuração do editor em seu registro."
+              }
             }
           ]
         },
@@ -4567,10 +5167,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:256",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:256"
+                "en": "Input schema · src/contracts/tools.ts:279",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:279"
               },
-              "code": "// contextory_entity_get\nz.object({\n      id,\n      revision: z.number().int().positive().optional(),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(20),\n    })"
+              "code": "z.object({\n      id,\n      revision: z.number().int().positive().optional(),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(20),\n    })"
             }
           ]
         },
@@ -4592,10 +5192,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:266",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:266"
+                "en": "Input schema · src/contracts/tools.ts:289",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:289"
               },
-              "code": "// contextory_history_get\nz.object({\n      entityId: id.optional(),\n      before: z.number().int().positive().optional(),\n      limit: z.number().int().min(1).max(100).default(40),\n    })"
+              "code": "z.object({\n      entityId: id.optional(),\n      before: z.number().int().positive().optional(),\n      limit: z.number().int().min(1).max(100).default(40),\n    })"
             }
           ]
         },
@@ -4617,10 +5217,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:275",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:275"
+                "en": "Input schema · src/contracts/tools.ts:298",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:298"
               },
-              "code": "// contextory_request_change\nz.object({\n      operationId,\n      action: z.enum([\"create\", \"revise\"]),\n      id: id.optional(),\n      expectedRevision,\n      title: z.string().min(1).max(300),\n      description: text,\n      reason: text.optional(),\n    })"
+              "code": "z.object({\n      operationId,\n      action: z.enum([\"create\", \"revise\"]),\n      id: id.optional(),\n      expectedRevision,\n      title: z.string().min(1).max(300),\n      description: text,\n      reason: text.optional(),\n    })"
             }
           ]
         },
@@ -4642,10 +5242,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:288",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:288"
+                "en": "Input schema · src/contracts/tools.ts:311",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:311"
               },
-              "code": "// contextory_spec_change\nz.object({\n      operationId,\n      action: z.enum([\n        \"milestone\",\n        \"create\",\n        \"revise\",\n        \"reopen\",\n        \"complete\",\n        \"block\",\n        \"cancel\",\n      ]),\n      id: id.optional(),\n      parentId: id.optional(),\n      expectedRevision,\n      title: z.string().min(1).max(300).optional(),\n      description: text.optional(),\n      criteria: z.array(z.string().min(1).max(2000)).min(1).max(50).optional(),\n      paths: z.array(z.string().max(2000)).max(100).optional(),\n      dependencies: z.array(id).max(50).optional(),\n      reason: text.optional(),\n    })"
+              "code": "z.object({\n      operationId,\n      action: z.enum([\n        \"milestone\",\n        \"create\",\n        \"revise\",\n        \"reopen\",\n        \"complete\",\n        \"block\",\n        \"cancel\",\n      ]),\n      id: id.optional(),\n      parentId: id.optional(),\n      expectedRevision,\n      title: z.string().min(1).max(300).optional(),\n      description: text.optional(),\n      criteria: z.array(z.string().min(1).max(2000)).min(1).max(50).optional(),\n      paths: z.array(z.string().max(2000)).max(100).optional(),\n      dependencies: z.array(id).max(50).optional(),\n      reason: text.optional(),\n    })"
             }
           ]
         },
@@ -4667,10 +5267,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:313",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:313"
+                "en": "Input schema · src/contracts/tools.ts:336",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:336"
               },
-              "code": "// contextory_session_attach\nz.object({ operationId, nativeSessionId: id.optional() })"
+              "code": "z.object({ operationId, nativeSessionId: id.optional() })"
             }
           ]
         },
@@ -4692,10 +5292,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:318",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:318"
+                "en": "Input schema · src/contracts/tools.ts:341",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:341"
               },
-              "code": "// contextory_usage_get\nz.object({\n      entityId: id.optional(),\n      provider: z.enum([\"codex\", \"claude\", \"bob\"]).optional(),\n      nativeSessionId: z.string().min(1).max(200).optional(),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(20),\n    })"
+              "code": "z.object({\n      entityId: id.optional(),\n      provider: z.enum([\"codex\", \"claude\", \"bob\"]).optional(),\n      nativeSessionId: z.string().min(1).max(200).optional(),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(20),\n    })"
             }
           ]
         },
@@ -4717,10 +5317,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:329",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:329"
+                "en": "Input schema · src/contracts/tools.ts:352",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:352"
               },
-              "code": "// contextory_spec_lease\nz.object({\n      operationId,\n      specId: id,\n      expectedRevision,\n      action: z.enum([\"claim\", \"renew\", \"release\"]),\n      sessionId: id,\n      leaseId: id.optional(),\n    })"
+              "code": "z.object({\n      operationId,\n      specId: id,\n      expectedRevision,\n      action: z.enum([\"claim\", \"renew\", \"release\"]),\n      sessionId: id,\n      leaseId: id.optional(),\n    })"
             }
           ]
         },
@@ -4742,10 +5342,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:341",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:341"
+                "en": "Input schema · src/contracts/tools.ts:364",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:364"
               },
-              "code": "// contextory_finding_record\nz.object({\n      operationId,\n      ...lease,\n      id: id.optional(),\n      expectedRevision,\n      title: z.string().min(1).max(300),\n      observation: text,\n      impact: text,\n      resolution: text.optional(),\n      status: z.enum([\"open\", \"resolved\", \"deferred\"]),\n      blocking: z.boolean().default(true),\n      sources: z.array(source).max(30).default([]),\n    })"
+              "code": "z.object({\n      operationId,\n      ...lease,\n      id: id.optional(),\n      expectedRevision,\n      title: z.string().min(1).max(300),\n      observation: text,\n      impact: text,\n      resolution: text.optional(),\n      status: z.enum([\"open\", \"resolved\", \"deferred\"]),\n      blocking: z.boolean().default(true),\n      sources: z.array(source).max(30).default([]),\n    })"
             }
           ]
         },
@@ -4759,18 +5359,18 @@
             {
               "type": "paragraph",
               "text": {
-                "pt-BR": "Registra escolha, justificativa, alternativas e consequências com fontes.",
-                "en": "Record a choice, rationale, alternatives and consequences with sources."
+                "en": "Record impact and concise decision rationale. Implementation-to-implementation supersession auto-reviews; process/outcome or unclassified conflicts require the exact human-approved proposal approvalId with matching decisionIds and replacement description before implementation. Prior decisions retain their original content and supersedes links across specs.",
+                "pt-BR": "Registre impacto e motivo conciso da decisão. Substituições entre decisões de implementação têm revisão automática; conflitos de processo/resultado ou sem classificação exigem approvalId da proposta humana exata, com decisionIds e descrição substituta correspondentes, antes da implementação. Decisões anteriores preservam o conteúdo e os vínculos supersedes entre especificações."
               }
             },
             {
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:358",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:358"
+                "en": "Input schema · src/contracts/tools.ts:381",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:381"
               },
-              "code": "// contextory_decision_record\nz.object({\n      operationId,\n      ...lease,\n      title: z.string().min(1).max(300),\n      choice: text,\n      rationale: text,\n      alternatives: z.string().max(12000).default(\"None material\"),\n      consequences: text,\n      supersedes: id.optional(),\n      sources: z.array(source).max(30).default([]),\n    })"
+              "code": "z.object({\n      operationId,\n      ...lease,\n      title: z.string().min(1).max(300),\n      choice: text,\n      rationale: text,\n      alternatives: z.string().max(12000).default(\"None material\"),\n      consequences: text,\n      supersedes: id.optional(),\n      impact: z\n        .enum([\"implementation\", \"process\", \"outcome\", \"unknown\"])\n        .default(\"unknown\"),\n      approvalId: id.optional(),\n      sources: z.array(source).max(30).default([]),\n    })"
             }
           ]
         },
@@ -4792,10 +5392,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:373",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:373"
+                "en": "Input schema · src/contracts/tools.ts:400",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:400"
               },
-              "code": "// contextory_evidence_record\nz.object({\n      operationId,\n      ...lease,\n      title: z.string().min(1).max(300),\n      detail: text,\n      criteria: z.array(id).min(1).max(50),\n      result: z.enum([\"passed\", \"failed\", \"not_run\"]),\n      command: z.string().max(4000).optional(),\n    })"
+              "code": "z.object({\n      operationId,\n      ...lease,\n      title: z.string().min(1).max(300),\n      detail: text,\n      criteria: z.array(id).min(1).max(50),\n      result: z.enum([\"passed\", \"failed\", \"not_run\"]),\n      command: z.string().max(4000).optional(),\n    })"
             }
           ]
         },
@@ -4817,10 +5417,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:386",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:386"
+                "en": "Input schema · src/contracts/tools.ts:413",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:413"
               },
-              "code": "// contextory_check_run\nz.object({\n      operationId,\n      ...lease,\n      recipeId: id,\n      criteria: z.array(id).min(1).max(50),\n    })"
+              "code": "z.object({\n      operationId,\n      ...lease,\n      recipeId: id,\n      criteria: z.array(id).min(1).max(50),\n    })"
             }
           ]
         },
@@ -4842,10 +5442,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:396",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:396"
+                "en": "Input schema · src/contracts/tools.ts:423",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:423"
               },
-              "code": "// contextory_outcome_submit\nz.object({\n      operationId,\n      ...lease,\n      expectedRevision: z.number().int().positive(),\n      summary: text,\n      issuesSummary: text,\n      decisionsSummary: text,\n      limitations: text,\n      report: text,\n      changelog: z.string().min(1).max(2000),\n      catalog: z\n        .object({ recordIds: z.array(id).max(200), explanation: text })\n        .optional(),\n      criteria: z\n        .array(\n          z.object({\n            criterionId: id,\n            evidenceIds: z.array(id).min(1).max(30),\n          }),\n        )\n        .min(1)\n        .max(50),\n      commits: z\n        .array(z.string().regex(/^[a-f0-9]{40,64}$/))\n        .max(100)\n        .default([]),\n    })"
+              "code": "z.object({\n      operationId,\n      ...lease,\n      expectedRevision: z.number().int().positive(),\n      summary: text,\n      issuesSummary: text,\n      decisionsSummary: text,\n      limitations: text,\n      report: text,\n      changelog: z.string().min(1).max(2000),\n      catalog: z\n        .object({ recordIds: z.array(id).max(200), explanation: text })\n        .optional(),\n      criteria: z\n        .array(\n          z.object({\n            criterionId: id,\n            evidenceIds: z.array(id).min(1).max(30),\n          }),\n        )\n        .min(1)\n        .max(50),\n      commits: z\n        .array(z.string().regex(/^[a-f0-9]{40,64}$/))\n        .max(100)\n        .default([]),\n    })"
             }
           ]
         },
@@ -4867,10 +5467,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:427",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:427"
+                "en": "Input schema · src/contracts/tools.ts:454",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:454"
               },
-              "code": "// contextory_search\nz.object({\n      codebaseId: id.optional(),\n      query: z.string().min(1).max(4000),\n      mode: z.enum([\"lexical\", \"semantic\", \"hybrid\"]).default(\"hybrid\"),\n      limit: z.number().int().min(1).max(20).default(5),\n    })"
+              "code": "z.object({\n      codebaseId: id.optional(),\n      query: z.string().min(1).max(4000),\n      mode: z.enum([\"lexical\", \"semantic\", \"hybrid\"]).default(\"hybrid\"),\n      limit: z.number().int().min(1).max(20).default(5),\n    })"
             }
           ]
         },
@@ -4892,10 +5492,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:437",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:437"
+                "en": "Input schema · src/contracts/tools.ts:464",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:464"
               },
-              "code": "// contextory_code_context_get\nz.object({\n      codebaseId: id.optional(),\n      query: z.string().min(1).max(4000),\n      paths: z.array(z.string().max(2000)).max(20).default([]),\n      specId: id.optional(),\n      budgetTokens: z.number().int().min(512).max(6000).default(3000),\n    })"
+              "code": "z.object({\n      codebaseId: id.optional(),\n      query: z.string().min(1).max(4000),\n      paths: z.array(z.string().max(2000)).max(20).default([]),\n      specId: id.optional(),\n      budgetTokens: z.number().int().min(512).max(6000).default(3000),\n    })"
             }
           ]
         },
@@ -4917,10 +5517,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:448",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:448"
+                "en": "Input schema · src/contracts/tools.ts:475",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:475"
               },
-              "code": "// contextory_code_architecture_get\nz.object({\n      codebaseId: id.optional(),\n      refresh: z.boolean().default(true),\n    })"
+              "code": "z.object({\n      codebaseId: id.optional(),\n      refresh: z.boolean().default(true),\n    })"
             }
           ]
         },
@@ -4942,10 +5542,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:456",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:456"
+                "en": "Input schema · src/contracts/tools.ts:483",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:483"
               },
-              "code": "// contextory_code_path_get\nz.object({\n      codebaseId: id.optional(),\n      from: z.string().min(1).max(2500),\n      to: z.string().min(1).max(2500),\n      direction: z.enum([\"forward\", \"both\"]).default(\"both\"),\n      maxDepth: z.number().int().min(1).max(10).default(6),\n    })"
+              "code": "z.object({\n      codebaseId: id.optional(),\n      from: z.string().min(1).max(2500),\n      to: z.string().min(1).max(2500),\n      direction: z.enum([\"forward\", \"both\"]).default(\"both\"),\n      maxDepth: z.number().int().min(1).max(10).default(6),\n    })"
             }
           ]
         },
@@ -4967,10 +5567,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:467",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:467"
+                "en": "Input schema · src/contracts/tools.ts:494",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:494"
               },
-              "code": "// contextory_code_index_refresh\nz.object({\n      codebaseId: id.optional(),\n      graphifyPath: z.string().min(1).max(2000).optional(),\n    })"
+              "code": "z.object({\n      codebaseId: id.optional(),\n      graphifyPath: z.string().min(1).max(2000).optional(),\n    })"
             }
           ]
         },
@@ -4992,10 +5592,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:475",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:475"
+                "en": "Input schema · src/contracts/tools.ts:502",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:502"
               },
-              "code": "// contextory_codebase_list\nz.object({})"
+              "code": "z.object({})"
             }
           ]
         },
@@ -5017,10 +5617,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:480",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:480"
+                "en": "Input schema · src/contracts/tools.ts:507",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:507"
               },
-              "code": "// contextory_codebase_change\nz\n      .object({\n        operationId,\n        action: z.enum([\"add\", \"remove\"]),\n        root: z.string().min(1).max(2000).optional(),\n        name: z.string().trim().min(1).max(100).optional(),\n        codebaseId: id.optional(),\n      })\n      .refine(\n        (p) => (p.action === \"add\" ? Boolean(p.root) : Boolean(p.codebaseId)),\n        \"Add requires root; remove requires codebaseId.\",\n      )"
+              "code": "z\n      .object({\n        operationId,\n        action: z.enum([\"add\", \"remove\"]),\n        root: z.string().min(1).max(2000).optional(),\n        name: z.string().trim().min(1).max(100).optional(),\n        codebaseId: id.optional(),\n      })\n      .refine(\n        (p) => (p.action === \"add\" ? Boolean(p.root) : Boolean(p.codebaseId)),\n        \"Add requires root; remove requires codebaseId.\",\n      )"
             }
           ]
         },
@@ -5042,10 +5642,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:496",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:496"
+                "en": "Input schema · src/contracts/tools.ts:523",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:523"
               },
-              "code": "// contextory_relationship_change\nz.object({\n      operationId,\n      from: id,\n      to: id.optional(),\n      source: source.optional(),\n      kind: z.enum([\"implements\", \"resolves\", \"validated_by\", \"related_to\"]),\n      rationale: text,\n    })"
+              "code": "z.object({\n      operationId,\n      from: id,\n      to: id.optional(),\n      source: source.optional(),\n      kind: z.enum([\"implements\", \"resolves\", \"validated_by\", \"related_to\"]),\n      rationale: text,\n    })"
             }
           ]
         },
@@ -5067,10 +5667,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:508",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:508"
+                "en": "Input schema · src/contracts/tools.ts:535",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:535"
               },
-              "code": "// contextory_impact_get\nz.object({\n      codebaseId: id.optional(),\n      id: z.string().min(1).max(2500),\n      direction: z.enum([\"forward\", \"reverse\", \"both\"]).default(\"reverse\"),\n      depth: z.number().int().min(1).max(10).default(5),\n      limit: z.number().int().min(1).max(200).default(50),\n    })"
+              "code": "z.object({\n      codebaseId: id.optional(),\n      id: z.string().min(1).max(2500),\n      direction: z.enum([\"forward\", \"reverse\", \"both\"]).default(\"reverse\"),\n      depth: z.number().int().min(1).max(10).default(5),\n      limit: z.number().int().min(1).max(200).default(50),\n    })"
             }
           ]
         },
@@ -5092,10 +5692,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:519",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:519"
+                "en": "Input schema · src/contracts/tools.ts:546",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:546"
               },
-              "code": "// contextory_flow_trace\nz.object({\n      codebaseId: id.optional(),\n      root: z.object({\n        path: z.string().min(1).max(2000),\n        position: z\n          .object({\n            line: z.number().int().nonnegative(),\n            character: z.number().int().nonnegative(),\n          })\n          .optional(),\n        symbol: z.string().max(500).optional(),\n        start: z.enum([\"cursor\", \"function\"]).optional(),\n      }),\n      view: z.enum([\"calls\", \"flow\"]).default(\"calls\"),\n      direction: z.enum([\"outgoing\", \"incoming\"]).default(\"outgoing\"),\n      limits,\n    })"
+              "code": "z.object({\n      codebaseId: id.optional(),\n      root: z.object({\n        path: z.string().min(1).max(2000),\n        position: z\n          .object({\n            line: z.number().int().nonnegative(),\n            character: z.number().int().nonnegative(),\n          })\n          .optional(),\n        symbol: z.string().max(500).optional(),\n        start: z.enum([\"cursor\", \"function\"]).optional(),\n      }),\n      view: z.enum([\"calls\", \"flow\"]).default(\"calls\"),\n      direction: z.enum([\"outgoing\", \"incoming\"]).default(\"outgoing\"),\n      limits,\n    })"
             }
           ]
         },
@@ -5117,10 +5717,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:540",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:540"
+                "en": "Input schema · src/contracts/tools.ts:567",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:567"
               },
-              "code": "// contextory_flow_expand\nz.object({\n      codebaseId: id.optional(),\n      graphId: id,\n      snapshotId: id,\n      nodeId: id.optional(),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(30),\n      limits,\n    })"
+              "code": "z.object({\n      codebaseId: id.optional(),\n      graphId: id,\n      snapshotId: id,\n      nodeId: id.optional(),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(30),\n      limits,\n    })"
             }
           ]
         },
@@ -5142,10 +5742,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:553",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:553"
+                "en": "Input schema · src/contracts/tools.ts:580",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:580"
               },
-              "code": "// contextory_report_export\nz.object({\n      format: z.enum([\"report\", \"changelog\", \"json\"]).default(\"report\"),\n      requestId: id,\n    })"
+              "code": "z.object({\n      format: z.enum([\"report\", \"changelog\", \"json\"]).default(\"report\"),\n      requestId: id,\n    })"
             }
           ]
         },
@@ -5167,10 +5767,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:60",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:60"
+                "en": "Input schema · src/contracts/tools.ts:63",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:63"
               },
-              "code": "// contextory_docs_get\nz.object({\n      section: z\n        .enum([\"overview\", \"sections\", \"guidance\", \"job\"])\n        .default(\"overview\"),\n      query: z.string().max(4000).default(\"\"),\n      path: z.string().max(2000).optional(),\n      recordId: id.optional(),\n      pageId: id.optional(),\n      sectionId: id.optional(),\n      resource: z.string().max(2000).optional(),\n      jobId: id.optional(),\n      locale: z.enum([\"en\", \"pt-BR\"]).default(\"en\"),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(10),\n    })"
+              "code": "z.object({\n      section: z\n        .enum([\"overview\", \"sections\", \"guidance\", \"job\"])\n        .default(\"overview\"),\n      query: z.string().max(4000).default(\"\"),\n      path: z.string().max(2000).optional(),\n      recordId: id.optional(),\n      pageId: id.optional(),\n      sectionId: id.optional(),\n      resource: z.string().max(2000).optional(),\n      jobId: id.optional(),\n      locale: z.enum([\"en\", \"pt-BR\"]).default(\"en\"),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(50).default(10),\n    })"
             }
           ]
         },
@@ -5192,10 +5792,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:79",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:79"
+                "en": "Input schema · src/contracts/tools.ts:82",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:82"
               },
-              "code": "// contextory_docs_run\nz.object({\n      operationId,\n      action: z.enum([\n        \"map\",\n        \"init\",\n        \"validate\",\n        \"build\",\n        \"integrations\",\n        \"migrate\",\n        \"readme\",\n        \"pages_plan\",\n        \"pages_publish\",\n        \"pages_status\",\n      ]),\n      specId: id.optional(),\n      leaseId: id.optional(),\n      name: z.string().trim().min(1).max(300).optional(),\n      kind: z.enum([\"application\", \"library\", \"plugin\"]).optional(),\n      sourceRoots: z\n        .array(z.string().min(1).max(2000))\n        .min(1)\n        .max(30)\n        .optional(),\n      apply: z.boolean().default(false),\n      siteUrl: z.string().max(2000).optional(),\n      remote: z.string().max(300).optional(),\n      publish: z.boolean().default(false),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(1000).default(100),\n    })"
+              "code": "z.object({\n      operationId,\n      action: z.enum([\n        \"map\",\n        \"init\",\n        \"validate\",\n        \"build\",\n        \"integrations\",\n        \"migrate\",\n        \"readme\",\n        \"pages_plan\",\n        \"pages_publish\",\n        \"pages_status\",\n      ]),\n      specId: id.optional(),\n      leaseId: id.optional(),\n      name: z.string().trim().min(1).max(300).optional(),\n      kind: z.enum([\"application\", \"library\", \"plugin\"]).optional(),\n      sourceRoots: z\n        .array(z.string().min(1).max(2000))\n        .min(1)\n        .max(30)\n        .optional(),\n      apply: z.boolean().default(false),\n      siteUrl: z.string().max(2000).optional(),\n      remote: z.string().max(300).optional(),\n      publish: z.boolean().default(false),\n      offset: z.number().int().nonnegative().default(0),\n      limit: z.number().int().min(1).max(1000).default(100),\n    })"
             }
           ]
         },
@@ -5217,10 +5817,10 @@
               "type": "code",
               "language": "typescript",
               "caption": {
-                "en": "Input schema · src/contracts/tools.ts:113",
-                "pt-BR": "Schema de entrada · src/contracts/tools.ts:113"
+                "en": "Input schema · src/contracts/tools.ts:116",
+                "pt-BR": "Schema de entrada · src/contracts/tools.ts:116"
               },
-              "code": "// contextory_docs_link\nz.object({\n      operationId,\n      ...lease,\n      pageId: id,\n      sectionId: id,\n      corpusFingerprint: z.string().length(64),\n      recordIds: z.array(id).max(30),\n      reason: text,\n    })"
+              "code": "z.object({\n      operationId,\n      ...lease,\n      pageId: id,\n      sectionId: id,\n      corpusFingerprint: z.string().length(64),\n      recordIds: z.array(id).max(30),\n      reason: text,\n    })"
             }
           ]
         },
@@ -5528,6 +6128,227 @@
               "text": {
                 "pt-BR": "Executa mapa/validação/build/export/preview sem publicar nem aprovar fontes.",
                 "en": "Run mapping/validation/build/export/preview without publishing or approving sources."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "release-v0-11-0",
+      "title": {
+        "en": "Release v0.11.0",
+        "pt-BR": "Release v0.11.0"
+      },
+      "sources": [
+        {
+          "path": "package.json"
+        },
+        {
+          "path": "src/contracts/model.ts"
+        },
+        {
+          "path": "src/knowledge/catalog.ts"
+        },
+        {
+          "path": "src/core/conversations.ts"
+        },
+        {
+          "path": "src/hooks/review-wait.ts"
+        },
+        {
+          "path": "src/providers/conversations.ts"
+        },
+        {
+          "path": "src/webview/catalog.ts"
+        },
+        {
+          "path": "src/webview/main.ts"
+        },
+        {
+          "path": "tests/ui/catalog.spec.ts"
+        },
+        {
+          "path": "tests/integration/approval-conversations.test.ts"
+        }
+      ],
+      "sections": [
+        {
+          "id": "approval-review",
+          "title": {
+            "en": "Decide from a clear explanation",
+            "pt-BR": "Decida a partir de uma explicação clara"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Approval cards ask the agent to explain what changes, why approval is needed and how application behavior changes. Approve or Reject needs no comment. Request changes accepts instructions, keeps implementation blocked and lets the agent update the same proposal before another decision. Historical before/after definitions, actors, hashes and rationale remain indexed.",
+                "pt-BR": "Cartões de aprovação pedem que o agente explique o que muda, por que a aprovação é necessária e como o comportamento da aplicação muda. Aprovar ou Rejeitar dispensa comentário. Solicitar ajustes aceita instruções, mantém a implementação bloqueada e permite atualizar a mesma proposta antes de outra decisão. Definições antes/depois, autores, hashes e justificativas permanecem indexados."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Readable source snapshots refresh automatically without a user comment or implicit approval. Missing references, concurrent edits and changed targets remain protected. Optional baseline review starts collapsed and can be opened with a click or keyboard; its chosen state survives refresh and navigation. Pending approval decisions remain visible.",
+                "pt-BR": "Snapshots de fontes legíveis são atualizados automaticamente, sem comentário do usuário nem aprovação implícita. Referências ausentes, edições concorrentes e alvos alterados continuam protegidos. A revisão opcional começa recolhida e pode ser aberta com clique ou teclado; o estado escolhido sobrevive à atualização e navegação. Decisões pendentes continuam visíveis."
+              }
+            }
+          ]
+        },
+        {
+          "id": "conversation",
+          "title": {
+            "en": "Keep the originating conversation",
+            "pt-BR": "Mantenha a conversa de origem"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "The project, provider and exact native session are retained on linked work and proposals. Durable approval/rejection/feedback replies return only to that session through trusted hooks. A waiting hook can return the response within a four-minute budget; expiry or service failure never grants approval. Queued/offered/unbound status distinguishes transport from model execution.",
+                "pt-BR": "Projeto, provedor e sessão nativa exata são mantidos no trabalho e nas propostas vinculadas. Respostas duráveis de aprovação/rejeição/feedback retornam apenas à mesma sessão por hooks confiáveis. Um hook em espera pode retornar a resposta dentro de quatro minutos; expiração ou falha do serviço nunca concede aprovação. Estados de fila/envio/sem vínculo distinguem transporte de execução pelo modelo."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Reopen conversation uses the installed Claude session command. Codex resumes the exact saved conversation in an interactive terminal and requires its CLI. Bob/generic clients or unavailable adapters copy the session ID for native history recovery. A stopped or untrusted client may need manual resume; unknown historical session identities are never guessed. Native permissions, sign-in and history availability stay with the client.",
+                "pt-BR": "Reabrir conversa usa o comando de sessão do Claude instalado. Codex retoma a conversa salva exata em um terminal interativo e requer sua CLI. Bob/clientes genéricos ou adaptadores indisponíveis copiam o ID para recuperação no histórico nativo. Um cliente parado ou sem confiança pode exigir retomada manual; identidades históricas desconhecidas nunca são adivinhadas. Permissões, autenticação e disponibilidade do histórico continuam no cliente nativo."
+              }
+            }
+          ]
+        },
+        {
+          "id": "install",
+          "title": {
+            "en": "Install and verify",
+            "pt-BR": "Instale e verifique"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Download contextory-workspace-0.11.0.vsix and the matching .sha256, compare the SHA-256, then use Extensions > Install from VSIX. Reload the editor and native integrations when prompted so the new tool contracts and waiting hooks are discovered. Review hook trust in the native client. English and Brazilian Portuguese follow the VS Code display language, including instructions for new agent-authored UI entries.",
+                "pt-BR": "Baixe contextory-workspace-0.11.0.vsix e o .sha256 correspondente, compare o SHA-256 e use Extensions > Install from VSIX. Recarregue o editor e as integrações nativas quando solicitado para descobrir os contratos e hooks de espera atualizados. Revise a confiança dos hooks no cliente nativo. Inglês e português brasileiro seguem o idioma do VS Code, incluindo instruções para novas entradas da interface escritas pelo agente."
+              }
+            },
+            {
+              "type": "link",
+              "href": "https://github.com/igormicadei/Contextory/releases/tag/v0.11.0",
+              "text": {
+                "en": "Download the 0.11.0 release",
+                "pt-BR": "Baixar a release 0.11.0"
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Qualification covers approval behavior and source history, live waiting-hook responses, service/headless/registration boundaries, English/Portuguese UI, keyboard collapse/recovery, bilingual documentation, canonical skill consistency and package checksums. Trusted local Windows workspaces with Node.js 24+ remain the qualified environment. Authenticated live model conversations retain their native-client limits.",
+                "pt-BR": "A qualificação cobre aprovação e histórico das fontes, respostas reais de hooks em espera, limites de serviço/headless/registro, interface inglês/português, recolhimento por teclado, documentação bilíngue, consistência de skills e checksums. Workspaces locais confiáveis no Windows com Node.js 24+ continuam o ambiente qualificado. Conversas autenticadas com modelos mantêm os limites dos clientes nativos."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "release-v0-10-0",
+      "title": {
+        "en": "Release v0.10.0",
+        "pt-BR": "Release v0.10.0"
+      },
+      "sources": [
+        {
+          "path": "package.json"
+        },
+        {
+          "path": "src/contracts/model.ts"
+        },
+        {
+          "path": "src/knowledge/catalog.ts"
+        },
+        {
+          "path": "src/hooks/approval.ts"
+        },
+        {
+          "path": "src/core/history.ts"
+        },
+        {
+          "path": "src/i18n/index.ts"
+        },
+        {
+          "path": "src/agents/instructions.ts"
+        },
+        {
+          "path": "tests/integration/approval-policy.test.ts"
+        },
+        {
+          "path": "tests/integration/i18n.test.ts"
+        },
+        {
+          "path": "tests/ui/i18n.spec.ts"
+        }
+      ],
+      "sections": [
+        {
+          "id": "approval-policy",
+          "title": {
+            "en": "Selective approval with enforced waiting",
+            "pt-BR": "Aprovação seletiva com espera obrigatória"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Agents may auto-approve compatible maintenance and implementation conflicts with an explicit impact classification, reason, validation and audit record. Conflicts affecting process rules or outcomes, uncertain conflicts and retirements require human review before implementation. Native PreToolUse/Stop hooks and the service gate keep the agent waiting for that decision; silence or elapsed time never grants approval.",
+                "pt-BR": "Agentes podem autoaprovar manutenção compatível e conflitos de implementação com classificação de impacto, motivo, validação e registro de auditoria explícitos. Conflitos que afetam regras de processo ou resultados, conflitos incertos e desativações exigem revisão humana antes da implementação. Hooks nativos PreToolUse/Stop e a barreira do serviço mantêm o agente aguardando a decisão; silêncio ou tempo decorrido nunca concedem aprovação."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Definitions retain their before/after revisions, source hashes, actors, rationale, related decisions, specifications and check evidence. Use the catalog and history to investigate a feature that stopped working and connect a confirmed regression to its responsible change. Generated observations have optional review and do not become human-approved requirements.",
+                "pt-BR": "Definições preservam revisões antes/depois, hashes de fontes, autores, justificativas, decisões relacionadas, especificações e evidências de verificação. Use catálogo e histórico para investigar uma funcionalidade que parou de funcionar e relacionar uma regressão confirmada à mudança responsável. Observações geradas têm revisão opcional e não se tornam requisitos aprovados por uma pessoa."
+              }
+            }
+          ]
+        },
+        {
+          "id": "language",
+          "title": {
+            "en": "Follow the VS Code language",
+            "pt-BR": "Seguir o idioma do VS Code"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Controls and extension contributions use the VS Code display language: English or Brazilian Portuguese, with English fallback for other locales. The editor propagates uiLanguage and a content-language instruction to project context and hooks. Agents must write new UI-facing entries in that language, preserving exact identifiers, source code and historical text. Documentation retains both locales.",
+                "pt-BR": "Controles e contribuições da extensão usam o idioma de exibição do VS Code: inglês ou português brasileiro, com fallback para inglês nos demais idiomas. O editor propaga uiLanguage e uma instrução de idioma para o contexto do projeto e hooks. Agentes devem escrever novas entradas da interface nesse idioma, preservando identificadores exatos, código e texto histórico. A documentação mantém os dois idiomas."
+              }
+            }
+          ]
+        },
+        {
+          "id": "package",
+          "title": {
+            "en": "Local package and qualification",
+            "pt-BR": "Pacote local e qualificação"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Build with npm ci and npm run package:vsix. The output is artifacts/contextory-workspace-0.10.0.vsix and its matching .sha256. Compare the checksum before installing through Extensions > Install from VSIX, then reload the editor/native integrations when prompted. This delivery builds locally and pushes source commits; GitHub release asset publication and installation into an active editor are separate actions.",
+                "pt-BR": "Gere com npm ci e npm run package:vsix. A saída é artifacts/contextory-workspace-0.10.0.vsix e seu .sha256 correspondente. Compare o checksum antes de instalar por Extensions > Install from VSIX e recarregue o editor/integrações nativas quando solicitado. Esta entrega gera o pacote local e envia commits de código; publicar assets de release no GitHub e instalar no editor ativo são ações separadas."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Validation covers approval classification and enforcement, source-linked history, locale transport, translation/substitution coverage, English/Portuguese UI, managed skill consistency and bilingual documentation. Trusted local Windows workspaces with Node.js 24+ remain the qualified environment. Historical release notes and published checksums are preserved.",
+                "pt-BR": "A validação cobre classificação e bloqueio de aprovações, histórico ligado às fontes, transporte do idioma, cobertura de traduções/substituições, interface inglês/português, consistência de skills e documentação bilíngue. Workspaces locais confiáveis no Windows com Node.js 24+ continuam o ambiente qualificado. Notas históricas e checksums publicados são preservados."
               }
             }
           ]
@@ -6425,7 +7246,7 @@
                 "pt-BR": "Caminho do recurso canônico",
                 "en": "Canonical resource path"
               },
-              "code": "skills/contextory-codebase/SKILL.md"
+              "code": "---\nname: contextory-codebase\ndescription: Understand a connected workspace, locate definitions and related code, assess source impact, and recover relevant project decisions through Contextory. Use for codebase questions and before changes spanning related components.\nmetadata:\n  version: \"9\"\n---\n\n<!-- contextory-managed-codebase -->\n\nUse the Contextory capabilities advertised by the current client. A connected MCP server or packaged CLI supplies shared retrieval; hooks and editor language services are optional. The same workflow applies in any agent.\n\nWhen authoring UI-facing project records, read `uiLanguage` in `contextory_context_get` and use that VS Code language (`en`/`pt-BR`) for all new prose, even if chat uses another language. Preserve stored historical text, source identifiers and code; bilingual documentation keeps its paired locales.\n\nIn a multi-root editor workspace, first use `contextory_workspace_get`. Pass the intended `projectId` on every related retrieval and workflow call, with `workspaceId` when multiple editor contexts are attached. Omission/current stays on that server's project; changing the UI project does not change agent defaults. Keep project identity/root with records, artifact handles, graph snapshots and citations. Identical paths/symbols in different projects are distinct. Unknown or ambiguous scope fails instead of selecting another project. `codebaseId` still selects a read-only reference within the chosen project; references are not writable workspace members.\n\nAfter resuming a chat, use its current advertised tools and a read-only probe before reporting Contextory disconnected; an earlier message or generated configuration does not establish current reachability. Report the concrete error or missing capability. In an editor, **Contextory: Check Native Connections** distinguishes current MCP/hook observations from history, and **Contextory: Restart Agent Extensions** reloads the Extension Host. Native project/hook trust remains with the client; reopening a session may still be required after tool changes.\n\nFor missing, stale or duplicate Contextory hooks, use advertised `contextory_hooks_rebuild` with the intended `projectId`, explicit native `provider` (`codex`, `claude`, `bob`) and a new `operationId`. It repairs managed hooks and the launcher without changing MCP configuration, other hooks or native trust. Inspect changed files and observations; an unchanged result is not proof of execution. Reuse the exact operation ID/input only to recover an interrupted call. If hooks remain unobserved after one repair, inspect native trust and service logs instead of repeatedly rebuilding. Codex approvals can differ for `C:` versus `c:`: review `/hooks` in the affected session using its actual workspace path. If MCP is unreachable, use **Contextory: Rebuild Agent Hooks** in the editor, then resolve any service startup error and reload the native session as needed. A rebuild cannot approve hooks or repair an unreachable service through MCP.\n\nStart a code question or related edit with `contextory_code_context_get`: put the actual task in `query`, scope with known `paths` and optionally `specId`, and choose a bounded `budgetTokens`. Read the cited current files before deciding or editing. Read-only exploration does not require a tracked request.\n\nUse `contextory_code_architecture_get` for orientation, `contextory_impact_get` for affected callers/dependencies/tests/records, `contextory_code_path_get` to explain a connection, and `contextory_flow_trace` for detailed branches/calls. Use `contextory_search` for earlier decisions, findings and changes, then inspect record state, revision and provenance. Resolve ambiguous symbols with `source:path#qualifiedName` where supported.\n\nWhen something stopped working, recover its catalog contract and last known working source/check/version, then follow impact links, catalog before/after revisions (including agent auto-approvals), decisions and spec history. Search by feature and source path/symbol and page chronology. Treat these as candidate causes until reproduced; Git version membership and ledger recording intervals are different evidence. Link a confirmed regression/fix to the responsible change/spec/source and retain uncertainty otherwise. Compatible maintenance and implementation conflicts may be agent auto-approved; process/outcome conflicts require human review before implementation. Approval provenance never substitutes for executed checks.\n\nKeep source citations, graph snapshot, coverage and truncation attached to conclusions. Narrow or page bounded results. Static calls, test references and inferred contracts are possible relationships, not proof of execution or test coverage. Generated facts do not become approved requirements.\n\nUse advertised `contextory_catalog_get` alongside source retrieval to recover file responsibilities, rules/features, test links and UI layout/interaction contracts; inspect state, revision, pending changes and source freshness. Page `inventory:true` to identify files without descriptions. For documentation, `contextory_project_export` overview discovers all stored documentation datasets, with independent pagination for records, immutable revisions, history, relationships, source graph, checks/jobs, usage metadata and artifacts. Retain sequence/snapshot and provenance, and distinguish current approved behavior from observations and historical definitions. Read-only documentation needs no tracked request.\n\nWhen advertised, `contextory_docs_get section=sections` retrieves authored project explanations by query, source path or local record ID, with stable page/section IDs, source freshness and observed associations. Follow `nextOffset` for coverage. Relevant explanations may accompany current-project code context; they remain separate from source facts and human-approved requirements. Use the `contextory-documentation` skill for authoring, migration, generation and maintenance with the bundled documentation/Carbon runtime. No separately installed plugin is required, and optional generation must not gate source retrieval or service startup.\n\nFor another local repository, use advertised `contextory_codebase_list` and `contextory_codebase_change` to register an authorized reference directory. Pass its `codebaseId` explicitly to source queries and flow expansion; omission/current always selects the active project. Reference graphs and project memory stay separate. Keep the returned codebase identity/root with relative citations. Analyzing a reference does not authorize applying its design, changing current requirements or editing either project. See the reference guide below for scope and freshness details.\n\nSaved edits refresh the source graph automatically; re-query relevant context after saving changes. Task/impact/path queries also verify disk content. Use `contextory_code_index_refresh` to recover an empty/stale/failed index or import regenerated Graphify data; repeated refresh cannot resolve every dynamic/external gap. Unsaved editor flow overlays are separate from the saved-file graph. If a capability is missing, use the packaged CLI or native source tools and state the gap; do not invent tool calls. Preserve the user's scope and native permissions.\n\nRead [retrieval and coverage](references/retrieval.md) for tool inputs, paging, freshness recovery and headless use.\n\nFor version-specific documentation, use advertised `contextory_version_get` and page each release's commits and semantic entries. Release entities and immutable revisions are also exported with project records. Git membership establishes which commits belong to a version; definitions/decisions associated by recording interval need that qualification. Local observed tags do not prove remote publication. This history is project-wide and needs no request/spec scope.\n"
             }
           ]
         }
@@ -6472,7 +7293,7 @@
                 "pt-BR": "Caminho do recurso canônico",
                 "en": "Canonical resource path"
               },
-              "code": "skills/contextory-migrate/SKILL.md"
+              "code": "---\nname: contextory-migrate\ndescription: Build a source-backed Contextory knowledge baseline for an existing project, including file responsibilities, rules, features, tests and interface contracts. Use when bootstrapping or resuming a project knowledge migration; ordinary code lookups do not need migration.\nmetadata:\n  version: \"3\"\n---\n\n<!-- contextory-managed-migrate -->\n\nAct as the project's migration agent in the native client. Use the advertised Contextory MCP capabilities; never start a second model service or execute project modules to infer behavior. Migrating knowledge does not authorize changing application behavior. Preserve source, existing approved records, client configuration and historical decisions.\n\nUse the project's `uiLanguage` from `contextory_context_get` for every new catalog title/description, finding, rationale, UI contract, review reason and report, even when chat uses another language. Preserve historical prose, exact identifiers, paths and code; reconstructed observations are not bulk translations of existing records.\n\nRead `contextory_context_get`, recover the migration request/spec through search and inspect its current state. For authorized migration, create missing tracked work, attach this session and claim/renew the spec lease. If the tools are unavailable, report the missing capability and retain a source-cited draft; do not claim the ledger was populated.\n\nUse `contextory_code_context_get` and inspect cited current source. Start `contextory_catalog_migrate` with `operationId`, `specId`, `leaseId` and a bounded `limit`. Resume with the returned `migration.id` in `migrationId` and a new operation ID, until `next` is null. After an interrupted call retry its exact operation ID/input, then inspect the run through `contextory_entity_get`. Its persisted manifest/cursor and skipped-file gaps are a file scan checkpoint, not semantic completion. Query `contextory_catalog_get` with `inventory:true` and page its independent record/proposal/inventory cursors to discover new or missing files after the scan. A later scan preserves existing descriptions.\n\nWork through subsystems in bounded batches. Read file bodies, entry points, callers, docs, tests and earlier decisions. Replace generated symbol lists with concise explanations of actual file responsibility through `contextory_catalog_change` revision proposals. Record unknowns instead of inventing purpose. Register distinct rule and feature candidates with their source references and specific test file/symbol links, or `testGap` explaining missing validation. Reconcile contradictory implementation, documentation and tests as findings; describe observed implementation separately from intended behavior.\n\nFor every interface surface, inspect its layout and event/state handlers, and inspect the running UI when available and authorized. Add `category:\"ui\"` contracts with `ui.location`, `element`, `trigger`, `behavior` and `states`: placement/grouping, control/value, click/change/keyboard trigger, resulting action/state/persistence/navigation, and relevant initial/loading/empty/error/disabled states. Link behavioral tests or explicit gaps. Static extraction cannot prove pixel layout, dynamic dispatch or runtime effects; mark those limits with sources and follow-up findings. Projects without a UI should record why this category is inapplicable in the migration report.\n\nUse leased `contextory_catalog_change` creates for new observations. Compatible corrections to file-purpose descriptions/source links can use `compatibility:preserved`, `impact:implementation`, `autoApprove:true`, the current revision and a source-backed reason; observations remain unapproved. Behavioral descriptions and UI contracts stay exact through auto-approval, even on observations. Implementation conflicts may auto-approve with a recorded rationale, but conflicts with process rules or results, changed behavior and retirements need a before/after human proposal before implementation. Link historical decisions/specs through `decisionIds` or `contextory_relationship_change`. Generated facts and legacy decisions never become retroactive human approval. Optional baseline review does not block migration. Wait on actual pending proposals; never borrow human credentials, infer approval from silence, or erase superseded/rejected history.\n\nBefore finalizing, reconcile the current inventory, stale/missing source fingerprints, duplicate descriptions, pending proposals, rule/feature-to-test gaps and interface interactions against the scope. Record a source-cited migration report explaining reviewed subsystems, omissions, conflicts, test gaps and categories not applicable. Keep resumable outstanding work when review is pending. Do not describe a completed file scan as a complete application specification. Run configured meaningful independent checks, map evidence to each criterion, include catalog IDs/explanation in the outcome, explicitly complete only verified specs and export the request report. No new application tests are needed merely to restate documentation.\n\nFor later documentation requests, use `contextory_project_export` overview and page the needed datasets (including immutable revisions, decisions, catalog entries/proposals, relationships, checks and artifacts). Use `contextory_catalog_get` for freshness and `contextory_entity_get` for exact revisions. Cite sequence/snapshot, approved versus observed state, evidence origin and coverage limits; omit superseded behavior from current instructions while retaining it in historical documentation.\n"
             }
           ]
         }
@@ -6519,7 +7340,7 @@
                 "pt-BR": "Caminho do recurso canônico",
                 "en": "Canonical resource path"
               },
-              "code": "skills/contextory-workflow/SKILL.md"
+              "code": "---\nname: contextory-workflow\ndescription: Track authorized software implementation in the connected Contextory companion. Use for requests, milestones, specs, issues, design decisions, evidence and continuing tracked work; ordinary questions need no new request.\nmetadata:\n  version: \"9\"\n---\n\n<!-- contextory-managed-workflow -->\n\nRequires the workflow tools advertised by a connected Contextory MCP server. Conversation, editing, model selection and permissions remain in the native client; the workflow is shared across agents. Ordinary questions need no new tracked work.\n\nRead `uiLanguage` and `contentLanguageInstruction` from `contextory_context_get` before writing records. Write all new UI-facing prose in that VS Code language (`en` or `pt-BR`): titles, descriptions, criteria, findings/fixes, decisions/rationale, review reasons, catalog/UI contracts, outcomes and reports, even if this conversation uses another language. Preserve historical content and exact IDs, paths, symbols, code, commands and protocol keys. Keep documentation's required paired locales. Do not bulk-translate existing records; headless projects default to English unless an editor configured their language.\n\nWhen managed hooks are missing, stale or duplicated, advertised `contextory_hooks_rebuild` repairs only the chosen project's native hooks and launcher. Pass explicit `projectId`, native `provider` and a new `operationId`; no spec lease is needed for this setup repair. Follow its trust/reload guidance and verify an observed hook event. Do not repeatedly rebuild an unchanged setup or edit global trust records. If MCP is unavailable, use the editor's **Contextory: Rebuild Agent Hooks** command and inspect service logs; native approval remains client-owned. See the codebase skill's recovery guidance for Codex workspace path casing.\n\nFor multiple workspace folders, read `contextory_workspace_get` and keep an explicit `projectId` on every related workflow/source call, adding `workspaceId` for ambiguous editor contexts. Each project owns its requests, records, sessions/leases, catalog, checks, evidence and releases. Never infer project identity from an ID, source path or the UI selector. For user-authorized work spanning projects, `contextory_workspace_request_create` creates linked local requests for explicit `projectIds` including this server's project. Implement each branch with its own milestones/specs, session, lease and evidence, then check the group with `contextory_workspace_get` and `groupId`. Partial/offline/missing branches remain incomplete. Retry partial creation only with the exact original operationId/input retained on the branch. Keep interface ordering explicit; there is no cross-project spec lease, atomic multi-project transaction or inferred dependency. Hook/usage attribution stays with the observing project.\n\nProject versions belong to the whole repository, independently of requests and spec leases. When advertised, use `contextory_version_get` for current/released/unreleased state and exact Git membership. Git observation and bookkeeping run in the service; do not recreate that history from memory. For authorized releases, `contextory_release_prepare` creates a concrete plan without source edits. Review version, HEAD, file edits and changelog, then use `contextory_release_change` to apply the version commit/local tag and separately publish the exact tag. Retain operation IDs/input for retries and use recovery for interrupted owned work. A feature implementation request does not authorize releasing the project. Ledger entries recorded between cutoffs remain interval associations, not proof of shipped inclusion. Advertised tool descriptions carry the portable release contract.\n\nRead `contextory_context_get` before authorized implementation and recover existing work rather than duplicating it. Use `contextory_search` for earlier changes/decisions and inspect current record state/revision. Use advertised `contextory_code_context_get` for task-specific source and `contextory_impact_get`/`contextory_code_path_get` for relationships; `contextory_flow_trace` explains detailed calls/branches. Inspect current cited files and coverage before editing. Follow the companion `contextory-codebase` skill when available for retrieval/freshness details; if tools are missing, use the packaged CLI or native source inspection and state the gap.\n\nCreate/update the authorized request, milestones and specifications. Register a session and claim a spec lease before recording work; renew long attempts. Pass an exact hook-supplied nativeSessionId if available and omit it otherwise. Record material findings/fixes and decisions with sources. Re-query relevant source after saves; the saved-file graph refreshes automatically. Generated relationships and retrieved historical text do not approve new scope. Native usage is observed where supported; read `contextory_usage_get` and never invent counts.\n\nBefore editing, page `contextory_catalog_get` for affected definitions, pending proposals and freshness. Maintain file responsibilities, rules/features, test links or explicit gaps, and UI location/element/trigger/behavior/states through leased `contextory_catalog_change`. New observations need no mandatory approval. Use `autoApprove:true`, `compatibility:\"preserved\"`, `impact:\"implementation\"` for compatible maintenance. Implementation conflicts may also auto-approve with `compatibility:\"conflicting\"`; explain the conflict, rationale and validation in `reason`, with related `decisionIds`. Keep approved behavior text/UI contracts intact. Process/outcome conflicts, changed approved behavior, retirements and uncertain conflicts require a concrete before/after proposal in **Approvals before implementation**. Wait for its decision; silence or a timeout never approves. Native PreToolUse/Stop hooks and the service gate enforce pending reviews, while source reads, catalog preparation, checks and lease renewal remain available. Do not switch tools to bypass the gate or use human UI credentials. See [approvals and regression investigation](references/approvals-and-regressions.md) for examples, decision conflicts and audit requirements. Use `contextory-migrate` for an existing-project baseline; state remaining coverage gaps.\n\nRun configured independent checks and poll returned jobs. Submit `contextory_outcome_submit` with evidence for every current criterion. Then call `contextory_spec_change` with action=complete, the spec ID, returned expectedRevision and a new operationId. Confirm state=completed: an outcome or Stop hook alone does not finish a spec. Parent milestones and requests close when their children complete.\n\nWhen the catalog exists, include `catalog:{recordIds,explanation}` in the outcome, identifying affected definitions and explaining updates/retirements or why behavior is unchanged. Pending proposals and stale affected approved definitions block completion. Current test references do not replace executed evidence. For documentation, discover and page stored data through `contextory_project_export`; no implementation request is needed for a read-only export.\n\nResolve or report explicit completion blockers. Keep native permissions and authorized scope intact. Read [completion and evidence](references/completion.md) for leases, checks, findings and reports.\n"
             }
           ]
         }
@@ -6566,7 +7387,7 @@
                 "pt-BR": "Caminho do recurso canônico",
                 "en": "Canonical resource path"
               },
-              "code": "skills/contextory-workflow/references/completion.md"
+              "code": "<!-- contextory-managed-resource -->\n\n# Completion and evidence\n\nMulti-project work is a coordinated group of project-owned requests, not a shared ledger or lease. Carry the same projectId (and workspaceId when needed) through each branch's session, spec lease, findings, catalog, checks, evidence, outcome, completion and report export. Evidence and record IDs from another project cannot complete a branch. After every local request completes, query contextory_workspace_get with groupId; offline, detached or missing branches remain explicitly incomplete. Recover partial creation with its exact original operationId/input; each branch retains that input. Native hook/model/usage observations are not reassigned across projects by inference.\n\nRecover earlier work with focused search and read its current request/spec state before creating records. Read cited historical revisions for rationale, then check whether later decisions supersede them. Keep observations, generated source relationships and approved criteria distinct. Hooks can restore reminders after compaction but do not carry the full current contract; reread `contextory_context_get` for it.\n\nAttach a Contextory session with `contextory_session_attach`; never guess a native session ID. Claim/renew with `contextory_spec_lease`. Mutations require fresh revisions and unique operation IDs. Read the record after a conflict rather than replaying a changed mutation with an old idempotency key.\n\nRecord issues through `contextory_finding_record`, explaining impact, resolution and relevant sources. Blocking findings must be resolved before completion. Record concise choices and tradeoffs through `contextory_decision_record`. These explanations are project records, not chat transcripts.\n\nUse `contextory_check_run` recipes and poll with `contextory_entity_get`. With no recipes, configure the project's existing meaningful check command in workspace `contextory.checks`, then reread context. If no meaningful check is available, report verification as pending. Agent-reported external results remain reported evidence and cannot substitute for an independent runner's passing result.\n\nAn outcome maps every acceptance criterion exactly once to current evidence. Finish source/configuration edits before final independent checks: evidence is bound to the source fingerprint, contract and attempt, so later changes may require new checks. A static test-reference edge is not test execution evidence. Explain changes, issues/fixes, decisions, validation and remaining limits, including when there were no findings or new decisions. Submit the outcome, explicitly complete the spec with the returned revision, and confirm its state. Export the full request using `contextory_report_export`.\n\nUse only advertised workflow mutations. If a required workflow tool or connection is unavailable, preserve the work and explicitly report which tracking or verification step remains pending; native source inspection can continue within the authorized scope. Never pretend an unavailable call succeeded or that a hook completed a spec.\n\nWhen a project catalog exists, include `catalog:{recordIds,explanation}` in the outcome. Explain additions, human-reviewed behavior changes, agent auto-approved maintenance/conflicts, retirements or why behavior is unchanged. Pending project proposals and stale affected approved source/test references block submission/completion. Refresh compatible source links through the leased auto-approval path, retaining the approved contract and original review; a changed hash alone is not a changed requirement. Observed baselines have optional review. A definition revision after submission invalidates its accounted outcome. Human review remains in Approvals for process/outcome conflicts and changed behavior; never borrow UI credentials. Page `contextory_project_export` for the complete stored base and immutable revisions. Follow [approvals and regression investigation](approvals-and-regressions.md) when classifying changes or tracing failures.\n"
             }
           ]
         }
@@ -6613,7 +7434,7 @@
                 "pt-BR": "Caminho do recurso canônico",
                 "en": "Canonical resource path"
               },
-              "code": "skills/contextory-codebase/references/retrieval.md"
+              "code": "<!-- contextory-managed-resource -->\n\n# Retrieval and coverage\n\n## Hook recovery\n\nUse `contextory_hooks_rebuild` only for an intended project's missing, stale or duplicate managed hooks: `{ \"projectId\": \"<project>\", \"provider\": \"codex\", \"operationId\": \"<new unique ID>\" }`. Supported providers are `codex`, `claude` and `bob`; Generic MCP has no hooks. The response separates changed hook files, launcher restoration and current-service MCP/hook observations. It never reads or writes native approval records, global hooks, MCP configuration or portable skills. Keep the exact operation ID/input for an interrupted retry; a later repair needs a new ID. Project/workspace scope is unchanged and reference codebases cannot be repaired through this tool.\n\nIf files are unchanged but hooks remain unobserved, review native trust and reload the affected session instead of issuing more rebuilds. The installed Codex client may distinguish `C:\\\\` and `c:\\\\` when looking up hook approval: use `/hooks` from the affected session's actual project path. When MCP is unavailable, the editor's **Contextory: Rebuild Agent Hooks** command or sidebar **Rebuild hooks** action can initiate recovery after the local service starts. Inspect service output if startup itself fails; rebuilding through MCP requires a reachable service.\n\n## Choose the lookup\n\n| Need                                                | Tool and useful inputs                                                                                                                                                                                                                                                 |\n| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |\n| Workspace contracts, active work, configured checks | `contextory_context_get`, optionally `specId`. This brief is cached orientation, not a fresh source investigation.                                                                                                                                                     |\n| Locate code for a task                              | `contextory_code_context_get` with `query`, known `paths`, optional `specId` and `budgetTokens` (512–6000, default 3000). Exact definitions rank before mentions; neighborhoods and linked project records are bounded.                                                |\n| Understand subsystems and entry points              | `contextory_code_architecture_get`. Default `refresh:true` verifies saved source; use `refresh:false` only when a cached overview is sufficient.                                                                                                                       |\n| Find callers, dependencies, tests or linked work    | `contextory_impact_get` with `id`, `direction` (`reverse` for dependents, `forward` for dependencies, `both` for surrounding relationships), `depth` and `limit`.                                                                                                      |\n| Explain how two things connect                      | `contextory_code_path_get` with `from`, `to`, optional `direction` (`forward` or `both`) and `maxDepth`. Returned edges retain their original direction.                                                                                                               |\n| Inspect calls or branches                           | `contextory_flow_trace` with `root:{path,symbol}` or a zero-based position, `view: calls/flow`, `direction: outgoing/incoming`, and optional limits. Supported engines cover TS/JS and Python.                                                                         |\n| Recover earlier intent and rationale                | `contextory_search` with a focused `query`, `mode` and `limit`; inspect full records with `contextory_entity_get`, including a cited `revision` when checking history. Verify current state before relying on an old decision.                                         |\n| Continue a bounded result                           | `contextory_entity_get` uses `offset`/`limit` for children, job results and 400-character artifact pages. `contextory_history_get` uses the returned `nextBefore` as `before`. Flow pages/expansion use `contextory_flow_expand` with the original graph/snapshot IDs. |\n\nFor example, a task lookup can use `{\"query\":\"How do provider connections install skills?\",\"paths\":[\"src/providers\"],\"budgetTokens\":2000}`. Follow it with impact on the cited definition and inspect its current file and relevant callers. Avoid assuming this example's paths exist in another project.\n\nSource tools accept file paths, unique names or `source:path#qualifiedName` where their schemas permit. Choose a path-qualified candidate when a name is ambiguous. A failed search or absent bounded path does not prove two components are independent. Inspect category, evidence locations and provenance for each material edge. Semantic unavailability has an explicit lexical fallback in hybrid search; semantic-only search may fail. Narrow query/path scope or page results when truncated instead of presenting a bounded slice as exhaustive.\n\n## Freshness and coverage\n\nSaved file create/edit/delete/rename, Git changes and configuration changes trigger debounced refresh, backed by polling. Task context, impact and path queries also verify disk content before answering. Re-query after relevant saves; do not request a full manual reindex after every edit. Source context describes saved files. Only trusted editor flow requests can carry unsaved overlays; their snapshots are separate and expire when documents change.\n\nFor an empty/stale/failed index, inspect status/errors and use `contextory_code_index_refresh` when a retry can help. For partial coverage, inspect the actual gaps: file/byte bounds may call for narrower reviewed configuration, while dynamic dispatch, callbacks and external code require native inspection. Repeated refresh does not create missing language support or execution evidence.\n\nNative extraction covers TS/JS through its compiler and Python through isolated AST parsing. Markdown links and recognized configuration paths add explicit connections. Graphify JSON adds other language facts with supplied provenance. Changed cited source invalidates imported facts: regenerate the export and re-import using `contextory_code_index_refresh` with a workspace-relative `graphifyPath`; refresh alone cannot regenerate external analysis. Static calls, inferred message links and test references do not prove execution or coverage.\n\n`contextory.project.json` holds reviewed configuration: schemaVersion 1, optional name, include/exclude patterns, entryPoints, conventions, maxFiles and maxBytes. Generated topology lives in rebuildable local storage; it does not approve requirements or overwrite authoritative work records. Consult user instructions and current decisions before treating a discovered convention as a constraint.\n\n## Reference codebases\n\n### Active workspace projects\n\nTrusted local multi-root workspaces attach up to sixteen independent folder services. `contextory_workspace_get` lists public project IDs, names and canonical roots, plus attached workspace contexts; it never returns credential paths. All tools accept `projectId` and `workspaceId` as common scope. Selection applies only to that call. Omitting projectId/current stays on the server's project, regardless of the editor's selected project or earlier calls. Multiple attached editor contexts require workspaceId for cross-project operations. Unknown, detached or identity-changed projects fail; do not retry against a different project. Use the same projectId when reading returned record IDs, artifacts or graph pages. Keep the returned project identity with relative source paths and symbols. Read-only lookups never merge project memory.\n\nThe editor project selector scopes Requests, Knowledge, History, Versions, Architecture, checks and source navigation together; requests and specs carry project badges. Each folder retains its existing root-derived storage, ledger, graph, catalog, references, releases and checks. Removing a folder detaches its routing without deleting data. Shared/native hook observations stay with their observing project; usage is not inferred across project leases. A workspace is not a new merged project.\n\nThe CLI `projects [group-id] --descriptor <generic.json>` reads active membership or a coordinated request; `--project <id>` and `--workspace <id>` scope other CLI calls. A standalone service has only its local project until an editor attaches membership. Do not use codebaseId or a reference registration to authorize cross-project work. Coordinated requests use the workflow skill's project-owned branches.\n\nWhen advertised, `contextory_codebase_list` returns the active workspace (`current`) and up to eight named local references. Register only a directory within the user's requested scope using `contextory_codebase_change` with `action:\"add\"`, an absolute `root`, optional `name`, and a new `operationId`. Registration resolves aliases and persists in the current service storage; it does not modify the reference. Detach using `action:\"remove\"`, its `codebaseId` and a new operation ID. Cached projections remain rebuildable service data.\n\nPass that ID as `codebaseId` on architecture, code context, search, impact, path, index/import and flow trace/expand calls. Paths, Graphify input and source IDs resolve inside that reference. References cannot use current-project `specId` or workflow mutations. Omission or `current` always means the active workspace, even after another reference query. Separate requests can analyze different references concurrently; there is no global project switch or inferred cross-repository relationship. Preserve each response's `codebase`, snapshot, coverage and citations when combining an explanation. A same-path/same-name symbol in two repositories is not the same source.\n\nReference context/impact/path/search and default architecture queries verify saved files on demand. References are not watched in the background. `refresh:false` explicitly uses cached architecture; use the default refresh after edits, and regenerate/re-import stale Graphify facts within the selected reference. Source files are parsed without executing them. Existing include/exclude/configuration and language coverage rules apply separately to each root. Reference search uses lexical graph matching (hybrid reports fallback); semantic-only reference search is unavailable. No active-project decisions, requirements, checks or unsaved editor overlays are imported into reference analysis.\n\nCLI equivalents are `references`, `reference-add <folder> [--name <label>]`, `reference-remove <id>`, and source commands with `--codebase <id>`. Always keep `--root`/storage/descriptor on the current project whose reference registry you intend to use. Architecture in the editor offers **Add reference**, a **Codebase** selector and **Detach reference**; source navigation stays inside the selected root. Applying any learned behavior to the current application remains a separate user-authorized implementation task.\n\n## Clients without a capability\n\nUse only the tools advertised in the current session. After an extension upgrade, an existing connection may still expose older tools until the client reloads its MCP connection. Continue useful work with available search/flow tools, the packaged CLI, or native `rg`/file reads; state the missing graph coverage when it affects conclusions. Hooks are advisory and optional.\n\nRun `node <installation>/dist/contextory.mjs help` for current CLI inputs. `context`, `impact`, `path`, `architecture` and `index` return JSON; `mcp` starts a hook-free stdio server. Supply the intended `--root` and either the existing service `--descriptor` or deliberately chosen `--storage` so the client reads the intended workspace and ledger. CLI code lookups do not replace MCP workflow mutations. Preserve the user's task and the host's permissions.\n\n## Application definitions and documentation\n\nUse `contextory_catalog_get` for file purposes, rules/features, UI placement/interactions, declared tests, pending proposals and source freshness. Record/proposal/inventory cursors are independent; keep paging each until exhausted. `contextory_project_export` overview enumerates stored documentation datasets; page current records, immutable revisions, history, relationships, source facts, jobs, usage metadata and artifacts with `offset`/`limit`. Keep sequence/snapshot and observed/approved/retired state. Use exact revisions for historical docs and current source for current behavior. The export grants no approval and exposes no service credentials or native conversations. Large result envelopes are read with `contextory_entity_get`.\n"
             }
           ]
         }
@@ -6856,11 +7677,61 @@
       "pages": [
         "documentation"
       ]
+    },
+    {
+      "id": "interface-localization",
+      "name": {
+        "en": "Follow editor language in the interface and agent entries",
+        "pt-BR": "Acompanhar o idioma do editor na interface e nos registros dos agentes"
+      },
+      "sources": [
+        {
+          "path": "src/i18n/index.ts"
+        },
+        {
+          "path": "src/i18n/pt-BR.json"
+        },
+        {
+          "path": "package.nls.json"
+        },
+        {
+          "path": "package.nls.pt-br.json"
+        },
+        {
+          "path": "src/extension.ts"
+        },
+        {
+          "path": "src/webview/document.ts"
+        },
+        {
+          "path": "src/service/application.ts"
+        },
+        {
+          "path": "src/service/server.ts"
+        },
+        {
+          "path": "src/hooks/launcher.ts"
+        },
+        {
+          "path": "tests/core/i18n.test.ts"
+        },
+        {
+          "path": "tests/integration/i18n.test.ts"
+        },
+        {
+          "path": "tests/ui/i18n.spec.ts"
+        }
+      ],
+      "pages": [
+        "user-guide",
+        "contributing",
+        "validation"
+      ]
     }
   ],
   "hasUserInterface": true,
-  "sourceRevision": "e24e15a95eaa0d8fe5bc41b9aa1f1de3676568f3",
-  "sourceFingerprint": "2f97dc7672e5c9153d3e6466e07c3045ccd76dc7bb8dfb708d2066117fc4069c",
+  "sourceRevision": "61e4068351857d158e6e4a76b4ea7a5c4c46dc2b",
+  "sourceFingerprint": "cd3b4fe8251767e697083508853f838c7273b3466cd36ba95017a0ed114ab886",
   "sources": [
     {
       "path": "scripts/documentation/build.py",
@@ -7195,20 +8066,20 @@
       },
       {
         "path": ".documentation/markdown-targets.json",
-        "sha256": "ed1f0d6855ab9f75014844993192beda5fc583125d129fea99b707797d776d45",
-        "bytes": 531,
+        "sha256": "b309d2411066227b8b0b6391f073fb0c978dc3921010deedb57e915cd4d0d355",
+        "bytes": 629,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": ".documentation/redirects.json",
-        "sha256": "df888d6f1a8cd5db84bf9d56e19364712e87e7431eeb494eefc39075d0681944",
-        "bytes": 1649,
+        "sha256": "2033271ea23df5c3e248b9b36e30b136c4930972c0e7c27db038cba180f32fd3",
+        "bytes": 1751,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": ".documentation/tool-contracts.json",
-        "sha256": "fc15a78f57930a5d30cf6b7a2e834e067716a84b39a11c0c374cb36a313025f3",
-        "bytes": 16368,
+        "sha256": "ee59c7cba595c07d953ec5267c6109d820ac1c2fd41dffeb5b9cfbfc9b177245",
+        "bytes": 17342,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -7231,8 +8102,8 @@
       },
       {
         "path": "CHANGELOG.md",
-        "sha256": "d2673126fe09541121d6a1316f8f3c18989eedbb14dcc7e2e0dbbde311803f92",
-        "bytes": 38531,
+        "sha256": "e6f97fd6d45c45cd41bab3a351606a13f74fb973b16a23af4f95fda11cdbac0b",
+        "bytes": 45483,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -7249,8 +8120,8 @@
       },
       {
         "path": "artifacts/architecture-light-320.png",
-        "sha256": "9f95706dbe1b358b9ff49f0405ac565c86b159de66fe38a6791a6151a1f2fa40",
-        "bytes": 31987,
+        "sha256": "b8850d0459f3e5e0ece040bba8e4f9c22f3609a9daa3813cdec9e243c7049941",
+        "bytes": 31860,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -7339,8 +8210,20 @@
       },
       {
         "path": "package.json",
-        "sha256": "7e5bd79fbaac83980cde3d231407363a116e98795c345b879bd53c944577264a",
-        "bytes": 10341,
+        "sha256": "619e78a01b40136d9510f13e32a6993038d95da409d5ada60108316d875699c1",
+        "bytes": 9897,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "package.nls.json",
+        "sha256": "0487fce49f4b501e67975882aad7db4d3d6f509817e6ec00af62395b44c69eab",
+        "bytes": 4695,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "package.nls.pt-br.json",
+        "sha256": "4ecc49943f9ac5602372fe770069ad6acd3783f5b4632330a1f0343ec566c14d",
+        "bytes": 5019,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -7353,6 +8236,12 @@
         "path": "scripts/build.mjs",
         "sha256": "ebb211b0a6760b22bd3cae0da82f449ff71545b9317c19be873211220b2aa2f6",
         "bytes": 3633,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "scripts/check-localization.mjs",
+        "sha256": "07a8332d691242464f7c72acb3d9c970d8f69549bdc099c944d7444cfccd2984",
+        "bytes": 984,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -7380,6 +8269,12 @@
         "reason": "cited outside source ownership roots"
       },
       {
+        "path": "scripts/localization-catalog.mjs",
+        "sha256": "37cbabfe4856da4cbc63f90460b631a36d0876adaa659d2e0b35be68e0caa2ca",
+        "bytes": 4707,
+        "reason": "cited outside source ownership roots"
+      },
+      {
         "path": "scripts/package-vsix.mjs",
         "sha256": "ecdc08098852f6a52d7c66533ee4e58b0a3f037728dc55ba8a0062c83519f618",
         "bytes": 974,
@@ -7399,8 +8294,8 @@
       },
       {
         "path": "skills/contextory-codebase/SKILL.md",
-        "sha256": "4217c27434b4a6fef16c64c3f1d07dea5d737f93a009c5e31d0a7a4949396797",
-        "bytes": 6841,
+        "sha256": "d1e949118c9d26afbda5e072a39b9af3ae48d497209d17a593dab73a916ab20d",
+        "bytes": 7871,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -7411,32 +8306,38 @@
       },
       {
         "path": "skills/contextory-documentation/SKILL.md",
-        "sha256": "6616930cc20c2de1acb48d70041907471da8178ee25e65fcd4459da3266599ac",
-        "bytes": 5569,
+        "sha256": "b5c1660640ae6e25e311146fcfd34036469f29307a4694fe71d4e8587b1366d6",
+        "bytes": 5957,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "skills/contextory-migrate/SKILL.md",
-        "sha256": "c79d44dd735a3b083e1fbddb870a9c252e91504264f584f4d3b7cc24dd8f820d",
-        "bytes": 4912,
+        "sha256": "8467c637060112e03948c41fe9642ed061b65ba1150b8d6b1c94e2c62723aa33",
+        "bytes": 5583,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "skills/contextory-workflow/SKILL.md",
-        "sha256": "59f386a4e84627ca4f4357d1bac39df06879266eb0a4a8684725e2c4606ca0ab",
-        "bytes": 6243,
+        "sha256": "7358caf6c6a2e3cc0b13762ed015c4c83fcd0f620fb5b0b7cb4e1e6bb76af6f5",
+        "bytes": 8395,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "skills/contextory-workflow/references/approvals-and-regressions.md",
+        "sha256": "e676bfc62d13748830d29d5f9516df22faa5e9a28712aec5b9ef5441d77d0800",
+        "bytes": 5958,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "skills/contextory-workflow/references/completion.md",
-        "sha256": "d2c70ece94406c572d0f8cd185e836a84ce9a2af114793087894d80110950a2b",
-        "bytes": 3669,
+        "sha256": "2c81f06167d2bf1be2114907591ac76ce13a1692afbb2a35bb64e77a19f624a8",
+        "bytes": 4042,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "src/agents/instructions.ts",
-        "sha256": "b503591e6f3d700312514eaf20378619b0ef70d3af8111890d5e23250ccbd974",
-        "bytes": 10329,
+        "sha256": "867fbdef5689cf8b7594f39ff501473aae590b35618fdb2e58917fed142fb0c5",
+        "bytes": 13319,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -7537,32 +8438,38 @@
       },
       {
         "path": "src/contracts/model.ts",
-        "sha256": "859997a67bc29c1b1e681d66c559e8ac1c5dd6e81ac3372f83fd4014e336d899",
-        "bytes": 5676,
+        "sha256": "04d584085edadf616496487460debf9b6030cafa49d3a3043e703b59a4a2991d",
+        "bytes": 5829,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "src/contracts/tools.ts",
-        "sha256": "8ceb3629c48ea252ec74dbe5b4914fb07971f99a5faa09c889c6f557e0befaaf",
-        "bytes": 30863,
+        "sha256": "30aa644c7a8abd7e0a0edbfd24d1664654aa2624a19a61c2e236a8bb5000f451",
+        "bytes": 33258,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "src/contracts/usage.ts",
-        "sha256": "92629a6777110aa3d4391e4268a8875b803134a08092876644fad8fb6ab667d1",
-        "bytes": 1718,
+        "sha256": "4f578e7ae3f4305f5b86c47663ce4b39ffd1967a37f373d21a4cac08cee3aa58",
+        "bytes": 1787,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/core/conversations.ts",
+        "sha256": "5b1fcc5e7acc256e5ebf1a1ea306324db4433c40b7709d0caefdcc8c54716494",
+        "bytes": 3669,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "src/core/history.ts",
-        "sha256": "293d38f17cd7511230bcfa11385f8a4660c181361ce474bb01274a161a862330",
-        "bytes": 4991,
+        "sha256": "08ef7b54fe2d06d6f34898f030bb3959d0a04df527819a199f9eaf5eb20fc126",
+        "bytes": 5662,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "src/core/report.ts",
-        "sha256": "c265acc039dd2da65e0d28482dc99a91e72acf65aa772f54b8ecadc759c642f8",
-        "bytes": 7508,
+        "sha256": "dbac64ee8a3873b05acad0534baabfe390981368e0fe4d66d8b7d2f482fdfb92",
+        "bytes": 8114,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -7573,8 +8480,8 @@
       },
       {
         "path": "src/core/workflow.ts",
-        "sha256": "bea329ad6c3b17b97efc0022d19270f577843f5bf7026e407d99c8a1904f7cc3",
-        "bytes": 21153,
+        "sha256": "b9476267b2585b7b96407fefa8cc7f3c8d664b5e6150691215c1a9101e160e47",
+        "bytes": 23175,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -7597,20 +8504,26 @@
       },
       {
         "path": "src/editor/calls.ts",
-        "sha256": "b6dc94701ae29627e73c07940f6262f09b3b6682deefd2e6916364242941a111",
-        "bytes": 6297,
+        "sha256": "2c4ed48f9e830c0390b2e081280c5f3a5b55283acb0608aaed63fa99c172b5c7",
+        "bytes": 6373,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "src/extension.ts",
-        "sha256": "5abc8b6fdf4ed1a3125a9b024a275077fae7fad5c4252b746d8343180d3e632e",
-        "bytes": 50907,
+        "sha256": "478a6970a12f5feef07c15d1a579e2f106cb775e240061b95fffbc9a0b67c9a2",
+        "bytes": 53450,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/hooks/approval.ts",
+        "sha256": "de85f9bbb67bc3f675fe8eedb6a2f2c38c19b0b7daf3d4626a92257a9df85214",
+        "bytes": 3241,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "src/hooks/launcher.ts",
-        "sha256": "d68b165ecbbcbb972c8aec2381d53b21940a48d53efdfc720fe354fe43d38e27",
-        "bytes": 2042,
+        "sha256": "98242a0beb5a6bbe9c59e65cf137e0f5ef0138a8e5f4d292a4cb2bf9d4a0c12c",
+        "bytes": 4357,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -7620,9 +8533,27 @@
         "reason": "cited outside source ownership roots"
       },
       {
+        "path": "src/hooks/review-wait.ts",
+        "sha256": "dbe69842882b1ac483a3468668021f87929fd70eedfa587974f38d0dc792a6f3",
+        "bytes": 1018,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/i18n/index.ts",
+        "sha256": "91392a2c0fa4f2b0a62a36a89369af4bec41723769489ae2f7cbe662fc4b0db7",
+        "bytes": 3334,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "src/i18n/pt-BR.json",
+        "sha256": "29e06c720d2f04e216226f8828641aac793cac41006d1f95ef355e742e1aea4b",
+        "bytes": 55426,
+        "reason": "cited outside source ownership roots"
+      },
+      {
         "path": "src/knowledge/catalog.ts",
-        "sha256": "f8819c5043815ce5853e1bd569680882dc36e9037fdf197ecc0509fa7b2a8292",
-        "bytes": 23500,
+        "sha256": "bacf5ada32af05123d240ea549842cd9ff1e3f18d39782d67bef8fffa0d0d8e9",
+        "bytes": 34504,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -7662,6 +8593,12 @@
         "reason": "cited outside source ownership roots"
       },
       {
+        "path": "src/providers/conversations.ts",
+        "sha256": "aa1fb1f9a7318505b909be25806637960189f9992a81de6aefa70d78d95c5d2f",
+        "bytes": 719,
+        "reason": "cited outside source ownership roots"
+      },
+      {
         "path": "src/providers/recovery.ts",
         "sha256": "591e5d4bc19a4a82ca0ad4194709f7f443698143e758fa839b4b84485e13171d",
         "bytes": 4166,
@@ -7669,8 +8606,8 @@
       },
       {
         "path": "src/providers/registration.ts",
-        "sha256": "02ea4d67de43cf24cc198eaaf8bf957b72cecdf27f217fa5cce0d4d3ab4b9627",
-        "bytes": 13756,
+        "sha256": "84642405953f400fbc7493047910e9f8e8053f8c7350399c26d3a86d13a94231",
+        "bytes": 14010,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -7681,8 +8618,8 @@
       },
       {
         "path": "src/providers/skill-content.ts",
-        "sha256": "c4bd6cd723fa9b5e7c708880315304abbb7859ae97272383a25c9f8cdcd11b8b",
-        "bytes": 40938,
+        "sha256": "325db9bcd83b4b962896ed1bb0141df6c581a5f8e9566480979a5f0482107fa1",
+        "bytes": 51623,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -7717,8 +8654,8 @@
       },
       {
         "path": "src/service/application.ts",
-        "sha256": "37cd1a68206630c660f4fa6354f200101393f707147f60a07b5bbb9b337c661b",
-        "bytes": 31464,
+        "sha256": "1b25047aedbac9c4f414d4c131d548bf26f29ea9db3fa940f8939c11a686ae76",
+        "bytes": 32809,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -7747,8 +8684,8 @@
       },
       {
         "path": "src/service/server.ts",
-        "sha256": "f497553d3cdd1817d49885d6e094d320ea7a11933de9a11b054d301bc2103ae0",
-        "bytes": 17955,
+        "sha256": "920d16ca40732b1b7681c4ac721ecf9386557fd6f7dc5f207353f6fbc11205a2",
+        "bytes": 18684,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -7783,8 +8720,8 @@
       },
       {
         "path": "src/webview/architecture.ts",
-        "sha256": "5b706cba54a9a4fe19e53902a8a8517f9fee9a829caf0d541e3e69ab38339d47",
-        "bytes": 15037,
+        "sha256": "3f48744b8c7662f53805576efafc71db688710ff50af0488f3a2dd363de40a92",
+        "bytes": 15433,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -7795,62 +8732,68 @@
       },
       {
         "path": "src/webview/catalog.ts",
-        "sha256": "76dbe99442684d63bd207c3b8041359b3269b570eddf8482f84f8fe78fcb4259",
-        "bytes": 8557,
+        "sha256": "be67a5bda9c04ddb34f78066592ddb799025b89855d3d292687e91a7dd2f575b",
+        "bytes": 11286,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "src/webview/document.ts",
-        "sha256": "95d1da310e4625fe4b416bac201703e9ec4cc742d68db16b55e36da61d5dfa50",
-        "bytes": 1272,
+        "sha256": "bbb22979d147e5c21dbed742a4f6fecbb22a2c2603bc9c8af8f8d0bb50d084ce",
+        "bytes": 1435,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "src/webview/documentation.ts",
-        "sha256": "c0e40ff6ce6c2197d316dd88ccf31b1b105c3be38dfc626878013721ada9e88b",
-        "bytes": 4930,
+        "sha256": "9cd741e693998995029c184067b7fc257fe1d42054a1378be0d3d55ac10b6759",
+        "bytes": 5098,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "src/webview/explorer.ts",
-        "sha256": "e6dba1fd498cdd967d7659fa90fbf472321efcc5b965d885f7aaafcf03287004",
-        "bytes": 8213,
+        "sha256": "5d5c9e1d16a152977404b0feafc28e6966d13424183268738e2fc8cc974d31a1",
+        "bytes": 8279,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "src/webview/flow.ts",
-        "sha256": "94465ae09b544d103ccfc9698d6437a6002bb0dff21756b9e452370609f9ac95",
-        "bytes": 6602,
+        "sha256": "c6a055d7110e2f78d3d488b06000f7da649ad5662fd1c2d2984511763beb96df",
+        "bytes": 6781,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "src/webview/html.ts",
-        "sha256": "f6fefaf28bbf7a33ee559fc55180fe7caec972989d67f35eadf3c890922a193d",
-        "bytes": 884,
+        "sha256": "78dffd9366baa5bd9d448858356d1d112607d81ad88bc9a92c90ace285b9d705",
+        "bytes": 918,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "src/webview/main.ts",
-        "sha256": "156d655a0d0cb6c603e07d9c3cc4abe32df86a02c0b1f62db589c05ef27d1c37",
-        "bytes": 77044,
+        "sha256": "eb5ee3d0858b8e5f8d6b5d7f3f0a1df1a1fcccceba9e7c50f44c9ad26e051d2a",
+        "bytes": 78780,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "src/webview/progress.ts",
-        "sha256": "d9f594a9307bd0f259ed099bf4e8d65ed8f734f6abe9a713aaf769db4228857e",
-        "bytes": 2388,
+        "sha256": "7a2b7c703346c769b1fac3508f29a40afb461a6caaf273d1d1195abb44e949c5",
+        "bytes": 2442,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "src/webview/relationships.ts",
-        "sha256": "56bb1003f6c4baa0ed4ce6a3433ed351db005a92a3b2dccb0d89cbb188eaedb0",
-        "bytes": 3424,
+        "sha256": "f9005213badd9206807b490998fead59e95b621613f5ed83ca61032cb3c55454",
+        "bytes": 3538,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "src/webview/versions.ts",
-        "sha256": "d4755e2c2e56e180053b76caa9544096c80c2671ce35f4dc274a624cbce1e46d",
-        "bytes": 5158,
+        "sha256": "4881f845738c3b938e67f4ba7fe425dbcdd44a86392a5725af4f46a576daf20a",
+        "bytes": 5288,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "tests/core/i18n.test.ts",
+        "sha256": "a1a76de8818e6b135f04bb75771b4b1b5de1f4588d7facaec873729ba90b5e8b",
+        "bytes": 3070,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -7878,9 +8821,27 @@
         "reason": "cited outside source ownership roots"
       },
       {
+        "path": "tests/host/smoke.cjs",
+        "sha256": "37bcb36550fe33eb873bee48b8ffb16cfc7a2877bf913107a29de4f5a25a555d",
+        "bytes": 18083,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "tests/integration/approval-conversations.test.ts",
+        "sha256": "6a3363edbe1a9bb55596efa8ff14cfff14c4ca12868f7d6237beae8f3df863e8",
+        "bytes": 13324,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "tests/integration/approval-policy.test.ts",
+        "sha256": "c0bc0810829475e24417c02e32978d4ac0493c3a944c02ddeb767cd39f22d9d4",
+        "bytes": 18861,
+        "reason": "cited outside source ownership roots"
+      },
+      {
         "path": "tests/integration/catalog.test.ts",
-        "sha256": "d4171e690f07f591faf04d0b6970f88257e6df33510c6264e679831543a6952b",
-        "bytes": 24096,
+        "sha256": "7ba5a8c3a7117108c576599e01a489603b4e63f8f046eb02bd89ddd8c6c94ab6",
+        "bytes": 22127,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -7902,6 +8863,12 @@
         "reason": "cited outside source ownership roots"
       },
       {
+        "path": "tests/integration/i18n.test.ts",
+        "sha256": "4cd95fa2d9733233cbd190d899e62d2c2c51c98bc9c58b69cc20e68eb6d11477",
+        "bytes": 2393,
+        "reason": "cited outside source ownership roots"
+      },
+      {
         "path": "tests/integration/recipe-configuration.test.ts",
         "sha256": "ee580a8a1f79b698eae1eb08a3ec6035f59ea0bf0aadc5d1c75bc628cc4a5dc4",
         "bytes": 1781,
@@ -7915,8 +8882,8 @@
       },
       {
         "path": "tests/integration/registration.test.ts",
-        "sha256": "e64a28887963aa3e89add1a41093bb357dd196d194e0ac1037018124ecf04a02",
-        "bytes": 11437,
+        "sha256": "a81ff750360f1aa564f781b03609adb3eed8bc05b2394af038fe623159e58ca1",
+        "bytes": 11577,
         "reason": "cited outside source ownership roots"
       },
       {
@@ -7939,20 +8906,26 @@
       },
       {
         "path": "tests/ui/catalog.spec.ts",
-        "sha256": "e058ed10ef8d482253fc1f938095c5b283c1ca93e6ab94a99914cc1feee00da8",
-        "bytes": 8482,
+        "sha256": "1e793b1c4e34dcd0444be02971e1c6d2f7575ae96cc81d08d7c9bbda2b4d8a80",
+        "bytes": 7749,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "tests/ui/console.spec.ts",
-        "sha256": "4e8dfc9bd1e9c36642c8e404f4e35f2e8cf51c7bb0965edbcfb75905a5a1a3f9",
-        "bytes": 4343,
+        "sha256": "9f4e141a59898dc3a468fc61d33114a2fc7ebad813493395dd688fa3a223392a",
+        "bytes": 4336,
         "reason": "cited outside source ownership roots"
       },
       {
         "path": "tests/ui/documentation.spec.ts",
         "sha256": "274675d2723032392bdd5fbd4b2112d1d28c2108710f28a357f39b758d2c0359",
         "bytes": 4759,
+        "reason": "cited outside source ownership roots"
+      },
+      {
+        "path": "tests/ui/i18n.spec.ts",
+        "sha256": "c1df1b56082df4b4bd32ffc220bca70318b0ce026a8d48aeb9da1eeedbb9dc37",
+        "bytes": 3288,
         "reason": "cited outside source ownership roots"
       },
       {

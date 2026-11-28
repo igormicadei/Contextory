@@ -31,7 +31,7 @@ Bounded source-flow explorer in Contextory.
 ## Use Approvals, Knowledge and Versions
 
 1. Open the Approvals tab or the review alert to review pending items. The tab shows a pending count and contains no already-reviewed definitions. Use Tools > Knowledge for definition search and source coverage.
-2. For an observed baseline or pending change, read the exact proposal and enter a review reason before Approve baseline, Approve change or Reject. Only a human uses these review controls.
+2. Read the agent’s plain-language explanation. Approve or Reject needs no comment; write instructions only when requesting changes. Source snapshots update automatically, and replies return to the linked conversation through trusted hooks. Use Reopen conversation when the native session has stopped.
 3. Open Tools > Versions to inspect the current version, commits and release plans. Review version, files and changelog before applying; Publish is a separately authorized release action.
 
 ![Project versions and release details in the editor Panel.](../assets/panel-versions.png)

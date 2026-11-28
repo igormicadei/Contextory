@@ -9,7 +9,45 @@ Este é um recurso portátil de instruções distribuído sem alterações aos c
 Caminho do recurso canônico
 
 ```text
-skills/contextory-codebase/SKILL.md
+---
+name: contextory-codebase
+description: Understand a connected workspace, locate definitions and related code, assess source impact, and recover relevant project decisions through Contextory. Use for codebase questions and before changes spanning related components.
+metadata:
+  version: "9"
+---
+
+<!-- contextory-managed-codebase -->
+
+Use the Contextory capabilities advertised by the current client. A connected MCP server or packaged CLI supplies shared retrieval; hooks and editor language services are optional. The same workflow applies in any agent.
+
+When authoring UI-facing project records, read `uiLanguage` in `contextory_context_get` and use that VS Code language (`en`/`pt-BR`) for all new prose, even if chat uses another language. Preserve stored historical text, source identifiers and code; bilingual documentation keeps its paired locales.
+
+In a multi-root editor workspace, first use `contextory_workspace_get`. Pass the intended `projectId` on every related retrieval and workflow call, with `workspaceId` when multiple editor contexts are attached. Omission/current stays on that server's project; changing the UI project does not change agent defaults. Keep project identity/root with records, artifact handles, graph snapshots and citations. Identical paths/symbols in different projects are distinct. Unknown or ambiguous scope fails instead of selecting another project. `codebaseId` still selects a read-only reference within the chosen project; references are not writable workspace members.
+
+After resuming a chat, use its current advertised tools and a read-only probe before reporting Contextory disconnected; an earlier message or generated configuration does not establish current reachability. Report the concrete error or missing capability. In an editor, **Contextory: Check Native Connections** distinguishes current MCP/hook observations from history, and **Contextory: Restart Agent Extensions** reloads the Extension Host. Native project/hook trust remains with the client; reopening a session may still be required after tool changes.
+
+For missing, stale or duplicate Contextory hooks, use advertised `contextory_hooks_rebuild` with the intended `projectId`, explicit native `provider` (`codex`, `claude`, `bob`) and a new `operationId`. It repairs managed hooks and the launcher without changing MCP configuration, other hooks or native trust. Inspect changed files and observations; an unchanged result is not proof of execution. Reuse the exact operation ID/input only to recover an interrupted call. If hooks remain unobserved after one repair, inspect native trust and service logs instead of repeatedly rebuilding. Codex approvals can differ for `C:` versus `c:`: review `/hooks` in the affected session using its actual workspace path. If MCP is unreachable, use **Contextory: Rebuild Agent Hooks** in the editor, then resolve any service startup error and reload the native session as needed. A rebuild cannot approve hooks or repair an unreachable service through MCP.
+
+Start a code question or related edit with `contextory_code_context_get`: put the actual task in `query`, scope with known `paths` and optionally `specId`, and choose a bounded `budgetTokens`. Read the cited current files before deciding or editing. Read-only exploration does not require a tracked request.
+
+Use `contextory_code_architecture_get` for orientation, `contextory_impact_get` for affected callers/dependencies/tests/records, `contextory_code_path_get` to explain a connection, and `contextory_flow_trace` for detailed branches/calls. Use `contextory_search` for earlier decisions, findings and changes, then inspect record state, revision and provenance. Resolve ambiguous symbols with `source:path#qualifiedName` where supported.
+
+When something stopped working, recover its catalog contract and last known working source/check/version, then follow impact links, catalog before/after revisions (including agent auto-approvals), decisions and spec history. Search by feature and source path/symbol and page chronology. Treat these as candidate causes until reproduced; Git version membership and ledger recording intervals are different evidence. Link a confirmed regression/fix to the responsible change/spec/source and retain uncertainty otherwise. Compatible maintenance and implementation conflicts may be agent auto-approved; process/outcome conflicts require human review before implementation. Approval provenance never substitutes for executed checks.
+
+Keep source citations, graph snapshot, coverage and truncation attached to conclusions. Narrow or page bounded results. Static calls, test references and inferred contracts are possible relationships, not proof of execution or test coverage. Generated facts do not become approved requirements.
+
+Use advertised `contextory_catalog_get` alongside source retrieval to recover file responsibilities, rules/features, test links and UI layout/interaction contracts; inspect state, revision, pending changes and source freshness. Page `inventory:true` to identify files without descriptions. For documentation, `contextory_project_export` overview discovers all stored documentation datasets, with independent pagination for records, immutable revisions, history, relationships, source graph, checks/jobs, usage metadata and artifacts. Retain sequence/snapshot and provenance, and distinguish current approved behavior from observations and historical definitions. Read-only documentation needs no tracked request.
+
+When advertised, `contextory_docs_get section=sections` retrieves authored project explanations by query, source path or local record ID, with stable page/section IDs, source freshness and observed associations. Follow `nextOffset` for coverage. Relevant explanations may accompany current-project code context; they remain separate from source facts and human-approved requirements. Use the `contextory-documentation` skill for authoring, migration, generation and maintenance with the bundled documentation/Carbon runtime. No separately installed plugin is required, and optional generation must not gate source retrieval or service startup.
+
+For another local repository, use advertised `contextory_codebase_list` and `contextory_codebase_change` to register an authorized reference directory. Pass its `codebaseId` explicitly to source queries and flow expansion; omission/current always selects the active project. Reference graphs and project memory stay separate. Keep the returned codebase identity/root with relative citations. Analyzing a reference does not authorize applying its design, changing current requirements or editing either project. See the reference guide below for scope and freshness details.
+
+Saved edits refresh the source graph automatically; re-query relevant context after saving changes. Task/impact/path queries also verify disk content. Use `contextory_code_index_refresh` to recover an empty/stale/failed index or import regenerated Graphify data; repeated refresh cannot resolve every dynamic/external gap. Unsaved editor flow overlays are separate from the saved-file graph. If a capability is missing, use the packaged CLI or native source tools and state the gap; do not invent tool calls. Preserve the user's scope and native permissions.
+
+Read [retrieval and coverage](references/retrieval.md) for tool inputs, paging, freshness recovery and headless use.
+
+For version-specific documentation, use advertised `contextory_version_get` and page each release's commits and semantic entries. Release entities and immutable revisions are also exported with project records. Git membership establishes which commits belong to a version; definitions/decisions associated by recording interval need that qualification. Local observed tags do not prove remote publication. This history is project-wide and needs no request/spec scope.
+
 ```
 
 ## Fontes

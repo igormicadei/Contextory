@@ -1,0 +1,31 @@
+# Release v0.10.0
+
+## Selective approval with enforced waiting
+
+Agents may auto-approve compatible maintenance and implementation conflicts with an explicit impact classification, reason, validation and audit record. Conflicts affecting process rules or outcomes, uncertain conflicts and retirements require human review before implementation. Native PreToolUse/Stop hooks and the service gate keep the agent waiting for that decision; silence or elapsed time never grants approval.
+
+Definitions retain their before/after revisions, source hashes, actors, rationale, related decisions, specifications and check evidence. Use the catalog and history to investigate a feature that stopped working and connect a confirmed regression to its responsible change. Generated observations have optional review and do not become human-approved requirements.
+
+## Follow the VS Code language
+
+Controls and extension contributions use the VS Code display language: English or Brazilian Portuguese, with English fallback for other locales. The editor propagates uiLanguage and a content-language instruction to project context and hooks. Agents must write new UI-facing entries in that language, preserving exact identifiers, source code and historical text. Documentation retains both locales.
+
+## Local package and qualification
+
+Build with npm ci and npm run package:vsix. The output is artifacts/contextory-workspace-0.10.0.vsix and its matching .sha256. Compare the checksum before installing through Extensions > Install from VSIX, then reload the editor/native integrations when prompted. This delivery builds locally and pushes source commits; GitHub release asset publication and installation into an active editor are separate actions.
+
+Validation covers approval classification and enforcement, source-linked history, locale transport, translation/substitution coverage, English/Portuguese UI, managed skill consistency and bilingual documentation. Trusted local Windows workspaces with Node.js 24+ remain the qualified environment. Historical release notes and published checksums are preserved.
+
+## Sources
+
+- package.json
+- src/contracts/model.ts
+- src/knowledge/catalog.ts
+- src/hooks/approval.ts
+- src/core/history.ts
+- src/i18n/index.ts
+- src/agents/instructions.ts
+- tests/integration/approval-policy.test.ts
+- tests/integration/i18n.test.ts
+- tests/ui/i18n.spec.ts
+

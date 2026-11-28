@@ -9,7 +9,9 @@
 | IBM Bob | .bob/mcp.json | .bob/skills; .bob/settings.json |
 | MCP genérico | .contextory/mcp.json | .contextory/skills para exportação; sem hooks |
 
-Conecte pelos comandos da extensão. O Contextory grava entradas gerenciadas locais do workspace e preserva configurações alheias. Conflitos malformados, links ou entradas sem propriedade falham sem substituição. Clientes nativos mantêm autenticação, seleção de modelo, edição, permissões e confiança. Hooks fornecem lembretes e metadados opcionais.
+Conecte pelos comandos da extensão. O Contextory grava entradas gerenciadas locais do workspace e preserva configurações alheias. Conflitos malformados, links ou entradas sem propriedade falham sem substituição. Clientes nativos mantêm autenticação, seleção de modelo, edição, permissões e confiança. Hooks fornecem lembretes, metadados e decisões de aprovação pendentes.
+
+Além de lembretes e metadados normalizados, hooks nativos impõem decisões de aprovação pendentes antes da implementação e de Stop. Agentes só aprovam automaticamente manutenção/conflitos de implementação; conflitos de processo/resultado aguardam revisão humana. A imposição depende de o cliente confiar e executar os hooks atualizados.
 
 ## Use outro cliente MCP
 
@@ -57,4 +59,9 @@ Remova --dry-run apenas para o projeto consumidor explicitamente escolhido. Clie
 - skills/contextory-workflow/SKILL.md
 - skills/contextory-migrate/SKILL.md
 - tests/integration/headless.test.ts
+- src/hooks/approval.ts
+- src/hooks/launcher.ts
+- src/knowledge/catalog.ts
+- src/core/workflow.ts
+- tests/integration/approval-policy.test.ts
 

@@ -28,7 +28,7 @@ Rebuild hooks grava arquivos gerenciados imediatamente. Reparos com mudanças se
 
 | Sintoma | Ação |
 | --- | --- |
-| Um item continua pendente em Approvals | Leia o erro ao lado do item. Para fontes alteradas, inspecione os arquivos vinculados, informe um motivo, atualize o snapshot e aprove a nova revisão. Referências ausentes ou alvo de proposta obsoleto exigem correção ou rejeição. Atualizar não aprova. |
+| Um item continua pendente em Approvals | Leia o erro ao lado do item. Fontes são atualizadas automaticamente, sem comentário. Restaure arquivos ausentes ou peça ao agente para corrigir referências. Solicite ajustes para um alvo obsoleto ou explicação incompleta; o agente revisa a proposta e aguarda novamente. Se a resposta estiver na fila, retome a conversa vinculada e confira a confiança dos hooks nativos. |
 | Fluxo Python falha | Confira Python 3.10+ e contextory.pythonExecutable; use caminho absoluto se necessário |
 | Raiz de código inesperada | Informe projectId/codebaseId explicitamente e foque o símbolo desejado antes do trace |
 | Busca de código parece obsoleta | Consulte novamente o código salvo; atualize índices vazios/com falha, confira exclusões e gere/reimporte Graphify obsoleto |

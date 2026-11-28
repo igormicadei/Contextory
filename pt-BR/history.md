@@ -1,8 +1,8 @@
 # Histórico de releases e documentos preservados
 
-## Versão documentada atual: 0.9.0
+## Versão documentada atual: 0.11.0
 
-A versão 0.9.0 adiciona a fila Approvals, revisão recuperável de fontes e documentação independente com software-documentation e Carbon incluídos. A versão 0.8.0 introduziu o console responsivo, inicialização em segundo plano, recuperação automática, 256 receitas e fingerprints completos por streaming. As versões anteriores continuam preservadas abaixo.
+A versão 0.11.0 entrega cartões de aprovação em linguagem natural, snapshots automáticos das fontes, solicitações de ajuste, retorno de respostas à conversa exata, recuperação de conversas e revisão opcional recolhível. Inclui a interface inglês/português brasileiro e a política auditada de aprovação introduzidas na linha de código 0.10.0. As notas históricas permanecem preservadas abaixo.
 
 [Instalar a release atual](install.md)
 

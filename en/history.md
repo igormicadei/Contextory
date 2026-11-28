@@ -1,8 +1,8 @@
 # Release history and preserved documents
 
-## Current documented version: 0.9.0
+## Current documented version: 0.11.0
 
-Version 0.9.0 adds a dedicated Approvals queue, recoverable source review and independent project documentation with bundled software-documentation and Carbon. Version 0.8.0 introduced the responsive work console, background startup, automatic recovery, 256 check recipes and complete streamed source fingerprints. Earlier releases remain preserved below.
+Version 0.11.0 delivers plain-language approval cards, automatic source snapshots, requested changes, exact-conversation response delivery and recovery, and collapsible optional baseline review. It includes the English/Brazilian Portuguese UI and audited approval policy introduced in the 0.10.0 source line. Earlier release pages remain preserved below.
 
 [Install the current release](install.md)
 

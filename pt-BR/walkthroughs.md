@@ -31,7 +31,7 @@ Explorador de fluxo limitado do Contextory.
 ## Use Approvals, Knowledge e Versions
 
 1. Abra a aba Approvals ou o alerta para revisar pendências. A aba mostra um contador e não inclui definições já revisadas. Use Tools > Knowledge para buscar definições e consultar a cobertura das fontes.
-2. Para uma linha de base observada ou alteração pendente, leia a proposta exata e informe um motivo antes de Approve baseline, Approve change ou Reject. Apenas uma pessoa usa esses controles de revisão.
+2. Leia a explicação do agente em linguagem natural. Aprovar ou Rejeitar dispensa comentário; escreva instruções apenas ao solicitar ajustes. Snapshots são atualizados automaticamente, e respostas retornam à conversa vinculada pelos hooks confiáveis. Use Reabrir conversa quando a sessão nativa estiver parada.
 3. Abra Tools > Versions para inspecionar versão, commits e planos de release. Revise versão, arquivos e changelog antes de aplicar; Publish é uma ação de release autorizada separadamente.
 
 ![Versões do projeto e detalhes de releases no Panel do editor.](../assets/panel-versions.png)

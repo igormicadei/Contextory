@@ -20,6 +20,14 @@ As imagens existentes são capturas da aplicação com registros de exemplo. O b
 
 A reescrita anterior registrou serviço indisponível; a entrega 0.8.0 recuperou o registro original e usa verificações rastreadas de release. Entradas do catálogo permanecem observações até revisão humana. Confiança nativa, chats autenticados, lacunas estáticas/dinâmicas, workspaces remotos e outros sistemas mantêm limites de qualificação próprios.
 
+## Validação da política de aprovação e rastreabilidade
+
+Fixtures descartáveis exercitam substituição de função com resultado igual, preservação de contrato aprovado, conflitos de implementação auditados, proteções de processo/resultado/regra, aprovação exata de decisões substitutas, fontes obsoletas, rejeição de contorno pelo serviço, persistência e processos reais dos hooks empacotados Codex/Claude/Bob. Fixtures de navegador verificam observações opcionais, contagens obrigatórias e proveniência visível. Os testes validam contratos de launcher/serviço; não automatizam conversas nativas autenticadas, confiança nos hooks ou interceptação de edições não registradas.
+
+## Verificações de localização em inglês e português
+
+As verificações cobrem normalização/fallback de idioma, cobertura de mensagens e manifesto, preservação de marcadores de substitui??o, registros/código/atributos dinâmicos intactos, idioma/CSP das webviews, configuração autenticada por projeto, persistência das orientações em contexto/hooks, regressões em inglês e navegação/acessibilidade/layout em português na barra lateral, painel curto e áreas de exploração. O smoke isolado do editor compara o contexto do projeto com vscode.env.language real. Diagnósticos externos podem preservar o idioma original.
+
 ## Fontes
 
 - package.json
@@ -36,4 +44,22 @@ A reescrita anterior registrou serviço indisponível; a entrega 0.8.0 recuperou
 - tests/ui/console.spec.ts
 - tests/integration/recipe-configuration.test.ts
 - scripts/verify-background-startup.mjs
+- src/hooks/approval.ts
+- src/hooks/launcher.ts
+- src/knowledge/catalog.ts
+- src/core/workflow.ts
+- tests/integration/approval-policy.test.ts
+- src/i18n/index.ts
+- src/i18n/pt-BR.json
+- package.nls.json
+- package.nls.pt-br.json
+- src/webview/document.ts
+- src/service/application.ts
+- src/service/server.ts
+- tests/core/i18n.test.ts
+- tests/integration/i18n.test.ts
+- tests/ui/i18n.spec.ts
+- scripts/check-localization.mjs
+- scripts/localization-catalog.mjs
+- tests/host/smoke.cjs
 

@@ -12,6 +12,8 @@
 
 Proxies MCP nativos conectam-se a descritores privados do serviço local. Hooks fornecem lembretes limitados e metadados normalizados. MCP nativo/independente, resumos e hooks compartilham orientação de execução; configurações específicas dos clientes ficam nos adaptadores.
 
+Além de lembretes e metadados normalizados, hooks nativos impõem decisões de aprovação pendentes antes da implementação e de Stop. Agentes só aprovam automaticamente manutenção/conflitos de implementação; conflitos de processo/resultado aguardam revisão humana. A imposição depende de o cliente confiar e executar os hooks atualizados.
+
 ## Preserve os registros autoritativos
 
 Pedidos, contratos, revisões imutáveis, decisões, evidências, resultados, definições Knowledge e releases são histórico autoritativo. O grafo de código e os índices lexicais/vetoriais são projeções reconstruíveis. Reconstruir a análise não deve apagar o histórico de trabalho.
@@ -32,4 +34,9 @@ O Contextory armazena explicações concisas e metadados observados, não transc
 - src/storage/ledger.ts
 - src/codebase/worker.ts
 - src/agents/instructions.ts
+- src/hooks/approval.ts
+- src/hooks/launcher.ts
+- src/knowledge/catalog.ts
+- src/core/workflow.ts
+- tests/integration/approval-policy.test.ts
 

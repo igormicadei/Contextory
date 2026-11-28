@@ -59,6 +59,20 @@ O empacotamento atualiza VSIX e checksum da versão, mas não publica, altera a 
 
 [Consultar evidências de qualificação](validation.md)
 
+## Manter traduções da interface com segurança
+
+Use package.nls.json e package.nls.pt-br.json nas contribuições da extensão; preserve IDs de comandos e chaves de configuração. Mensagens das webviews/do host usam tx para rótulos controlados ou a tag ui para HTML e mensagens com valores. O helper traduz o texto estático antes de inserir os valores. Não aplique tradução a títulos, descrições, motivos, código ou caminhos armazenados. IDs técnicos, seletores, classes CSS e coordenadas SVG não são localizados.
+
+Traduzir o rótulo e preservar o registro
+
+```typescript
+import { ui } from "../i18n";
+// escape preserves the existing HTML-escaping boundary.
+return ui`<h1>Requests</h1><p>${escape(record.title)}</p>`;
+```
+
+Adicione a mensagem correspondente a src/i18n/pt-BR.json e preserve os marcadores de substitui??o numerados. npm run i18n:check extrai as mensagens declaradas e verifica a cobertura em português, a correspondência dos marcadores de substitui??o e os catálogos do manifesto; npm run check o inclui. Novos textos de agentes na interface seguem contextory_context_get.uiLanguage. Chaves de origem em inglês e identificadores de protocolos/schemas permanecem estáveis. A apresentação de atividades separa a ação localizada do assunto do registro preservado.
+
 ## Fontes
 
 - package.json
@@ -69,4 +83,20 @@ O empacotamento atualiza VSIX e checksum da versão, mas não publica, altera a 
 - .gitattributes
 - .vscodeignore
 - tests/documentation/site.test.mjs
+- skills/contextory-workflow/references/approvals-and-regressions.md
+- src/i18n/index.ts
+- src/i18n/pt-BR.json
+- package.nls.json
+- package.nls.pt-br.json
+- src/extension.ts
+- src/webview/document.ts
+- src/service/application.ts
+- src/service/server.ts
+- src/hooks/launcher.ts
+- tests/core/i18n.test.ts
+- tests/integration/i18n.test.ts
+- tests/ui/i18n.spec.ts
+- scripts/check-localization.mjs
+- scripts/localization-catalog.mjs
+- tests/host/smoke.cjs
 

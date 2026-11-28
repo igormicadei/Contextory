@@ -2,7 +2,7 @@
 
 ## Leia o contrato anunciado
 
-O Contextory 0.9.0 define 39 ferramentas. Os schemas Zod a seguir foram extraídos pelo analisador TypeScript do código salvo sem executar a aplicação. Eles preservam obrigatoriedade, opcionais, padrões e intervalos. tools/list do MCP em execução é autoritativo para a versão instalada. contextory_catalog_review é exclusivo da interface humana mesmo quando seu contrato está visível.
+O Contextory 0.11.0 define 39 ferramentas. Os schemas Zod a seguir foram extraídos pelo analisador TypeScript do código salvo sem executar a aplicação. Eles preservam obrigatoriedade, opcionais, padrões e intervalos. tools/list do MCP em execução é autoritativo para a versão instalada. contextory_catalog_review é exclusivo da interface humana mesmo quando seu contrato está visível.
 
 Toda ferramenta também aceita projectId e workspaceId opcionais. O escopo omitido/current permanece no projeto do servidor. Ferramentas de código também aceitam codebaseId opcional onde o schema/contrato anunciado permitir. Linhas/caracteres nas referências das ferramentas do produto começam em zero; linhas das citações da documentação começam em um.
 
@@ -79,10 +79,9 @@ Leia o registro antes de editar. Registros existentes exigem expectedRevision at
 
 Repara hooks gerenciados de um agente; exige serviço disponível e preserva confiança nativa.
 
-Schema de entrada · src/contracts/tools.ts:126
+Schema de entrada · src/contracts/tools.ts:129
 
 ```typescript
-// contextory_hooks_rebuild
 z.object({
       operationId,
       provider: z.enum(["codex", "claude", "bob"]),
@@ -93,10 +92,9 @@ z.object({
 
 Descobre identidades de projetos/workspaces e estado opcional de pedidos coordenados.
 
-Schema de entrada · src/contracts/tools.ts:134
+Schema de entrada · src/contracts/tools.ts:137
 
 ```typescript
-// contextory_workspace_get
 z.object({ groupId: id.optional() })
 ```
 
@@ -104,10 +102,9 @@ z.object({ groupId: id.optional() })
 
 Cria pedidos locais vinculados nos projetos escolhidos com recuperação de criação parcial.
 
-Schema de entrada · src/contracts/tools.ts:139
+Schema de entrada · src/contracts/tools.ts:142
 
 ```typescript
-// contextory_workspace_request_create
 z.object({
       operationId,
       projectIds: z.array(id).min(2).max(16),
@@ -120,10 +117,9 @@ z.object({
 
 Lê estado global de versões, commits e registros semânticos com paginação independente.
 
-Schema de entrada · src/contracts/tools.ts:149
+Schema de entrada · src/contracts/tools.ts:152
 
 ```typescript
-// contextory_version_get
 z.object({
       releaseId: id.optional(),
       offset: z.number().int().nonnegative().default(0),
@@ -135,10 +131,9 @@ z.object({
 
 Prepara um plano de release sem editar fontes; dispensa lease de especificação.
 
-Schema de entrada · src/contracts/tools.ts:158
+Schema de entrada · src/contracts/tools.ts:161
 
 ```typescript
-// contextory_release_prepare
 z.object({
       operationId,
       bump: z.enum(["auto", "patch", "minor", "major"]).default("auto"),
@@ -150,10 +145,9 @@ z.object({
 
 Aplica, publica, recupera ou cancela um plano autorizado usando a revisão atual.
 
-Schema de entrada · src/contracts/tools.ts:167
+Schema de entrada · src/contracts/tools.ts:170
 
 ```typescript
-// contextory_release_change
 z.object({
       operationId,
       id,
@@ -166,10 +160,9 @@ z.object({
 
 Pagina dados armazenados para documentação preservando sequência, snapshots e proveniência.
 
-Schema de entrada · src/contracts/tools.ts:177
+Schema de entrada · src/contracts/tools.ts:180
 
 ```typescript
-// contextory_project_export
 z.object({
       section: z
         .enum([
@@ -198,10 +191,9 @@ z.object({
 
 Lê definições, propostas pendentes, atualização das fontes e inventário opcional.
 
-Schema de entrada · src/contracts/tools.ts:203
+Schema de entrada · src/contracts/tools.ts:206
 
 ```typescript
-// contextory_catalog_get
 z.object({
       category: category.optional(),
       path: z.string().max(2000).optional(),
@@ -215,12 +207,11 @@ z.object({
 
 ## Alterar catálogo
 
-Sob lease, cria observações ou propõe substituições/aposentadorias exatas de definições.
+Manutenção compatível dispensa nova decisão humana. Agentes também podem aprovar automaticamente conflitos de implementação, registrando avaliação do conflito, motivo, fontes/testes e validação. Conflitos com regras de processo ou resultados, mudanças em comportamento aprovado, aposentadorias e conflitos incertos exigem revisão humana antes da implementação. Observações novas têm revisão inicial opcional e não geram alertas de aprovação obrigatória.
 
-Schema de entrada · src/contracts/tools.ts:216
+Schema de entrada · src/contracts/tools.ts:219
 
 ```typescript
-// contextory_catalog_change
 z.object({
       operationId,
       ...lease,
@@ -228,36 +219,54 @@ z.object({
       id: id.optional(),
       expectedRevision,
       content: catalogContent.optional(),
-      reason: text,
+      reason: text.trim().min(1),
       migrationId: id.optional(),
+      compatibility: z
+        .enum(["preserved", "changed", "conflicting", "unknown"])
+        .default("unknown"),
+      impact: z
+        .enum(["implementation", "process", "outcome", "unknown"])
+        .default("unknown"),
+      autoApprove: z.boolean().default(false),
+      decisionIds: z.array(id).max(30).default([]),
+      explanation: z
+        .object({
+          change: text.trim().min(1),
+          approvalReason: text.trim().min(1),
+          behavior: text.trim().min(1),
+        })
+        .optional(),
     })
 ```
 
 ## Revisar catálogo
 
-Somente interface humana: aprova ou rejeita revisão exata de definição/proposta; agentes não aprovam.
+Exclusivo da interface humana. Aprove/rejeite uma revisão exata sem comentário obrigatório, ou envie feedback com instruções de ajuste. Snapshots das fontes são atualizados automaticamente, sem aprovação. A ação antiga de refresh permanece compatível. Ajustes solicitados mantêm a implementação bloqueada até o agente revisar a proposta e receber outra decisão.
 
-Schema de entrada · src/contracts/tools.ts:230
+Schema de entrada · src/contracts/tools.ts:248
 
 ```typescript
-// contextory_catalog_review
-z.object({
-      operationId,
-      id,
-      expectedRevision: z.number().int().positive(),
-      action: z.enum(["approve", "reject", "refresh"]),
-      reason: text.trim().min(1),
-    })
+z
+      .object({
+        operationId,
+        id,
+        expectedRevision: z.number().int().positive(),
+        action: z.enum(["approve", "reject", "feedback", "refresh"]),
+        reason: z.string().max(12000).trim().default(""),
+      })
+      .refine((p) => p.action !== "feedback" || p.reason.length > 0, {
+        message: "Describe the update you want the agent to make.",
+        path: ["reason"],
+      })
 ```
 
 ## Migrar catálogo
 
 Inicia descrições em lotes retomáveis; candidatos varridos ainda precisam de revisão semântica.
 
-Schema de entrada · src/contracts/tools.ts:241
+Schema de entrada · src/contracts/tools.ts:264
 
 ```typescript
-// contextory_catalog_migrate
 z.object({
       operationId,
       ...lease,
@@ -270,21 +279,21 @@ z.object({
 
 Lê contratos, trabalho ativo, receitas e orientações antes da implementação.
 
-Schema de entrada · src/contracts/tools.ts:251
+Schema de entrada · src/contracts/tools.ts:274
 
 ```typescript
-// contextory_context_get
 z.object({ specId: id.optional() })
 ```
+
+A resposta inclui uiLanguage (en ou pt-BR) e contentLanguageInstruction do projeto configurado pelo editor. Use esse idioma em cada novo texto da interface; preserve o histórico e os identificadores exatos de protocolo/código. Projetos independentes usam inglês por padrão, salvo configuração do editor em seu registro.
 
 ## Consultar entidade
 
 Lê revisão atual ou imutável, página de filhos, job ou página de artefato.
 
-Schema de entrada · src/contracts/tools.ts:256
+Schema de entrada · src/contracts/tools.ts:279
 
 ```typescript
-// contextory_entity_get
 z.object({
       id,
       revision: z.number().int().positive().optional(),
@@ -297,10 +306,9 @@ z.object({
 
 Pagina auditoria; usa nextBefore como before para continuar.
 
-Schema de entrada · src/contracts/tools.ts:266
+Schema de entrada · src/contracts/tools.ts:289
 
 ```typescript
-// contextory_history_get
 z.object({
       entityId: id.optional(),
       before: z.number().int().positive().optional(),
@@ -312,10 +320,9 @@ z.object({
 
 Cria ou revisa um pedido autorizado preservando a intenção original.
 
-Schema de entrada · src/contracts/tools.ts:275
+Schema de entrada · src/contracts/tools.ts:298
 
 ```typescript
-// contextory_request_change
 z.object({
       operationId,
       action: z.enum(["create", "revise"]),
@@ -331,10 +338,9 @@ z.object({
 
 Cria marcos/especificações, revisa/reabre/bloqueia/cancela ou solicita conclusão verificada.
 
-Schema de entrada · src/contracts/tools.ts:288
+Schema de entrada · src/contracts/tools.ts:311
 
 ```typescript
-// contextory_spec_change
 z.object({
       operationId,
       action: z.enum([
@@ -362,10 +368,9 @@ z.object({
 
 Registra sessão do agente; usa o nativeSessionId exato do hook ou o omite.
 
-Schema de entrada · src/contracts/tools.ts:313
+Schema de entrada · src/contracts/tools.ts:336
 
 ```typescript
-// contextory_session_attach
 z.object({ operationId, nativeSessionId: id.optional() })
 ```
 
@@ -373,10 +378,9 @@ z.object({ operationId, nativeSessionId: id.optional() })
 
 Lê modelos/tokens observados; contagens ausentes continuam indisponíveis.
 
-Schema de entrada · src/contracts/tools.ts:318
+Schema de entrada · src/contracts/tools.ts:341
 
 ```typescript
-// contextory_usage_get
 z.object({
       entityId: id.optional(),
       provider: z.enum(["codex", "claude", "bob"]).optional(),
@@ -390,10 +394,9 @@ z.object({
 
 Obtém, renova ou libera o lease de implementação com uma sessão associada.
 
-Schema de entrada · src/contracts/tools.ts:329
+Schema de entrada · src/contracts/tools.ts:352
 
 ```typescript
-// contextory_spec_lease
 z.object({
       operationId,
       specId: id,
@@ -408,10 +411,9 @@ z.object({
 
 Registra problema, impacto e resolução; bloqueios não resolvidos impedem a conclusão.
 
-Schema de entrada · src/contracts/tools.ts:341
+Schema de entrada · src/contracts/tools.ts:364
 
 ```typescript
-// contextory_finding_record
 z.object({
       operationId,
       ...lease,
@@ -429,12 +431,11 @@ z.object({
 
 ## Registrar decisão
 
-Registra escolha, justificativa, alternativas e consequências com fontes.
+Registre impacto e motivo conciso da decisão. Substituições entre decisões de implementação têm revisão automática; conflitos de processo/resultado ou sem classificação exigem approvalId da proposta humana exata, com decisionIds e descrição substituta correspondentes, antes da implementação. Decisões anteriores preservam o conteúdo e os vínculos supersedes entre especificações.
 
-Schema de entrada · src/contracts/tools.ts:358
+Schema de entrada · src/contracts/tools.ts:381
 
 ```typescript
-// contextory_decision_record
 z.object({
       operationId,
       ...lease,
@@ -444,6 +445,10 @@ z.object({
       alternatives: z.string().max(12000).default("None material"),
       consequences: text,
       supersedes: id.optional(),
+      impact: z
+        .enum(["implementation", "process", "outcome", "unknown"])
+        .default("unknown"),
+      approvalId: id.optional(),
       sources: z.array(source).max(30).default([]),
     })
 ```
@@ -452,10 +457,9 @@ z.object({
 
 Registra evidência externa/manual relatada, separada de verificações independentes.
 
-Schema de entrada · src/contracts/tools.ts:373
+Schema de entrada · src/contracts/tools.ts:400
 
 ```typescript
-// contextory_evidence_record
 z.object({
       operationId,
       ...lease,
@@ -471,10 +475,9 @@ z.object({
 
 Executa receita configurada de forma independente e retorna um job para acompanhamento.
 
-Schema de entrada · src/contracts/tools.ts:386
+Schema de entrada · src/contracts/tools.ts:413
 
 ```typescript
-// contextory_check_run
 z.object({
       operationId,
       ...lease,
@@ -487,10 +490,9 @@ z.object({
 
 Envia evidências e relatório persistente; ainda é necessária a ação complete separada.
 
-Schema de entrada · src/contracts/tools.ts:396
+Schema de entrada · src/contracts/tools.ts:423
 
 ```typescript
-// contextory_outcome_submit
 z.object({
       operationId,
       ...lease,
@@ -524,10 +526,9 @@ z.object({
 
 Busca código e memória do projeto por recuperação lexical, semântica ou híbrida.
 
-Schema de entrada · src/contracts/tools.ts:427
+Schema de entrada · src/contracts/tools.ts:454
 
 ```typescript
-// contextory_search
 z.object({
       codebaseId: id.optional(),
       query: z.string().min(1).max(4000),
@@ -540,10 +541,9 @@ z.object({
 
 Recupera contexto atual de código/tarefa ordenado com caminhos e orçamento limitado.
 
-Schema de entrada · src/contracts/tools.ts:437
+Schema de entrada · src/contracts/tools.ts:464
 
 ```typescript
-// contextory_code_context_get
 z.object({
       codebaseId: id.optional(),
       query: z.string().min(1).max(4000),
@@ -557,10 +557,9 @@ z.object({
 
 Lê subsistemas, dependências, entradas e cobertura; refresh usa true por padrão.
 
-Schema de entrada · src/contracts/tools.ts:448
+Schema de entrada · src/contracts/tools.ts:475
 
 ```typescript
-// contextory_code_architecture_get
 z.object({
       codebaseId: id.optional(),
       refresh: z.boolean().default(true),
@@ -571,10 +570,9 @@ z.object({
 
 Explica um caminho indexado limitado entre duas raízes de código/registros.
 
-Schema de entrada · src/contracts/tools.ts:456
+Schema de entrada · src/contracts/tools.ts:483
 
 ```typescript
-// contextory_code_path_get
 z.object({
       codebaseId: id.optional(),
       from: z.string().min(1).max(2500),
@@ -588,10 +586,9 @@ z.object({
 
 Atualiza a projeção de código ou valida/importa dados opcionais Graphify.
 
-Schema de entrada · src/contracts/tools.ts:467
+Schema de entrada · src/contracts/tools.ts:494
 
 ```typescript
-// contextory_code_index_refresh
 z.object({
       codebaseId: id.optional(),
       graphifyPath: z.string().min(1).max(2000).optional(),
@@ -602,10 +599,9 @@ z.object({
 
 Lista o projeto atual e suas referências isoladas somente leitura.
 
-Schema de entrada · src/contracts/tools.ts:475
+Schema de entrada · src/contracts/tools.ts:502
 
 ```typescript
-// contextory_codebase_list
 z.object({})
 ```
 
@@ -613,10 +609,9 @@ z.object({})
 
 Registra ou desconecta uma referência local autorizada; preserva as fontes.
 
-Schema de entrada · src/contracts/tools.ts:480
+Schema de entrada · src/contracts/tools.ts:507
 
 ```typescript
-// contextory_codebase_change
 z
       .object({
         operationId,
@@ -635,10 +630,9 @@ z
 
 Vincula registros ou locais de código com relação tipada e justificativa.
 
-Schema de entrada · src/contracts/tools.ts:496
+Schema de entrada · src/contracts/tools.ts:523
 
 ```typescript
-// contextory_relationship_change
 z.object({
       operationId,
       from: id,
@@ -653,10 +647,9 @@ z.object({
 
 Percorre relações de código/registros com direção, profundidade e tamanho limitados.
 
-Schema de entrada · src/contracts/tools.ts:508
+Schema de entrada · src/contracts/tools.ts:535
 
 ```typescript
-// contextory_impact_get
 z.object({
       codebaseId: id.optional(),
       id: z.string().min(1).max(2500),
@@ -670,10 +663,9 @@ z.object({
 
 Traça chamadas/fluxo limitados a partir de símbolo ou posição.
 
-Schema de entrada · src/contracts/tools.ts:519
+Schema de entrada · src/contracts/tools.ts:546
 
 ```typescript
-// contextory_flow_trace
 z.object({
       codebaseId: id.optional(),
       root: z.object({
@@ -697,10 +689,9 @@ z.object({
 
 Pagina grafo armazenado ou expande fronteira validando o snapshot de código.
 
-Schema de entrada · src/contracts/tools.ts:540
+Schema de entrada · src/contracts/tools.ts:567
 
 ```typescript
-// contextory_flow_expand
 z.object({
       codebaseId: id.optional(),
       graphId: id,
@@ -716,10 +707,9 @@ z.object({
 
 Exporta relatório, changelog de trabalho concluído ou JSON de um pedido por artefato.
 
-Schema de entrada · src/contracts/tools.ts:553
+Schema de entrada · src/contracts/tools.ts:580
 
 ```typescript
-// contextory_report_export
 z.object({
       format: z.enum(["report", "changelog", "json"]).default("report"),
       requestId: id,
@@ -730,10 +720,9 @@ z.object({
 
 Consulte explicações bilíngues por texto/caminho/registro, atualização das fontes, guias incluídos ou job de runtime. A paginação permanece explícita.
 
-Schema de entrada · src/contracts/tools.ts:60
+Schema de entrada · src/contracts/tools.ts:63
 
 ```typescript
-// contextory_docs_get
 z.object({
       section: z
         .enum(["overview", "sections", "guidance", "job"])
@@ -755,10 +744,9 @@ z.object({
 
 Enfileire operações de documentação sob demanda; mutações exigem lease e publicar no Pages exige autorização explícita e publish=true. Consulte o job durável e inspecione seu resultado.
 
-Schema de entrada · src/contracts/tools.ts:79
+Schema de entrada · src/contracts/tools.ts:82
 
 ```typescript
-// contextory_docs_run
 z.object({
       operationId,
       action: z.enum([
@@ -795,10 +783,9 @@ z.object({
 
 Registre após revisão uma associação observada a registros locais vinculada a hashes de origem, preservando revisões/histórico; isso não aprova requisitos.
 
-Schema de entrada · src/contracts/tools.ts:113
+Schema de entrada · src/contracts/tools.ts:116
 
 ```typescript
-// contextory_docs_link
 z.object({
       operationId,
       ...lease,
@@ -947,4 +934,14 @@ Executa mapa/validação/build/export/preview sem publicar nem aprovar fontes.
 - src/contracts/tools.ts
 - src/service/application.ts
 - src/service/server.ts
+- src/i18n/index.ts
+- src/i18n/pt-BR.json
+- package.nls.json
+- package.nls.pt-br.json
+- src/extension.ts
+- src/webview/document.ts
+- src/hooks/launcher.ts
+- tests/core/i18n.test.ts
+- tests/integration/i18n.test.ts
+- tests/ui/i18n.spec.ts
 

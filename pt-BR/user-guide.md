@@ -62,6 +62,22 @@ Use Tools > Documentation para consultar explicações vinculadas às fontes e a
 
 [Leia o guia de documentação de projetos](documentation.md)
 
+## Usar o idioma de exibição do VS Code
+
+O Contextory acompanha o idioma de exibição do editor nos rótulos, títulos de comandos, descrições das configurações, diálogos nativos e controles das webviews. Inglês e português brasileiro são suportados. pt/pt-br selecionam pt-BR; idiomas não suportados usam inglês. Barra lateral, painel horizontal, arquitetura, fluxo do código e relações compartilham o mesmo idioma, inclusive rótulos de acessibilidade e datas.
+
+1. Use o comando Configurar Idioma de Exibição do VS Code e escolha inglês ou português brasileiro. Se necessário, instale o pacote de idioma pelo VS Code e reinicie quando solicitado.
+2. Abra o Contextory. Novas webviews recebem vscode.env.language, e o editor configura esse idioma normalizado para cada projeto conectado.
+3. Peça ao agente para ler contextory_context_get. uiLanguage e contentLanguageInstruction orientam a escrita de cada novo registro da interface no idioma do editor, mesmo quando a conversa usa outro idioma.
+
+Pedidos, definições, decisões, relatórios e identificadores existentes preservam o texto original. A localização traduz mensagens da interface antes de inserir valores dinâmicos; ela nunca reescreve textos armazenados, código, caminhos, IDs ou chaves das ferramentas. Saídas de código/comandos e diagnósticos desconhecidos mantêm o idioma original. Altere o idioma no VS Code e recarregue; o Contextory não possui uma preferência de idioma concorrente.
+
+![Interface do Contextory em português ao redor de registros originais em inglês](../assets/knowledge-pt-BR.png)
+
+Os controles usam português brasileiro; as definições de exemplo preservam exatamente o texto original.
+
+O idioma do projeto só é definido pela configuração autenticada do editor e persiste no armazenamento do serviço daquele projeto. Projetos independentes/headless usam inglês por padrão; ao usar o registro gerenciado pelo editor, preservam o último idioma configurado. Hooks nativos repetem a orientação de idioma no início da sessão e antes das ferramentas, inclusive em respostas de aprovação pendente. Essa é uma instrução ao agente nativo, não um detector de idioma nem tradução automática de sua saída.
+
 ## Fontes
 
 - src/webview/main.ts
@@ -77,4 +93,15 @@ Use Tools > Documentation para consultar explicações vinculadas às fontes e a
 - tests/ui/console.spec.ts
 - tests/integration/recipe-configuration.test.ts
 - scripts/verify-background-startup.mjs
+- src/i18n/index.ts
+- src/i18n/pt-BR.json
+- package.nls.json
+- package.nls.pt-br.json
+- src/webview/document.ts
+- src/service/application.ts
+- src/service/server.ts
+- src/hooks/launcher.ts
+- tests/core/i18n.test.ts
+- tests/integration/i18n.test.ts
+- tests/ui/i18n.spec.ts
 

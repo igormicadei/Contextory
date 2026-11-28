@@ -12,6 +12,8 @@
 
 Native MCP proxies connect to private local service descriptors. Hooks provide bounded lifecycle reminders and normalized metadata. Native/headless MCP, briefs and hooks share runtime guidance; provider-specific configuration remains in explicit adapters.
 
+Native hooks enforce pending approval decisions before implementation and Stop, in addition to lifecycle reminders and normalized metadata. Agents may auto-approve only implementation maintenance/conflicts; process/outcome conflicts wait for human Approvals. Enforcement requires the host to trust and invoke the updated hooks.
+
 ## Preserve authoritative records
 
 Requests, contracts, immutable revisions, decisions, check evidence, outcomes, Knowledge definitions and release records are authoritative project history. The source graph and lexical/vector indexes are projections that can be rebuilt. Rebuilding source analysis must not erase workflow history.
@@ -32,4 +34,9 @@ Contextory stores concise project explanations and observed metadata rather than
 - src/storage/ledger.ts
 - src/codebase/worker.ts
 - src/agents/instructions.ts
+- src/hooks/approval.ts
+- src/hooks/launcher.ts
+- src/knowledge/catalog.ts
+- src/core/workflow.ts
+- tests/integration/approval-policy.test.ts
 

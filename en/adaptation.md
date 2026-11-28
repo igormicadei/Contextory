@@ -9,7 +9,9 @@
 | IBM Bob | .bob/mcp.json | .bob/skills; .bob/settings.json |
 | Generic MCP | .contextory/mcp.json | .contextory/skills export; no hooks |
 
-Connect through the extension commands. Contextory writes owned workspace-local entries and preserves unrelated settings. Malformed, linked or unowned conflicts fail without replacement. Native clients retain authentication, model selection, editing, permissions and trust. Hooks supply optional reminders and metadata.
+Connect through the extension commands. Contextory writes owned workspace-local entries and preserves unrelated settings. Malformed, linked or unowned conflicts fail without replacement. Native clients retain authentication, model selection, editing, permissions and trust. Hooks supply lifecycle reminders, metadata and pending approval decisions.
+
+Native hooks enforce pending approval decisions before implementation and Stop, in addition to lifecycle reminders and normalized metadata. Agents may auto-approve only implementation maintenance/conflicts; process/outcome conflicts wait for human Approvals. Enforcement requires the host to trust and invoke the updated hooks.
 
 ## Use another MCP client
 
@@ -57,4 +59,9 @@ Remove --dry-run only for the explicitly selected consumer project. Supported cl
 - skills/contextory-workflow/SKILL.md
 - skills/contextory-migrate/SKILL.md
 - tests/integration/headless.test.ts
+- src/hooks/approval.ts
+- src/hooks/launcher.ts
+- src/knowledge/catalog.ts
+- src/core/workflow.ts
+- tests/integration/approval-policy.test.ts
 
