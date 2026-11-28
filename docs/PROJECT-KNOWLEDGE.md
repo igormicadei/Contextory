@@ -24,7 +24,7 @@ Read contextory_catalog_get before related changes and page definitions, proposa
 
 ## Review pending items in Approvals
 
-The persistent review alert, Approvals count and editor badge count pending change proposals only. Optional observed baselines remain available in Approvals without blocking work. Notifications are deduplicated per project and exact pending revisions.
+The persistent review alert, Approvals count and editor badge count pending change proposals only. Optional baseline review is collapsed initially; expand its summary with a click or keyboard to inspect observations. The chosen state is retained across refresh and navigation. These observations do not block work.
 
 1. Open Approvals and read the agent’s explanation: what changes, why your approval is needed and how application behavior changes. Knowledge remains the browser for definitions, source coverage and immutable history.
 2. Choose Approve or Reject without entering a comment. To ask for an update first, write your instructions and choose Request changes. A proposal with requested changes still blocks implementation; the agent revises that same proposal and waits for another decision.

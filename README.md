@@ -2,12 +2,12 @@
 
 Contextory connects requests, specifications, source code, decisions and verification evidence in a local project ledger. Keep working in native **Codex**, **Claude Code** or **IBM Bob** chat while the extension preserves the project context needed for the next session.
 
-**Current version: 0.10.0.** This preview is qualified on Windows with trusted local project folders in VS Code and IBM Bob. The project is **UNLICENSED**.
+**Current version: 0.11.0.** This preview is qualified on Windows with trusted local project folders in VS Code and IBM Bob. The project is **UNLICENSED**.
 
 ## Install and start
 
 1. Install **Node.js 24+** and VS Code **1.96+** or IBM Bob. Install and authenticate your preferred native agent separately.
-2. Build the 0.10.0 checkout with `npm ci` and `npm run package:vsix` (or obtain the package from your build provider), verify `artifacts/contextory-workspace-0.10.0.vsix` against its `.sha256` and choose **Extensions > Install from VSIX…**.
+2. Download the [0.11.0 VSIX and checksum](https://github.com/igormicadei/Contextory/releases/tag/v0.11.0), verify the SHA-256 and choose **Extensions > Install from VSIX…**.
 3. Open a trusted local project and select **Contextory** in the activity bar. Automatic setup prepares detected supported agents; review MCP/hooks through the native client's own trust controls.
 4. Configure a meaningful project check recipe, then ask your agent to track an authorized change with acceptance criteria, decisions and test evidence.
 
@@ -39,7 +39,7 @@ A green agent light means MCP traffic was observed in the current service. Nativ
 - [Project documentation](docs/PROJECT-DOCUMENTATION.md): explanations, source/change links and the bundled documentation/Carbon workflow.
 - [Knowledge](docs/PROJECT-KNOWLEDGE.md) and [Versions](docs/PROJECT-RELEASES.md): definitions, review, releases and provenance.
 - [Architecture](docs/NATIVE-AGENT-ARCHITECTURE.md), [development](docs/DEVELOPMENT.md) and [validation](docs/VALIDATION.md).
-- [Release notes](docs/releases/v0.10.0.md) and [changelog](CHANGELOG.md): historical delivery records.
+- [Release notes](docs/releases/v0.11.0.md) and [changelog](CHANGELOG.md): historical delivery records.
 
 The rewritten website uses the documentation skill's **default Carbon layouts** with English and Brazilian Portuguese content, local search, responsive navigation, Markdown and LLM exports. Previous page URLs and heading fragments are preserved. The original English documents remain in the migration archive; current guides in `docs/` are generated from the bilingual corpus.
 
@@ -61,7 +61,7 @@ Documentation tooling requires **Python 3.11+**. Preview opens at `http://127.0.
 
 O Contextory conecta pedidos, especificações, código, decisões e evidências em um registro local do projeto. Continue no chat nativo do **Codex**, **Claude Code** ou **IBM Bob** e recupere o contexto nas próximas sessões.
 
-Instale **Node.js 24+**, VS Code **1.96+** ou IBM Bob e o VSIX **0.10.0**. Gere o pacote com `npm ci` e `npm run package:vsix`; confira o `.sha256` em `artifacts/` antes de instalar. Abra um projeto local confiável, revise a configuração MCP/hooks pelo cliente nativo e configure uma verificação útil do projeto. Python **3.10+** é necessário para análise Python e **3.11+** para geração de documentação sob demanda. A consulta de explicações dispensa Python e instalação de outro plugin. A prévia é qualificada no Windows; permissões e autenticação continuam no cliente nativo.
+Instale **Node.js 24+**, VS Code **1.96+** ou IBM Bob e o VSIX **0.11.0**. Baixe o pacote e seu `.sha256` na release do GitHub e confira o checksum antes de instalar. Abra um projeto local confiável, revise a configuração MCP/hooks pelo cliente nativo e configure uma verificação útil do projeto. Python **3.10+** é necessário para análise Python e **3.11+** para geração de documentação sob demanda. A consulta de explicações dispensa Python e instalação de outro plugin. A prévia é qualificada no Windows; permissões e autenticação continuam no cliente nativo.
 
 A interface segue o idioma do VS Code em inglês ou português brasileiro, e agentes devem escrever novas entradas no mesmo idioma. Conflitos de processo/resultado aguardam revisão humana; manutenção compatível e conflitos de implementação podem receber autoaprovação auditada.
 

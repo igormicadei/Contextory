@@ -17,7 +17,7 @@
   "draft": false,
   "audit": {
     "featuresReviewed": true,
-    "reviewedSourceFingerprint": "f564c0981798e5e51e30b63d916f01dbfc4909060fb7a92491ffe5c24c20f400"
+    "reviewedSourceFingerprint": "cd3b4fe8251767e697083508853f838c7273b3466cd36ba95017a0ed114ab886"
   },
   "features": [
     {
@@ -365,8 +365,8 @@
             {
               "type": "paragraph",
               "text": {
-                "pt-BR": "Este guia descreve o Contextory 0.10.0, uma prévia qualificada no Windows com pastas locais confiáveis no VS Code e IBM Bob. A extensão precisa do Node.js 24+. Python 3.10+ é opcional para análise Python. Cada agente usa sua própria conta, modelo e conversa.",
-                "en": "This guide describes Contextory 0.10.0, a preview qualified on Windows with trusted local folders in VS Code and IBM Bob. The extension needs Node.js 24+. Python 3.10+ is optional for Python analysis. Your agent supplies its own account, model and conversation."
+                "pt-BR": "Este guia descreve o Contextory 0.11.0, uma prévia qualificada no Windows com pastas locais confiáveis no VS Code e IBM Bob. A extensão precisa do Node.js 24+. Python 3.10+ é opcional para análise Python. Cada agente usa sua própria conta, modelo e conversa.",
+                "en": "This guide describes Contextory 0.11.0, a preview qualified on Windows with trusted local folders in VS Code and IBM Bob. The extension needs Node.js 24+. Python 3.10+ is optional for Python analysis. Your agent supplies its own account, model and conversation."
               }
             },
             {
@@ -656,8 +656,8 @@
               "type": "steps",
               "items": [
                 {
-                  "en": "Build from the 0.10.0 checkout with npm ci and npm run package:vsix, or obtain contextory-workspace-0.10.0.vsix and its .sha256 from your build provider. The local artifacts directory contains both files; this build does not upload GitHub release assets.",
-                  "pt-BR": "Gere o pacote a partir do checkout 0.10.0 com npm ci e npm run package:vsix, ou obtenha contextory-workspace-0.10.0.vsix e seu .sha256 com o responsável pela compilação. A pasta local artifacts contém os dois arquivos; essa compilação não envia assets de release ao GitHub."
+                  "en": "Download contextory-workspace-0.11.0.vsix and its .sha256 from the v0.11.0 GitHub release.",
+                  "pt-BR": "Baixe contextory-workspace-0.11.0.vsix e seu .sha256 na release v0.11.0 do GitHub."
                 },
                 {
                   "en": "Compare the package SHA-256 with the accompanying checksum.",
@@ -675,20 +675,20 @@
             },
             {
               "type": "link",
-              "href": "release-v0-10-0",
+              "href": "https://github.com/igormicadei/Contextory/releases/tag/v0.11.0",
               "text": {
-                "en": "Read the 0.10.0 package notes",
-                "pt-BR": "Leia as notas do pacote 0.10.0"
+                "en": "Download version 0.11.0",
+                "pt-BR": "Baixar a versão 0.11.0"
               }
             },
             {
               "type": "code",
               "language": "powershell",
               "caption": {
-                "en": "Verify and install the local package",
-                "pt-BR": "Verificar e instalar o pacote local"
+                "en": "Verify and install the release package",
+                "pt-BR": "Verificar e instalar o pacote da release"
               },
-              "code": "(Get-FileHash -Algorithm SHA256 .\\artifacts\\contextory-workspace-0.10.0.vsix).Hash.ToLowerInvariant()\nGet-Content .\\artifacts\\contextory-workspace-0.10.0.sha256\ncode --install-extension .\\artifacts\\contextory-workspace-0.10.0.vsix"
+              "code": "(Get-FileHash -Algorithm SHA256 .\\contextory-workspace-0.11.0.vsix).Hash.ToLowerInvariant()\nGet-Content .\\contextory-workspace-0.11.0.sha256\ncode --install-extension .\\contextory-workspace-0.11.0.vsix"
             },
             {
               "type": "paragraph",
@@ -2111,8 +2111,8 @@
             {
               "type": "paragraph",
               "text": {
-                "en": "The persistent review alert, Approvals count and editor badge count pending change proposals only. Optional observed baselines remain available in Approvals without blocking work. Notifications are deduplicated per project and exact pending revisions.",
-                "pt-BR": "O alerta persistente, a contagem de Approvals e o badge do editor contam somente propostas de alteração pendentes. Linhas de base observadas continuam disponíveis para revisão opcional em Approvals, sem bloquear o trabalho. As notificações são deduplicadas por projeto e revisões pendentes exatas."
+                "en": "The persistent review alert, Approvals count and editor badge count pending change proposals only. Optional baseline review is collapsed initially; expand its summary with a click or keyboard to inspect observations. The chosen state is retained across refresh and navigation. These observations do not block work.",
+                "pt-BR": "O alerta persistente, a contagem de Aprovações e o badge do editor contam somente propostas de alteração pendentes. A revisão opcional da linha de base começa recolhida; expanda o resumo com clique ou teclado para inspecionar observações. O estado escolhido é mantido ao atualizar e navegar. Essas observações não bloqueiam o trabalho."
               }
             },
             {
@@ -4995,15 +4995,15 @@
         {
           "id": "current-version",
           "title": {
-            "en": "Current documented version: 0.10.0",
-            "pt-BR": "Versão documentada atual: 0.10.0"
+            "en": "Current documented version: 0.11.0",
+            "pt-BR": "Versão documentada atual: 0.11.0"
           },
           "blocks": [
             {
               "type": "paragraph",
               "text": {
-                "en": "Version 0.10.0 adds audited agent auto-approval for compatible maintenance and implementation conflicts, enforced waiting for process/outcome review, regression traceability and English/Brazilian Portuguese UI following VS Code. Version 0.9.0 added the dedicated Approvals queue and bundled project documentation; version 0.8.0 introduced the responsive work console and recovery. Earlier releases remain preserved below.",
-                "pt-BR": "A versão 0.10.0 adiciona autoaprovação auditada para manutenção compatível e conflitos de implementação, espera obrigatória na revisão de processo/resultado, rastreabilidade de regressões e interface em inglês/português brasileiro seguindo o VS Code. A versão 0.9.0 adicionou a fila Approvals e documentação integrada; a versão 0.8.0 introduziu o console responsivo e recuperação. As versões anteriores continuam preservadas abaixo."
+                "en": "Version 0.11.0 delivers plain-language approval cards, automatic source snapshots, requested changes, exact-conversation response delivery and recovery, and collapsible optional baseline review. It includes the English/Brazilian Portuguese UI and audited approval policy introduced in the 0.10.0 source line. Earlier release pages remain preserved below.",
+                "pt-BR": "A versão 0.11.0 entrega cartões de aprovação em linguagem natural, snapshots automáticos das fontes, solicitações de ajuste, retorno de respostas à conversa exata, recuperação de conversas e revisão opcional recolhível. Inclui a interface inglês/português brasileiro e a política auditada de aprovação introduzidas na linha de código 0.10.0. As notas históricas permanecem preservadas abaixo."
               }
             },
             {
@@ -5100,8 +5100,8 @@
             {
               "type": "paragraph",
               "text": {
-                "pt-BR": "O Contextory 0.10.0 define 39 ferramentas. Os schemas Zod a seguir foram extraídos pelo analisador TypeScript do código salvo sem executar a aplicação. Eles preservam obrigatoriedade, opcionais, padrões e intervalos. tools/list do MCP em execução é autoritativo para a versão instalada. contextory_catalog_review é exclusivo da interface humana mesmo quando seu contrato está visível.",
-                "en": "Contextory 0.10.0 defines 39 tools. The following Zod schema excerpts were extracted with the TypeScript parser from the saved source without executing application code. They preserve required/optional/default/range semantics. The running MCP tools/list response is authoritative for the installed client version. contextory_catalog_review is human-UI-only even if its contract is visible."
+                "pt-BR": "O Contextory 0.11.0 define 39 ferramentas. Os schemas Zod a seguir foram extraídos pelo analisador TypeScript do código salvo sem executar a aplicação. Eles preservam obrigatoriedade, opcionais, padrões e intervalos. tools/list do MCP em execução é autoritativo para a versão instalada. contextory_catalog_review é exclusivo da interface humana mesmo quando seu contrato está visível.",
+                "en": "Contextory 0.11.0 defines 39 tools. The following Zod schema excerpts were extracted with the TypeScript parser from the saved source without executing application code. They preserve required/optional/default/range semantics. The running MCP tools/list response is authoritative for the installed client version. contextory_catalog_review is human-UI-only even if its contract is visible."
               }
             },
             {
@@ -6125,6 +6125,124 @@
                 "pt-BR": "Schema de entrada · src/contracts/tools.ts:116"
               },
               "code": "z.object({\n      operationId,\n      ...lease,\n      pageId: id,\n      sectionId: id,\n      corpusFingerprint: z.string().length(64),\n      recordIds: z.array(id).max(30),\n      reason: text,\n    })"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "release-v0-11-0",
+      "title": {
+        "en": "Release v0.11.0",
+        "pt-BR": "Release v0.11.0"
+      },
+      "sources": [
+        {
+          "path": "package.json"
+        },
+        {
+          "path": "src/contracts/model.ts"
+        },
+        {
+          "path": "src/knowledge/catalog.ts"
+        },
+        {
+          "path": "src/core/conversations.ts"
+        },
+        {
+          "path": "src/hooks/review-wait.ts"
+        },
+        {
+          "path": "src/providers/conversations.ts"
+        },
+        {
+          "path": "src/webview/catalog.ts"
+        },
+        {
+          "path": "src/webview/main.ts"
+        },
+        {
+          "path": "tests/ui/catalog.spec.ts"
+        },
+        {
+          "path": "tests/integration/approval-conversations.test.ts"
+        }
+      ],
+      "sections": [
+        {
+          "id": "approval-review",
+          "title": {
+            "en": "Decide from a clear explanation",
+            "pt-BR": "Decida a partir de uma explicação clara"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Approval cards ask the agent to explain what changes, why approval is needed and how application behavior changes. Approve or Reject needs no comment. Request changes accepts instructions, keeps implementation blocked and lets the agent update the same proposal before another decision. Historical before/after definitions, actors, hashes and rationale remain indexed.",
+                "pt-BR": "Cartões de aprovação pedem que o agente explique o que muda, por que a aprovação é necessária e como o comportamento da aplicação muda. Aprovar ou Rejeitar dispensa comentário. Solicitar ajustes aceita instruções, mantém a implementação bloqueada e permite atualizar a mesma proposta antes de outra decisão. Definições antes/depois, autores, hashes e justificativas permanecem indexados."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Readable source snapshots refresh automatically without a user comment or implicit approval. Missing references, concurrent edits and changed targets remain protected. Optional baseline review starts collapsed and can be opened with a click or keyboard; its chosen state survives refresh and navigation. Pending approval decisions remain visible.",
+                "pt-BR": "Snapshots de fontes legíveis são atualizados automaticamente, sem comentário do usuário nem aprovação implícita. Referências ausentes, edições concorrentes e alvos alterados continuam protegidos. A revisão opcional começa recolhida e pode ser aberta com clique ou teclado; o estado escolhido sobrevive à atualização e navegação. Decisões pendentes continuam visíveis."
+              }
+            }
+          ]
+        },
+        {
+          "id": "conversation",
+          "title": {
+            "en": "Keep the originating conversation",
+            "pt-BR": "Mantenha a conversa de origem"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "The project, provider and exact native session are retained on linked work and proposals. Durable approval/rejection/feedback replies return only to that session through trusted hooks. A waiting hook can return the response within a four-minute budget; expiry or service failure never grants approval. Queued/offered/unbound status distinguishes transport from model execution.",
+                "pt-BR": "Projeto, provedor e sessão nativa exata são mantidos no trabalho e nas propostas vinculadas. Respostas duráveis de aprovação/rejeição/feedback retornam apenas à mesma sessão por hooks confiáveis. Um hook em espera pode retornar a resposta dentro de quatro minutos; expiração ou falha do serviço nunca concede aprovação. Estados de fila/envio/sem vínculo distinguem transporte de execução pelo modelo."
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Reopen conversation uses the installed Claude session command. Codex resumes the exact saved conversation in an interactive terminal and requires its CLI. Bob/generic clients or unavailable adapters copy the session ID for native history recovery. A stopped or untrusted client may need manual resume; unknown historical session identities are never guessed. Native permissions, sign-in and history availability stay with the client.",
+                "pt-BR": "Reabrir conversa usa o comando de sessão do Claude instalado. Codex retoma a conversa salva exata em um terminal interativo e requer sua CLI. Bob/clientes genéricos ou adaptadores indisponíveis copiam o ID para recuperação no histórico nativo. Um cliente parado ou sem confiança pode exigir retomada manual; identidades históricas desconhecidas nunca são adivinhadas. Permissões, autenticação e disponibilidade do histórico continuam no cliente nativo."
+              }
+            }
+          ]
+        },
+        {
+          "id": "install",
+          "title": {
+            "en": "Install and verify",
+            "pt-BR": "Instale e verifique"
+          },
+          "blocks": [
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Download contextory-workspace-0.11.0.vsix and the matching .sha256, compare the SHA-256, then use Extensions > Install from VSIX. Reload the editor and native integrations when prompted so the new tool contracts and waiting hooks are discovered. Review hook trust in the native client. English and Brazilian Portuguese follow the VS Code display language, including instructions for new agent-authored UI entries.",
+                "pt-BR": "Baixe contextory-workspace-0.11.0.vsix e o .sha256 correspondente, compare o SHA-256 e use Extensions > Install from VSIX. Recarregue o editor e as integrações nativas quando solicitado para descobrir os contratos e hooks de espera atualizados. Revise a confiança dos hooks no cliente nativo. Inglês e português brasileiro seguem o idioma do VS Code, incluindo instruções para novas entradas da interface escritas pelo agente."
+              }
+            },
+            {
+              "type": "link",
+              "href": "https://github.com/igormicadei/Contextory/releases/tag/v0.11.0",
+              "text": {
+                "en": "Download the 0.11.0 release",
+                "pt-BR": "Baixar a release 0.11.0"
+              }
+            },
+            {
+              "type": "paragraph",
+              "text": {
+                "en": "Qualification covers approval behavior and source history, live waiting-hook responses, service/headless/registration boundaries, English/Portuguese UI, keyboard collapse/recovery, bilingual documentation, canonical skill consistency and package checksums. Trusted local Windows workspaces with Node.js 24+ remain the qualified environment. Authenticated live model conversations retain their native-client limits.",
+                "pt-BR": "A qualificação cobre aprovação e histórico das fontes, respostas reais de hooks em espera, limites de serviço/headless/registro, interface inglês/português, recolhimento por teclado, documentação bilíngue, consistência de skills e checksums. Workspaces locais confiáveis no Windows com Node.js 24+ continuam o ambiente qualificado. Conversas autenticadas com modelos mantêm os limites dos clientes nativos."
+              }
             }
           ]
         }
