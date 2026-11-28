@@ -1,5 +1,37 @@
 # Changelog
 
+## 0.11.0 (2026-11-28)
+
+### Commits
+
+- 2cce0c027a2d743e5620b22b533588b6cd3fadfa: chore: qualify 0.10.0 documentation and VSIX
+- d38a5a1cd614e3cfa1ac819537eb5f3422e06297: feat: add conversational approval review and collapsible baselines
+
+### Project decisions, features and rules recorded in this interval
+
+These ledger entries are associated by recording interval, not verified commit inclusion. Refer to their immutable revisions for provenance.
+
+- DEC-5458beb3@1 (decision, active): Separate automatic source snapshots from human decisions and keep replies conversation-bound
+- DEC-8f8514bd@1 (decision, active): Version the new approval and localization capabilities as 0.10.0
+- KCH-576e3ce3@2 (knowledge_change, auto_approved): revise: Audited conversation continuity and bilingual agent review guidance
+- KCH-b286f8bc@2 (knowledge_change, auto_approved): revise: Automatic review snapshots without comments or implicit approval
+- KN-053f4a2f@1 (knowledge, observed): Version 0.10.0 local package and source qualification
+- KN-43f52b52@1 (knowledge, observed): Conversation-scoped review response queue
+- KN-4b871155@2 (knowledge, observed): Audited conversation continuity and bilingual agent review guidance
+- KN-525e8f49@1 (knowledge, observed): Exact-session native conversation recovery
+- KN-7b091862@2 (knowledge, observed): Automatic review snapshots without comments or implicit approval
+- KN-937bb419@1 (knowledge, observed): Bounded native approval waiting
+- KN-bf321cfd@1 (knowledge, observed): Plain-language approval and requested changes
+- OUT-9f4068f4@1 (outcome, submitted): Implemented automatic approval-source snapshots, plain-language review cards with comment-free decisions and requested changes, and exact-session review response delivery with native conversation reco
+- OUT-b5bf0d26@1 (outcome, submitted): Bumped Contextory to 0.10.0, built and inspected the local VSIX/checksum, committed the selective approval/localization implementation and bilingual release documentation, and pushed verified clean ma
+- REQ-8d907e3c@2 (request, completed): Simplify approvals and reconnect review to its originating conversation
+- REQ-cfe42d87@2 (request, completed): Bump Contextory to 0.10.0, build VSIX, commit and push
+- REQ-fc01e7dd@1 (request, active): Release Contextory 0.11.0 with conversational approvals and collapsible optional review
+- SPEC-2dae3395@2 (spec, implementing): Collapse optional baselines and publish the verified minor release
+- SPEC-6b6ed52a@5 (spec, completed): Version, package, commit and push the completed features
+- SPEC-90d82e4d@5 (spec, completed): Automatic source freshness, conversational approval feedback and exact-session recovery
+
+
 ## 0.10.0 (2026-11-24)
 
 ### Commits
